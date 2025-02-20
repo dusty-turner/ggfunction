@@ -1,0 +1,14 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^.*\.Rproj$
+^\.Rproj\.user$
+dusty_files*
+^README\.Rmd$
+^README_cache$
+^docs$
+^_pkgdown\.yml$
+^pkgdown$
+^\\.github$
+.github
+^LICENSE\.md$
