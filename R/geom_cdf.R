@@ -111,7 +111,7 @@ StatCDF <- ggproto("StatCDF", Stat,
     xseq <- seq(range[1], range[2], length.out = n)
     y_out <- fun_injected(xseq)
 
-    tibble::tibble(x = xseq, y = y_out)
+    data.frame(x = xseq, y = y_out)
   }
 )
 

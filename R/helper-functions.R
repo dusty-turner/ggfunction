@@ -21,7 +21,7 @@ times <- `*`
 
 #' @noRd
 tibble0 <- function(...) {
-  tibble::tibble(..., .name_repair = "minimal")
+  data.frame(..., .name_repair = "minimal")
 }
 
 #' @noRd
@@ -57,6 +57,20 @@ check_pdf_normalization <- function(f, lower, upper, tol = 1e-3) {
                            res$value, lower, upper, tol))
   }
   invisible(res$value)
+}
+
+#' @noRd
+check_pmf_normalization <- function(f, support, tol = 1e-3) {
+  vals <- try(f(support), silent = TRUE)
+  if (inherits(vals, "try-error")) {
+    stop("Error evaluating the PMF over the provided support. Please check your function definition.")
+  }
+  total <- sum(vals)
+  if (abs(total - 1) > tol) {
+    cli::cli_alert(sprintf("The provided function sums to %.4f over the support [%g, %g], which is not equal to 1 within a tolerance of %.3f.",
+                           total, min(support), max(support), tol))
+  }
+  invisible(total)
 }
 
 #' @noRd
