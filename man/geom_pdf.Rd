@@ -25,7 +25,7 @@ geom_pdf(
   n = 101,
   args = list(),
   xlim = NULL,
-  fill = "#734F60",
+  fill = "#cccccc",
   color = "black",
   p = NULL,
   lower.tail = TRUE

@@ -44,7 +44,7 @@ geom_pdf <- function(
     n = 101,
     args = list(),
     xlim = NULL,
-    fill = "#734F60",
+    fill = "#cccccc",
     color = "black",
     p = NULL,
     lower.tail = TRUE
@@ -114,12 +114,10 @@ StatPDF <- ggproto("StatPDF", Stat,
 #' @rdname geom_pdf
 #' @export
 GeomPDF <- ggproto("GeomPDF", GeomArea,
-  draw_panel = function(self, data, panel_params, coord,
-                        arrow = NULL,
+  draw_panel = function(self, data, panel_params, coord, arrow = NULL,
                         lineend = "butt", linejoin = "round", linemitre = 10,
-                        na.rm = FALSE,
-                        p = NULL, lower.tail = TRUE) {
-
+                        na.rm = FALSE, p = NULL, lower.tail = TRUE
+                        ) {
 
     x_vals <- data$x
     y_vals <- data$y
@@ -161,6 +159,8 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
         clip_data,
         transform(clip_data[nrow(clip_data), , drop = FALSE], x = clip_range[2], y = 0)
       )
+
+    poly_data$colour <- NA
 
     # Create the filled area grob using GeomArea’s draw_panel.
     area_grob <- ggproto_parent(GeomArea, self)$draw_panel(
