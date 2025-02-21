@@ -45,3 +45,19 @@ vectorize <- function(f, drop = TRUE) {
 
 #' @noRd
 `%||%` <- function(a, b) if (!is.null(a)) a else b
+
+#' @noRd
+check_pdf_normalization <- function(f, lower, upper, tol = 1e-3) {
+  res <- try(integrate(f, lower, upper), silent = TRUE)
+  if (inherits(res, "try-error")) {
+    stop(sprintf("Error integrating the function over the range [%g, %g]. Please check your function definition.", lower, upper))
+  }
+  if (abs(res$value - 1) > tol) {
+    cli::cli_alert(sprintf("The provided function integrates to %.4f over the range [%g, %g], which is not equal to 1 within a tolerance of %.3f.",
+                           res$value, lower, upper, tol))
+  }
+  invisible(res$value)
+}
+
+#' @noRd
+utils::globalVariables(c("x", "y"))
