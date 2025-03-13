@@ -44,7 +44,7 @@ geom_pdf <- function(
     n = 101,
     args = list(),
     xlim = NULL,
-    fill = "#cccccc",
+    fill = "grey20",
     color = "black",
     p = NULL,
     lower.tail = TRUE
@@ -102,7 +102,7 @@ StatPDF <- ggproto("StatPDF", Stat,
     }
 
     # Check that the injected function integrates to 1 over the specified range.
-    invisible(check_pdf_normalization(fun_injected, lower = range[1], upper = range[2], tol = 1e-2))
+    invisible(check_pdf_normalization(fun_injected, lower = -Inf, upper = range[2], tol = 1e-2))
 
     xseq <- seq(range[1], range[2], length.out = n)
     y_out <- fun_injected(xseq)

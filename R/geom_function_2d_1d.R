@@ -97,6 +97,13 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
                               show.legend = NA,
                               inherit.aes = TRUE) {
 
+  if (is.null(xlim)) {
+    xlim <- c(-1, 1)
+  }
+  if (is.null(ylim)) {
+    ylim <- c(-1, 1)
+  }
+
   # If no data and no x,y aesthetics are specified, but we have fun, xlim, ylim,
   # we need dummy data to trigger compute_group().
   if (is.null(data) && !is.null(fun) && !is.null(xlim) && !is.null(ylim)) {
@@ -137,6 +144,19 @@ stat_function_2d_1d <- function(mapping = NULL, data = NULL,
                               xlim = c(-1, 1),
                               ylim = c(-1, 1),
                               n = 50) {
+
+  if (is.null(xlim)) {
+    xlim <- c(-1, 1)
+  }
+  if (is.null(ylim)) {
+    ylim <- c(-1, 1)
+  }
+
+  # If no data and no x,y aesthetics are specified, but we have fun, xlim, ylim,
+  # we need dummy data to trigger compute_group().
+  if (is.null(data) && !is.null(fun) && !is.null(xlim) && !is.null(ylim)) {
+    data <- data.frame(x = NA_real_, y = NA_real_)
+  }
 
   # Pass the parameters via `params` only
   layer(
