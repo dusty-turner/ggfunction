@@ -176,8 +176,8 @@ Defaults to \code{"rk4"}.}
 streamline. Defaults to a closed arrow with a 30° angle and a length of
 \code{0.02} npc.}
 
-\item{geom}{The geometric object used to render the streamline. Defaults to
-\link[ggvfields]{GeomStream}.}
+\item{geom}{The geometric object used to render the streamlines (defaults to
+\link[ggvfields]{GeomStream}).}
 }
 \value{
 A ggplot2 layer that computes and renders streamlines over the

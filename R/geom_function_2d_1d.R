@@ -86,16 +86,18 @@
 #' ggplot() +
 #'   geom_function_2d_1d(fun = f_spiral, xlim = c(-50, 50), ylim = c(-50, 50), n = 500)
 
+#' @rdname geom_function_2d_1d
+#' @export
 geom_function_2d_1d <- function(mapping = NULL, data = NULL,
-                              stat = StatFunction2d, geom = GeomFunction2d,
-                              ...,
-                              position = "identity",
-                              fun = NULL,
-                              xlim = NULL,
-                              ylim = NULL,
-                              n = NULL,
-                              show.legend = NA,
-                              inherit.aes = TRUE) {
+                                stat = StatFunction2d, geom = GeomFunction2d,
+                                ...,
+                                position = "identity",
+                                fun = NULL,
+                                xlim = NULL,
+                                ylim = NULL,
+                                n = NULL,
+                                show.legend = TRUE,
+                                inherit.aes = TRUE) {
 
   if (is.null(xlim)) {
     xlim <- c(-1, 1)
@@ -110,7 +112,11 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
     data <- data.frame(x = NA_real_, y = NA_real_)
   }
 
-  # Pass the parameters via `params` only
+  # Use after_stat() to map the computed 'z' to the fill aesthetic for legend support.
+  if (is.null(mapping)) {
+    mapping <- aes(fill = after_stat(z))
+  }
+
   layer(
     stat = stat,
     geom = geom,
@@ -128,8 +134,6 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
     )
   )
 }
-
-
 
 
 #' @rdname geom_function_2d_1d
@@ -232,7 +236,11 @@ GeomFunction2d <- ggproto(
   "GeomFunction2d",
   Geom,
 
-  default_aes = aes(color = "black", alpha = 1),
+  # Use fill rather than color so that a continuous scale mapping can be applied
+  default_aes = aes(fill = "black", alpha = 1),
+
+  # Replace draw_key_raster with draw_key_rect (which is exported)
+  draw_key = ggplot2::draw_key_rect,
 
   draw_group = function(data, panel_params, coord, na.rm = FALSE, ...) {
     coords <- coord$transform(data, panel_params)
@@ -243,8 +251,8 @@ GeomFunction2d <- ggproto(
     nrow_val <- length(unique_x)
     ncol_val <- length(unique_y)
 
-    # Extract color and alpha from aesthetics
-    base_color <- coords$colour[1] %||% "black"
+    # Use the fill aesthetic to generate the color gradient
+    base_color <- coords$fill[1] %||% "black"
     alpha_val <- coords$alpha[1]
 
     # Create a palette from white to the user-specified color
@@ -252,7 +260,7 @@ GeomFunction2d <- ggproto(
     n_colors <- 256
     color_levels <- pal(n_colors)
 
-    # Map norm values to indices in the color palette
+    # Map computed z values to indices in the color palette
     norm_indices <- round(scales::rescale(coords$z, to = c(1, n_colors)))
     norm_indices[is.na(norm_indices)] <- 1
 

@@ -74,4 +74,4 @@ check_pmf_normalization <- function(f, support, tol = 1e-3) {
 }
 
 #' @noRd
-utils::globalVariables(c("x", "y", "p", "GeomLine"))
+utils::globalVariables(c("x", "y", "z", "p", "GeomLine"))

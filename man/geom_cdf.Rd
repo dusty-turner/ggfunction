@@ -25,7 +25,7 @@ geom_cdf(
   n = 101,
   args = list(),
   xlim = NULL,
-  fill = "#cccccc",
+  fill = "grey20",
   color = "black",
   p = NULL,
   lower.tail = TRUE

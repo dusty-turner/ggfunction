@@ -10,7 +10,7 @@
 \format{
 An object of class \code{StatFunction2d} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{GeomFunction2d} (inherits from \code{Geom}, \code{ggproto}, \code{gg}) of length 3.
+An object of class \code{GeomFunction2d} (inherits from \code{Geom}, \code{ggproto}, \code{gg}) of length 4.
 }
 \usage{
 geom_function_2d_1d(
@@ -24,7 +24,7 @@ geom_function_2d_1d(
   xlim = NULL,
   ylim = NULL,
   n = NULL,
-  show.legend = NA,
+  show.legend = TRUE,
   inherit.aes = TRUE
 )
 
