@@ -223,7 +223,12 @@ StatFunction2d <- ggproto(
 
     }
 
-    data <- data.frame(x = data$x, y = data$y, fill = data$fill)
+    if(is.numeric(data$z)) {
+      data <- data.frame(x = data$x, y = data$y, z = data$z)
+    }
+    if(is.numeric(data$fill)) {
+      data <- data.frame(x = data$x, y = data$y, fill = data$fill)
+    }
 
     data
   }
