@@ -223,65 +223,16 @@ StatFunction2d <- ggproto(
 
     }
 
-    data <- data.frame(x = data$x, y = data$y, z = data$z)
+    data <- data.frame(x = data$x, y = data$y, fill = data$fill)
 
     data
   }
 )
 
-
 #' @rdname geom_function_2d_1d
 #' @export
-GeomFunction2d <- ggproto(
+GeomFunction2d <- ggplot2::ggproto(
   "GeomFunction2d",
-  Geom,
-
-  # Use fill rather than color so that a continuous scale mapping can be applied
-  default_aes = aes(fill = "black", alpha = 1),
-
-  # Replace draw_key_raster with draw_key_rect (which is exported)
-  draw_key = ggplot2::draw_key_rect,
-
-  draw_group = function(data, panel_params, coord, na.rm = FALSE, ...) {
-    coords <- coord$transform(data, panel_params)
-
-    # Determine grid dimensions from unique x and y values
-    unique_x <- sort(unique(coords$x))
-    unique_y <- sort(unique(coords$y))
-    nrow_val <- length(unique_x)
-    ncol_val <- length(unique_y)
-
-    # Use the fill aesthetic to generate the color gradient
-    base_color <- coords$fill[1] %||% "black"
-    alpha_val <- coords$alpha[1]
-
-    # Create a palette from white to the user-specified color
-    pal <- grDevices::colorRampPalette(c("white", base_color))
-    n_colors <- 256
-    color_levels <- pal(n_colors)
-
-    # Map computed z values to indices in the color palette
-    norm_indices <- round(scales::rescale(coords$z, to = c(1, n_colors)))
-    norm_indices[is.na(norm_indices)] <- 1
-
-    # Create a matrix of colors corresponding to the norm values
-    image_matrix <- matrix(
-      color_levels[norm_indices],
-      nrow = nrow_val,
-      ncol = ncol_val,
-      byrow = TRUE
-    )
-
-    raster_grob <- grid::rasterGrob(
-      image = image_matrix,
-      x = unit(0.5, "npc"),   # Centered in the plot space
-      y = unit(0.5, "npc"),
-      width = unit(1, "npc"),
-      height = unit(1, "npc"),
-      interpolate = TRUE,
-      gp = grid::gpar(alpha = alpha_val)
-    )
-
-    raster_grob
-  }
+  ggplot2::GeomRaster,
+  default_aes = ggplot2::aes(fill = "black", alpha = 1)
 )
