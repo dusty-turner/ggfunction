@@ -1,8 +1,6 @@
 ggfunction
 ================
 
-# ggfunction
-
 <!-- badges: start -->
 
 <!-- badges: end -->
@@ -63,17 +61,17 @@ ggplot() +
 ### Parametric curves ($\mathbb{R} \to \mathbb{R}^2$)
 
 The graph of a function $\phi(t) = (x(t), y(t))$ is a curve in the plane
-$\R^{2}$; these are *parametric* curves that operate over some range \$t
+$\mathbb{R}^{2}$.
 
 ``` r
 f <- function(t) c(sin(t), t * cos(t))
 ggplot() +
-  geom_function_1d_2d(fun = f, T = 20, tail_point = TRUE)
+  geom_function_1d_2d(fun = f, T = 20)
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
-Tail points and arrow heads can be added with the respective arguments:
+Tail points can be added with `tail_point = TRUE`:
 
 ``` r
 ggplot() +
@@ -130,37 +128,51 @@ Shade below a quantile, between two quantiles, or shade the tails.
 
 ``` r
 ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975, fill = "tomato")
+  geom_pdf(fun = dnorm, xlim = c(-3, 3))
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ``` r
-# Middle 95%
 ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, fill = "steelblue")
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975)
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
 
 ``` r
-# Both tails
+# Middle 95%
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE, fill = "tomato")
+    p_lower = 0.025, p_upper = 0.975)
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+``` r
+# Both tails
+ggplot() +
+  geom_pdf(fun = dnorm, xlim = c(-3, 3),
+    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
 
 ### CDF
 
 ``` r
 ggplot() +
-  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, fill = "darkgreen")
+  geom_cdf(fun = pnorm, xlim = c(-3, 3))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+``` r
+ggplot() +
+  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
 
 ### PMF (lollipop)
 
@@ -169,7 +181,7 @@ ggplot() +
   geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
 
 ### Quantile function
 
@@ -178,7 +190,7 @@ ggplot() +
   geom_qf(fun = qnorm, args = list(mean = 0, sd = 1))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
 
 ### Discrete CDF (step function)
 
@@ -187,7 +199,7 @@ ggplot() +
   geom_discrete_cdf(fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
 
 ### Survival function
 
@@ -198,7 +210,7 @@ ggplot() +
   geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
 
 ### Hazard function
 
@@ -209,7 +221,7 @@ ggplot() +
   geom_hf(pdf_fun = dexp, cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0.01, 10))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
 
 ## Installation
 

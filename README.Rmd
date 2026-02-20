@@ -5,9 +5,6 @@ output:
     toc: false
 ---
 
-
-# ggfunction
-
 <!-- badges: start -->
 <!-- badges: end -->
 
@@ -61,15 +58,15 @@ ggplot() +
 
 ### Parametric curves ($\mathbb{R} \to \mathbb{R}^2$)
 
-The graph of a function $\phi(t) = (x(t), y(t))$ is a curve in the plane $\R^{2}$; these are *parametric* curves that operate over some range $t \in 
+The graph of a function $\phi(t) = (x(t), y(t))$ is a curve in the plane $\mathbb{R}^{2}$.
 
 ```{r}
 f <- function(t) c(sin(t), t * cos(t))
 ggplot() +
-  geom_function_1d_2d(fun = f, T = 20, tail_point = TRUE)
+  geom_function_1d_2d(fun = f, T = 20)
 ```
 
-Tail points and arrow heads can be added with the respective arguments:
+Tail points can be added with `tail_point = TRUE`:
 
 ```{r}
 ggplot() +
@@ -116,28 +113,38 @@ Shade below a quantile, between two quantiles, or shade the tails.
 
 ```{r}
 ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975, fill = "tomato")
+  geom_pdf(fun = dnorm, xlim = c(-3, 3))
+```
+
+```{r}
+ggplot() +
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975)
 ```
 
 ```{r}
 # Middle 95%
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, fill = "steelblue")
+    p_lower = 0.025, p_upper = 0.975)
 ```
 
 ```{r}
 # Both tails
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE, fill = "tomato")
+    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE)
 ```
 
 ### CDF
 
 ```{r}
 ggplot() +
-  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, fill = "darkgreen")
+  geom_cdf(fun = pnorm, xlim = c(-3, 3))
+```
+
+```{r}
+ggplot() +
+  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975)
 ```
 
 ### PMF (lollipop)
@@ -192,5 +199,4 @@ pak::pak("dusty-turner/ggfunction")
 
 - Browse the [vignette](vignettes/ggfunction.Rmd) for a guided walkthrough
 - File bugs or feature requests at <https://github.com/dusty-turner/ggfunction/issues>
-
 
