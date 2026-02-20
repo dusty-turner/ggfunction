@@ -5,6 +5,23 @@ output:
     toc: false
 ---
 
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/readme-",
+  out.width = "60%",
+  fig.width = 6,
+  fig.height = 4,
+  warning = FALSE,
+  message = FALSE
+)
+library(ggfunction)
+library(ggplot2)
+```
+
 <!-- badges: start -->
 <!-- badges: end -->
 
@@ -31,36 +48,27 @@ The package is organized around two families of geoms:
 
 ## Dimensional Taxonomy
 
-
-
 ### Scalar functions ($\mathbb{R} \to \mathbb{R}$)
 
 At a basic level, `geom_function_1d_1d()`{.R} is essentially a re-implementation of `ggplot2::geom_function()`:
 
-```{r}
-library("ggfunction")
-
+```{r 1d-1d}
 ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(0, 2*pi))
 ```
 
 However, `geom_function_1d_1d()`{.R} also allows for shading to the $x$ axis:
 
-```{r}
+```{r 1d-1d-shade}
 ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(-3, 3), shade_from = -1, shade_to = 1)
 ```
-
-
-
-
-
 
 ### Parametric curves ($\mathbb{R} \to \mathbb{R}^2$)
 
 The graph of a function $\phi(t) = (x(t), y(t))$ is a curve in the plane $\mathbb{R}^{2}$.
 
-```{r}
+```{r 1d-2d}
 f <- function(t) c(sin(t), t * cos(t))
 ggplot() +
   geom_function_1d_2d(fun = f, T = 20)
@@ -68,32 +76,28 @@ ggplot() +
 
 Tail points can be added with `tail_point = TRUE`:
 
-```{r}
+```{r 1d-2d-tail}
 ggplot() +
   geom_function_1d_2d(fun = f, T = 20, tail_point = TRUE)
 ```
-
 
 ### Scalar fields ($\mathbb{R}^2 \to \mathbb{R}$)
 
 Visualize a scalar field as a raster, contour lines, or filled contours using the `type` argument.
 
-```{r}
-f <- function(u) {
-  x <- u[1]; y <- u[2]
-  sin(2*pi*x) + sin(2*pi*y)
-}
+```{r 2d-1d-raster}
+f <- function(v) exp(-(v[1]^2 + v[2]^2) / 2)
 
 ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
 ```
 
-```{r}
+```{r 2d-1d-contour}
 ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "contour")
 ```
 
-```{r}
+```{r 2d-1d-filled}
 ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "contour_filled")
 ```
@@ -102,12 +106,8 @@ ggplot() +
 
 Draw streamlines from a vector field.
 
-```{r}
-f <- function(u) {
-  x <- u[1]; y <- u[2]
-  c(-y, x)
-}
-
+```{r 2d-2d}
+f <- function(u) c(-u[2], u[1])
 ggplot() +
   geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
 ```
@@ -118,22 +118,24 @@ ggplot() +
 
 Shade below a quantile, between two quantiles, or shade the tails.
 
-```{r}
+```{r geom-pdf}
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3))
 ```
 
-```{r}
+```{r geom-pdf-p}
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975)
 ```
 
-```{r}
+```{r pdf-twosided}
+# Middle 95%
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3), p_lower = 0.025, p_upper = 0.975)
 ```
 
-```{r}
+```{r pdf-tails}
+# Both tails
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3),
     p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE)
@@ -143,12 +145,12 @@ ggplot() +
 
 ### CDF
 
-```{r}
+```{r geom-cdf}
 ggplot() +
   geom_cdf(fun = pnorm, xlim = c(-3, 3))
 ```
 
-```{r}
+```{r geom-cdf-p}
 ggplot() +
   geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975)
 ```
@@ -161,7 +163,7 @@ ggplot() +
 
 ### PMF (lollipop)
 
-```{r}
+```{r geom-pmf}
 ggplot() +
   geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
 ```
@@ -173,14 +175,14 @@ ggplot() +
 
 ### Quantile function
 
-```{r}
+```{r geom-qf}
 ggplot() +
   geom_qf(fun = qnorm, args = list(mean = 0, sd = 1))
 ```
 
 ### Discrete CDF (step function)
 
-```{r}
+```{r discrete-cdf}
 ggplot() +
   geom_discrete_cdf(fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10))
 ```
@@ -189,7 +191,7 @@ ggplot() +
 
 $S(x) = 1 - F(x)$
 
-```{r}
+```{r survival}
 ggplot() +
   geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 ```
@@ -198,11 +200,10 @@ ggplot() +
 
 $h(x) = f(x) / S(x)$
 
-```{r}
+```{r hazard}
 ggplot() +
   geom_hf(pdf_fun = dexp, cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0.01, 10))
 ```
-
 
 ## Installation
 
@@ -211,9 +212,7 @@ ggplot() +
 pak::pak("dusty-turner/ggfunction")
 ```
 
-
 ## Getting help
 
 - Browse the [vignette](vignettes/ggfunction.Rmd) for a guided walkthrough
 - File bugs or feature requests at <https://github.com/dusty-turner/ggfunction/issues>
-

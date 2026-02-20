@@ -1,8 +1,8 @@
 ggfunction
 ================
 
+<!-- README.md is generated from README.Rmd. Please edit that file -->
 <!-- badges: start -->
-
 <!-- badges: end -->
 
 **ggfunction** extends [**ggplot2**](https://ggplot2.tidyverse.org/)
@@ -14,19 +14,19 @@ functions related to probability distributions.
 
 The package is organized around two families of geoms:
 
-| Family | Geom | Maps | Description |
-|----|----|----|----|
-| **Dimensional** | `geom_function_1d_1d()` | $\mathbb{R} \to \mathbb{R}$ | Scalar functions with optional interval shading |
-|  | `geom_function_1d_2d()` | $\mathbb{R} \to \mathbb{R}^2$ | Parametric curves |
-|  | `geom_function_2d_1d()` | $\mathbb{R}^2 \to \mathbb{R}$ | Scalar fields (raster, contour, filled contour) |
-|  | `geom_function_2d_2d()` | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector field streamlines |
-| **Probability** | `geom_pdf()` |  | Probability density function |
-|  | `geom_cdf()` |  | Cumulative distribution function |
-|  | `geom_pmf()` |  | Probability mass function (lollipop) |
-|  | `geom_qf()` |  | Quantile function |
-|  | `geom_discrete_cdf()` |  | Discrete CDF (step function) |
-|  | `geom_survival()` |  | Survival function $S(x) = 1 - F(x)$ |
-|  | `geom_hf()` |  | Hazard function $h(x) = f(x)/S(x)$ |
+| Family          | Geom                    | Maps                            | Description                                     |
+|-----------------|-------------------------|---------------------------------|-------------------------------------------------|
+| **Dimensional** | `geom_function_1d_1d()` | $\mathbb{R} \to \mathbb{R}$     | Scalar functions with optional interval shading |
+|                 | `geom_function_1d_2d()` | $\mathbb{R} \to \mathbb{R}^2$   | Parametric curves                               |
+|                 | `geom_function_2d_1d()` | $\mathbb{R}^2 \to \mathbb{R}$   | Scalar fields (raster, contour, filled contour) |
+|                 | `geom_function_2d_2d()` | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector field streamlines                        |
+| **Probability** | `geom_pdf()`            |                                 | Probability density function                    |
+|                 | `geom_cdf()`            |                                 | Cumulative distribution function                |
+|                 | `geom_pmf()`            |                                 | Probability mass function (lollipop)            |
+|                 | `geom_qf()`             |                                 | Quantile function                               |
+|                 | `geom_discrete_cdf()`   |                                 | Discrete CDF (step function)                    |
+|                 | `geom_survival()`       |                                 | Survival function $S(x) = 1 - F(x)$             |
+|                 | `geom_hf()`             |                                 | Hazard function $h(x) = f(x)/S(x)$              |
 
 ## Dimensional Taxonomy
 
@@ -36,17 +36,11 @@ At a basic level, `geom_function_1d_1d()` is essentially a
 re-implementation of `ggplot2::geom_function()`:
 
 ``` r
-library("ggfunction")
-```
-
-    ## Loading required package: ggplot2
-
-``` r
 ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(0, 2*pi))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+<img src="man/figures/readme-1d-1d-1.png" alt="" width="60%" />
 
 However, `geom_function_1d_1d()` also allows for shading to the $x$
 axis:
@@ -56,7 +50,7 @@ ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(-3, 3), shade_from = -1, shade_to = 1)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+<img src="man/figures/readme-1d-1d-shade-1.png" alt="" width="60%" />
 
 ### Parametric curves ($\mathbb{R} \to \mathbb{R}^2$)
 
@@ -69,7 +63,7 @@ ggplot() +
   geom_function_1d_2d(fun = f, T = 20)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+<img src="man/figures/readme-1d-2d-1.png" alt="" width="60%" />
 
 Tail points can be added with `tail_point = TRUE`:
 
@@ -78,7 +72,7 @@ ggplot() +
   geom_function_1d_2d(fun = f, T = 20, tail_point = TRUE)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+<img src="man/figures/readme-1d-2d-tail-1.png" alt="" width="60%" />
 
 ### Scalar fields ($\mathbb{R}^2 \to \mathbb{R}$)
 
@@ -92,21 +86,21 @@ ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+<img src="man/figures/readme-2d-1d-raster-1.png" alt="" width="60%" />
 
 ``` r
 ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+<img src="man/figures/readme-2d-1d-contour-1.png" alt="" width="60%" />
 
 ``` r
 ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour_filled")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+<img src="man/figures/readme-2d-1d-filled-1.png" alt="" width="60%" />
 
 ### Vector fields ($\mathbb{R}^2 \to \mathbb{R}^2$)
 
@@ -118,7 +112,7 @@ ggplot() +
   geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+<img src="man/figures/readme-2d-2d-1.png" alt="" width="60%" />
 
 ## Probability Distributions
 
@@ -131,14 +125,14 @@ ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+<img src="man/figures/readme-geom-pdf-1.png" alt="" width="60%" />
 
 ``` r
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+<img src="man/figures/readme-geom-pdf-p-1.png" alt="" width="60%" />
 
 ``` r
 # Middle 95%
@@ -147,7 +141,7 @@ ggplot() +
     p_lower = 0.025, p_upper = 0.975)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+<img src="man/figures/readme-pdf-twosided-1.png" alt="" width="60%" />
 
 ``` r
 # Both tails
@@ -156,7 +150,7 @@ ggplot() +
     p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+<img src="man/figures/readme-pdf-tails-1.png" alt="" width="60%" />
 
 ### CDF
 
@@ -165,14 +159,14 @@ ggplot() +
   geom_cdf(fun = pnorm, xlim = c(-3, 3))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+<img src="man/figures/readme-geom-cdf-1.png" alt="" width="60%" />
 
 ``` r
 ggplot() +
   geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+<img src="man/figures/readme-geom-cdf-p-1.png" alt="" width="60%" />
 
 ### PMF (lollipop)
 
@@ -181,7 +175,7 @@ ggplot() +
   geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+<img src="man/figures/readme-geom-pmf-1.png" alt="" width="60%" />
 
 ### Quantile function
 
@@ -190,7 +184,7 @@ ggplot() +
   geom_qf(fun = qnorm, args = list(mean = 0, sd = 1))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
+<img src="man/figures/readme-geom-qf-1.png" alt="" width="60%" />
 
 ### Discrete CDF (step function)
 
@@ -199,7 +193,7 @@ ggplot() +
   geom_discrete_cdf(fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+<img src="man/figures/readme-discrete-cdf-1.png" alt="" width="60%" />
 
 ### Survival function
 
@@ -210,7 +204,7 @@ ggplot() +
   geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+<img src="man/figures/readme-survival-1.png" alt="" width="60%" />
 
 ### Hazard function
 
@@ -221,7 +215,7 @@ ggplot() +
   geom_hf(pdf_fun = dexp, cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0.01, 10))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-19-1.png)<!-- -->
+<img src="man/figures/readme-hazard-1.png" alt="" width="60%" />
 
 ## Installation
 
