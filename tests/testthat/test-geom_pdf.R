@@ -23,6 +23,17 @@ test_that("geom_pdf builds a ggplot without error", {
   expect_silent(ggplot_build(p))
 })
 
+test_that("geom_pdf exposes linewidth as an explicit argument", {
+  expect_true("linewidth" %in% names(formals(geom_pdf)))
+  p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3), linewidth = 3)
+  expect_equal(p$layers[[1]]$aes_params$linewidth, 3)
+})
+
+test_that("geom_pdf defaults alpha to 0.80", {
+  p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3))
+  expect_equal(p$layers[[1]]$aes_params$alpha, 0.8)
+})
+
 test_that("geom_pdf with p shading builds without error", {
   p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975)
   expect_s3_class(p, "gg")

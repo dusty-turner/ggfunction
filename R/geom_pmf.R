@@ -1,32 +1,39 @@
 #' Plot a Probability Mass Function as Lollipops
 #'
-#' `geom_pmf()` creates a ggplot2 layer that plots a probability mass function (PMF)
-#' using a lollipop representation. Vertical dashed segments extend from zero up to the
-#' probability value at each integer support value and a point is drawn at the top.
+#' `geom_pmf()` creates a ggplot2 layer that plots a probability mass function
+#' (PMF) using a lollipop representation. Vertical dashed segments extend from
+#' zero up to the probability value at each integer support value and a point is
+#' drawn at the top.
 #'
 #' @inheritParams ggplot2::geom_point
-#' @param fun A function to compute the PMF (e.g. [dbinom] or [dpois]). The function must
-#'   accept a numeric vector as its first argument and return non-negative probability values.
-#'   (Ideally, the probabilities sum to 1 over the support.)
-#' @param xlim A numeric vector of length 2 specifying the range (of x values) over which to
-#'   evaluate the PMF. If not provided, a default range of 0 to 10 is used.
-#' @param point_size Size of the points at the top of each lollipop (defaults to 4).
+#' @param fun A function to compute the PMF (e.g. [dbinom] or [dpois]). The
+#'   function must accept a numeric vector as its first argument and return
+#'   non-negative probability values. (Ideally, the probabilities sum to 1 over
+#'   the support.)
+#' @param xlim A numeric vector of length 2 specifying the range (of x values)
+#'   over which to evaluate the PMF. If not provided, a default range of 0 to 10
+#'   is used.
+#' @param point_size Size of the points at the top of each lollipop (defaults to
+#'   4).
 #' @param stick_linewidth Linewidth of the vertical sticks (defaults to 0.5).
-#' @param stick_linetype Linetype of the vertical sticks (defaults to `"dashed"`).
-#' @param color Color for the points and for the segments (defaults to `"black"`).
+#' @param stick_linetype Linetype of the vertical sticks (defaults to
+#'   `"dashed"`).
+#' @param color Color for the points and for the segments (defaults to
+#'   `"black"`).
 #' @param args A named list of additional arguments to pass to `fun`.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @return A ggplot2 layer.
 #'
 #' @examples
-#'   # Plot a binomial PMF with n = 10 and p = 0.5 over 0 to 10.
-#'   ggplot() +
-#'     geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.25), xlim = c(0, 10))
 #'
-#'   # now a Poisson
-#'   ggplot() +
-#'     geom_pmf(fun = dpois, args = list(lambda = 6), xlim = c(0, 15))
+#' # Plot a binomial PMF with n = 10 and p = 0.5 over 0 to 10.
+#' ggplot() +
+#'   geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.25), xlim = c(0, 10))
+#'
+#' # Plot a Poisson(6) from x = 0 to x = 15
+#' ggplot() +
+#'   geom_pmf(fun = dpois, args = list(lambda = 6), xlim = c(0, 15))
 #'
 #' @name geom_pmf
 #' @aliases StatPMF GeomPMF
@@ -41,8 +48,8 @@ geom_pmf <- function(mapping = NULL,
                      inherit.aes = TRUE,
                      fun,
                      xlim = NULL,
-                     point_size = 4,
-                     stick_linewidth = 0.5,
+                     point_size = 2.5,
+                     stick_linewidth = 0.25,
                      stick_linetype = "dashed",
                      color = "black",
                      args = list()) {
@@ -109,7 +116,7 @@ StatPMF <- ggproto("StatPMF", Stat,
 GeomPMF <- ggproto("GeomPMF", GeomPoint,
 
   draw_panel = function(self, data, panel_params, coord, na.rm = FALSE,
-                        point_size = 4, stick_linewidth = 0.5,
+                        point_size = 2.5, stick_linewidth = 0.25,
                         stick_linetype = "dashed") {
 
     # Build segment data for the sticks

@@ -15,6 +15,8 @@
 #' @param xlim A numeric vector of length 2 giving the x-range over which to evaluate the PDF.
 #' @param fill Fill color for the shaded area.
 #' @param color Line color for the outline of the density curve.
+#' @param linewidth Line width for the outline of the density curve.
+#' @param alpha Alpha transparency for the shaded area.
 #' @param p (Optional) A numeric value between 0 and 1 specifying the cumulative probability
 #'   threshold. The area will be shaded up until the point where the cumulative density reaches
 #'   this value.
@@ -31,8 +33,8 @@
 #' @return A ggplot2 layer.
 #'
 #' @examples
-#'   ggplot() +
-#'     geom_pdf(fun = dnorm, xlim = c(-3, 3),  p = .975, lower.tail = TRUE)
+#' ggplot() +
+#'   geom_pdf(fun = dnorm, xlim = c(-3, 3),  p = .975, lower.tail = TRUE)
 #'
 #' @name geom_pdf
 #' @aliases StatPDF GeomPDF
@@ -52,6 +54,8 @@ geom_pdf <- function(
     xlim = NULL,
     fill = "grey20",
     color = "black",
+    linewidth = NULL,
+    alpha = 0.35,
     p = NULL,
     lower.tail = TRUE,
     p_lower = NULL,
@@ -69,6 +73,14 @@ geom_pdf <- function(
     mapping <- modifyList(default_mapping, mapping)
   }
 
+  linewidth_params <- if (is.null(linewidth)) {
+    list()
+  } else if (utils::packageVersion("ggplot2") < "3.4.0") {
+    list(size = linewidth)
+  } else {
+    list(linewidth = linewidth)
+  }
+
   layer(
     data = data,
     mapping = mapping,
@@ -77,20 +89,24 @@ geom_pdf <- function(
     position = position,
     show.legend = show.legend,
     inherit.aes = inherit.aes,
-    params = list(
-      fun = fun,
-      n = n,
-      xlim = xlim,
-      args = args,
-      na.rm = na.rm,
-      fill = fill,
-      color = color,
-      p = p,
-      lower.tail = lower.tail,
-      p_lower = p_lower,
-      p_upper = p_upper,
-      shade_outside = shade_outside,
-      ...
+    params = c(
+      list(
+        fun = fun,
+        n = n,
+        xlim = xlim,
+        args = args,
+        na.rm = na.rm,
+        fill = fill,
+        color = color,
+        alpha = alpha,
+        p = p,
+        lower.tail = lower.tail,
+        p_lower = p_lower,
+        p_upper = p_upper,
+        shade_outside = shade_outside
+      ),
+      linewidth_params,
+      list(...)
     )
   )
 }
@@ -235,4 +251,3 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
     do.call(grid::grobTree, c(area_grobs, list(line_grob)))
   }
 )
-

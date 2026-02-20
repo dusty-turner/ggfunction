@@ -79,20 +79,23 @@ ggplot() +
 Visualize a scalar field as a raster, contour lines, or filled contours using the `type` argument.
 
 ```{r}
-f <- function(v) exp(-(v[1]^2 + v[2]^2) / 2)
+f <- function(u) {
+  x <- u[1]; y <- u[2]
+  sin(2*pi*x) + sin(2*pi*y)
+}
 
 ggplot() +
-  geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3))
+  geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
 ```
 
 ```{r}
 ggplot() +
-  geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour")
+  geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "contour")
 ```
 
 ```{r}
 ggplot() +
-  geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour_filled")
+  geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "contour_filled")
 ```
 
 ### Vector fields ($\mathbb{R}^2 \to \mathbb{R}^2$)
@@ -100,7 +103,11 @@ ggplot() +
 Draw streamlines from a vector field.
 
 ```{r}
-f <- function(u) c(-u[2], u[1])
+f <- function(u) {
+  x <- u[1]; y <- u[2]
+  c(-y, x)
+}
+
 ggplot() +
   geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
 ```
@@ -122,18 +129,17 @@ ggplot() +
 ```
 
 ```{r}
-# Middle 95%
 ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975)
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p_lower = 0.025, p_upper = 0.975)
 ```
 
 ```{r}
-# Both tails
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3),
     p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE)
 ```
+
+
 
 ### CDF
 
@@ -147,12 +153,23 @@ ggplot() +
   geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975)
 ```
 
+
+
+
+
+
+
 ### PMF (lollipop)
 
 ```{r}
 ggplot() +
   geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
 ```
+
+
+
+
+
 
 ### Quantile function
 
