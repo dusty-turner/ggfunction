@@ -53,10 +53,16 @@ packages:
     - ggfunction
     - ggvfields
 CTV: ~
-output:
-  rjtools::rjournal_article:
+output: 
+  rjtools::rjournal_pdf_article:
+    toc: no
+  rjtools::rjournal_web_article:
     self_contained: yes
     toc: no
+    includes:
+      in_header: resources/mathjax_macros.html
+    lua-filter: parse-fig-caption.lua
+    dev: svg
 bibliography: RJreferences.bib
 ---
 

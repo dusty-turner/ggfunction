@@ -1,0 +1,62 @@
+\begin{thebibliography}{9}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Casella and Berger(2002)]{casella2002statistical}
+G.~Casella and R.~L. Berger.
+\newblock \emph{Statistical Inference}.
+\newblock Duxbury, 2nd edition, 2002.
+
+\bibitem[Cs{\'a}rdi(2024)]{cli}
+G.~Cs{\'a}rdi.
+\newblock \emph{{cli}: Helpers for Developing Command Line Interfaces}, 2024.
+\newblock URL \url{https://CRAN.R-project.org/package=cli}.
+\newblock R package.
+
+\bibitem[Henry and Wickham(2024)]{rlang}
+L.~Henry and H.~Wickham.
+\newblock \emph{{rlang}: Functions for Base Types and Core \proglang{R} and Tidyverse Features}, 2024.
+\newblock URL \url{https://CRAN.R-project.org/package=rlang}.
+\newblock R package.
+
+\bibitem[Kay(2024)]{kay2024ggdist}
+M.~Kay.
+\newblock {ggdist}: Visualizations of distributions and uncertainty in the grammar of graphics.
+\newblock \emph{IEEE Transactions on Visualization and Computer Graphics}, 30\penalty0 (1):\penalty0 983--993, 2024.
+\newblock \doi{10.1109/TVCG.2023.3327195}.
+
+\bibitem[Pruim et~al.(2017)Pruim, Kaplan, and Horton]{pruim2017mosaic}
+R.~Pruim, D.~T. Kaplan, and N.~J. Horton.
+\newblock The mosaic package: Helping students to ``think with data'' using \proglang{R}.
+\newblock \emph{The R Journal}, 9\penalty0 (1):\penalty0 77--102, 2017.
+\newblock \doi{10.32614/RJ-2017-024}.
+
+\bibitem[Turner and Kahle(2026)]{ggvfields}
+D.~Turner and D.~Kahle.
+\newblock \emph{{ggvfields}: Vector Field Visualizations with {ggplot2}}, 2026.
+\newblock URL \url{https://github.com/dusty-turner/ggvfields}.
+\newblock R package version 0.1.0.
+
+\bibitem[Wickham(2010)]{wickham2010layered}
+H.~Wickham.
+\newblock A layered grammar of graphics.
+\newblock \emph{Journal of Computational and Graphical Statistics}, 19\penalty0 (1):\penalty0 3--28, 2010.
+\newblock \doi{10.1198/jcgs.2009.07098}.
+
+\bibitem[Wickham(2016)]{wickham2016ggplot2}
+H.~Wickham.
+\newblock \emph{{ggplot2}: Elegant Graphics for Data Analysis}.
+\newblock Springer-Verlag New York, 2nd edition, 2016.
+\newblock ISBN 978-3-319-24277-4.
+\newblock URL \url{https://ggplot2-book.org/}.
+
+\bibitem[Wilkinson(2005)]{wilkinson2005grammar}
+L.~Wilkinson.
+\newblock \emph{The Grammar of Graphics}.
+\newblock Springer-Verlag New York, 2nd edition, 2005.
+\newblock \doi{10.1007/0-387-28695-0}.
+
+\end{thebibliography}
