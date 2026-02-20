@@ -7,7 +7,12 @@ output:
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-`ggfunction` extends `ggplot2` with layers for plotting mathematical functions and probability functions.
+# ggfunction
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+**ggfunction** extends [ggplot2](https://ggplot2.tidyverse.org/) with geom layers for plotting mathematical functions and probability distributions directly --- no need to pre-compute data frames.
 
 ## Installation
 
@@ -16,142 +21,188 @@ output:
 pak::pak("dusty-turner/ggfunction")
 ```
 
-## What This Package Does
+## Overview
 
-### 1D to 2D Parametric Streams
+The package is organized around two families of geoms:
 
-`geom_function_1d_2d()` maps a 1D input (usually time) into a 2D path.
+| Family | Geom | Maps | Description |
+|--------|------|------|-------------|
+| **Dimensional** | `geom_function_1d_1d()` | $\mathbb{R} \to \mathbb{R}$ | Scalar functions with optional interval shading |
+| | `geom_function_1d_2d()` | $\mathbb{R} \to \mathbb{R}^2$ | Parametric curves |
+| | `geom_function_2d_1d()` | $\mathbb{R}^2 \to \mathbb{R}$ | Scalar fields (raster, contour, filled contour) |
+| | `geom_function_2d_2d()` | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector field streamlines |
+| **Probability** | `geom_pdf()` | | Probability density function |
+| | `geom_cdf()` | | Cumulative distribution function |
+| | `geom_pmf()` | | Probability mass function (lollipop) |
+| | `geom_qf()` | | Quantile function |
+| | `geom_discrete_cdf()` | | Discrete CDF (step function) |
+| | `geom_survival()` | | Survival function $S(x) = 1 - F(x)$ |
+| | `geom_hf()` | | Hazard function $h(x) = f(x)/S(x)$ |
 
-```{r ex-1d-2d, eval=FALSE}
-library(ggplot2)
-library(ggfunction)
+## Dimensional Taxonomy
 
+### Scalar functions ($\mathbb{R} \to \mathbb{R}$)
+
+Plot any univariate function. Behaves like `ggplot2::geom_function()` but supports interval shading via `shade_from` / `shade_to`.
+
+```{r, eval=FALSE}
+ggplot() +
+  geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi))
+```
+
+<img src="man/figures/readme-1d-1d.png" width="60%"/>
+
+```{r, eval=FALSE}
+ggplot() +
+  geom_function_1d_1d(
+    fun = dnorm, xlim = c(-3, 3),
+    shade_from = -1, shade_to = 1, fill = "steelblue"
+  )
+```
+
+<img src="man/figures/readme-1d-1d-shade.png" width="60%"/>
+
+### Parametric curves ($\mathbb{R} \to \mathbb{R}^2$)
+
+Map a scalar parameter to a 2D path.
+
+```{r, eval=FALSE}
 f <- function(t) c(sin(t), t * cos(t))
-
 ggplot() +
   geom_function_1d_2d(fun = f, T = 20, tail_point = TRUE)
 ```
 
-![1D to 2D stream example](docs/reference/geom_function_1d_2d-1.png)
+<img src="man/figures/readme-1d-2d.png" width="60%"/>
 
-### 2D to 1D Scalar Fields
+### Scalar fields ($\mathbb{R}^2 \to \mathbb{R}$)
 
-`geom_function_2d_1d()` evaluates a scalar function on a grid and renders it as a raster layer.
+Visualize a scalar field as a raster, contour lines, or filled contours using the `type` argument.
 
-```{r ex-2d-1d, eval=FALSE}
-f <- function(v) {
-  x <- v[1]
-  y <- v[2]
-  sin(sqrt(x^2 + y^2))
-}
-
-ggplot() +
-  geom_function_2d_1d(fun = f, xlim = c(-50, 50), ylim = c(-50, 50), n = 200)
-```
-
-![2D to 1D scalar field example](docs/reference/geom_function_2d_1d-4.png)
-
-### 2D to 2D Vector Fields
-
-`geom_function_2d_2d()` draws streamlines from a vector field function.
-
-```{r ex-2d-2d, eval=FALSE}
-f <- function(u) c(-u[2], u[1])
-
-ggplot() +
-  geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
-```
-
-![2D to 2D vector field example](docs/reference/geom_function_2d_2d-1.png)
-
-### Probability Distribution Layers
-
-The package includes helper layers for common statistical functions.
-
-#### Probability Density Function (`geom_pdf`)
-
-```{r ex-pdf, eval=FALSE}
-ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975, lower.tail = TRUE)
-```
-
-![PDF example](man/figures/readme-geom-pdf.png)
-
-#### Cumulative Distribution Function (`geom_cdf`)
-
-```{r ex-cdf, eval=FALSE}
-ggplot() +
-  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, lower.tail = TRUE)
-```
-
-![CDF example](man/figures/readme-geom-cdf.png)
-
-#### Probability Mass Function (`geom_pmf`)
-
-```{r ex-pmf, eval=FALSE}
-ggplot() +
-  geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.25), xlim = c(0, 10))
-```
-
-![PMF example](man/figures/readme-geom-pmf.png)
-
-#### Quantile Function (`geom_qf`)
-
-```{r ex-qf, eval=FALSE}
-ggplot() +
-  geom_qf(fun = qnorm, args = list(mean = 3, sd = 2))
-```
-
-![QF example](man/figures/readme-geom-qf.png)
-
-### New in v0.1.0
-
-#### General R to R Function (`geom_function_1d_1d`)
-
-```{r ex-1d-1d, eval=FALSE}
-ggplot() +
-  geom_function_1d_1d(fun = dnorm, xlim = c(-3, 3),
-    shade_from = -1, shade_to = 1, fill = "steelblue")
-```
-
-#### Discrete CDF (`geom_discrete_cdf`)
-
-```{r ex-dcdf, eval=FALSE}
-ggplot() +
-  geom_discrete_cdf(fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10))
-```
-
-#### Survival Function (`geom_survival`)
-
-```{r ex-surv, eval=FALSE}
-ggplot() +
-  geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
-```
-
-#### Hazard Function (`geom_hf`)
-
-```{r ex-hf, eval=FALSE}
-ggplot() +
-  geom_hf(pdf_fun = dexp, cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0.01, 10))
-```
-
-#### Two-sided Shading for PDF/CDF
-
-```{r ex-two-sided, eval=FALSE}
-ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3), p_lower = 0.025, p_upper = 0.975, fill = "steelblue")
-```
-
-#### Contour Support for 2D to 1D
-
-```{r ex-contour, eval=FALSE}
+```{r, eval=FALSE}
 f <- function(v) exp(-(v[1]^2 + v[2]^2) / 2)
+
+ggplot() +
+  geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3))
+```
+
+<img src="man/figures/readme-2d-1d-raster.png" width="60%"/>
+
+```{r, eval=FALSE}
+ggplot() +
+  geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour")
+```
+
+<img src="man/figures/readme-2d-1d-contour.png" width="60%"/>
+
+```{r, eval=FALSE}
 ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour_filled")
 ```
 
-## Learn More
+<img src="man/figures/readme-2d-1d-filled.png" width="60%"/>
 
-- Reference: `docs/reference/index.html`
-- Source: <https://github.com/dusty-turner/ggfunction>
-- Issues: <https://github.com/dusty-turner/ggfunction/issues>
+### Vector fields ($\mathbb{R}^2 \to \mathbb{R}^2$)
+
+Draw streamlines from a vector field.
+
+```{r, eval=FALSE}
+f <- function(u) c(-u[2], u[1])
+ggplot() +
+  geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
+```
+
+<img src="man/figures/readme-2d-2d.png" width="60%"/>
+
+## Probability Distributions
+
+### PDF
+
+Shade below a quantile, between two quantiles, or shade the tails.
+
+```{r, eval=FALSE}
+ggplot() +
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975, fill = "tomato")
+```
+
+<img src="man/figures/readme-geom-pdf.png" width="60%"/>
+
+```{r, eval=FALSE}
+# Middle 95%
+ggplot() +
+  geom_pdf(fun = dnorm, xlim = c(-3, 3),
+    p_lower = 0.025, p_upper = 0.975, fill = "steelblue")
+```
+
+<img src="man/figures/readme-pdf-twosided.png" width="60%"/>
+
+```{r, eval=FALSE}
+# Both tails
+ggplot() +
+  geom_pdf(fun = dnorm, xlim = c(-3, 3),
+    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE, fill = "tomato")
+```
+
+<img src="man/figures/readme-pdf-tails.png" width="60%"/>
+
+### CDF
+
+```{r, eval=FALSE}
+ggplot() +
+  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, fill = "darkgreen")
+```
+
+<img src="man/figures/readme-geom-cdf.png" width="60%"/>
+
+### PMF (lollipop)
+
+```{r, eval=FALSE}
+ggplot() +
+  geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
+```
+
+<img src="man/figures/readme-geom-pmf.png" width="60%"/>
+
+### Quantile function
+
+```{r, eval=FALSE}
+ggplot() +
+  geom_qf(fun = qnorm, args = list(mean = 0, sd = 1))
+```
+
+<img src="man/figures/readme-geom-qf.png" width="60%"/>
+
+### Discrete CDF (step function)
+
+```{r, eval=FALSE}
+ggplot() +
+  geom_discrete_cdf(fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10))
+```
+
+<img src="man/figures/readme-discrete-cdf.png" width="60%"/>
+
+### Survival function
+
+$S(x) = 1 - F(x)$
+
+```{r, eval=FALSE}
+ggplot() +
+  geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
+```
+
+<img src="man/figures/readme-survival.png" width="60%"/>
+
+### Hazard function
+
+$h(x) = f(x) / S(x)$
+
+```{r, eval=FALSE}
+ggplot() +
+  geom_hf(pdf_fun = dexp, cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0.01, 10))
+```
+
+<img src="man/figures/readme-hazard.png" width="60%"/>
+
+## Getting help
+
+- Browse the [vignette](vignettes/ggfunction.Rmd) for a guided walkthrough
+- File bugs or feature requests at <https://github.com/dusty-turner/ggfunction/issues>

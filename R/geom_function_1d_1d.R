@@ -110,7 +110,8 @@ GeomFunction1d <- ggproto("GeomFunction1d", GeomPath,
   extra_params = c("na.rm", "shade_from", "shade_to", "fill"),
   draw_panel = function(self, data, panel_params, coord, arrow = NULL,
                         lineend = "butt", linejoin = "round", linemitre = 10,
-                        na.rm = FALSE, shade_from = NULL, shade_to = NULL
+                        na.rm = FALSE, shade_from = NULL, shade_to = NULL,
+                        fill = "grey20"
                         ) {
 
     x_vals <- data$x
@@ -151,7 +152,7 @@ GeomFunction1d <- ggproto("GeomFunction1d", GeomPath,
       poly_df <- data.frame(x = poly_x, y = poly_y)
       poly_coords <- coord$transform(poly_df, panel_params)
 
-      fill_col <- if (!is.null(data$fill[1]) && !is.na(data$fill[1])) data$fill[1] else "grey20"
+      fill_col <- fill
       alpha_val <- if (!is.null(data$alpha[1]) && !is.na(data$alpha[1])) data$alpha[1] else 0.4
 
       poly_grob <- grid::polygonGrob(
