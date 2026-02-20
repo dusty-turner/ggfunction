@@ -10,8 +10,18 @@ template:
 
 # Reference section for function documentation
 reference:
-  - title: "ggfunctions"
+  - title: "Dimensional Taxonomy"
     contents:
+      - geom_function_1d_1d
       - geom_function_1d_2d
       - geom_function_2d_1d
       - geom_function_2d_2d
+  - title: "Probability Distributions"
+    contents:
+      - geom_pdf
+      - geom_cdf
+      - geom_pmf
+      - geom_qf
+      - geom_discrete_cdf
+      - geom_survival
+      - geom_hf

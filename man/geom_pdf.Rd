@@ -28,7 +28,10 @@ geom_pdf(
   fill = "grey20",
   color = "black",
   p = NULL,
-  lower.tail = TRUE
+  lower.tail = TRUE,
+  p_lower = NULL,
+  p_upper = NULL,
+  shade_outside = FALSE
 )
 
 StatPDF
@@ -45,7 +48,7 @@ mapping.}
 
 \item{stat}{The statistical transformation to use on the data for this layer.
 When using a \verb{geom_*()} function to construct a layer, the \code{stat}
-argument can be used the override the default coupling between geoms and
+argument can be used to override the default coupling between geoms and
 stats. The \code{stat} argument accepts the following:
 \itemize{
 \item A \code{Stat} ggproto subclass, for example \code{StatCount}.
@@ -104,12 +107,14 @@ a warning. If \code{TRUE}, missing values are silently removed.}
 \code{NA}, the default, includes if any aesthetics are mapped.
 \code{FALSE} never includes, and \code{TRUE} always includes.
 It can also be a named logical vector to finely select the aesthetics to
-display.}
+display. To include legend keys for all levels, even
+when no data exists, use \code{TRUE}.  If \code{NA}, all levels are shown in legend,
+but unobserved levels are omitted.}
 
 \item{inherit.aes}{If \code{FALSE}, overrides the default aesthetics,
 rather than combining with them. This is most useful for helper functions
 that define both data and aesthetics and shouldn't inherit behaviour from
-the default plot specification, e.g. \code{\link[ggplot2:borders]{borders()}}.}
+the default plot specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
 \item{fun}{A function to compute the density (e.g. \link{dnorm}). The function must accept a
 numeric vector as its first argument and return density values that integrate (approximately)
@@ -132,13 +137,22 @@ this value.}
 \item{lower.tail}{Logical; if \code{TRUE} (the default) the shaded area extends from the left end
 of the density up to the threshold. If \code{FALSE}, the shading extends from the threshold to the
 right end.}
+
+\item{p_lower}{(Optional) A numeric value between 0 and 1 specifying the lower cumulative
+probability bound. Used with \code{p_upper} for two-sided shading.}
+
+\item{p_upper}{(Optional) A numeric value between 0 and 1 specifying the upper cumulative
+probability bound. Used with \code{p_lower} for two-sided shading.}
+
+\item{shade_outside}{Logical; if \code{FALSE} (the default) shading is applied between \code{p_lower}
+and \code{p_upper}. If \code{TRUE}, shading is applied to the tails outside that range.}
 }
 \value{
 A ggplot2 layer.
 }
 \description{
 \code{geom_pdf()} computes a probability density function and plots it as a filled area.
-This function is similar to \code{\link[=geom_function]{geom_function()}}, but it shades the area corresponding to
+This function is similar to \code{\link[ggplot2:geom_function]{ggplot2::geom_function()}}, but it shades the area corresponding to
 a given proportion of the total density.
 }
 \examples{

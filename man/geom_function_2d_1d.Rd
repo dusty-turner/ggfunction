@@ -6,11 +6,17 @@
 \alias{stat_function_2d_1d}
 \alias{StatFunction2d}
 \alias{GeomFunction2d}
+\alias{StatFunction2dContour}
+\alias{StatFunction2dContourFilled}
 \title{Create a 2D Function Visualization Layer of the Norm of a Vector Field}
 \format{
 An object of class \code{StatFunction2d} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
 An object of class \code{GeomFunction2d} (inherits from \code{GeomRaster}, \code{Geom}, \code{ggproto}, \code{gg}) of length 2.
+
+An object of class \code{StatFunction2dContour} (inherits from \code{StatContour}, \code{Stat}, \code{ggproto}, \code{gg}) of length 5.
+
+An object of class \code{StatFunction2dContourFilled} (inherits from \code{StatContourFilled}, \code{Stat}, \code{ggproto}, \code{gg}) of length 5.
 }
 \usage{
 geom_function_2d_1d(
@@ -24,6 +30,10 @@ geom_function_2d_1d(
   xlim = NULL,
   ylim = NULL,
   n = NULL,
+  type = "raster",
+  bins = NULL,
+  binwidth = NULL,
+  breaks = NULL,
   show.legend = TRUE,
   inherit.aes = TRUE
 )
@@ -46,6 +56,10 @@ stat_function_2d_1d(
 StatFunction2d
 
 GeomFunction2d
+
+StatFunction2dContour
+
+StatFunction2dContourFilled
 }
 \arguments{
 \item{mapping}{Aesthetic mappings, created using \code{aes()}. If \code{NULL}, defaults are used.}
@@ -66,7 +80,15 @@ GeomFunction2d
 
 \item{ylim}{Numeric vector of length 2 specifying the y-range of the grid. Required if \code{fun} is provided.}
 
-\item{n}{Number of points in the grid along each axis. Defaults to \code{11} in \code{stat_function_2d_1d}.}
+\item{n}{Number of points in the grid along each axis. Defaults to \code{50} in \code{stat_function_2d_1d}.}
+
+\item{type}{Character. Type of visualization: \code{"raster"} (default), \code{"contour"}, or \code{"contour_filled"}.}
+
+\item{bins}{Number of contour bins. Only used when \code{type} is \code{"contour"} or \code{"contour_filled"}.}
+
+\item{binwidth}{Width of contour bins. Only used when \code{type} is \code{"contour"} or \code{"contour_filled"}.}
+
+\item{breaks}{Numeric vector of specific contour break values. Only used when \code{type} is \code{"contour"} or \code{"contour_filled"}.}
 
 \item{show.legend}{Logical. Should this layer be included in the legends? \code{NA} includes if aesthetics are mapped.}
 

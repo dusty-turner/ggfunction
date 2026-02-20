@@ -17,6 +17,10 @@
 #'   the point where the CDF reaches this value.
 #' @param lower.tail Logical; if `TRUE` (the default) shading is applied from the left end of the
 #'   curve up to the threshold; if `FALSE`, shading is applied from the threshold to the right end.
+#' @param p_lower (Optional) A numeric value between 0 and 1 specifying the lower CDF threshold
+#'   for two-sided shading. Used with `p_upper`.
+#' @param p_upper (Optional) A numeric value between 0 and 1 specifying the upper CDF threshold
+#'   for two-sided shading. Used with `p_lower`.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @return A ggplot2 layer.
@@ -45,7 +49,9 @@ geom_cdf <- function(
     fill = "grey20",
     color = "black",
     p = NULL,
-    lower.tail = TRUE
+    lower.tail = TRUE,
+    p_lower = NULL,
+    p_upper = NULL
 ) {
   if (is.null(data)) data <- ensure_nonempty_data(data)
 
@@ -74,6 +80,8 @@ geom_cdf <- function(
       color = color,
       p = p,
       lower.tail = lower.tail,
+      p_lower = p_lower,
+      p_upper = p_upper,
       ...
     )
   )
@@ -121,13 +129,24 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
 
   draw_panel = function(self, data, panel_params, coord, arrow = NULL,
                         lineend = "butt", linejoin = "round", linemitre = 10,
-                        na.rm = FALSE, p = NULL, lower.tail = TRUE
+                        na.rm = FALSE, p = NULL, lower.tail = TRUE,
+                        p_lower = NULL, p_upper = NULL
                         ) {
 
     x_vals <- data$x
     y_vals <- data$y
 
-    if (!is.null(p)) {
+    if (!is.null(p_lower) && !is.null(p_upper)) {
+      # Two-sided shading: shade between x where CDF = p_lower and CDF = p_upper
+      idx_lower <- which(y_vals >= p_lower)[1]
+      if (is.na(idx_lower)) idx_lower <- length(y_vals)
+      idx_upper <- which(y_vals >= p_upper)[1]
+      if (is.na(idx_upper)) idx_upper <- length(y_vals)
+      threshold_lower <- x_vals[idx_lower]
+      threshold_upper <- x_vals[idx_upper]
+      clip_data <- data[data$x >= threshold_lower & data$x <= threshold_upper, , drop = FALSE]
+      clip_range <- c(threshold_lower, threshold_upper)
+    } else if (!is.null(p)) {
       if (lower.tail) {
         idx <- which(y_vals >= p)[1]
         if (is.na(idx)) idx <- length(y_vals)

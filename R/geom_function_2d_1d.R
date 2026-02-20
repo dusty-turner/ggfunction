@@ -11,7 +11,11 @@
 #' @param fun A function that takes a matrix of x, y values and returns a matrix of dx, dy values.
 #' @param xlim Numeric vector of length 2 specifying the x-range of the grid. Required if `fun` is provided.
 #' @param ylim Numeric vector of length 2 specifying the y-range of the grid. Required if `fun` is provided.
-#' @param n Number of points in the grid along each axis. Defaults to `11` in `stat_function_2d_1d`.
+#' @param n Number of points in the grid along each axis. Defaults to `50` in `stat_function_2d_1d`.
+#' @param type Character. Type of visualization: `"raster"` (default), `"contour"`, or `"contour_filled"`.
+#' @param bins Number of contour bins. Only used when `type` is `"contour"` or `"contour_filled"`.
+#' @param binwidth Width of contour bins. Only used when `type` is `"contour"` or `"contour_filled"`.
+#' @param breaks Numeric vector of specific contour break values. Only used when `type` is `"contour"` or `"contour_filled"`.
 #' @param na.rm Logical. Should missing values be removed? Defaults to `FALSE`.
 #' @param show.legend Logical. Should this layer be included in the legends? `NA` includes if aesthetics are mapped.
 #' @param inherit.aes If `FALSE`, overrides default aesthetics rather than combining them.
@@ -96,6 +100,10 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
                                 xlim = NULL,
                                 ylim = NULL,
                                 n = NULL,
+                                type = "raster",
+                                bins = NULL,
+                                binwidth = NULL,
+                                breaks = NULL,
                                 show.legend = TRUE,
                                 inherit.aes = TRUE) {
 
@@ -112,10 +120,38 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
     data <- data.frame(x = NA_real_, y = NA_real_)
   }
 
-  # Use after_stat() to map the computed 'z' to the fill aesthetic for legend support.
-  if (is.null(mapping)) {
-    mapping <- aes(fill = after_stat(z))
+  type <- match.arg(type, c("raster", "contour", "contour_filled"))
+
+  if (type == "contour") {
+    stat <- StatFunction2dContour
+    geom <- ggplot2::GeomContour
+    if (is.null(mapping)) {
+      mapping <- aes()
+    }
+  } else if (type == "contour_filled") {
+    stat <- StatFunction2dContourFilled
+    geom <- ggplot2::GeomContourFilled
+    if (is.null(mapping)) {
+      mapping <- aes()
+    }
+  } else {
+    # raster (default)
+    if (is.null(mapping)) {
+      mapping <- aes(fill = after_stat(z))
+    }
   }
+
+  params <- list(
+    fun = fun,
+    xlim = xlim,
+    ylim = ylim,
+    n = n,
+    ...
+  )
+
+  if (!is.null(bins)) params$bins <- bins
+  if (!is.null(binwidth)) params$binwidth <- binwidth
+  if (!is.null(breaks)) params$breaks <- breaks
 
   layer(
     stat = stat,
@@ -125,13 +161,7 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
     position = position,
     show.legend = show.legend,
     inherit.aes = inherit.aes,
-    params = list(
-      fun = fun,
-      xlim = xlim,
-      ylim = ylim,
-      n = n,
-      ...
-    )
+    params = params
   )
 }
 
@@ -240,4 +270,71 @@ GeomFunction2d <- ggplot2::ggproto(
   "GeomFunction2d",
   ggplot2::GeomRaster,
   default_aes = ggplot2::aes(fill = "black", alpha = 1)
+)
+
+#' @rdname geom_function_2d_1d
+#' @export
+StatFunction2dContour <- ggproto(
+  "StatFunction2dContour",
+  ggplot2::StatContour,
+
+  required_aes = character(0),
+  extra_params = c("na.rm", "fun", "xlim", "ylim", "n"),
+
+  setup_params = function(data, params) {
+    # Generate grid early so z.range is available for contour break computation
+    fun <- params$fun
+    xlim <- params$xlim %||% c(-1, 1)
+    ylim <- params$ylim %||% c(-1, 1)
+    n <- params$n %||% 50
+
+    grid_data <- expand.grid(
+      x = seq(xlim[1], xlim[2], length.out = n),
+      y = seq(ylim[1], ylim[2], length.out = n)
+    )
+    grid_data$z <- vectorize(fun)(as.matrix(grid_data[, c("x", "y")]))
+    params$z.range <- range(grid_data$z, na.rm = TRUE, finite = TRUE)
+    params$.grid_data <- grid_data
+    params
+  },
+
+  setup_data = function(data, params) {
+    grid_data <- params$.grid_data
+    grid_data$PANEL <- data$PANEL[1]
+    grid_data$group <- data$group[1]
+    grid_data
+  }
+)
+
+#' @rdname geom_function_2d_1d
+#' @export
+StatFunction2dContourFilled <- ggproto(
+  "StatFunction2dContourFilled",
+  ggplot2::StatContourFilled,
+
+  required_aes = character(0),
+  extra_params = c("na.rm", "fun", "xlim", "ylim", "n"),
+
+  setup_params = function(data, params) {
+    fun <- params$fun
+    xlim <- params$xlim %||% c(-1, 1)
+    ylim <- params$ylim %||% c(-1, 1)
+    n <- params$n %||% 50
+
+    grid_data <- expand.grid(
+      x = seq(xlim[1], xlim[2], length.out = n),
+      y = seq(ylim[1], ylim[2], length.out = n)
+    )
+    grid_data$z <- vectorize(fun)(as.matrix(grid_data[, c("x", "y")]))
+    params$z.range <- range(grid_data$z, na.rm = TRUE, finite = TRUE)
+    params$.grid_data <- grid_data
+    params
+  },
+
+  setup_data = function(data, params) {
+    grid_data <- params$.grid_data
+    grid_data$PANEL <- data$PANEL[1]
+    grid_data$group <- data$group[1]
+    grid_data
+  }
 )

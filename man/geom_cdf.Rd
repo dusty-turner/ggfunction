@@ -28,7 +28,9 @@ geom_cdf(
   fill = "grey20",
   color = "black",
   p = NULL,
-  lower.tail = TRUE
+  lower.tail = TRUE,
+  p_lower = NULL,
+  p_upper = NULL
 )
 
 StatCDF
@@ -45,7 +47,7 @@ mapping.}
 
 \item{stat}{The statistical transformation to use on the data for this layer.
 When using a \verb{geom_*()} function to construct a layer, the \code{stat}
-argument can be used the override the default coupling between geoms and
+argument can be used to override the default coupling between geoms and
 stats. The \code{stat} argument accepts the following:
 \itemize{
 \item A \code{Stat} ggproto subclass, for example \code{StatCount}.
@@ -78,12 +80,14 @@ a warning. If \code{TRUE}, missing values are silently removed.}
 \code{NA}, the default, includes if any aesthetics are mapped.
 \code{FALSE} never includes, and \code{TRUE} always includes.
 It can also be a named logical vector to finely select the aesthetics to
-display.}
+display. To include legend keys for all levels, even
+when no data exists, use \code{TRUE}.  If \code{NA}, all levels are shown in legend,
+but unobserved levels are omitted.}
 
 \item{inherit.aes}{If \code{FALSE}, overrides the default aesthetics,
 rather than combining with them. This is most useful for helper functions
 that define both data and aesthetics and shouldn't inherit behaviour from
-the default plot specification, e.g. \code{\link[ggplot2:borders]{borders()}}.}
+the default plot specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
 \item{fun}{A function to compute the CDF (e.g. \link{pnorm}). The function must accept a numeric
 vector as its first argument and return values between 0 and 1.}
@@ -104,6 +108,12 @@ the point where the CDF reaches this value.}
 
 \item{lower.tail}{Logical; if \code{TRUE} (the default) shading is applied from the left end of the
 curve up to the threshold; if \code{FALSE}, shading is applied from the threshold to the right end.}
+
+\item{p_lower}{(Optional) A numeric value between 0 and 1 specifying the lower CDF threshold
+for two-sided shading. Used with \code{p_upper}.}
+
+\item{p_upper}{(Optional) A numeric value between 0 and 1 specifying the upper CDF threshold
+for two-sided shading. Used with \code{p_lower}.}
 }
 \value{
 A ggplot2 layer.

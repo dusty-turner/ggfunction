@@ -74,4 +74,24 @@ check_pmf_normalization <- function(f, support, tol = 1e-3) {
 }
 
 #' @noRd
-utils::globalVariables(c("x", "y", "z", "p", "GeomLine"))
+build_step_polygon <- function(x, y) {
+  # Build step-function polygon vertices from (x, y) pairs.
+  # Each step goes: (x[i], y[i]) -> (x[i+1], y[i]) -> (x[i+1], y[i+1])
+  n <- length(x)
+  if (n < 2) return(data.frame(x = x, y = y))
+
+  px <- numeric(0)
+  py <- numeric(0)
+
+  for (i in seq_len(n - 1)) {
+    px <- c(px, x[i], x[i + 1])
+    py <- c(py, y[i], y[i])
+  }
+  px <- c(px, x[n])
+  py <- c(py, y[n])
+
+  data.frame(x = px, y = py)
+}
+
+#' @noRd
+utils::globalVariables(c("x", "y", "z", "p", "GeomLine", "pdf_fun", "cdf_fun"))

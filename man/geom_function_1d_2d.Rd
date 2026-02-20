@@ -62,7 +62,7 @@ two-dimensional coordinates. A user-defined function (\code{fun}) specifies the
 mapping by taking a numeric scalar (e.g. time) and returning a numeric vector
 of length 2 (representing \eqn{(x, y)}). The underlying \link{Stat_1d_2d} evaluates
 \code{fun} over a time sequence (from \code{t0} to \code{T} in increments of \code{dt}), and
-\link{GeomStream} renders the resulting path.
+\link[ggvfields:geom_stream]{ggvfields::GeomStream} renders the resulting path.
 }
 \details{
 In many cases these layers are useful for visualizing dynamic systems or

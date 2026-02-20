@@ -1,0 +1,187 @@
+---
+title: "Introduction to ggfunction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to ggfunction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+)
+library(ggfunction)
+```
+
+## Overview
+
+**ggfunction** extends ggplot2 to visualize mathematical functions directly. It provides a unified interface organized around two families:
+
+1. **Dimensional taxonomy** -- functions classified by input/output dimension:
+   - `geom_function_1d_1d()`: $\mathbb{R} \to \mathbb{R}$ (scalar to scalar)
+   - `geom_function_1d_2d()`: $\mathbb{R} \to \mathbb{R}^2$ (parametric curves)
+   - `geom_function_2d_1d()`: $\mathbb{R}^2 \to \mathbb{R}$ (scalar fields, raster/contour)
+   - `geom_function_2d_2d()`: $\mathbb{R}^2 \to \mathbb{R}^2$ (vector fields)
+
+2. **Probability distributions** -- specialized geoms for distribution functions:
+   - `geom_pdf()`: probability density function
+   - `geom_cdf()`: cumulative distribution function
+   - `geom_pmf()`: probability mass function (lollipop)
+   - `geom_qf()`: quantile function
+   - `geom_discrete_cdf()`: discrete CDF (step function)
+   - `geom_survival()`: survival function $S(x) = 1 - F(x)$
+   - `geom_hf()`: hazard function $h(x) = f(x)/S(x)$
+
+## Dimensional Taxonomy
+
+### 1D to 1D: Scalar Functions
+
+Plot any $f: \mathbb{R} \to \mathbb{R}$ with optional interval shading:
+
+```{r}
+ggplot() +
+  geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi))
+```
+
+Shade a specific interval:
+
+```{r}
+ggplot() +
+  geom_function_1d_1d(
+    fun = dnorm, xlim = c(-3, 3),
+    shade_from = -1, shade_to = 1, fill = "steelblue"
+  )
+```
+
+### 1D to 2D: Parametric Curves
+
+Map a scalar parameter (e.g., time) to a 2D path:
+
+```{r}
+f <- function(t) c(sin(t), cos(t))
+ggplot() +
+  geom_function_1d_2d(fun = f, T = 2 * pi)
+```
+
+### 2D to 1D: Scalar Fields
+
+Visualize $f: \mathbb{R}^2 \to \mathbb{R}$ as a raster:
+
+```{r}
+f_gaussian <- function(v) exp(-(v[1]^2 + v[2]^2) / 2)
+
+ggplot() +
+  geom_function_2d_1d(fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3))
+```
+
+Or as contour lines:
+
+```{r}
+ggplot() +
+  geom_function_2d_1d(
+    fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3),
+    type = "contour"
+  )
+```
+
+Or as filled contours:
+
+```{r}
+ggplot() +
+  geom_function_2d_1d(
+    fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3),
+    type = "contour_filled"
+  )
+```
+
+### 2D to 2D: Vector Fields
+
+Visualize vector fields as streamlines:
+
+```{r}
+f_rotation <- function(u) c(-u[2], u[1])
+ggplot() +
+  geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1))
+```
+
+## Probability Distribution Family
+
+### PDF with Shading
+
+```{r}
+ggplot() +
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975, fill = "tomato")
+```
+
+Two-sided shading (e.g., middle 95%):
+
+```{r}
+ggplot() +
+  geom_pdf(
+    fun = dnorm, xlim = c(-3, 3),
+    p_lower = 0.025, p_upper = 0.975, fill = "steelblue"
+  )
+```
+
+Shade the tails instead (outside):
+
+```{r}
+ggplot() +
+  geom_pdf(
+    fun = dnorm, xlim = c(-3, 3),
+    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE, fill = "tomato"
+  )
+```
+
+### CDF
+
+```{r}
+ggplot() +
+  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, fill = "darkgreen")
+```
+
+### PMF (Lollipop)
+
+```{r}
+ggplot() +
+  geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
+```
+
+### Quantile Function
+
+```{r}
+ggplot() +
+  geom_qf(fun = qnorm, args = list(mean = 0, sd = 1))
+```
+
+### Discrete CDF (Step Function)
+
+```{r}
+ggplot() +
+  geom_discrete_cdf(
+    fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10)
+  )
+```
+
+### Survival Function
+
+```{r}
+ggplot() +
+  geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
+```
+
+### Hazard Function
+
+The exponential distribution has a constant hazard rate:
+
+```{r}
+ggplot() +
+  geom_hf(
+    pdf_fun = dexp, cdf_fun = pexp,
+    args = list(rate = 0.5), xlim = c(0.01, 10)
+  )
+```

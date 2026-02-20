@@ -72,7 +72,9 @@
 #' ggplot() + geom_function_2d_2d(fun = f, xlim = c(-1,1), ylim = c(-1,1))
 #'
 #' # other parameters:
+#' \dontrun{
 #' ggplot() + geom_function_2d_2d(fun = f, normalize = FALSE)
+#' }
 #' ggplot() + geom_function_2d_2d(fun = f, tail_point = TRUE)
 #'
 #' @name geom_function_2d_2d

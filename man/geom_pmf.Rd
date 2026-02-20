@@ -23,7 +23,9 @@ geom_pmf(
   inherit.aes = TRUE,
   fun,
   xlim = NULL,
-  linewidth = 2,
+  point_size = 4,
+  stick_linewidth = 0.5,
+  stick_linetype = "dashed",
   color = "black",
   args = list()
 )
@@ -55,7 +57,7 @@ from a \code{formula} (e.g. \code{~ head(.x, 10)}).}
 
 \item{stat}{The statistical transformation to use on the data for this layer.
 When using a \verb{geom_*()} function to construct a layer, the \code{stat}
-argument can be used the override the default coupling between geoms and
+argument can be used to override the default coupling between geoms and
 stats. The \code{stat} argument accepts the following:
 \itemize{
 \item A \code{Stat} ggproto subclass, for example \code{StatCount}.
@@ -88,12 +90,14 @@ a warning. If \code{TRUE}, missing values are silently removed.}
 \code{NA}, the default, includes if any aesthetics are mapped.
 \code{FALSE} never includes, and \code{TRUE} always includes.
 It can also be a named logical vector to finely select the aesthetics to
-display.}
+display. To include legend keys for all levels, even
+when no data exists, use \code{TRUE}.  If \code{NA}, all levels are shown in legend,
+but unobserved levels are omitted.}
 
 \item{inherit.aes}{If \code{FALSE}, overrides the default aesthetics,
 rather than combining with them. This is most useful for helper functions
 that define both data and aesthetics and shouldn't inherit behaviour from
-the default plot specification, e.g. \code{\link[ggplot2:borders]{borders()}}.}
+the default plot specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
 \item{fun}{A function to compute the PMF (e.g. \link{dbinom} or \link{dpois}). The function must
 accept a numeric vector as its first argument and return non-negative probability values.
@@ -102,7 +106,11 @@ accept a numeric vector as its first argument and return non-negative probabilit
 \item{xlim}{A numeric vector of length 2 specifying the range (of x values) over which to
 evaluate the PMF. If not provided, a default range of 0 to 10 is used.}
 
-\item{linewidth}{linewidth of the points (defaults to 2).}
+\item{point_size}{Size of the points at the top of each lollipop (defaults to 4).}
+
+\item{stick_linewidth}{Linewidth of the vertical sticks (defaults to 0.5).}
+
+\item{stick_linetype}{Linetype of the vertical sticks (defaults to \code{"dashed"}).}
 
 \item{color}{Color for the points and for the segments (defaults to \code{"black"}).}
 
@@ -113,8 +121,8 @@ A ggplot2 layer.
 }
 \description{
 \code{geom_pmf()} creates a ggplot2 layer that plots a probability mass function (PMF)
-using a lollipop representation. Vertical segments extend from zero up to the probability
-value at each integer support value and a point is drawn at the top.
+using a lollipop representation. Vertical dashed segments extend from zero up to the
+probability value at each integer support value and a point is drawn at the top.
 }
 \examples{
   # Plot a binomial PMF with n = 10 and p = 0.5 over 0 to 10.

@@ -12,3 +12,6 @@ dusty_files*
 ^\\.github$
 .github
 ^LICENSE\.md$
+^\.claude$
+^doc$
+^Meta$

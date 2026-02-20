@@ -104,6 +104,52 @@ ggplot() +
 
 ![QF example](man/figures/readme-geom-qf.png)
 
+### New in v0.1.0
+
+#### General R to R Function (`geom_function_1d_1d`)
+
+```{r ex-1d-1d, eval=FALSE}
+ggplot() +
+  geom_function_1d_1d(fun = dnorm, xlim = c(-3, 3),
+    shade_from = -1, shade_to = 1, fill = "steelblue")
+```
+
+#### Discrete CDF (`geom_discrete_cdf`)
+
+```{r ex-dcdf, eval=FALSE}
+ggplot() +
+  geom_discrete_cdf(fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10))
+```
+
+#### Survival Function (`geom_survival`)
+
+```{r ex-surv, eval=FALSE}
+ggplot() +
+  geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
+```
+
+#### Hazard Function (`geom_hf`)
+
+```{r ex-hf, eval=FALSE}
+ggplot() +
+  geom_hf(pdf_fun = dexp, cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0.01, 10))
+```
+
+#### Two-sided Shading for PDF/CDF
+
+```{r ex-two-sided, eval=FALSE}
+ggplot() +
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p_lower = 0.025, p_upper = 0.975, fill = "steelblue")
+```
+
+#### Contour Support for 2D to 1D
+
+```{r ex-contour, eval=FALSE}
+f <- function(v) exp(-(v[1]^2 + v[2]^2) / 2)
+ggplot() +
+  geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour_filled")
+```
+
 ## Learn More
 
 - Reference: `docs/reference/index.html`

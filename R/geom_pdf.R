@@ -21,6 +21,12 @@
 #' @param lower.tail Logical; if `TRUE` (the default) the shaded area extends from the left end
 #'   of the density up to the threshold. If `FALSE`, the shading extends from the threshold to the
 #'   right end.
+#' @param p_lower (Optional) A numeric value between 0 and 1 specifying the lower cumulative
+#'   probability bound. Used with `p_upper` for two-sided shading.
+#' @param p_upper (Optional) A numeric value between 0 and 1 specifying the upper cumulative
+#'   probability bound. Used with `p_lower` for two-sided shading.
+#' @param shade_outside Logical; if `FALSE` (the default) shading is applied between `p_lower`
+#'   and `p_upper`. If `TRUE`, shading is applied to the tails outside that range.
 #'
 #' @return A ggplot2 layer.
 #'
@@ -47,7 +53,10 @@ geom_pdf <- function(
     fill = "grey20",
     color = "black",
     p = NULL,
-    lower.tail = TRUE
+    lower.tail = TRUE,
+    p_lower = NULL,
+    p_upper = NULL,
+    shade_outside = FALSE
     ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -78,6 +87,9 @@ geom_pdf <- function(
       color = color,
       p = p,
       lower.tail = lower.tail,
+      p_lower = p_lower,
+      p_upper = p_upper,
+      shade_outside = shade_outside,
       ...
     )
   )
@@ -116,7 +128,8 @@ StatPDF <- ggproto("StatPDF", Stat,
 GeomPDF <- ggproto("GeomPDF", GeomArea,
   draw_panel = function(self, data, panel_params, coord, arrow = NULL,
                         lineend = "butt", linejoin = "round", linemitre = 10,
-                        na.rm = FALSE, p = NULL, lower.tail = TRUE
+                        na.rm = FALSE, p = NULL, lower.tail = TRUE,
+                        p_lower = NULL, p_upper = NULL, shade_outside = FALSE
                         ) {
 
     x_vals <- data$x
@@ -130,42 +143,86 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
     total_area <- max(cum_area)
     norm_cum <- cum_area / total_area  # normalized cumulative area
 
-    # Determine the clipping range based on p (if provided)
-    if (!is.null(p)) {
+    # Helper to build a closed polygon from clipped data
+    build_poly <- function(clip_data, clip_range) {
+      pd <- rbind(
+        transform(clip_data[1, , drop = FALSE], x = clip_range[1], y = 0),
+        clip_data,
+        transform(clip_data[nrow(clip_data), , drop = FALSE], x = clip_range[2], y = 0)
+      )
+      pd$colour <- NA
+      pd
+    }
+
+    area_grobs <- list()
+
+    # Determine the clipping range based on p_lower/p_upper or p (if provided)
+    if (!is.null(p_lower) && !is.null(p_upper)) {
+      idx_lower <- which(norm_cum >= p_lower)[1]
+      if (is.na(idx_lower)) idx_lower <- length(norm_cum)
+      idx_upper <- which(norm_cum >= p_upper)[1]
+      if (is.na(idx_upper)) idx_upper <- length(norm_cum)
+      threshold_lower <- x_vals[idx_lower]
+      threshold_upper <- x_vals[idx_upper]
+
+      if (shade_outside) {
+        # Shade both tails: left of p_lower and right of p_upper
+        left_data <- data[data$x <= threshold_lower, , drop = FALSE]
+        if (nrow(left_data) > 0) {
+          left_range <- c(min(x_vals), threshold_lower)
+          area_grobs <- c(area_grobs, list(
+            ggproto_parent(GeomArea, self)$draw_panel(
+              build_poly(left_data, left_range), panel_params, coord, na.rm = na.rm
+            )
+          ))
+        }
+        right_data <- data[data$x >= threshold_upper, , drop = FALSE]
+        if (nrow(right_data) > 0) {
+          right_range <- c(threshold_upper, max(x_vals))
+          area_grobs <- c(area_grobs, list(
+            ggproto_parent(GeomArea, self)$draw_panel(
+              build_poly(right_data, right_range), panel_params, coord, na.rm = na.rm
+            )
+          ))
+        }
+      } else {
+        # Shade between p_lower and p_upper
+        clip_data <- data[data$x >= threshold_lower & data$x <= threshold_upper, , drop = FALSE]
+        clip_range <- c(threshold_lower, threshold_upper)
+        area_grobs <- c(area_grobs, list(
+          ggproto_parent(GeomArea, self)$draw_panel(
+            build_poly(clip_data, clip_range), panel_params, coord, na.rm = na.rm
+          )
+        ))
+      }
+    } else if (!is.null(p)) {
       if (lower.tail) {
-        # Find first x where cumulative area >= p
         idx <- which(norm_cum >= p)[1]
         if (is.na(idx)) idx <- length(norm_cum)
         threshold_x <- x_vals[idx]
         clip_data <- data[data$x <= threshold_x, , drop = FALSE]
         clip_range <- c(min(x_vals), threshold_x)
       } else {
-        # For the upper tail, find first x where cumulative area >= (1 - p)
         idx <- which(norm_cum >= (1 - p))[1]
         if (is.na(idx)) idx <- 1
         threshold_x <- x_vals[idx]
         clip_data <- data[data$x >= threshold_x, , drop = FALSE]
         clip_range <- c(threshold_x, max(x_vals))
       }
+      area_grobs <- c(area_grobs, list(
+        ggproto_parent(GeomArea, self)$draw_panel(
+          build_poly(clip_data, clip_range), panel_params, coord, na.rm = na.rm
+        )
+      ))
     } else {
-      # Fall back on xlim attached as an attribute (or the full range)
-        clip_range <- range(x_vals, na.rm = TRUE)
-        clip_data <- data[data$x >= clip_range[1] & data$x <= clip_range[2], , drop = FALSE]
+      clip_range <- range(x_vals, na.rm = TRUE)
+      clip_data <- data[data$x >= clip_range[1] & data$x <= clip_range[2], , drop = FALSE]
+      area_grobs <- c(area_grobs, list(
+        ggproto_parent(GeomArea, self)$draw_panel(
+          build_poly(clip_data, clip_range), panel_params, coord, na.rm = na.rm
+        )
+      ))
     }
-
-    # We "close" the polygon by adding baseline (y=0) points at the boundaries.
-      poly_data <- rbind(
-        transform(clip_data[1, , drop = FALSE], x = clip_range[1], y = 0),
-        clip_data,
-        transform(clip_data[nrow(clip_data), , drop = FALSE], x = clip_range[2], y = 0)
-      )
-
-    poly_data$colour <- NA
-
-    # Create the filled area grob using GeomArea’s draw_panel.
-    area_grob <- ggproto_parent(GeomArea, self)$draw_panel(
-      poly_data, panel_params, coord, na.rm = na.rm
-    )
 
     # Create the line grob for the entire function using GeomPath’s draw_panel.
     line_grob <- ggproto_parent(GeomPath, self)$draw_panel(
@@ -175,7 +232,7 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
       na.rm = na.rm
     )
 
-    grid::grobTree(area_grob, line_grob)
+    do.call(grid::grobTree, c(area_grobs, list(line_grob)))
   }
 )
 

@@ -1,8 +1,8 @@
 #' Plot a Probability Mass Function as Lollipops
 #'
 #' `geom_pmf()` creates a ggplot2 layer that plots a probability mass function (PMF)
-#' using a lollipop representation. Vertical segments extend from zero up to the probability
-#' value at each integer support value and a point is drawn at the top.
+#' using a lollipop representation. Vertical dashed segments extend from zero up to the
+#' probability value at each integer support value and a point is drawn at the top.
 #'
 #' @inheritParams ggplot2::geom_point
 #' @param fun A function to compute the PMF (e.g. [dbinom] or [dpois]). The function must
@@ -10,7 +10,9 @@
 #'   (Ideally, the probabilities sum to 1 over the support.)
 #' @param xlim A numeric vector of length 2 specifying the range (of x values) over which to
 #'   evaluate the PMF. If not provided, a default range of 0 to 10 is used.
-#' @param linewidth linewidth of the points (defaults to 2).
+#' @param point_size Size of the points at the top of each lollipop (defaults to 4).
+#' @param stick_linewidth Linewidth of the vertical sticks (defaults to 0.5).
+#' @param stick_linetype Linetype of the vertical sticks (defaults to `"dashed"`).
 #' @param color Color for the points and for the segments (defaults to `"black"`).
 #' @param args A named list of additional arguments to pass to `fun`.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
@@ -39,7 +41,9 @@ geom_pmf <- function(mapping = NULL,
                      inherit.aes = TRUE,
                      fun,
                      xlim = NULL,
-                     linewidth = 2,
+                     point_size = 4,
+                     stick_linewidth = 0.5,
+                     stick_linetype = "dashed",
                      color = "black",
                      args = list()) {
 
@@ -63,7 +67,9 @@ geom_pmf <- function(mapping = NULL,
     params = list(
       fun = fun,
       xlim = xlim,
-      linewidth = linewidth,
+      point_size = point_size,
+      stick_linewidth = stick_linewidth,
+      stick_linetype = stick_linetype,
       color = color,
       args = args,
       na.rm = na.rm,
@@ -102,21 +108,26 @@ StatPMF <- ggproto("StatPMF", Stat,
 #' @export
 GeomPMF <- ggproto("GeomPMF", GeomPoint,
 
-  draw_panel = function(self, data, panel_params, coord, na.rm = FALSE, linewidth) {
+  draw_panel = function(self, data, panel_params, coord, na.rm = FALSE,
+                        point_size = 4, stick_linewidth = 0.5,
+                        stick_linetype = "dashed") {
 
+    # Build segment data for the sticks
     segment_data <- transform(data, yend = y, y = 0)
-
-     segment_data$linewidth <- segment_data$size
-     segment_data$size <- NULL
-    ## can seperate color of segment with lollipop like this
-    # segment_data$colour <- "red"
+    segment_data$linewidth <- stick_linewidth
+    segment_data$linetype <- stick_linetype
+    segment_data$size <- NULL
 
     seg_grob <- ggproto_parent(GeomSegment, self)$draw_panel(
       segment_data, panel_params, coord, na.rm = na.rm
     )
 
+    # Build point data with larger size
+    point_data <- data
+    point_data$size <- point_size
+
     pt_grob <- ggproto_parent(GeomPoint, self)$draw_panel(
-      data, panel_params, coord, na.rm = na.rm)
+      point_data, panel_params, coord, na.rm = na.rm)
 
     grid::grobTree(seg_grob, pt_grob)
   }
