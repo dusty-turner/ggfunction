@@ -28,7 +28,7 @@
 #' }
 #'
 #' ggplot() +
-#'   geom_function(fun = f, xlim = c(-5, 5), ylim = c(-5, 5))
+#'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5))
 #'
 #' # Sinusoidal combination of sine and cosine
 #' f_sin_cos <- function(v) {

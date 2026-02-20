@@ -10,7 +10,7 @@
 \format{
 An object of class \code{StatFunction2d} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{GeomFunction2d} (inherits from \code{Geom}, \code{ggproto}, \code{gg}) of length 4.
+An object of class \code{GeomFunction2d} (inherits from \code{GeomRaster}, \code{Geom}, \code{ggproto}, \code{gg}) of length 2.
 }
 \usage{
 geom_function_2d_1d(
@@ -89,7 +89,7 @@ f <- function(v) {
 }
 
 ggplot() +
-  geom_function(fun = f, xlim = c(-5, 5), ylim = c(-5, 5))
+  geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5))
 
 # Sinusoidal combination of sine and cosine
 f_sin_cos <- function(v) {
