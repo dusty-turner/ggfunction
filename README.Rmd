@@ -136,7 +136,7 @@ ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
 ```
 
-**Contour modes.** The `type` argument switches among three visual encodings of the same field. `"contour"` draws iso-level curves and `"contour_filled"` draws filled regions between levels; both are rendered using **ggplot2**'s contour infrastructure so they respond to `bins`, `binwidth`, and `breaks`.
+**Contour modes.** The `type` argument switches among three visual encodings of the same field. `"contour"` draws iso-level curves colored by level value; `"contour_filled"` draws filled regions between levels; both respond to `bins`, `binwidth`, and `breaks`.
 
 ```{r 2d-1d-contour}
 ggplot() +

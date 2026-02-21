@@ -126,7 +126,9 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
     stat <- StatFunction2dContour
     geom <- ggplot2::GeomContour
     if (is.null(mapping)) {
-      mapping <- aes()
+      mapping <- aes(colour = after_stat(level))
+    } else if (is.null(mapping$colour)) {
+      mapping <- modifyList(mapping, aes(colour = after_stat(level)))
     }
   } else if (type == "contour_filled") {
     stat <- StatFunction2dContourFilled

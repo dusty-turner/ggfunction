@@ -146,10 +146,9 @@ ggplot() +
 <img src="man/figures/readme-2d-1d-raster-1.png" width="60%" />
 
 **Contour modes.** The `type` argument switches among three visual
-encodings of the same field. `"contour"` draws iso-level curves and
-`"contour_filled"` draws filled regions between levels; both are
-rendered using **ggplot2**’s contour infrastructure so they respond to
-`bins`, `binwidth`, and `breaks`.
+encodings of the same field. `"contour"` draws iso-level curves colored
+by level value; `"contour_filled"` draws filled regions between levels;
+both respond to `bins`, `binwidth`, and `breaks`.
 
 ``` r
 ggplot() +
