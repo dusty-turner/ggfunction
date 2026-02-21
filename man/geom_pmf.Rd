@@ -26,7 +26,7 @@ geom_pmf(
   support = NULL,
   point_size = 2.5,
   stick_linewidth = 0.25,
-  stick_linetype = "solid",
+  stick_linetype = "dashed",
   color = "black",
   args = list(),
   p = NULL,
@@ -117,8 +117,8 @@ points to evaluate. When supplied, \code{xlim} is ignored.}
 
 \item{stick_linewidth}{Linewidth of the vertical sticks (defaults to 0.25).}
 
-\item{stick_linetype}{Linetype of the shaded vertical sticks (defaults to
-\code{"solid"}). Non-shaded sticks always use \code{"dashed"}.}
+\item{stick_linetype}{Linetype of the vertical sticks (defaults to
+\code{"dashed"}).}
 
 \item{color}{Color for the shaded points and segments (defaults to
 \code{"black"}).}

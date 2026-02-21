@@ -21,8 +21,8 @@
 #' @param point_size Size of the points at the top of each lollipop (defaults to
 #'   2.5).
 #' @param stick_linewidth Linewidth of the vertical sticks (defaults to 0.25).
-#' @param stick_linetype Linetype of the shaded vertical sticks (defaults to
-#'   `"solid"`). Non-shaded sticks always use `"dashed"`.
+#' @param stick_linetype Linetype of the vertical sticks (defaults to
+#'   `"dashed"`).
 #' @param color Color for the shaded points and segments (defaults to
 #'   `"black"`).
 #' @param args A named list of additional arguments to pass to `fun`.
@@ -81,7 +81,7 @@ geom_pmf <- function(mapping = NULL,
                      support = NULL,
                      point_size = 2.5,
                      stick_linewidth = 0.25,
-                     stick_linetype = "solid",
+                     stick_linetype = "dashed",
                      color = "black",
                      args = list(),
                      p = NULL,
@@ -163,7 +163,7 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
 
   draw_panel = function(self, data, panel_params, coord, na.rm = FALSE,
                         point_size = 2.5, stick_linewidth = 0.25,
-                        stick_linetype = "solid",
+                        stick_linetype = "dashed",
                         p = NULL, lower.tail = TRUE,
                         p_lower = NULL, p_upper = NULL,
                         shade_outside = FALSE, shade_hdr = NULL) {
@@ -220,7 +220,7 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
     # Build segment data: unshaded segments are grey + dashed
     seg_data          <- transform(data, yend = y, y = 0)
     seg_data$linewidth <- stick_linewidth
-    seg_data$linetype  <- ifelse(in_shade, stick_linetype, "dashed")
+    seg_data$linetype  <- stick_linetype
     seg_data$colour    <- ifelse(in_shade, seg_data$colour, "grey70")
     seg_data$size      <- NULL
 
