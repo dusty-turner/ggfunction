@@ -5,6 +5,11 @@ ggfunction
 
 <!-- badges: start -->
 
+[![Project Status: Active - The project has reached a stable, usable
+state and is being actively
+developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![](https://codecov.io/gh/dusty-turner/ggfunction/branch/main/graph/badge.svg)](https://app.codecov.io/gh/dusty-turner/ggfunction)
+
 <!-- badges: end -->
 
 **ggfunction** extends [**ggplot2**](https://ggplot2.tidyverse.org/)
