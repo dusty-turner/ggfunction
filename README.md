@@ -23,13 +23,13 @@ The package is organized around two families of geoms:
 |  | `geom_function_2d_1d()` | $\mathbb{R}^2 \to \mathbb{R}$ | Scalar fields (raster, contour, filled contour) |
 |  | `geom_function_2d_2d()` | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector field streamlines |
 | **Probability** | `geom_pdf()` |  | Probability density function |
-|  | `geom_cdf()` |  | Cumulative distribution function |
 |  | `geom_pmf()` |  | Probability mass function (lollipop) |
-|  | `geom_qf()` |  | Quantile function |
+|  | `geom_cdf()` |  | Cumulative distribution function |
 |  | `geom_cdf_discrete()` |  | Discrete CDF (step function) |
-|  | `geom_qf_discrete()` |  | Discrete quantile function (step function) |
-|  | `geom_survival_discrete()` |  | Discrete survival function $S(x) = 1 - F(x)$ (step function) |
 |  | `geom_survival()` |  | Survival function $S(x) = 1 - F(x)$ |
+|  | `geom_survival_discrete()` |  | Discrete survival function (step function) |
+|  | `geom_qf()` |  | Quantile function |
+|  | `geom_qf_discrete()` |  | Discrete quantile function (step function) |
 |  | `geom_hf()` |  | Hazard function $h(x) = f(x)/S(x)$ |
 
 ## Dimensional Taxonomy
@@ -336,12 +336,13 @@ ggplot() +
 
 <img src="man/figures/readme-geom-pmf-support-1.png" width="60%" />
 
-### CDF: `geom_cdf()`
+### CDF: `geom_cdf()` and `geom_cdf_discrete()`
 
-`geom_cdf()` draws a cumulative distribution function as a line with
-optional filled shading. It supports the same `p`, `lower.tail`,
-`p_lower`, and `p_upper` arguments as `geom_pdf()`. Here we plot the
-standard normal CDF, then shade the region below $p = 0.975$.
+The cumulative distribution function $F(x) = P(X \le x)$ is available
+for both continuous and discrete distributions.
+
+**Continuous (`geom_cdf()`).** Draws the CDF as a line. Here we plot the
+standard normal CDF.
 
 ``` r
 ggplot() +
@@ -350,27 +351,11 @@ ggplot() +
 
 <img src="man/figures/readme-geom-cdf-1.png" width="60%" />
 
-### Quantile function: `geom_qf()`
-
-`geom_qf()` evaluates a quantile function $Q(p) = F^{-1}(p)$ over the
-unit interval $(0, 1)$ and draws it as a curve. The following example
-plots the standard normal quantile function.
-
-``` r
-ggplot() +
-  geom_qf(fun = qnorm)
-```
-
-<img src="man/figures/readme-geom-qf-1.png" width="60%" />
-
-### Discrete CDF: `geom_cdf_discrete()`
-
-`geom_cdf_discrete()` takes a PMF, accumulates it into the
-right-continuous step-function CDF $F(x) = P(X \le x)$, and renders it
-with horizontal segments, dashed vertical jumps at each mass point, open
-circles at the lower limit of each jump, and closed circles at the
-achieved value. The following example plots the
-$\text{Binomial}(10, 0.5)$ CDF.
+**Discrete (`geom_cdf_discrete()`).** Takes a PMF, accumulates it into
+the right-continuous step-function CDF, and renders it with horizontal
+segments, dashed vertical jumps, open circles at the lower limit of each
+jump, and closed circles at the achieved value. The following example
+plots the $\text{Binomial}(10, 0.5)$ CDF.
 
 ``` r
 ggplot() +
@@ -379,8 +364,8 @@ ggplot() +
 
 <img src="man/figures/readme-discrete-cdf-1.png" width="60%" />
 
-**Parameterized families.** Distribution parameters are passed via
-`args`. Here we plot a $\text{Poisson}(5)$ CDF.
+**Parameterized families.** Here we plot a $\text{Poisson}(5)$ discrete
+CDF.
 
 ``` r
 ggplot() +
@@ -389,9 +374,9 @@ ggplot() +
 
 <img src="man/figures/readme-discrete-cdf-pois-1.png" width="60%" />
 
-**Hiding points and lines.** Setting `show_points = FALSE` and
-`show_vert = FALSE` removes the open and closed endpoint circles and/or
-vertical lines, leaving only the horizontal lines.
+**Hiding points and lines.** `show_points = FALSE` and
+`show_vert = FALSE` remove the endpoint circles and vertical jump
+segments, leaving only the horizontal staircase.
 
 ``` r
 ggplot() +
@@ -413,13 +398,77 @@ ggplot() +
 
 <img src="man/figures/readme-discrete-cdf-support-1.png" width="60%" />
 
-### Discrete quantile function: `geom_qf_discrete()`
+### Survival function: `geom_survival()` and `geom_survival_discrete()`
 
-`geom_qf_discrete()` takes a PMF and renders the quantile function
-$Q(p) = \inf\{x : F(x) \ge p\}$ as a left-continuous step function on
-the unit interval, with closed circles at the bottom of each jump (the
-value is achieved) and open circles at the top (the next value is not
-yet reached). The following example plots the $\text{Binomial}(10, 0.5)$
+The survival function $S(x) = 1 - F(x) = P(X > x)$ gives the probability
+of surviving past $x$.
+
+**Continuous (`geom_survival()`).** Accepts a CDF via `fun`. The
+following example shows the survival function of an
+$\text{Exponential}(0.5)$ distribution, which decays as
+$S(x) = e^{-0.5x}$.
+
+``` r
+ggplot() +
+  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
+```
+
+<img src="man/figures/readme-survival-1.png" width="60%" />
+
+**Discrete (`geom_survival_discrete()`).** Takes a PMF and renders
+$S(x) = 1 - F(x)$ as a right-continuous step function using the same
+visual conventions as `geom_cdf_discrete()`. The following example plots
+the $\text{Binomial}(10, 0.5)$ survival function.
+
+``` r
+ggplot() +
+  geom_survival_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+```
+
+<img src="man/figures/readme-discrete-survival-1.png" width="60%" />
+
+**Hiding points.** Setting `show_points = FALSE` removes the endpoint
+circles.
+
+``` r
+ggplot() +
+  geom_survival_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+    show_points = FALSE)
+```
+
+<img src="man/figures/readme-discrete-survival-no-points-1.png" width="60%" />
+
+**Explicit support.** The survival function of the sample mean of 10 iid
+$\text{Bernoulli}(0.3)$ draws.
+
+``` r
+f_mean <- function(x, prob) dbinom(round(x * 10), size = 10, prob = prob)
+ggplot() +
+  geom_survival_discrete(fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
+```
+
+<img src="man/figures/readme-discrete-survival-support-1.png" width="60%" />
+
+### Quantile function: `geom_qf()` and `geom_qf_discrete()`
+
+The quantile function $Q(p) = \inf\{x : F(x) \ge p\}$ inverts the CDF.
+
+**Continuous (`geom_qf()`).** Evaluates a quantile function over the
+unit interval $(0, 1)$ and draws it as a curve. The following example
+plots the standard normal quantile function.
+
+``` r
+ggplot() +
+  geom_qf(fun = qnorm)
+```
+
+<img src="man/figures/readme-geom-qf-1.png" width="60%" />
+
+**Discrete (`geom_qf_discrete()`).** Takes a PMF and renders the
+quantile function as a left-continuous step function on the unit
+interval, with closed circles at the bottom of each jump (the value is
+achieved) and open circles at the top (the next value is not yet
+reached). The following example plots the $\text{Binomial}(10, 0.5)$
 quantile function.
 
 ``` r
@@ -429,8 +478,8 @@ ggplot() +
 
 <img src="man/figures/readme-discrete-qf-1.png" width="60%" />
 
-**Parameterized families.** Distribution parameters are passed via
-`args`. Here we plot a $\text{Poisson}(5)$ quantile function.
+**Parameterized families.** Here we plot a $\text{Poisson}(5)$ discrete
+quantile function.
 
 ``` r
 ggplot() +
@@ -439,8 +488,8 @@ ggplot() +
 
 <img src="man/figures/readme-discrete-qf-pois-1.png" width="60%" />
 
-**Hiding points.** Setting `show_points = FALSE` removes the open and
-closed endpoint circles, leaving only the horizontal and vertical lines.
+**Hiding points.** Setting `show_points = FALSE` removes the endpoint
+circles, leaving only the horizontal and vertical lines.
 
 ``` r
 ggplot() +
@@ -472,59 +521,6 @@ ggplot() +
 ```
 
 <img src="man/figures/readme-discrete-qf-support-1.png" width="60%" />
-
-### Discrete survival function: `geom_survival_discrete()`
-
-`geom_survival_discrete()` takes a PMF and renders the discrete survival
-function $S(x) = 1 - F(x) = P(X > x)$ as a right-continuous step
-function. It uses the same visual conventions as `geom_cdf_discrete()`:
-horizontal segments, dashed vertical jumps, open circles at the pre-jump
-value, and closed circles at the post-jump value. The following example
-plots the $\text{Binomial}(10, 0.5)$ survival function.
-
-``` r
-ggplot() +
-  geom_survival_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
-```
-
-<img src="man/figures/readme-discrete-survival-1.png" width="60%" />
-
-**Hiding points.** Setting `show_points = FALSE` removes the endpoint
-circles.
-
-``` r
-ggplot() +
-  geom_survival_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
-    show_points = FALSE)
-```
-
-<img src="man/figures/readme-discrete-survival-no-points-1.png" width="60%" />
-
-**Explicit support.** The survival function of the sample mean of 10 iid
-$\text{Bernoulli}(0.3)$ draws.
-
-``` r
-f_mean <- function(x, prob) dbinom(round(x * 10), size = 10, prob = prob)
-ggplot() +
-  geom_survival_discrete(fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
-```
-
-<img src="man/figures/readme-discrete-survival-support-1.png" width="60%" />
-
-### Survival function: `geom_survival()`
-
-`geom_survival()` plots $S(x) = 1 - F(x)$, the probability that the
-event of interest has not yet occurred by time $x$. It accepts a CDF via
-`fun`. The following example shows the survival function of an
-$\text{Exponential}(0.5)$ distribution, which decays as
-$S(x) = e^{-0.5x}$.
-
-``` r
-ggplot() +
-  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
-```
-
-<img src="man/figures/readme-survival-1.png" width="60%" />
 
 ### Hazard function: `geom_hf()`
 
