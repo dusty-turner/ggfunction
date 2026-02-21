@@ -27,3 +27,5 @@ reference:
       - geom_survival
       - geom_survival_discrete
       - geom_hf
+      - geom_ecdf
+      - geom_eqf

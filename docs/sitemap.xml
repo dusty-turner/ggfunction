@@ -8,6 +8,8 @@
 <url><loc>/LICENSE.html</loc></url>
 <url><loc>/reference/geom_cdf.html</loc></url>
 <url><loc>/reference/geom_cdf_discrete.html</loc></url>
+<url><loc>/reference/geom_ecdf.html</loc></url>
+<url><loc>/reference/geom_eqf.html</loc></url>
 <url><loc>/reference/geom_function_1d_1d.html</loc></url>
 <url><loc>/reference/geom_function_1d_2d.html</loc></url>
 <url><loc>/reference/geom_function_2d_1d.html</loc></url>
