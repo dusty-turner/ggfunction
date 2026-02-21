@@ -94,4 +94,5 @@ build_step_polygon <- function(x, y) {
 }
 
 #' @noRd
-utils::globalVariables(c("x", "y", "z", "p", "level", "GeomLine", "pdf_fun", "cdf_fun"))
+utils::globalVariables(c("x", "y", "z", "p", "level", "GeomLine", "pdf_fun", "cdf_fun",
+                         "ymin", "ymax"))

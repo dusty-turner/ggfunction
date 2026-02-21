@@ -4,9 +4,12 @@
 \name{geom_eqf}
 \alias{geom_eqf}
 \alias{StatEQF}
+\alias{StatEQFBand}
 \title{Plot an Empirical Quantile Function}
 \format{
 An object of class \code{StatEQF} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
+
+An object of class \code{StatEQFBand} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 }
 \usage{
 geom_eqf(
@@ -21,10 +24,15 @@ geom_eqf(
   open_fill = NULL,
   vert_type = "dashed",
   show_points = TRUE,
-  show_vert = TRUE
+  show_vert = TRUE,
+  conf_int = TRUE,
+  level = 0.95,
+  conf_alpha = 0.3
 )
 
 StatEQF
+
+StatEQFBand
 }
 \arguments{
 \item{mapping}{Set of aesthetic mappings created by \code{\link[ggplot2:aes]{aes()}}. If specified and \code{inherit.aes = TRUE} (the default), it is combined with the default mapping at the top level
@@ -121,20 +129,35 @@ Defaults to \code{TRUE}.}
 
 \item{show_vert}{Logical. If \code{FALSE}, suppresses the vertical jump segments.
 Defaults to \code{TRUE}.}
+
+\item{conf_int}{Logical. If \code{TRUE} (the default), draws a simultaneous KS
+confidence band around the ECDF.}
+
+\item{level}{Confidence level for the band. Defaults to \code{0.95}.}
+
+\item{conf_alpha}{Alpha (transparency) of the confidence ribbon. Defaults
+to \code{0.3}.}
 }
 \value{
-A ggplot2 layer.
+A ggplot2 layer, or a list of two layers when \code{conf_int = TRUE}.
 }
 \description{
 \code{geom_eqf()} computes the empirical quantile function of a sample and renders
 it as a left-continuous step function on \eqn{[0, 1]}, using the same visual
 conventions as \code{\link[=geom_qf_discrete]{geom_qf_discrete()}}: horizontal segments, dashed vertical
 jumps, closed circles at the bottom of each jump (value achieved), and open
-circles at the top (next value not yet reached).
+circles at the top (next value not yet reached). An optional simultaneous
+confidence band is drawn using the Kolmogorov-Smirnov construction.
 }
 \details{
 The empirical quantile function is the left-continuous inverse of the
 empirical CDF: \eqn{Q(p) = \inf\{x : F_n(x) \geq p\}}.
+
+The confidence band at probability level \eqn{p} is
+\eqn{[Q_n(p - \varepsilon),\, Q_n(p + \varepsilon)]}, where
+\eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}} is the KS half-width
+(\eqn{\alpha = 1 - \texttt{level}}). This follows directly from inverting
+the simultaneous ECDF confidence band.
 }
 \examples{
 set.seed(1)
