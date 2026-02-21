@@ -29,12 +29,25 @@
 #'   probability bound. Used with `p_lower` for two-sided shading.
 #' @param shade_outside Logical; if `FALSE` (the default) shading is applied between `p_lower`
 #'   and `p_upper`. If `TRUE`, shading is applied to the tails outside that range.
+#' @param shade_hdr (Optional) A numeric value between 0 and 1 specifying the coverage of the
+#'   [highest density region](https://en.wikipedia.org/wiki/Credible_interval#Highest_density_interval)
+#'   (HDR) to shade. The HDR is the smallest region of the domain containing the specified
+#'   probability mass; for multimodal densities it may be disconnected, producing multiple
+#'   shaded intervals. Computed following the approach of \doi{10.32614/RJ-2023-048}: density
+#'   values are evaluated on the grid, normalized to sum to 1, sorted in descending order, and
+#'   cumulated until the target coverage is reached; the density at that threshold determines
+#'   which regions are shaded. Takes precedence over `p`, `p_lower`, and `p_upper` if specified.
 #'
 #' @return A ggplot2 layer.
 #'
 #' @examples
 #' ggplot() +
-#'   geom_pdf(fun = dnorm, xlim = c(-3, 3),  p = .975, lower.tail = TRUE)
+#'   geom_pdf(fun = dnorm, xlim = c(-3, 3), p = .975, lower.tail = TRUE)
+#'
+#' # Highest density region of a bimodal density
+#' f_bim <- function(x) 0.5 * dnorm(x, -2, 0.5) + 0.5 * dnorm(x, 2, 0.5)
+#' ggplot() +
+#'   geom_pdf(fun = f_bim, xlim = c(-4, 4), shade_hdr = 0.9)
 #'
 #' @name geom_pdf
 #' @aliases StatPDF GeomPDF
@@ -60,7 +73,8 @@ geom_pdf <- function(
     lower.tail = TRUE,
     p_lower = NULL,
     p_upper = NULL,
-    shade_outside = FALSE
+    shade_outside = FALSE,
+    shade_hdr = NULL
     ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -103,7 +117,8 @@ geom_pdf <- function(
         lower.tail = lower.tail,
         p_lower = p_lower,
         p_upper = p_upper,
-        shade_outside = shade_outside
+        shade_outside = shade_outside,
+        shade_hdr = shade_hdr
       ),
       linewidth_params,
       list(...)
@@ -145,7 +160,8 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
   draw_panel = function(self, data, panel_params, coord, arrow = NULL,
                         lineend = "butt", linejoin = "round", linemitre = 10,
                         na.rm = FALSE, p = NULL, lower.tail = TRUE,
-                        p_lower = NULL, p_upper = NULL, shade_outside = FALSE
+                        p_lower = NULL, p_upper = NULL, shade_outside = FALSE,
+                        shade_hdr = NULL
                         ) {
 
     x_vals <- data$x
@@ -230,6 +246,34 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
           build_poly(clip_data, clip_range), panel_params, coord, na.rm = na.rm
         )
       ))
+    } else if (!is.null(shade_hdr)) {
+      # Highest density region (HDR) shading, following ggdensity's approach:
+      # normalize f(x) values to sum to 1, sort descending, cumsum until
+      # coverage is reached, shade all connected intervals above the cutoff.
+      fhat_discretized <- y_vals / sum(y_vals)
+      ord <- order(y_vals, decreasing = TRUE)
+      cumprob <- cumsum(fhat_discretized[ord])
+      cutoff_idx <- which(cumprob >= shade_hdr)[1]
+      if (is.na(cutoff_idx)) cutoff_idx <- length(y_vals)
+      cutoff <- y_vals[ord[cutoff_idx]]
+
+      # Identify connected runs of grid points at or above the cutoff
+      above <- y_vals >= cutoff
+      runs <- rle(above)
+      idx_end <- cumsum(runs$lengths)
+      idx_start <- c(1L, head(idx_end, -1L) + 1L)
+
+      for (i in seq_along(runs$values)) {
+        if (runs$values[i]) {
+          clip_data  <- data[idx_start[i]:idx_end[i], , drop = FALSE]
+          clip_range <- c(x_vals[idx_start[i]], x_vals[idx_end[i]])
+          area_grobs <- c(area_grobs, list(
+            ggproto_parent(GeomArea, self)$draw_panel(
+              build_poly(clip_data, clip_range), panel_params, coord, na.rm = na.rm
+            )
+          ))
+        }
+      }
     } else {
       clip_range <- range(x_vals, na.rm = TRUE)
       clip_data <- data[data$x >= clip_range[1] & data$x <= clip_range[2], , drop = FALSE]

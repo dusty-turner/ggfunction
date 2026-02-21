@@ -257,6 +257,23 @@ ggplot() +
 
 <img src="man/figures/readme-pdf-tails-1.png" width="60%" />
 
+**Highest density region.** `shade_hdr` shades the smallest region of
+the domain containing the specified probability mass—the [highest
+density
+region](https://en.wikipedia.org/wiki/Credible_interval#Highest_density_interval)
+(HDR). For multimodal densities this region can be disconnected. The
+following example uses an asymmetric mixture of two normals; the 80% HDR
+captures both modes as two disjoint intervals, with more area allocated
+to the taller, narrower component.
+
+``` r
+f_mix <- function(x) 0.6 * dnorm(x, mean = -2, sd = 0.6) + 0.4 * dnorm(x, mean = 2, sd = 1.2)
+ggplot() +
+  geom_pdf(fun = f_mix, xlim = c(-5, 6), shade_hdr = 0.8)
+```
+
+<img src="man/figures/readme-pdf-hdr-1.png" width="60%" />
+
 ### PMF: `geom_pmf()`
 
 `geom_pmf()` evaluates a probability mass function at each integer in

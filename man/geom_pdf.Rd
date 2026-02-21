@@ -33,7 +33,8 @@ geom_pdf(
   lower.tail = TRUE,
   p_lower = NULL,
   p_upper = NULL,
-  shade_outside = FALSE
+  shade_outside = FALSE,
+  shade_hdr = NULL
 )
 
 StatPDF
@@ -149,6 +150,15 @@ probability bound. Used with \code{p_lower} for two-sided shading.}
 
 \item{shade_outside}{Logical; if \code{FALSE} (the default) shading is applied between \code{p_lower}
 and \code{p_upper}. If \code{TRUE}, shading is applied to the tails outside that range.}
+
+\item{shade_hdr}{(Optional) A numeric value between 0 and 1 specifying the coverage of the
+\href{https://en.wikipedia.org/wiki/Credible_interval#Highest_density_interval}{highest density region}
+(HDR) to shade. The HDR is the smallest region of the domain containing the specified
+probability mass; for multimodal densities it may be disconnected, producing multiple
+shaded intervals. Computed following the approach of \doi{10.32614/RJ-2023-048}: density
+values are evaluated on the grid, normalized to sum to 1, sorted in descending order, and
+cumulated until the target coverage is reached; the density at that threshold determines
+which regions are shaded. Takes precedence over \code{p}, \code{p_lower}, and \code{p_upper} if specified.}
 }
 \value{
 A ggplot2 layer.
@@ -160,7 +170,12 @@ a given proportion of the total density.
 }
 \examples{
 ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3),  p = .975, lower.tail = TRUE)
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = .975, lower.tail = TRUE)
+
+# Highest density region of a bimodal density
+f_bim <- function(x) 0.5 * dnorm(x, -2, 0.5) + 0.5 * dnorm(x, 2, 0.5)
+ggplot() +
+  geom_pdf(fun = f_bim, xlim = c(-4, 4), shade_hdr = 0.9)
 
 }
 \keyword{datasets}

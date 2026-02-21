@@ -264,7 +264,7 @@ f(x) \geq 0 \quad \text{and} \quad \int_{-\infty}^{\infty} f(x)\, dx = 1.
 
 `geom_pdf()` evaluates a user-supplied density and renders it as a filled area with an overlaid outline. The underlying `StatPDF` validates the normalization property \@ref(eq:pdf) using `stats::integrate()`, issuing a diagnostic via \CRANpkg{cli} [@cli] if the integral departs from unity by more than a specified tolerance--a guard against accidentally passing an unnormalized function.
 
-Three shading modes are supported, corresponding to common pedagogical operations.
+Four shading modes are supported, corresponding to common pedagogical operations.
 
 **Single threshold.** The `p` parameter specifies a cumulative probability. When `lower.tail = TRUE` (the default), the region from the left boundary to the $p$-quantile is shaded, representing $P(X \leq x_p) = p$. Setting `lower.tail = FALSE` shades the complementary upper tail.
 
@@ -296,7 +296,16 @@ ggplot() +
   )
 ```
 
-The shading boundaries are determined by trapezoidal accumulation. For $n$ evaluation points $x_1, \ldots, x_n$ with density values $y_1, \ldots, y_n$, the cumulative area at the $k$-th point is
+**Highest density region.** The `shade_hdr` parameter specifies a coverage probability and shades the corresponding highest density region (HDR)--the smallest subset of the domain containing the specified probability mass. For multimodal densities the HDR may be disconnected, producing multiple disjoint shaded intervals. The algorithm follows @otto2023ggdensity: evaluate the density on the grid, normalize the values to sum to one, sort in descending order, accumulate until the target coverage is reached, and shade all grid intervals at or above the resulting density threshold.
+
+```{r pdf-hdr, echo=TRUE}
+#| fig.cap: "The 90\\% highest density region of a bimodal density, shading both modes as two disjoint intervals."
+f_bim <- function(x) 0.5 * dnorm(x, -2, 0.5) + 0.5 * dnorm(x, 2, 0.5)
+ggplot() +
+  geom_pdf(fun = f_bim, xlim = c(-4, 4), shade_hdr = 0.9)
+```
+
+The shading boundaries for the interval-based modes are determined by trapezoidal accumulation. For $n$ evaluation points $x_1, \ldots, x_n$ with density values $y_1, \ldots, y_n$, the cumulative area at the $k$-th point is
 
 \begin{equation}
 A_k = \sum_{i=1}^{k-1} \frac{y_i + y_{i+1}}{2} \, (x_{i+1} - x_i).
@@ -464,11 +473,13 @@ Several existing packages overlap with \pkg{ggfunction} in purpose, and understa
 
 2. \CRANpkg{ggdist} [@kay2024ggdist]. This package excels at visualizing distributional uncertainty in Bayesian workflows: posterior distributions, predictive intervals, and uncertainty estimates from fitted models. Its geoms work primarily with samples or distributional objects rather than the `d`/`p`/`q`/`h` function families that \pkg{ggfunction} targets.
 
-3. \CRANpkg{mosaic} [@pruim2017mosaic]. The `plotDist()` function provides quick plots of named distributions and supports shading, but it operates outside the grammar of graphics and cannot be composed with \CRANpkg{ggplot2} layers.
+3. \CRANpkg{ggdensity} [@otto2023ggdensity]. This package improves bivariate density visualization in \CRANpkg{ggplot2}, with a particular focus on highest density regions (HDRs). \pkg{ggfunction}'s `shade_hdr` parameter in `geom_pdf()` follows the HDR computation approach introduced there: normalizing density values, sorting in descending order, and accumulating until the target coverage is reached.
 
-4. \CRANpkg{metR} [@metR]. This package provides contour and vector-field geoms designed for meteorological data, requiring precomputed grids as inputs rather than function objects. Users who already have gridded data may find \CRANpkg{metR} more convenient; users who want to visualize a function directly will find \pkg{ggfunction} more natural.
+4. \CRANpkg{mosaic} [@pruim2017mosaic]. The `plotDist()` function provides quick plots of named distributions and supports shading, but it operates outside the grammar of graphics and cannot be composed with \CRANpkg{ggplot2} layers.
 
-5. \pkg{ggvfields} [@ggvfields]. \pkg{ggfunction}'s `geom_function_2d_2d()` delegates to \pkg{ggvfields} for streamline computation. For users whose primary interest is vector fields--including stream plots, gradient fields, and potential functions--\pkg{ggvfields} offers a substantially richer collection of tools built on the same \CRANpkg{ggplot2} extension architecture.
+5. \CRANpkg{metR} [@metR]. This package provides contour and vector-field geoms designed for meteorological data, requiring precomputed grids as inputs rather than function objects. Users who already have gridded data may find \CRANpkg{metR} more convenient; users who want to visualize a function directly will find \pkg{ggfunction} more natural.
+
+6. \pkg{ggvfields} [@ggvfields]. \pkg{ggfunction}'s `geom_function_2d_2d()` delegates to \pkg{ggvfields} for streamline computation. For users whose primary interest is vector fields--including stream plots, gradient fields, and potential functions--\pkg{ggvfields} offers a substantially richer collection of tools built on the same \CRANpkg{ggplot2} extension architecture.
 
 Taken together, these packages reflect the breadth of interest in function visualization within the R ecosystem. \pkg{ggfunction} is distinguished by its unified dimensional taxonomy and its integration of the full probability distribution function family--capabilities that, to our knowledge, no other single package provides within the grammar of graphics.
 

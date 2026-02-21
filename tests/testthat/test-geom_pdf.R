@@ -58,3 +58,16 @@ test_that("geom_pdf with shade_outside builds without error", {
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
 })
+
+test_that("geom_pdf with shade_hdr builds without error (unimodal)", {
+  p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3), shade_hdr = 0.95)
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("geom_pdf with shade_hdr builds without error (bimodal, disconnected HDR)", {
+  f_bim <- function(x) 0.5 * dnorm(x, -2, 0.5) + 0.5 * dnorm(x, 2, 0.5)
+  p <- ggplot() + geom_pdf(fun = f_bim, xlim = c(-4, 4), shade_hdr = 0.9)
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
