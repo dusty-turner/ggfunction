@@ -23,6 +23,7 @@ geom_cdf_discrete(
   inherit.aes = FALSE,
   fun,
   xlim = NULL,
+  support = NULL,
   args = list(),
   open_fill = NULL,
   vert_type = "dashed",
@@ -99,6 +100,9 @@ sum to 1.}
 
 \item{xlim}{A numeric vector of length 2 specifying the range of integer support
 values.}
+
+\item{support}{An optional integer or numeric vector giving the exact support
+points to evaluate. When supplied, \code{xlim} is ignored.}
 
 \item{args}{A named list of additional arguments to pass to \code{fun}.}
 

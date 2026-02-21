@@ -11,6 +11,8 @@
 #'   sum to 1.
 #' @param xlim A numeric vector of length 2 specifying the range of integer support
 #'   values.
+#' @param support An optional integer or numeric vector giving the exact support
+#'   points to evaluate. When supplied, `xlim` is ignored.
 #' @param args A named list of additional arguments to pass to `fun`.
 #' @param open_fill Fill color for the open (hollow) endpoint circles. Defaults to
 #'   `NULL`, which uses the active theme's panel background color.
@@ -45,6 +47,7 @@ geom_survival_discrete <- function(
     inherit.aes = FALSE,
     fun,
     xlim = NULL,
+    support = NULL,
     args = list(),
     open_fill = NULL,
     vert_type = "dashed",
@@ -73,6 +76,7 @@ geom_survival_discrete <- function(
       fun = fun,
       args = args,
       xlim = xlim,
+      support = support,
       na.rm = na.rm,
       open_fill = open_fill,
       vert_type = vert_type,
@@ -88,9 +92,11 @@ geom_survival_discrete <- function(
 StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
-  compute_group = function(data, scales, fun, xlim = NULL, args = NULL) {
+  compute_group = function(data, scales, fun, xlim = NULL, support = NULL, args = NULL) {
 
-    if (is.null(xlim)) {
+    if (!is.null(support)) {
+      x_vals <- sort(support)
+    } else if (is.null(xlim)) {
       x_vals <- 0:10
     } else {
       x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))

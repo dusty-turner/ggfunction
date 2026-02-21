@@ -156,6 +156,20 @@ ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
 
 
+## ----pmf-clt, echo=TRUE-------------------------------------------------------
+#| fig.cap: "Exact distribution of the sample mean of 10 i.i.d.~Bernoulli(0.3) draws (lollipops) with the CLT normal approximation overlaid as a scaled density curve."
+p <- 0.3; n <- 10
+sd_mean <- sqrt(p * (1 - p) / n)
+f_mean  <- function(x) dbinom(round(x * n), size = n, prob = p)
+max_pmf <- max(f_mean(seq(0, 1, by = 1/n)))
+scale   <- max_pmf / dnorm(p, mean = p, sd = sd_mean)
+f_clt   <- function(x) scale * dnorm(x, mean = p, sd = sd_mean)
+
+ggplot() +
+  geom_pmf(fun = f_mean, support = seq(0, 1, by = 1/n)) +
+  geom_pdf(fun = f_clt, xlim = c(0, 1))
+
+
 ## ----qf-normal, echo=TRUE-----------------------------------------------------
 #| fig.cap: "The quantile function of the standard normal distribution."
 ggplot() +

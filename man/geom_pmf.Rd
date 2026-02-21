@@ -23,6 +23,7 @@ geom_pmf(
   inherit.aes = TRUE,
   fun,
   xlim = NULL,
+  support = NULL,
   point_size = 2.5,
   stick_linewidth = 0.25,
   stick_linetype = "solid",
@@ -107,6 +108,9 @@ the support.)}
 \item{xlim}{A numeric vector of length 2 specifying the range (of x values)
 over which to evaluate the PMF. If not provided, a default range of 0 to 10
 is used.}
+
+\item{support}{An optional integer or numeric vector giving the exact support
+points to evaluate. When supplied, \code{xlim} is ignored.}
 
 \item{point_size}{Size of the points at the top of each lollipop (defaults to
 2.5).}

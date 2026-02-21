@@ -321,6 +321,21 @@ ggplot() +
 
 <img src="man/figures/readme-geom-pmf-hdr-2-1.png" width="60%" />
 
+**Explicit support.** When the support is not a sequence of consecutive
+integers, pass the exact support points via `support`. Here we plot the
+distribution of the sample mean $\bar X$ of 10 iid
+$\text{Bernoulli}(0.3)$ draws. The support is
+$\{0, 0.1, 0.2, \ldots, 1\}$ and the PMF is binomial:
+$P(\bar X = k/10) = \binom{10}{k}0.3^k 0.7^{10-k}$.
+
+``` r
+f_mean <- function(x, prob) dbinom(round(x * 10), size = 10, prob = prob)
+ggplot() +
+  geom_pmf(fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
+```
+
+<img src="man/figures/readme-geom-pmf-support-1.png" width="60%" />
+
 ### CDF: `geom_cdf()`
 
 `geom_cdf()` draws a cumulative distribution function as a line with
@@ -386,6 +401,18 @@ ggplot() +
 
 <img src="man/figures/readme-discrete-cdf-no-points-lines-1.png" width="60%" />
 
+**Explicit support.** Pass non-integer support points directly via
+`support`. Here we plot the CDF of the sample mean of 10 iid
+$\text{Bernoulli}(0.3)$ draws.
+
+``` r
+f_mean <- function(x, prob) dbinom(round(x * 10), size = 10, prob = prob)
+ggplot() +
+  geom_cdf_discrete(fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
+```
+
+<img src="man/figures/readme-discrete-cdf-support-1.png" width="60%" />
+
 ### Discrete quantile function: `geom_qf_discrete()`
 
 `geom_qf_discrete()` takes a PMF and renders the quantile function
@@ -435,6 +462,17 @@ ggplot() +
 
 <img src="man/figures/readme-discrete-qf-no-vert-1.png" width="60%" />
 
+**Explicit support.** The quantile function of the sample mean of 10 iid
+$\text{Bernoulli}(0.3)$ draws.
+
+``` r
+f_mean <- function(x, prob) dbinom(round(x * 10), size = 10, prob = prob)
+ggplot() +
+  geom_qf_discrete(fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
+```
+
+<img src="man/figures/readme-discrete-qf-support-1.png" width="60%" />
+
 ### Discrete survival function: `geom_survival_discrete()`
 
 `geom_survival_discrete()` takes a PMF and renders the discrete survival
@@ -461,6 +499,17 @@ ggplot() +
 ```
 
 <img src="man/figures/readme-discrete-survival-no-points-1.png" width="60%" />
+
+**Explicit support.** The survival function of the sample mean of 10 iid
+$\text{Bernoulli}(0.3)$ draws.
+
+``` r
+f_mean <- function(x, prob) dbinom(round(x * 10), size = 10, prob = prob)
+ggplot() +
+  geom_survival_discrete(fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
+```
+
+<img src="man/figures/readme-discrete-survival-support-1.png" width="60%" />
 
 ### Survival function: `geom_survival()`
 

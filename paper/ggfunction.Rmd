@@ -349,12 +349,28 @@ ggplot() +
 
 ## Probability mass functions: `geom_pmf()`
 
-For a discrete random variable with integer support, the PMF $p(k) = P(X = k)$ satisfies $\sum_k p(k) = 1$. `geom_pmf()` evaluates the PMF at each integer in `xlim` and renders the result as a lollipop chart--vertical segments from the $x$-axis to the probability value, capped with points. The underlying `StatPMF` validates normalization by summing the computed probabilities and issues a warning if they depart significantly from unity.
+For a discrete random variable with integer support, the PMF $p(k) = P(X = k)$ satisfies $\sum_k p(k) = 1$. `geom_pmf()` evaluates the PMF at each integer in `xlim` and renders the result as a lollipop chart--vertical segments from the $x$-axis to the probability value, capped with points. The underlying `StatPMF` validates normalization by summing the computed probabilities and issues a warning if they depart significantly from unity. When the support is not a sequence of consecutive integers, the `support` argument accepts an explicit numeric vector that overrides `xlim`.
 
 ```{r pmf-binomial, echo=TRUE}
 #| fig.cap: "The PMF of a $\\mathrm{Binomial}(10, 0.3)$ distribution, rendered as a lollipop chart."
 ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
+```
+
+The `support` argument enables distributions whose mass points are not consecutive integers. Figure~\ref{fig:pmf-clt} illustrates this with the exact distribution of the sample mean $\bar X_n = n^{-1}\sum_{i=1}^n X_i$ of $n = 10$ i.i.d.\ $\mathrm{Bernoulli}(0.3)$ draws. The support is $\{0, 0.1, 0.2, \ldots, 1\}$ and $P(\bar X_n = k/n) = \binom{n}{k}0.3^k 0.7^{n-k}$. The Central Limit Theorem approximation $\bar X_n \approx \mathcal{N}(0.3,\, 0.3 \times 0.7 / 10)$ is overlaid as a scaled density curve whose peak matches the tallest lollipop, facilitating direct visual comparison of shape without a secondary axis.
+
+```{r pmf-clt, echo=TRUE}
+#| fig.cap: "Exact distribution of the sample mean of 10 i.i.d.~Bernoulli(0.3) draws (lollipops) with the CLT normal approximation overlaid as a scaled density curve."
+p <- 0.3; n <- 10
+sd_mean <- sqrt(p * (1 - p) / n)
+f_mean  <- function(x) dbinom(round(x * n), size = n, prob = p)
+max_pmf <- max(f_mean(seq(0, 1, by = 1/n)))
+scale   <- max_pmf / dnorm(p, mean = p, sd = sd_mean)
+f_clt   <- function(x) scale * dnorm(x, mean = p, sd = sd_mean)
+
+ggplot() +
+  geom_pmf(fun = f_mean, support = seq(0, 1, by = 1/n)) +
+  geom_pdf(fun = f_clt, xlim = c(0, 1))
 ```
 
 ## Quantile functions: `geom_qf()`

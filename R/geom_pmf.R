@@ -16,6 +16,8 @@
 #' @param xlim A numeric vector of length 2 specifying the range (of x values)
 #'   over which to evaluate the PMF. If not provided, a default range of 0 to 10
 #'   is used.
+#' @param support An optional integer or numeric vector giving the exact support
+#'   points to evaluate. When supplied, `xlim` is ignored.
 #' @param point_size Size of the points at the top of each lollipop (defaults to
 #'   2.5).
 #' @param stick_linewidth Linewidth of the vertical sticks (defaults to 0.25).
@@ -76,6 +78,7 @@ geom_pmf <- function(mapping = NULL,
                      inherit.aes = TRUE,
                      fun,
                      xlim = NULL,
+                     support = NULL,
                      point_size = 2.5,
                      stick_linewidth = 0.25,
                      stick_linetype = "solid",
@@ -108,6 +111,7 @@ geom_pmf <- function(mapping = NULL,
     params = list(
       fun = fun,
       xlim = xlim,
+      support = support,
       point_size = point_size,
       stick_linewidth = stick_linewidth,
       stick_linetype = stick_linetype,
@@ -131,9 +135,11 @@ StatPMF <- ggproto("StatPMF", Stat,
 
   default_aes = aes(x = NULL, y = after_stat(y)),
 
-  compute_group = function(data, scales, fun, xlim = NULL, args = NULL, ...) {
+  compute_group = function(data, scales, fun, xlim = NULL, support = NULL, args = NULL, ...) {
 
-    if (is.null(xlim)) {
+    if (!is.null(support)) {
+      x_vals <- sort(support)
+    } else if (is.null(xlim)) {
       x_vals <- 0:10
     } else {
       x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))
