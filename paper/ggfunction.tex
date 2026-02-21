@@ -56,7 +56,7 @@ Each class admits a natural visual encoding:
 \item
   \textbf{Parametric curves} (\(\mathbb{R} \to \mathbb{R}^2\)): directed paths with color encoding the time parameter.
 \item
-  \textbf{Scalar fields} (\(\mathbb{R}^2 \to \mathbb{R}\)): raster heatmaps, contour lines, or filled contour regions.
+  \textbf{Scalar fields} (\(\mathbb{R}^2 \to \mathbb{R}\)): raster heatmaps, contour lines colored by level value, or filled contour regions.
 \item
   \textbf{Vector fields} (\(\mathbb{R}^2 \to \mathbb{R}^2\)): short arrows at grid points (default) or streamlines computed by numerical integration of the field.
 \end{itemize}
@@ -172,7 +172,7 @@ A scalar field assigns a real value to each point in a two-dimensional domain. \
 \item
   \texttt{"raster"} (default): a heatmap with fill mapped to \texttt{after\_stat(z)}.
 \item
-  \texttt{"contour"}: iso-level curves rendered by \texttt{ggplot2::GeomContour}.
+  \texttt{"contour"}: iso-level curves with \texttt{colour} mapped to \texttt{after\_stat(level)}, producing a colored legend automatically.
 \item
   \texttt{"contour\_filled"}: filled regions between contour levels rendered by \texttt{ggplot2::GeomContourFilled}.
 \end{itemize}
@@ -433,6 +433,32 @@ ggplot() +
 \caption{Exact distribution of the sample mean of 10 i.i.d.~Bernoulli(0.3) draws (lollipops) with the CLT normal approximation overlaid as a scaled density curve.}\label{fig:pmf-clt}
 \end{figure}
 
+\texttt{geom\_pmf()} supports the same shading modes as \texttt{geom\_pdf()}. The \texttt{p} parameter shades lollipops up to the \(p\)-quantile; \texttt{p\_lower} and \texttt{p\_upper} define a two-sided interval; \texttt{shade\_outside\ =\ TRUE} inverts it; and \texttt{shade\_hdr} shades the smallest set of mass points whose total probability meets or exceeds the target coverage. Unshaded lollipops are rendered in grey to preserve the distributional context. Because a discrete distribution may not achieve the exact target coverage, \texttt{shade\_hdr} finds the smallest HDR with coverage \(\geq\) the requested level and issues a diagnostic via \CRANpkg{cli} when the actual coverage differs from the target by more than 0.5 percentage points.
+
+\begin{verbatim}
+library("gridExtra")
+p1 <- ggplot() +
+  geom_pmf(fun = dbinom, xlim = c(0, 10),
+    args = list(size = 10, prob = 0.5), p = 0.8) +
+  ggtitle("p = 0.8")
+
+p2 <- ggplot() +
+  geom_pmf(fun = dbinom, xlim = c(0, 10),
+    args = list(size = 10, prob = 0.3), shade_hdr = 0.8) +
+  ggtitle("shade_hdr = 0.8")
+
+grid.arrange(p1, p2, ncol = 2)
+\end{verbatim}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/pmf-shading-1} 
+
+}
+
+\caption{Shading modes for \texttt{geom\_pmf()}: the lower 80\% by cumulative probability (left) and the 80\% HDR of a $\mathrm{Binomial}(10, 0.3)$ distribution (right). Unshaded lollipops are shown in grey.}\label{fig:pmf-shading}
+\end{figure}
+
 \subsection{\texorpdfstring{Quantile functions: \texttt{geom\_qf()}}{Quantile functions: geom\_qf()}}\label{quantile-functions-geom_qf}
 
 The quantile function \(Q(p) = F^{-1}(p) = \inf\{x : F(x) \geq p\}\) inverts the CDF. \texttt{geom\_qf()} evaluates a user-supplied quantile function (e.g., \texttt{qnorm}) over the unit interval \((0, 1)\). Evaluation points are placed at Chebyshev nodes of the first kind, \(p_k = (1 - \cos((2k-1)\pi / 2n))/2\) for \(k = 1, \ldots, n\), which cluster near 0 and 1 where quantile functions are typically most curved. This also avoids evaluating at the exact endpoints, preventing \(\pm\infty\) for unbounded distributions.
@@ -453,7 +479,7 @@ ggplot() +
 
 \subsection{\texorpdfstring{Discrete CDFs: \texttt{geom\_cdf\_discrete()}}{Discrete CDFs: geom\_cdf\_discrete()}}\label{discrete-cdfs-geom_cdf_discrete}
 
-For discrete distributions, the CDF is a step function. \texttt{geom\_cdf\_discrete()} takes a PMF as input, computes cumulative sums, and renders the result as a right-continuous step function with dashed vertical jumps, open circles at the pre-jump value (the left limit), and closed circles at the achieved value. The \texttt{show\_points} and \texttt{show\_vert} parameters independently suppress the endpoint circles or vertical jump segments.
+For discrete distributions, the CDF is a step function. \texttt{geom\_cdf\_discrete()} takes a PMF as input, computes cumulative sums, and renders the result as a right-continuous step function with dashed vertical jumps, open circles at the pre-jump value (the left limit), and closed circles at the achieved value. The \texttt{show\_points} and \texttt{show\_vert} parameters independently suppress the endpoint circles or vertical jump segments. As with \texttt{geom\_pmf()}, the \texttt{support} argument accepts an explicit numeric vector of mass points, overriding \texttt{xlim} for distributions with non-integer or non-consecutive support.
 
 \begin{verbatim}
 ggplot() +
@@ -473,7 +499,7 @@ ggplot() +
 
 \subsection{\texorpdfstring{Discrete quantile functions: \texttt{geom\_qf\_discrete()}}{Discrete quantile functions: geom\_qf\_discrete()}}\label{discrete-quantile-functions-geom_qf_discrete}
 
-The quantile function \(Q(p) = \inf\{x : F(x) \geq p\}\) of a discrete distribution is a left-continuous step function on \([0, 1]\). \texttt{geom\_qf\_discrete()} takes the same PMF input as \texttt{geom\_cdf\_discrete()}, computes the cumulative sum, and renders the inverse function with horizontal segments on \([0, 1]\), dashed vertical jumps, closed circles at the bottom of each jump (the value is achieved), and open circles at the top (the next value is not yet reached).
+The quantile function \(Q(p) = \inf\{x : F(x) \geq p\}\) of a discrete distribution is a left-continuous step function on \([0, 1]\). \texttt{geom\_qf\_discrete()} takes the same PMF input as \texttt{geom\_cdf\_discrete()}, computes the cumulative sum, and renders the inverse function with horizontal segments on \([0, 1]\), dashed vertical jumps, closed circles at the bottom of each jump (the value is achieved), and open circles at the top (the next value is not yet reached). The \texttt{support} argument is accepted and behaves as in \texttt{geom\_cdf\_discrete()}.
 
 \begin{verbatim}
 ggplot() +
@@ -493,7 +519,7 @@ ggplot() +
 
 \subsection{\texorpdfstring{Discrete survival functions: \texttt{geom\_survival\_discrete()}}{Discrete survival functions: geom\_survival\_discrete()}}\label{discrete-survival-functions-geom_survival_discrete}
 
-For discrete distributions, the survival function \(S(x) = 1 - F(x) = P(X > x)\) is itself a right-continuous step function. \texttt{geom\_survival\_discrete()} computes \(S\) from a PMF and renders it with the same visual conventions as \texttt{geom\_cdf\_discrete()}: horizontal segments, dashed vertical jumps, open circles at the pre-drop value, and closed circles at the achieved (lower) value.
+For discrete distributions, the survival function \(S(x) = 1 - F(x) = P(X > x)\) is itself a right-continuous step function. \texttt{geom\_survival\_discrete()} computes \(S\) from a PMF and renders it with the same visual conventions as \texttt{geom\_cdf\_discrete()}: horizontal segments, dashed vertical jumps, open circles at the pre-drop value, and closed circles at the achieved (lower) value. The \texttt{support} argument is accepted and behaves as in \texttt{geom\_cdf\_discrete()}.
 
 \begin{verbatim}
 ggplot() +

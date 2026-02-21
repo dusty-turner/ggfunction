@@ -170,6 +170,22 @@ ggplot() +
   geom_pdf(fun = f_clt, xlim = c(0, 1))
 
 
+## ----pmf-shading, echo=TRUE---------------------------------------------------
+#| fig.cap: "Shading modes for \\texttt{geom\\_pmf()}: the lower 80\\% by cumulative probability (left) and the 80\\% HDR of a $\\mathrm{Binomial}(10, 0.3)$ distribution (right). Unshaded lollipops are shown in grey."
+library("gridExtra")
+p1 <- ggplot() +
+  geom_pmf(fun = dbinom, xlim = c(0, 10),
+    args = list(size = 10, prob = 0.5), p = 0.8) +
+  ggtitle("p = 0.8")
+
+p2 <- ggplot() +
+  geom_pmf(fun = dbinom, xlim = c(0, 10),
+    args = list(size = 10, prob = 0.3), shade_hdr = 0.8) +
+  ggtitle("shade_hdr = 0.8")
+
+grid.arrange(p1, p2, ncol = 2)
+
+
 ## ----qf-normal, echo=TRUE-----------------------------------------------------
 #| fig.cap: "The quantile function of the standard normal distribution."
 ggplot() +
