@@ -21,8 +21,9 @@ geom_hf(
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = FALSE,
-  pdf_fun,
-  cdf_fun,
+  fun = NULL,
+  pdf_fun = NULL,
+  cdf_fun = NULL,
   xlim = NULL,
   n = 101,
   args = list(),
@@ -36,17 +37,15 @@ StatHF
 GeomHF
 }
 \arguments{
-\item{mapping}{Set of aesthetic mappings created by \code{\link[ggplot2:aes]{aes()}}. If specified and
-\code{inherit.aes = TRUE} (the default), it is combined with the default mapping
-at the top level of the plot. You must supply \code{mapping} if there is no plot
-mapping.}
+\item{mapping}{Set of aesthetic mappings created by \code{\link[ggplot2:aes]{aes()}}. If specified and \code{inherit.aes = TRUE} (the default), it is combined with the default mapping at the top level
+of the plot. You must supply \code{mapping} if there is no plot mapping.}
 
 \item{data}{Ignored by \code{stat_function()}, do not use.}
 
-\item{stat}{The statistical transformation to use on the data for this layer.
-When using a \verb{geom_*()} function to construct a layer, the \code{stat}
-argument can be used to override the default coupling between geoms and
-stats. The \code{stat} argument accepts the following:
+\item{stat}{The statistical transformation to use on the data for this layer. When using
+a \verb{geom_*()} function to construct a layer, the \code{stat} argument can be used
+to override the default coupling between geoms and stats. The \code{stat} argument
+accepts the following:
 \itemize{
 \item A \code{Stat} ggproto subclass, for example \code{StatCount}.
 \item A string naming the stat. To give the stat as a string, strip the
@@ -56,50 +55,57 @@ give the stat as \code{"count"}.
 \link[ggplot2:layer_stats]{layer stat} documentation.
 }}
 
-\item{position}{A position adjustment to use on the data for this layer. This
-can be used in various ways, including to prevent overplotting and
-improving the display. The \code{position} argument accepts the following:
+\item{position}{A position adjustment to use on the data for this layer. This can be used in
+various ways, including to prevent overplotting and improving the display.
+The \code{position} argument accepts the following:
 \itemize{
 \item The result of calling a position function, such as \code{position_jitter()}.
 This method allows for passing extra arguments to the position.
 \item A string naming the position adjustment. To give the position as a
-string, strip the function name of the \code{position_} prefix. For example,
-to use \code{position_jitter()}, give the position as \code{"jitter"}.
+string, strip the function name of the \code{position_} prefix. For example, to
+use \code{position_jitter()}, give the position as \code{"jitter"}.
 \item For more information and other ways to specify the position, see the
 \link[ggplot2:layer_positions]{layer position} documentation.
 }}
 
 \item{...}{Other parameters passed on to \code{\link[ggplot2:layer]{ggplot2::layer()}}.}
 
-\item{na.rm}{If \code{FALSE}, the default, missing values are removed with
-a warning. If \code{TRUE}, missing values are silently removed.}
+\item{na.rm}{If \code{FALSE}, the default, missing values are removed with a warning. If
+\code{TRUE}, missing values are silently removed.}
 
-\item{show.legend}{logical. Should this layer be included in the legends?
-\code{NA}, the default, includes if any aesthetics are mapped.
-\code{FALSE} never includes, and \code{TRUE} always includes.
-It can also be a named logical vector to finely select the aesthetics to
-display. To include legend keys for all levels, even
-when no data exists, use \code{TRUE}.  If \code{NA}, all levels are shown in legend,
-but unobserved levels are omitted.}
+\item{show.legend}{Logical. Should this layer be included in the legends? \code{NA}, the default,
+includes if any aesthetics are mapped. \code{FALSE} never includes, and \code{TRUE}
+always includes. It can also be a named logical vector to finely select the
+aesthetics to display. To include legend keys for all levels, even when no
+data exists, use \code{TRUE}.  If \code{NA}, all levels are shown in legend, but
+unobserved levels are omitted.}
 
-\item{inherit.aes}{If \code{FALSE}, overrides the default aesthetics,
-rather than combining with them. This is most useful for helper functions
-that define both data and aesthetics and shouldn't inherit behaviour from
-the default plot specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
+\item{inherit.aes}{If \code{FALSE}, overrides the default aesthetics, rather than combining with
+them. This is most useful for helper functions that define both data and
+aesthetics and shouldn't inherit behaviour from the default plot
+specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
-\item{pdf_fun}{A PDF function (e.g. \link{dnorm}).}
+\item{fun}{A hazard function \eqn{h(x)} (optional). When supplied,
+\code{pdf_fun} and \code{cdf_fun} must not be provided.}
 
-\item{cdf_fun}{A CDF function (e.g. \link{pnorm}).}
+\item{pdf_fun}{A PDF function (e.g. \link{dnorm}). Required when \code{fun} is
+not supplied.}
+
+\item{cdf_fun}{A CDF function (e.g. \link{pnorm}). Required when \code{fun} is
+not supplied.}
 
 \item{xlim}{A numeric vector of length 2 giving the x-range.}
 
 \item{n}{Number of points at which to evaluate. Defaults to 101.}
 
-\item{args}{A named list of arguments shared by both \code{pdf_fun} and \code{cdf_fun}.}
+\item{args}{A named list of arguments passed to \code{fun}, or shared by
+both \code{pdf_fun} and \code{cdf_fun}.}
 
-\item{pdf_args}{A named list of additional arguments specific to \code{pdf_fun} (overrides \code{args}).}
+\item{pdf_args}{A named list of additional arguments specific to \code{pdf_fun}
+(overrides \code{args}). Ignored when using the direct hazard interface.}
 
-\item{cdf_args}{A named list of additional arguments specific to \code{cdf_fun} (overrides \code{args}).}
+\item{cdf_args}{A named list of additional arguments specific to \code{cdf_fun}
+(overrides \code{args}). Ignored when using the direct hazard interface.}
 
 \item{color}{Line color for the hazard curve.}
 }
@@ -107,17 +113,34 @@ the default plot specification, e.g. \code{\link[ggplot2:annotation_borders]{ann
 A ggplot2 layer.
 }
 \description{
-\code{geom_hf()} creates a ggplot2 layer that plots a hazard function,
-computed as \eqn{h(x) = f(x) / (1 - F(x))} where \eqn{f(x)} is the PDF
-and \eqn{F(x)} is the CDF. By default only the line is drawn (no fill).
+\code{geom_hf()} creates a ggplot2 layer that plots a hazard function. Two
+interfaces are supported:
+}
+\details{
+\itemize{
+\item \strong{PDF + CDF interface}: supply \code{pdf_fun} and \code{cdf_fun}; the hazard is
+computed internally as \eqn{h(x) = f(x) / (1 - F(x))}.
+\item \strong{Direct hazard interface}: supply \code{fun}, a function that returns
+\eqn{h(x)} directly (e.g. a closed-form expression).
+}
+
+Exactly one of these two interfaces must be used. By default only the line
+is drawn (no fill).
 }
 \examples{
+  # PDF + CDF interface
   ggplot() +
     geom_hf(pdf_fun = dnorm, cdf_fun = pnorm, xlim = c(-3, 3))
 
   ggplot() +
     geom_hf(pdf_fun = dexp, cdf_fun = pexp,
       args = list(rate = 0.5), xlim = c(0, 10))
+
+  # Direct hazard interface (Weibull closed-form hazard)
+  h_weibull <- function(x, shape, scale) (shape / scale) * (x / scale)^(shape - 1)
+  ggplot() +
+    geom_hf(fun = h_weibull, xlim = c(0.01, 5),
+      args = list(shape = 0.5, scale = 2))
 
 }
 \keyword{datasets}

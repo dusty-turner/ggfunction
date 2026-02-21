@@ -552,9 +552,9 @@ By implementing each layer as a `ggproto` stat--geom pair, the package inherits 
 
 \pkg{ggfunction} is available at \url{https://github.com/dusty-turner/ggfunction} and can be installed via `pak::pak("dusty-turner/ggfunction")`.
 
-# Acknowledgments
 
-We thank the developers of \CRANpkg{ggplot2} for the extension system that makes packages like \pkg{ggfunction} possible.
+
+
 
 ```{r, echo=FALSE, results="asis"}
 pkg_list <- c("ggplot2", "rlang", "cli")

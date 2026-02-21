@@ -180,22 +180,22 @@ A scalar field assigns a real value to each point in a two-dimensional domain. \
 \end{itemize}
 
 \begin{verbatim}
-f_gaussian <- function(u) {
+f_sc <- function(u) {
   x <- u[1]; y <- u[2]
-  exp(-(x^2 + y^2) / 2)
+  sin(x) * cos(y)
 }
 
 ggplot() +
-  geom_function_2d_1d(fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3))
+  geom_function_2d_1d(fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi))
 \end{verbatim}
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/gaussian-raster-1} 
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/sincos-raster-1} 
 
 }
 
-\caption{A Gaussian bump $f(x, y) = \exp(-(x^2 + y^2)/2)$ rendered as a raster heatmap.}\label{fig:gaussian-raster}
+\caption{The function $f(x, y) = \sin(x)\cos(y)$ over $[-\pi, \pi]^2$ rendered as a raster heatmap.}\label{fig:sincos-raster}
 \end{figure}
 
 The contour modes are selected simply by changing \texttt{type}:
@@ -203,26 +203,24 @@ The contour modes are selected simply by changing \texttt{type}:
 \begin{verbatim}
 p_contour <- ggplot() +
   geom_function_2d_1d(
-    fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour"
+    fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi), type = "contour"
   ) + ggtitle("type = \"contour\"")
 
 p_filled <- ggplot() +
   geom_function_2d_1d(
-    fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour_filled"
+    fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi), type = "contour_filled"
   ) + ggtitle("type = \"contour_filled\"")
-
-library("patchwork")
 
 p_contour | p_filled
 \end{verbatim}
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/gaussian-contour-1} 
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/sincos-contour-1} 
 
 }
 
-\caption{The same Gaussian bump rendered as contour lines (left) and filled contours (right).}\label{fig:gaussian-contour}
+\caption{The same function rendered as contour lines (left) and filled contours (right).}\label{fig:sincos-contour}
 \end{figure}
 
 For the contour variants, the \texttt{StatFunction2dContour} and \texttt{StatFunction2dContourFilled} classes extend the corresponding \CRANpkg{ggplot2} stats. The \texttt{setup\_params()} method pre-computes the function grid so that \texttt{z.range} is available for automatic break computation before any data is rendered.
@@ -670,10 +668,6 @@ Taken together, these packages reflect the breadth of interest in function visua
 By implementing each layer as a \texttt{ggproto} stat--geom pair, the package inherits the full composability of the grammar of graphics. Functions can be overlaid, themed, faceted, and annotated using the same tools that \CRANpkg{ggplot2} users already know. The \texttt{args} injection pattern provides a clean interface for parameterized function families, and built-in validation catches common errors--such as unnormalized densities--before they produce misleading graphics.
 
 \pkg{ggfunction} is available at \url{https://github.com/dusty-turner/ggfunction} and can be installed via \texttt{pak::pak("dusty-turner/ggfunction")}.
-
-\section{Acknowledgments}\label{acknowledgments}
-
-We thank the developers of \CRANpkg{ggplot2} for the extension system that makes packages like \pkg{ggfunction} possible.
 
 \bibliography{RJreferences.bib}
 

@@ -19,6 +19,10 @@ options(
   ggplot2.continuous.fill = NULL
 )
 
+library(ggfunction)
+library(ggplot2)
+library(patchwork)
+
 
 ## ----eval=FALSE, echo=TRUE----------------------------------------------------
 # # instead of wrapping in an anonymous function:
@@ -66,30 +70,28 @@ ggplot() +
   )
 
 
-## ----gaussian-raster, echo=TRUE-----------------------------------------------
-#| fig.cap: "A Gaussian bump $f(x, y) = \\exp(-(x^2 + y^2)/2)$ rendered as a raster heatmap."
-f_gaussian <- function(u) {
+## ----sincos-raster, echo=TRUE-------------------------------------------------
+#| fig.cap: "The function $f(x, y) = \\sin(x)\\cos(y)$ over $[-\\pi, \\pi]^2$ rendered as a raster heatmap."
+f_sc <- function(u) {
   x <- u[1]; y <- u[2]
-  exp(-(x^2 + y^2) / 2)
+  sin(x) * cos(y)
 }
 
 ggplot() +
-  geom_function_2d_1d(fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3))
+  geom_function_2d_1d(fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi))
 
 
-## ----gaussian-contour, echo=TRUE, fig.width=10, fig.height=3------------------
-#| fig.cap: "The same Gaussian bump rendered as contour lines (left) and filled contours (right)."
+## ----sincos-contour, echo=TRUE, fig.width=10, fig.height=3--------------------
+#| fig.cap: "The same function rendered as contour lines (left) and filled contours (right)."
 p_contour <- ggplot() +
   geom_function_2d_1d(
-    fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour"
+    fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi), type = "contour"
   ) + ggtitle("type = \"contour\"")
 
 p_filled <- ggplot() +
   geom_function_2d_1d(
-    fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour_filled"
+    fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi), type = "contour_filled"
   ) + ggtitle("type = \"contour_filled\"")
-
-library("patchwork")
 
 p_contour | p_filled
 
