@@ -47,8 +47,8 @@ D.~Sarkar.
 \newblock ISBN 978-0-387-75968-5.
 \newblock URL \url{https://lmdvr.r-forge.r-project.org}.
 
-\bibitem[Turner and Kahle(2026)]{ggvfields}
-D.~Turner and D.~Kahle.
+\bibitem[Turner et~al.(2026)Turner, Kahle, and Sturdivant]{ggvfields}
+D.~Turner, D.~Kahle, and R.~X. Sturdivant.
 \newblock \emph{{ggvfields}: Vector Field Visualizations with {ggplot2}}, 2026.
 \newblock URL \url{https://github.com/dusty-turner/ggvfields}.
 \newblock R package version 0.1.0.

@@ -57,17 +57,31 @@ ggplot() +
   geom_function_1d_2d(fun = lemniscate, tlim = c(0, 1.9 * pi), tail_point = TRUE)
 
 
-## ----lissajous, echo=TRUE-----------------------------------------------------
-#| fig.cap: "A Lissajous figure with frequency ratio $a/b = 3/2$ and phase offset $\\delta = \\pi/2$."
-lissajous <- function(t, A = 1, B = 1, a = 3, b = 2, delta = pi/2) {
-  c(A * sin(a * t + delta), B * sin(b * t))
+## ----lissajous, echo=TRUE, fig.width=10, fig.height=4-------------------------
+#| fig.cap: "Lissajous figures $\\boldsymbol{\\gamma}(t) = (\\sin(at + \\pi/2),\\,\\sin(bt))$ for three frequency ratios $a/b$. Each ratio produces a qualitatively distinct closed curve; the same function definition is reused across all three panels via the \\texttt{args} parameter."
+lissajous <- function(t, a = 3, b = 2, delta = pi/2) {
+  c(sin(a * t + delta), sin(b * t))
 }
 
-ggplot() +
+p1 <- ggplot() +
   geom_function_1d_2d(
     fun = lissajous, tlim = c(0, 1.9 * pi),
-    args = list(A = 1, B = 1, a = 3, b = 2, delta = pi/2)
-  )
+    args = list(a = 1, b = 1)
+  ) + ggtitle("a = 1, b = 1")
+
+p2 <- ggplot() +
+  geom_function_1d_2d(
+    fun = lissajous, tlim = c(0, 1.9 * pi),
+    args = list(a = 2, b = 1)
+  ) + ggtitle("a = 2, b = 1")
+
+p3 <- ggplot() +
+  geom_function_1d_2d(
+    fun = lissajous, tlim = c(0, 1.9 * pi),
+    args = list(a = 3, b = 2)
+  ) + ggtitle("a = 3, b = 2")
+
+(p1 | p2 | p3) + plot_layout(guides = "collect")
 
 
 ## ----sincos-raster, echo=TRUE-------------------------------------------------
@@ -81,7 +95,7 @@ ggplot() +
   geom_function_2d_1d(fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi))
 
 
-## ----sincos-contour, echo=TRUE, fig.width=10, fig.height=3--------------------
+## ----sincos-contour, echo=TRUE, fig.width=10, fig.height=4--------------------
 #| fig.cap: "The same function rendered as contour lines (left) and filled contours (right)."
 p_contour <- ggplot() +
   geom_function_2d_1d(
@@ -114,7 +128,7 @@ ggplot() +
     type = "stream")
 
 
-## ----pdf-shading-modes, echo=TRUE, fig.width=10, fig.height=3-----------------
+## ----pdf-shading-modes, echo=TRUE, fig.width=10, fig.height=4-----------------
 #| fig.cap: "Three shading modes for \\texttt{geom\\_pdf()}: lower tail ($p = 0.975$, left), central 95\\% interval (center), and two-tailed rejection region at $\\alpha = 0.05$ (right)."
 p1 <- ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975) +
@@ -219,7 +233,7 @@ ggplot() +
   )
 
 
-## ----hazard-shapes, echo=TRUE, fig.width=10, fig.height=3---------------------
+## ----hazard-shapes, echo=TRUE, fig.width=10, fig.height=4---------------------
 #| fig.cap: "Three canonical hazard shapes: decreasing ($\\mathrm{Weibull}(\\mathrm{shape}{=}0.5,\\,\\mathrm{scale}{=}2)$, left), constant ($\\mathrm{Exponential}(0.5)$, center), and increasing ($\\mathcal{N}(0,1)$, right)."
 p_decr <- ggplot() +
   geom_hf(

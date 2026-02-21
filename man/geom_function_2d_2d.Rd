@@ -172,3 +172,8 @@ ggplot() + geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1),
   type = "stream")
 
 }
+\seealso{
+\pkg{ggvfields} (Turner, Kahle, and Sturdivant) for a richer
+collection of vector field tools including gradient fields, stream plots,
+and potential functions: \url{https://github.com/dusty-turner/ggvfields}.
+}

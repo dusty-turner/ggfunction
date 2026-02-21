@@ -42,6 +42,10 @@
 #'
 #' @return A ggplot2 layer.
 #'
+#' @seealso \pkg{ggvfields} (Turner, Kahle, and Sturdivant) for a richer
+#'   collection of vector field tools including gradient fields, stream plots,
+#'   and potential functions: <https://github.com/dusty-turner/ggvfields>.
+#'
 #' @examples
 #' library(ggfunction)
 #' f <- function(u) c(-u[2], u[1])
