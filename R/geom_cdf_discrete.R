@@ -26,10 +26,10 @@
 #'
 #' @examples
 #'   ggplot() +
-#'     geom_cdf_discrete(fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10))
+#'     geom_cdf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 #'
 #'   ggplot() +
-#'     geom_cdf_discrete(fun = dpois, args = list(lambda = 5), xlim = c(0, 15))
+#'     geom_cdf_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 #'
 #' @name geom_cdf_discrete
 #' @aliases StatCDFDiscrete GeomCDFDiscrete
@@ -44,8 +44,8 @@ geom_cdf_discrete <- function(
     show.legend = NA,
     inherit.aes = FALSE,
     fun,
-    args = list(),
     xlim = NULL,
+    args = list(),
     open_fill = NULL,
     vert_type = "dashed",
     show_points = TRUE,

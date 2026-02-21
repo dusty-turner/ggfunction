@@ -39,11 +39,11 @@ geom_hf <- function(
     inherit.aes = FALSE,
     pdf_fun,
     cdf_fun,
+    xlim = NULL,
     n = 101,
     args = list(),
     pdf_args = NULL,
     cdf_args = NULL,
-    xlim = NULL,
     color = "black"
     ) {
 

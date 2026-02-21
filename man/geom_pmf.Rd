@@ -128,11 +128,11 @@ drawn at the top.
 
 # Plot a binomial PMF with n = 10 and p = 0.5 over 0 to 10.
 ggplot() +
-  geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.25), xlim = c(0, 10))
+  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.25))
 
 # Plot a Poisson(6) from x = 0 to x = 15
 ggplot() +
-  geom_pmf(fun = dpois, args = list(lambda = 6), xlim = c(0, 15))
+  geom_pmf(fun = dpois, xlim = c(0, 15), args = list(lambda = 6))
 
 }
 \keyword{datasets}

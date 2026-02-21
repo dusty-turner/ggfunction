@@ -22,9 +22,9 @@ geom_cdf(
   show.legend = NA,
   inherit.aes = FALSE,
   fun,
+  xlim = NULL,
   n = 101,
   args = list(),
-  xlim = NULL,
   fill = "grey20",
   color = "black",
   p = NULL,
@@ -89,11 +89,11 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 \item{fun}{A function to compute the CDF (e.g. \link{pnorm}). The function must accept a numeric
 vector as its first argument and return values between 0 and 1.}
 
+\item{xlim}{A numeric vector of length 2 specifying the x-range over which to evaluate the CDF.}
+
 \item{n}{Number of points at which to evaluate \code{fun}.}
 
 \item{args}{A named list of additional arguments passed on to \code{fun}.}
-
-\item{xlim}{A numeric vector of length 2 specifying the x-range over which to evaluate the CDF.}
 
 \item{fill}{Fill color for the shaded area.}
 

@@ -137,7 +137,7 @@ A key design choice is the use of `rlang::inject()` to splice additional functio
 ggplot() + geom_pdf(fun = function(x) dnorm(x, mean = 5, sd = 2), xlim = c(0, 10))
 
 # users can write:
-ggplot() + geom_pdf(fun = dnorm, args = list(mean = 5, sd = 2), xlim = c(0, 10))
+ggplot() + geom_pdf(fun = dnorm, xlim = c(0, 10), args = list(mean = 5, sd = 2))
 ```
 
 This pattern is consistent across all \pkg{ggfunction} layers and mirrors the `args` parameter already familiar from `ggplot2::stat_function()`.
@@ -329,7 +329,7 @@ For a discrete random variable with integer support, the PMF $p(k) = P(X = k)$ s
 ```{r pmf-binomial, echo=TRUE}
 #| fig.cap: "The PMF of a $\\mathrm{Binomial}(10, 0.3)$ distribution, rendered as a lollipop chart."
 ggplot() +
-  geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
+  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
 ```
 
 ## Quantile functions: `geom_qf()`
@@ -342,16 +342,15 @@ ggplot() +
   geom_qf(fun = qnorm)
 ```
 
-## Discrete CDFs: `geom_discrete_cdf()`
+## Discrete CDFs: `geom_cdf_discrete()`
 
-For discrete distributions, the CDF is a step function. `geom_discrete_cdf()` takes a PMF as input, computes cumulative sums, and renders the result as step-function vertices constructed by the internal `build_step_polygon()` helper. Like `geom_cdf()`, it supports `p`-based shading.
+For discrete distributions, the CDF is a step function. `geom_cdf_discrete()` takes a PMF as input, computes cumulative sums, and renders the result as a right-continuous step function with dashed vertical jumps and open/closed endpoint circles.
 
 ```{r discrete-cdf, echo=TRUE}
-#| fig.cap: "The discrete CDF of a $\\mathrm{Binomial}(10, 0.5)$ distribution with the region below $p = 0.9$ shaded."
+#| fig.cap: "The discrete CDF of a $\\mathrm{Binomial}(10, 0.5)$ distribution."
 ggplot() +
-  geom_discrete_cdf(
-    fun = dbinom, args = list(size = 10, prob = 0.5),
-    xlim = c(0, 10), p = 0.9
+  geom_cdf_discrete(
+    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
   )
 ```
 
@@ -369,7 +368,7 @@ gives the probability that the event of interest has not yet occurred by time $x
 ```{r survival-exp, echo=TRUE}
 #| fig.cap: "The survival function of an $\\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$."
 ggplot() +
-  geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
+  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
 ```
 
 ## Hazard functions: `geom_hf()`
@@ -390,7 +389,7 @@ Division by $S(x)$ can cause numerical instability in the tail as $S(x) \to 0$. 
 ggplot() +
   geom_hf(
     pdf_fun = dexp, cdf_fun = pexp,
-    args = list(rate = 0.5), xlim = c(0.01, 10)
+    xlim = c(0.01, 10), args = list(rate = 0.5)
   )
 ```
 
@@ -401,7 +400,7 @@ For distributions without the memoryless property, the hazard function reveals s
 ggplot() +
   geom_hf(
     pdf_fun = dnorm, cdf_fun = pnorm,
-    args = list(mean = 0, sd = 1), xlim = c(-3, 3)
+    xlim = c(-3, 3), args = list(mean = 0, sd = 1)
   )
 ```
 
@@ -444,12 +443,12 @@ Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it c
 #| fig.cap: "Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics."
 ggplot() +
   geom_pdf(
-    fun = dnorm, args = list(mean = 0, sd = 1),
-    xlim = c(-5, 8), alpha = 0.4
+    fun = dnorm, xlim = c(-5, 8),
+    args = list(mean = 0, sd = 1), alpha = 0.4
   ) +
   geom_pdf(
-    fun = dnorm, args = list(mean = 3, sd = 1.5),
-    xlim = c(-5, 8), alpha = 0.4
+    fun = dnorm, xlim = c(-5, 8),
+    args = list(mean = 3, sd = 1.5), alpha = 0.4
   ) +
   labs(x = "x", y = "f(x)", title = "Comparing two normal densities") +
   theme_minimal()

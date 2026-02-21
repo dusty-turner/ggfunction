@@ -28,6 +28,7 @@ The package is organized around two families of geoms:
 |  | `geom_qf()` |  | Quantile function |
 |  | `geom_cdf_discrete()` |  | Discrete CDF (step function) |
 |  | `geom_qf_discrete()` |  | Discrete quantile function (step function) |
+|  | `geom_survival_discrete()` |  | Discrete survival function $S(x) = 1 - F(x)$ (step function) |
 |  | `geom_survival()` |  | Survival function $S(x) = 1 - F(x)$ |
 |  | `geom_hf()` |  | Hazard function $h(x) = f(x)/S(x)$ |
 
@@ -167,13 +168,13 @@ ggplot() +
 ### Vector fields: `geom_function_2d_2d()`
 
 `geom_function_2d_2d()` visualizes a vector field
-$\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2$ as streamlines—integral
-curves that are everywhere tangent to the field—computed by numerical
-integration via
+$\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2$ via
 [**ggvfields**](https://github.com/dusty-turner/ggvfields). The function
-should accept a length-2 vector and return a length-2 vector. The
-following example shows the rotation field
-$\mathbf{F}(x,y) = (-y,\, x)$, whose streamlines are circles.
+should accept a length-2 vector and return a length-2 vector. By default
+(`type = "vector"`) it draws short arrows at each grid point colored by
+field magnitude; `type = "stream"` switches to integral-curve
+streamlines. The following example shows the rotation field
+$\mathbf{F}(x,y) = (-y,\, x)$.
 
 ``` r
 f <- function(u) {
@@ -186,6 +187,17 @@ ggplot() +
 ```
 
 <img src="man/figures/readme-2d-2d-1.png" width="60%" />
+
+**Stream field.** Setting `type = "stream"` renders the field as
+integral curves computed by numerical integration, colored by average
+speed along each curve.
+
+``` r
+ggplot() +
+  geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "stream")
+```
+
+<img src="man/figures/readme-2d-2d-stream-1.png" width="60%" />
 
 ## Probability Distributions
 
@@ -379,6 +391,33 @@ ggplot() +
 ```
 
 <img src="man/figures/readme-discrete-qf-no-vert-1.png" width="60%" />
+
+### Discrete survival function: `geom_survival_discrete()`
+
+`geom_survival_discrete()` takes a PMF and renders the discrete survival
+function $S(x) = 1 - F(x) = P(X > x)$ as a right-continuous step
+function. It uses the same visual conventions as `geom_cdf_discrete()`:
+horizontal segments, dashed vertical jumps, open circles at the pre-jump
+value, and closed circles at the post-jump value. The following example
+plots the $\text{Binomial}(10, 0.5)$ survival function.
+
+``` r
+ggplot() +
+  geom_survival_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+```
+
+<img src="man/figures/readme-discrete-survival-1.png" width="60%" />
+
+**Hiding points.** Setting `show_points = FALSE` removes the endpoint
+circles.
+
+``` r
+ggplot() +
+  geom_survival_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+    show_points = FALSE)
+```
+
+<img src="man/figures/readme-discrete-survival-no-points-1.png" width="60%" />
 
 ### Survival function: `geom_survival()`
 

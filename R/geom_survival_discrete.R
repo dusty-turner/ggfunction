@@ -1,17 +1,17 @@
-#' Plot a Discrete Quantile Function as a Step Function
+#' Plot a Discrete Survival Function as a Step Function
 #'
-#' `geom_qf_discrete()` takes a PMF function, computes the cumulative sum, and
-#' renders the inverse (quantile) function as a left-continuous step function
-#' with horizontal segments, dashed vertical jumps, closed circles at the lower
-#' limit of each jump, and open circles at the upper limit.
+#' `geom_survival_discrete()` takes a PMF function, computes the cumulative sum,
+#' and renders the complement \eqn{S(x) = 1 - F(x)} as a right-continuous step
+#' function with horizontal segments, dashed vertical jumps, open circles at the
+#' lower limit of each jump, and closed circles at the upper limit.
 #'
 #' @inheritParams ggplot2::geom_path
 #' @param fun A PMF function (e.g. [dbinom]). The function must accept a numeric
 #'   vector as its first argument and return non-negative probability values that
 #'   sum to 1.
-#' @param args A named list of additional arguments to pass to `fun`.
 #' @param xlim A numeric vector of length 2 specifying the range of integer support
 #'   values.
+#' @param args A named list of additional arguments to pass to `fun`.
 #' @param open_fill Fill color for the open (hollow) endpoint circles. Defaults to
 #'   `NULL`, which uses the active theme's panel background color.
 #' @param vert_type Line type for the vertical jump segments. Defaults to
@@ -26,18 +26,18 @@
 #'
 #' @examples
 #'   ggplot() +
-#'     geom_qf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+#'     geom_survival_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 #'
 #'   ggplot() +
-#'     geom_qf_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+#'     geom_survival_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 #'
-#' @name geom_qf_discrete
-#' @aliases StatQFDiscrete GeomQFDiscrete
+#' @name geom_survival_discrete
+#' @aliases StatSurvivalDiscrete GeomSurvivalDiscrete
 #' @export
-geom_qf_discrete <- function(
+geom_survival_discrete <- function(
     mapping = NULL,
     data = NULL,
-    stat = StatQFDiscrete,
+    stat = StatSurvivalDiscrete,
     position = "identity",
     ...,
     na.rm = FALSE,
@@ -65,7 +65,7 @@ geom_qf_discrete <- function(
     data = data,
     mapping = mapping,
     stat = stat,
-    geom = GeomQFDiscrete,
+    geom = GeomSurvivalDiscrete,
     position = position,
     show.legend = show.legend,
     inherit.aes = inherit.aes,
@@ -83,9 +83,9 @@ geom_qf_discrete <- function(
   )
 }
 
-#' @rdname geom_qf_discrete
+#' @rdname geom_survival_discrete
 #' @export
-StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
+StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
   compute_group = function(data, scales, fun, xlim = NULL, args = NULL) {
@@ -102,15 +102,15 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
 
     pmf_vals <- fun_injected(x_vals)
     cdf_vals <- cumsum(pmf_vals)
+    survival_vals <- 1 - cdf_vals
 
-    # x = F(x_k) (probability axis), y = x_k (support value axis)
-    data.frame(x = cdf_vals, y = x_vals)
+    data.frame(x = x_vals, y = survival_vals)
   }
 )
 
-#' @rdname geom_qf_discrete
+#' @rdname geom_survival_discrete
 #' @export
-GeomQFDiscrete <- ggproto("GeomQFDiscrete", Geom,
+GeomSurvivalDiscrete <- ggproto("GeomSurvivalDiscrete", Geom,
 
   required_aes = c("x", "y"),
 
@@ -134,18 +134,27 @@ GeomQFDiscrete <- ggproto("GeomQFDiscrete", Geom,
     }
     n <- nrow(data)
 
-    # Horizontal segments (n total, defined only on [0, 1]):
-    #   [0 → x[1]] at height y[1],
-    #   [x[k] → x[k+1]] at height y[k+1], ...,
-    #   [x[n-1] → x[n]] at height y[n]
-    # where x = F(x_k) and y = x_k (support value)
-    data_hori        <- data
-    data_hori$x      <- c(0, data$x[-n])
-    data_hori$xend   <- data$x
-    data_hori$y      <- data$y
-    data_hori$yend   <- data$y
+    # Horizontal segments (right-continuous):
+    #   [left_boundary → x[1]] at height y[1]  (S before any mass is removed)
+    #   Wait — S is right-continuous: S(x) = P(X > x), so:
+    #   Before x[1]: S = 1; at x[1] it drops. We use CDF convention:
+    #   segment at height S(x[k]) from x[k] to x[k+1], plus
+    #   leftmost extension from panel left to x[1] at height 1 (or S[0] = 1),
+    #   and rightmost extension from x[n] to panel right at height S(x[n]).
+    data_hori        <- data[c(1, 1:n), ]
+    data_hori$x      <- c(panel_params$x.range[1], data$x)
+    data_hori$xend   <- c(data$x, panel_params$x.range[2])
+    data_hori$y      <- c(1, data$y)
+    data_hori$yend   <- c(1, data$y)
+
+    # Vertical jump segments at each x[k]: from S(x[k-1]) (or 1) down to S(x[k])
+    data_vert        <- data
+    data_vert$xend   <- data$x
+    data_vert$y      <- c(1, data$y[-n])
+    data_vert$yend   <- data$y
 
     coord_hori <- coord$transform(data_hori, panel_params)
+    coord_vert <- coord$transform(data_vert, panel_params)
 
     grobs <- list()
 
@@ -159,54 +168,44 @@ GeomQFDiscrete <- ggproto("GeomQFDiscrete", Geom,
       )
     )
 
-    if (n > 1) {
-      # Vertical jump segments at each p = x[k] for k = 1 to n-1:
-      # from y[k] (closed, achieved) up to y[k+1] (open, not yet achieved)
-      data_vert        <- data[-n, ]   # n-1 rows: x = F(x_k), y = x_k
-      data_vert$xend   <- data_vert$x  # same p (vertical segment)
-      data_vert$yend   <- data$y[-1]   # top of jump = x_{k+1}
-
-      coord_vert <- coord$transform(data_vert, panel_params)
-
-      if (show_vert) {
-        grobs$vert <- grid::segmentsGrob(
-          coord_vert$x, coord_vert$y, coord_vert$xend, coord_vert$yend,
-          default.units = "native",
-          gp = grid::gpar(
-            col = scales::alpha(coord_vert$colour, coord_vert$alpha),
-            lwd = coord_vert$linewidth * .pt,
-            lty = vert_type
-          )
+    if (show_vert) {
+      grobs$vert <- grid::segmentsGrob(
+        coord_vert$x, coord_vert$y, coord_vert$xend, coord_vert$yend,
+        default.units = "native",
+        gp = grid::gpar(
+          col = scales::alpha(coord_vert$colour, coord_vert$alpha),
+          lwd = coord_vert$linewidth * .pt,
+          lty = vert_type
         )
-      }
+      )
+    }
 
-      if (show_points) {
-        # Closed circle at bottom of each jump (QF achieves this value at p = F(x_k))
-        grobs$closed <- grid::pointsGrob(
-          coord_vert$x, coord_vert$y,
-          pch = coord_vert$shape,
-          default.units = "native",
-          gp = grid::gpar(
-            col      = scales::alpha(coord_vert$colour, coord_vert$alpha),
-            fill     = scales::alpha(coord_vert$colour, coord_vert$alpha),
-            fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
-            lwd      = coord_vert$stroke * .stroke / 2
-          )
+    if (show_points) {
+      # Open circle at top of each jump (S just before the drop — left limit)
+      grobs$open <- grid::pointsGrob(
+        coord_vert$x, coord_vert$y,
+        default.units = "native",
+        pch = 21,
+        gp = grid::gpar(
+          col      = coord_vert$colour,
+          fill     = open_fill,
+          fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
+          lwd      = coord_vert$stroke * .stroke / 2
         )
+      )
 
-        # Open circle at top of each jump (next value not yet achieved)
-        grobs$open <- grid::pointsGrob(
-          coord_vert$xend, coord_vert$yend,
-          default.units = "native",
-          pch = 21,
-          gp = grid::gpar(
-            col      = coord_vert$colour,
-            fill     = open_fill,
-            fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
-            lwd      = coord_vert$stroke * .stroke / 2
-          )
+      # Closed circle at bottom of each jump (S achieves this value at x[k])
+      grobs$closed <- grid::pointsGrob(
+        coord_vert$xend, coord_vert$yend,
+        pch = coord_vert$shape,
+        default.units = "native",
+        gp = grid::gpar(
+          col      = scales::alpha(coord_vert$colour, coord_vert$alpha),
+          fill     = scales::alpha(coord_vert$colour, coord_vert$alpha),
+          fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
+          lwd      = coord_vert$stroke * .stroke / 2
         )
-      }
+      )
     }
 
     grid::gTree(children = do.call(grid::gList, grobs))

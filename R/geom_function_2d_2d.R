@@ -1,162 +1,162 @@
-#' Create a Stream Field Layer in ggplot2 (Alias)
+#' Plot a Vector or Stream Field from a 2D Vector-Valued Function
 #'
-#' `geom_function_2d_2d()` creates a ggplot2 layer that integrates a user-defined
-#' vector field function \eqn{f(x, y) \to (dx, dy)} over a grid of seed points
-#' within a specified domain \eqn{(x, y)}, producing streamlines that visualize
-#' the flow of the vector field.
-#'
-#' This is re-export of [ggvfields::geom_stream_field()]. All parameters and
-#' usage remain the same. **See below** for the details, arguments, and
-#' examples.
+#' `geom_function_2d_2d()` evaluates a user-defined vector field
+#' \eqn{\mathbf{F}(x,y) = (dx, dy)} on a grid and renders it as either a
+#' vector field (short arrows at each grid point, the default) or a stream
+#' field (integral curves). It wraps [ggvfields::geom_vector_field()] for
+#' `type = "vector"` and [ggvfields::geom_stream_field()] for
+#' `type = "stream"`.
 #'
 #' @inheritParams ggplot2::geom_path
-#' @inheritParams ggvfields::geom_stream_field
-#'
-#' @param fun A function of two variables, `fun(x, y)`, returning a two-element
-#'   vector \eqn{(dx, dy)}. This defines the local "flow" direction at any point
-#'   in the domain.
-#' @param xlim,ylim Numeric vectors of length two specifying the domain limits
-#'   in the \eqn{x}- and \eqn{y}-directions, respectively. Defaults to
-#'   \eqn{c(-1, 1)} if not provided.
-#' @param n Integer or two-element numeric vector. Grid resolution specifying
-#'   the number of seed points along each axis. Defaults to `11`, resulting in
-#'   an \eqn{11 x 11} grid.
-#' @param args List of additional arguments passed on to the function defined by
-#'   `fun`.
-#' @param max_it Integer. Maximum number of integration steps per streamline.
-#'   Defaults to `1000`.
-#' @param T Numeric. Maximum integration time for each streamline (when
-#'   `normalize = FALSE`). Defaults to `NULL`, in which case a default of `1`
-#'   may be used internally.
-#' @param L Numeric. Maximum arc length for each streamline (when
-#'   `normalize = TRUE`). Defaults to `NULL`, in which case a suitable default
-#'   is computed from the grid spacing.
-#' @param center Logical. If `TRUE` (default), centers the seed points or the
-#'   resulting streamlines so that the original (x, y) becomes the midpoint.
-#' @param type Character. Either `"stream"` (default) or `"vector"`.
-#' @param normalize Logical. If `TRUE` (default), streamlines are normalized
-#'   based on grid spacing, using the `L` parameter to control maximum arc
-#'   length. If `FALSE`, streamlines are computed for a fixed time determined by
-#'   the `T` parameter.
-#' @param method Character. Integration method, e.g., `"rk4"` or `"euler"`.
-#'   Defaults to `"rk4"`.
-#' @param grid A data frame containing precomputed grid points for seed
-#'   placement. If `NULL` (default), a regular grid is generated based on `xlim`,
-#'   `ylim`, and `n`.
-#' @param arrow A [grid::arrow()] specification for adding arrowheads to the
-#'   streamline. Defaults to a closed arrow with a 30° angle and a length of
-#'   `0.02` npc.
+#' @param fun A function accepting a length-2 numeric vector and returning a
+#'   length-2 numeric vector \eqn{(dx, dy)}.
+#' @param xlim,ylim Numeric vectors of length 2 specifying the domain limits.
+#'   Default to \eqn{c(-1, 1)}.
+#' @param n Integer or two-element integer vector. Number of seed points along
+#'   each axis. Defaults to `11`.
+#' @param args A named list of additional arguments passed to `fun`.
+#' @param type Character. Either `"vector"` (default) for short arrows at each
+#'   grid point, or `"stream"` for full integral-curve streamlines.
+#' @param center Logical. If `TRUE` (default), centers each arrow/streamline on
+#'   its seed point.
+#' @param normalize Logical. If `TRUE` (default), normalizes arrow/streamline
+#'   lengths relative to grid spacing.
 #' @param tail_point Logical. If `TRUE`, draws a point at the tail of each
-#'   streamline. Defaults to `FALSE`.
-#' @param eval_point Logical. If `TRUE`, a point is drawn at the evaluation
-#'   point where the gradient was computed. Defaults to `FALSE`.
-#' @param ... Other arguments passed to [ggplot2::layer()] and the underlying
-#'   geometry/stat.
+#'   arrow or streamline. Defaults to `FALSE`.
+#' @param eval_point Logical. If `TRUE`, draws a point at the seed point.
+#'   Defaults to `FALSE`.
+#' @param grid A data frame of precomputed seed points. If `NULL` (default), a
+#'   regular grid is generated from `xlim`, `ylim`, and `n`.
+#' @param arrow A [grid::arrow()] specification. Defaults to a closed arrow at
+#'   30° with length `0.02 npc`.
+#' @param max_it Integer. Maximum integration steps per streamline
+#'   (`type = "stream"` only). Defaults to `1000`.
+#' @param T Numeric. Maximum integration time (`type = "stream"` only).
+#' @param L Numeric. Maximum arc length (`type = "stream"` only, when
+#'   `normalize = TRUE`).
+#' @param method Character. Integration method, e.g. `"rk4"` or `"euler"`
+#'   (`type = "stream"` only). Defaults to `"rk4"`.
+#' @param ... Other arguments passed to [ggplot2::layer()].
 #'
-#' @return A ggplot2 layer that computes and renders streamlines over the
-#'   specified domain, optionally with arrowheads and tail points.
-#'
-#' @details
-#' The streamlines are generated by numerically integrating the vector field
-#' defined by `fun(x, y)`.
-#'
-#' @section See Also:
-#'  - [ggvfields::geom_stream_field()] for the original function.
-#'  - [ggvfields::StatStreamField] for the underlying statistical transformation.
-#'  - [ggvfields::GeomStream] for the geometry that renders the resulting paths.
+#' @return A ggplot2 layer.
 #'
 #' @examples
 #' library(ggfunction)
 #' f <- function(u) c(-u[2], u[1])
-#' # same usage as geom_stream_field from ggvfields:
-#' ggplot() + geom_function_2d_2d(fun = f, xlim = c(-1,1), ylim = c(-1,1))
 #'
-#' # other parameters:
-#' \dontrun{
-#' ggplot() + geom_function_2d_2d(fun = f, normalize = FALSE)
-#' }
-#' ggplot() + geom_function_2d_2d(fun = f, tail_point = TRUE)
+#' # Vector field (default)
+#' ggplot() + geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
+#'
+#' # Stream field
+#' ggplot() + geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1),
+#'   type = "stream")
 #'
 #' @name geom_function_2d_2d
 #' @aliases stat_function_2d_2d
 #' @export
-#' @importFrom ggvfields geom_stream_field
-geom_function_2d_2d <- function(mapping = NULL, data = NULL, stat = ggvfields::StatStreamField,
-                                position = "identity",
-                                ...,
-                                na.rm = FALSE,
-                                show.legend = NA,
-                                inherit.aes = FALSE,
-                                fun,
-                                xlim = NULL,
-                                ylim = NULL,
-                                n = 11,
-                                args = list(),
-                                max_it = 1000,
-                                T = NULL,
-                                L = NULL,
-                                center = TRUE,
-                                type = "stream",
-                                normalize = TRUE,
-                                tail_point = FALSE,
-                                eval_point = FALSE,
-                                grid = NULL,
-                                method = "rk4",
-                                arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"), type = "closed")
+#' @importFrom ggvfields geom_vector_field geom_stream_field
+geom_function_2d_2d <- function(
+    mapping = NULL,
+    data = NULL,
+    position = "identity",
+    ...,
+    na.rm = FALSE,
+    show.legend = NA,
+    inherit.aes = FALSE,
+    fun,
+    xlim = NULL,
+    ylim = NULL,
+    n = 11,
+    args = list(),
+    type = "vector",
+    center = TRUE,
+    normalize = TRUE,
+    tail_point = FALSE,
+    eval_point = FALSE,
+    grid = NULL,
+    arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"), type = "closed"),
+    max_it = 1000,
+    T = NULL,
+    L = NULL,
+    method = "rk4"
 ) {
-  # Simply delegate to the original ggvfields function
-  ggvfields::geom_stream_field(
-    mapping = mapping,
-    data = data,
-    stat = stat,
-    position = position,
-    na.rm = na.rm,
-    show.legend = show.legend,
-    inherit.aes = inherit.aes,
-    fun = fun,
-    xlim = xlim,
-    ylim = ylim,
-    n = n,
-    args = args,
-    max_it = max_it,
-    T = T,
-    L = L,
-    center = center,
-    type = type,
-    normalize = normalize,
-    tail_point = tail_point,
-    eval_point = eval_point,
-    grid = grid,
-    method = method,
-    arrow = arrow,
-    ...
-  )
+  if (type == "vector") {
+    ggvfields::geom_vector_field(
+      mapping = mapping,
+      data = data,
+      position = position,
+      na.rm = na.rm,
+      show.legend = show.legend,
+      inherit.aes = inherit.aes,
+      fun = fun,
+      xlim = xlim,
+      ylim = ylim,
+      n = n,
+      args = args,
+      center = center,
+      normalize = normalize,
+      tail_point = tail_point,
+      eval_point = eval_point,
+      grid = grid,
+      arrow = arrow,
+      ...
+    )
+  } else if (type == "stream") {
+    ggvfields::geom_stream_field(
+      mapping = mapping,
+      data = data,
+      position = position,
+      na.rm = na.rm,
+      show.legend = show.legend,
+      inherit.aes = inherit.aes,
+      fun = fun,
+      xlim = xlim,
+      ylim = ylim,
+      n = n,
+      args = args,
+      max_it = max_it,
+      T = T,
+      L = L,
+      center = center,
+      normalize = normalize,
+      tail_point = tail_point,
+      eval_point = eval_point,
+      grid = grid,
+      method = method,
+      arrow = arrow,
+      ...
+    )
+  } else {
+    stop('`type` must be "vector" or "stream"', call. = FALSE)
+  }
 }
 
 #' @rdname geom_function_2d_2d
 #' @export
-stat_function_2d_2d <- function(mapping = NULL, data = NULL, geom = ggvfields::GeomStream,
-                                position = "identity",
-                                ...,
-                                na.rm = FALSE,
-                                show.legend = NA,
-                                inherit.aes = TRUE,
-                                fun,
-                                xlim = NULL,
-                                ylim = NULL,
-                                n = 11,
-                                args = list(),
-                                max_it = 1000,
-                                T = NULL,
-                                L = NULL,
-                                center = TRUE,
-                                type = "stream",
-                                normalize = TRUE,
-                                tail_point = FALSE,
-                                eval_point = FALSE,
-                                grid = NULL,
-                                method = "rk4",
-                                arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"), type = "closed")
+stat_function_2d_2d <- function(
+    mapping = NULL,
+    data = NULL,
+    geom = ggvfields::GeomStream,
+    position = "identity",
+    ...,
+    na.rm = FALSE,
+    show.legend = NA,
+    inherit.aes = TRUE,
+    fun,
+    xlim = NULL,
+    ylim = NULL,
+    n = 11,
+    args = list(),
+    max_it = 1000,
+    T = NULL,
+    L = NULL,
+    center = TRUE,
+    normalize = TRUE,
+    tail_point = FALSE,
+    eval_point = FALSE,
+    grid = NULL,
+    method = "rk4",
+    arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"), type = "closed")
 ) {
   ggvfields::stat_stream_field(
     mapping = mapping,
@@ -175,7 +175,6 @@ stat_function_2d_2d <- function(mapping = NULL, data = NULL, geom = ggvfields::G
     T = T,
     L = L,
     center = center,
-    type = type,
     normalize = normalize,
     tail_point = tail_point,
     eval_point = eval_point,

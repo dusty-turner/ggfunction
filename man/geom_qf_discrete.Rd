@@ -22,8 +22,8 @@ geom_qf_discrete(
   show.legend = NA,
   inherit.aes = FALSE,
   fun,
-  args = list(),
   xlim = NULL,
+  args = list(),
   open_fill = NULL,
   vert_type = "dashed",
   show_points = TRUE,
@@ -97,10 +97,10 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 vector as its first argument and return non-negative probability values that
 sum to 1.}
 
-\item{args}{A named list of additional arguments to pass to \code{fun}.}
-
 \item{xlim}{A numeric vector of length 2 specifying the range of integer support
 values.}
+
+\item{args}{A named list of additional arguments to pass to \code{fun}.}
 
 \item{open_fill}{Fill color for the open (hollow) endpoint circles. Defaults to
 \code{NULL}, which uses the active theme's panel background color.}
@@ -125,10 +125,10 @@ limit of each jump, and open circles at the upper limit.
 }
 \examples{
   ggplot() +
-    geom_qf_discrete(fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10))
+    geom_qf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 
   ggplot() +
-    geom_qf_discrete(fun = dpois, args = list(lambda = 5), xlim = c(0, 15))
+    geom_qf_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 
 }
 \keyword{datasets}

@@ -23,11 +23,11 @@ geom_hf(
   inherit.aes = FALSE,
   pdf_fun,
   cdf_fun,
+  xlim = NULL,
   n = 101,
   args = list(),
   pdf_args = NULL,
   cdf_args = NULL,
-  xlim = NULL,
   color = "black"
 )
 
@@ -88,6 +88,8 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 
 \item{cdf_fun}{A CDF function (e.g. \link{pnorm}).}
 
+\item{xlim}{A numeric vector of length 2 giving the x-range.}
+
 \item{n}{Number of points at which to evaluate. Defaults to 101.}
 
 \item{args}{A named list of arguments shared by both \code{pdf_fun} and \code{cdf_fun}.}
@@ -95,8 +97,6 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 \item{pdf_args}{A named list of additional arguments specific to \code{pdf_fun} (overrides \code{args}).}
 
 \item{cdf_args}{A named list of additional arguments specific to \code{cdf_fun} (overrides \code{args}).}
-
-\item{xlim}{A numeric vector of length 2 giving the x-range.}
 
 \item{color}{Line color for the hazard curve.}
 }

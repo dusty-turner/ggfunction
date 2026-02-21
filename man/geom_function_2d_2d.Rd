@@ -3,12 +3,11 @@
 \name{geom_function_2d_2d}
 \alias{geom_function_2d_2d}
 \alias{stat_function_2d_2d}
-\title{Create a Stream Field Layer in ggplot2 (Alias)}
+\title{Plot a Vector or Stream Field from a 2D Vector-Valued Function}
 \usage{
 geom_function_2d_2d(
   mapping = NULL,
   data = NULL,
-  stat = ggvfields::StatStreamField,
   position = "identity",
   ...,
   na.rm = FALSE,
@@ -19,17 +18,17 @@ geom_function_2d_2d(
   ylim = NULL,
   n = 11,
   args = list(),
-  max_it = 1000,
-  T = NULL,
-  L = NULL,
+  type = "vector",
   center = TRUE,
-  type = "stream",
   normalize = TRUE,
   tail_point = FALSE,
   eval_point = FALSE,
   grid = NULL,
-  method = "rk4",
-  arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"), type = "closed")
+  arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"), type = "closed"),
+  max_it = 1000,
+  T = NULL,
+  L = NULL,
+  method = "rk4"
 )
 
 stat_function_2d_2d(
@@ -50,7 +49,6 @@ stat_function_2d_2d(
   T = NULL,
   L = NULL,
   center = TRUE,
-  type = "stream",
   normalize = TRUE,
   tail_point = FALSE,
   eval_point = FALSE,
@@ -75,19 +73,6 @@ value must be a \code{data.frame}, and will be used as the layer data. A
 \code{function} can be created from a \code{formula} (e.g. \code{~ head(.x, 10)}).
 }}
 
-\item{stat}{The statistical transformation to use on the data for this layer. When using
-a \verb{geom_*()} function to construct a layer, the \code{stat} argument can be used
-to override the default coupling between geoms and stats. The \code{stat} argument
-accepts the following:
-\itemize{
-\item A \code{Stat} ggproto subclass, for example \code{StatCount}.
-\item A string naming the stat. To give the stat as a string, strip the
-function name of the \code{stat_} prefix. For example, to use \code{stat_count()},
-give the stat as \code{"count"}.
-\item For more information and other ways to specify the stat, see the
-\link[ggplot2:layer_stats]{layer stat} documentation.
-}}
-
 \item{position}{A position adjustment to use on the data for this layer. This can be used in
 various ways, including to prevent overplotting and improving the display.
 The \code{position} argument accepts the following:
@@ -101,8 +86,7 @@ use \code{position_jitter()}, give the position as \code{"jitter"}.
 \link[ggplot2:layer_positions]{layer position} documentation.
 }}
 
-\item{...}{Other arguments passed to \code{\link[ggplot2:layer]{ggplot2::layer()}} and the underlying
-geometry/stat.}
+\item{...}{Other arguments passed to \code{\link[ggplot2:layer]{ggplot2::layer()}}.}
 
 \item{na.rm}{If \code{FALSE}, the default, missing values are removed with a warning. If
 \code{TRUE}, missing values are silently removed.}
@@ -119,99 +103,69 @@ them. This is most useful for helper functions that define both data and
 aesthetics and shouldn't inherit behaviour from the default plot
 specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
-\item{fun}{A function of two variables, \code{fun(x, y)}, returning a two-element
-vector \eqn{(dx, dy)}. This defines the local "flow" direction at any point
-in the domain.}
+\item{fun}{A function accepting a length-2 numeric vector and returning a
+length-2 numeric vector \eqn{(dx, dy)}.}
 
-\item{xlim, ylim}{Numeric vectors of length two specifying the domain limits
-in the \eqn{x}- and \eqn{y}-directions, respectively. Defaults to
-\eqn{c(-1, 1)} if not provided.}
+\item{xlim, ylim}{Numeric vectors of length 2 specifying the domain limits.
+Default to \eqn{c(-1, 1)}.}
 
-\item{n}{Integer or two-element numeric vector. Grid resolution specifying
-the number of seed points along each axis. Defaults to \code{11}, resulting in
-an \eqn{11 x 11} grid.}
+\item{n}{Integer or two-element integer vector. Number of seed points along
+each axis. Defaults to \code{11}.}
 
-\item{args}{List of additional arguments passed on to the function defined by
-\code{fun}.}
+\item{args}{A named list of additional arguments passed to \code{fun}.}
 
-\item{max_it}{Integer. Maximum number of integration steps per streamline.
-Defaults to \code{1000}.}
+\item{type}{Character. Either \code{"vector"} (default) for short arrows at each
+grid point, or \code{"stream"} for full integral-curve streamlines.}
 
-\item{T}{Numeric. Maximum integration time for each streamline (when
-\code{normalize = FALSE}). Defaults to \code{NULL}, in which case a default of \code{1}
-may be used internally.}
+\item{center}{Logical. If \code{TRUE} (default), centers each arrow/streamline on
+its seed point.}
 
-\item{L}{Numeric. Maximum arc length for each streamline (when
-\code{normalize = TRUE}). Defaults to \code{NULL}, in which case a suitable default
-is computed from the grid spacing.}
-
-\item{center}{Logical. If \code{TRUE} (default), centers the seed points or the
-resulting streamlines so that the original (x, y) becomes the midpoint.}
-
-\item{type}{Character. Either \code{"stream"} (default) or \code{"vector"}.}
-
-\item{normalize}{Logical. If \code{TRUE} (default), streamlines are normalized
-based on grid spacing, using the \code{L} parameter to control maximum arc
-length. If \code{FALSE}, streamlines are computed for a fixed time determined by
-the \code{T} parameter.}
+\item{normalize}{Logical. If \code{TRUE} (default), normalizes arrow/streamline
+lengths relative to grid spacing.}
 
 \item{tail_point}{Logical. If \code{TRUE}, draws a point at the tail of each
-streamline. Defaults to \code{FALSE}.}
+arrow or streamline. Defaults to \code{FALSE}.}
 
-\item{eval_point}{Logical. If \code{TRUE}, a point is drawn at the evaluation
-point where the gradient was computed. Defaults to \code{FALSE}.}
+\item{eval_point}{Logical. If \code{TRUE}, draws a point at the seed point.
+Defaults to \code{FALSE}.}
 
-\item{grid}{A data frame containing precomputed grid points for seed
-placement. If \code{NULL} (default), a regular grid is generated based on \code{xlim},
-\code{ylim}, and \code{n}.}
+\item{grid}{A data frame of precomputed seed points. If \code{NULL} (default), a
+regular grid is generated from \code{xlim}, \code{ylim}, and \code{n}.}
 
-\item{method}{Character. Integration method, e.g., \code{"rk4"} or \code{"euler"}.
-Defaults to \code{"rk4"}.}
+\item{arrow}{A \code{\link[grid:arrow]{grid::arrow()}} specification. Defaults to a closed arrow at
+30° with length \verb{0.02 npc}.}
 
-\item{arrow}{A \code{\link[grid:arrow]{grid::arrow()}} specification for adding arrowheads to the
-streamline. Defaults to a closed arrow with a 30° angle and a length of
-\code{0.02} npc.}
+\item{max_it}{Integer. Maximum integration steps per streamline
+(\code{type = "stream"} only). Defaults to \code{1000}.}
 
-\item{geom}{The geometric object used to render the streamlines (defaults to
-\link[ggvfields]{GeomStream}).}
+\item{T}{Numeric. Maximum integration time (\code{type = "stream"} only).}
+
+\item{L}{Numeric. Maximum arc length (\code{type = "stream"} only, when
+\code{normalize = TRUE}).}
+
+\item{method}{Character. Integration method, e.g. \code{"rk4"} or \code{"euler"}
+(\code{type = "stream"} only). Defaults to \code{"rk4"}.}
 }
 \value{
-A ggplot2 layer that computes and renders streamlines over the
-specified domain, optionally with arrowheads and tail points.
+A ggplot2 layer.
 }
 \description{
-\code{geom_function_2d_2d()} creates a ggplot2 layer that integrates a user-defined
-vector field function \eqn{f(x, y) \to (dx, dy)} over a grid of seed points
-within a specified domain \eqn{(x, y)}, producing streamlines that visualize
-the flow of the vector field.
+\code{geom_function_2d_2d()} evaluates a user-defined vector field
+\eqn{\mathbf{F}(x,y) = (dx, dy)} on a grid and renders it as either a
+vector field (short arrows at each grid point, the default) or a stream
+field (integral curves). It wraps \code{\link[ggvfields:geom_vector_field]{ggvfields::geom_vector_field()}} for
+\code{type = "vector"} and \code{\link[ggvfields:geom_stream_field]{ggvfields::geom_stream_field()}} for
+\code{type = "stream"}.
 }
-\details{
-This is re-export of \code{\link[ggvfields:geom_stream_field]{ggvfields::geom_stream_field()}}. All parameters and
-usage remain the same. \strong{See below} for the details, arguments, and
-examples.
-
-The streamlines are generated by numerically integrating the vector field
-defined by \code{fun(x, y)}.
-}
-\section{See Also}{
-
-\itemize{
-\item \code{\link[ggvfields:geom_stream_field]{ggvfields::geom_stream_field()}} for the original function.
-\item \link[ggvfields:geom_stream_field]{ggvfields::StatStreamField} for the underlying statistical transformation.
-\item \link[ggvfields:geom_stream]{ggvfields::GeomStream} for the geometry that renders the resulting paths.
-}
-}
-
 \examples{
 library(ggfunction)
 f <- function(u) c(-u[2], u[1])
-# same usage as geom_stream_field from ggvfields:
-ggplot() + geom_function_2d_2d(fun = f, xlim = c(-1,1), ylim = c(-1,1))
 
-# other parameters:
-\dontrun{
-ggplot() + geom_function_2d_2d(fun = f, normalize = FALSE)
-}
-ggplot() + geom_function_2d_2d(fun = f, tail_point = TRUE)
+# Vector field (default)
+ggplot() + geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
+
+# Stream field
+ggplot() + geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1),
+  type = "stream")
 
 }

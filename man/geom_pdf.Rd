@@ -22,9 +22,9 @@ geom_pdf(
   show.legend = NA,
   inherit.aes = FALSE,
   fun,
+  xlim = NULL,
   n = 101,
   args = list(),
-  xlim = NULL,
   fill = "grey20",
   color = "black",
   linewidth = NULL,
@@ -119,11 +119,11 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 numeric vector as its first argument and return density values that integrate (approximately)
 to 1.}
 
+\item{xlim}{A numeric vector of length 2 giving the x-range over which to evaluate the PDF.}
+
 \item{n}{(defaults to 101)Number of points at which to evaluate \code{fun}.}
 
 \item{args}{A named list of additional arguments to pass to \code{fun}.}
-
-\item{xlim}{A numeric vector of length 2 giving the x-range over which to evaluate the PDF.}
 
 \item{fill}{Fill color for the shaded area.}
 

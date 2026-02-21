@@ -35,9 +35,9 @@ geom_survival <- function(
     show.legend = NA,
     inherit.aes = FALSE,
     fun,
+    xlim = NULL,
     n = 101,
     args = list(),
-    xlim = NULL,
     color = "black"
     ) {
 

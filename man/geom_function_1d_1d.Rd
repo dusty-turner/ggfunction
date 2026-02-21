@@ -22,9 +22,9 @@ geom_function_1d_1d(
   show.legend = NA,
   inherit.aes = FALSE,
   fun,
+  xlim = NULL,
   n = 101,
   args = list(),
-  xlim = NULL,
   fill = "grey20",
   color = "black",
   shade_from = NULL,
@@ -86,11 +86,11 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 
 \item{fun}{A function to compute. The function must accept a numeric vector as its first argument.}
 
+\item{xlim}{A numeric vector of length 2 giving the x-range over which to evaluate the function.}
+
 \item{n}{Number of points at which to evaluate \code{fun}. Defaults to 101.}
 
 \item{args}{A named list of additional arguments to pass to \code{fun}.}
-
-\item{xlim}{A numeric vector of length 2 giving the x-range over which to evaluate the function.}
 
 \item{fill}{Fill color for the shaded area (only used when \code{shade_from}/\code{shade_to} are specified).}
 
