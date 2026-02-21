@@ -23,8 +23,8 @@ geom_ecdf(
   inherit.aes = TRUE,
   open_fill = NULL,
   vert_type = "dashed",
-  show_points = TRUE,
-  show_vert = TRUE,
+  show_points = NULL,
+  show_vert = NULL,
   conf_int = TRUE,
   level = 0.95,
   conf_alpha = 0.3
@@ -125,10 +125,12 @@ to \code{NULL}, which uses the active theme's panel background color.}
 \code{"dashed"}.}
 
 \item{show_points}{Logical. If \code{FALSE}, suppresses all endpoint circles.
-Defaults to \code{TRUE}.}
+If \code{NULL} (the default), circles are shown when there are 100 or fewer
+points and hidden otherwise.}
 
 \item{show_vert}{Logical. If \code{FALSE}, suppresses the vertical jump segments.
-Defaults to \code{TRUE}.}
+If \code{NULL} (the default), segments are shown when there are 100 or fewer
+points and hidden otherwise.}
 
 \item{conf_int}{Logical. If \code{TRUE} (the default), draws a simultaneous KS
 confidence band around the ECDF.}
@@ -162,8 +164,14 @@ The half-width is \eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}}, where
 }
 \examples{
 set.seed(1)
-df <- data.frame(x = rnorm(50))
 
+df <- data.frame(x = rnorm(20))
+ggplot(df, aes(x = x)) + geom_ecdf()
+
+df <- data.frame(x = rnorm(100))
+ggplot(df, aes(x = x)) + geom_ecdf()
+
+df <- data.frame(x = rnorm(101))
 ggplot(df, aes(x = x)) + geom_ecdf()
 
 # Overlaying multiple groups

@@ -27,8 +27,8 @@ geom_cdf_discrete(
   args = list(),
   open_fill = NULL,
   vert_type = "dashed",
-  show_points = TRUE,
-  show_vert = TRUE
+  show_points = NULL,
+  show_vert = NULL
 )
 
 StatCDFDiscrete
@@ -113,10 +113,12 @@ points to evaluate. When supplied, \code{xlim} is ignored.}
 \code{"dashed"}.}
 
 \item{show_points}{Logical. If \code{FALSE}, suppresses all endpoint circles (open
-and closed). Defaults to \code{TRUE}.}
+and closed). If \code{NULL} (the default), circles are shown when there are
+100 or fewer points and hidden otherwise.}
 
 \item{show_vert}{Logical. If \code{FALSE}, suppresses the vertical jump segments.
-Defaults to \code{TRUE}.}
+If \code{NULL} (the default), segments are shown when there are 100 or fewer
+points and hidden otherwise.}
 }
 \value{
 A ggplot2 layer.

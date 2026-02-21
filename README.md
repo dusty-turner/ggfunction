@@ -31,6 +31,9 @@ The package is organized around two families of geoms:
 |  | `geom_qf()` |  | Quantile function |
 |  | `geom_qf_discrete()` |  | Discrete quantile function (step function) |
 |  | `geom_hf()` |  | Hazard function $h(x) = f(x)/S(x)$ |
+| **Data** | `geom_ecdf()` |  | Empirical CDF with KS confidence ribbon |
+|  | `geom_eqf()` |  | Empirical quantile function with confidence ribbon |
+|  | `geom_epmf()` |  | Empirical PMF (lollipop) |
 
 ## Dimensional Taxonomy
 
@@ -529,6 +532,141 @@ ggplot() +
 ```
 
 <img src="man/figures/readme-hazard-1.png" width="60%" />
+
+## Data Functions
+
+The data family works with an observed numeric sample rather than a
+function object. Supply a vector of data via `aes(x = ...)` and the geom
+handles the rest. All three geoms use the same visual language as their
+theoretical counterparts in the Probability section.
+
+### Empirical CDF: `geom_ecdf()`
+
+`geom_ecdf()` plots the empirical cumulative distribution function of a
+sample as a right-continuous step function, using the same visual
+conventions as `geom_cdf_discrete()`. A 95% simultaneous
+Kolmogorov-Smirnov confidence ribbon is drawn by default; set
+`conf_int = FALSE` to suppress it.
+
+``` r
+ggplot(df_single, aes(x = x)) +
+  geom_ecdf()
+```
+
+<img src="man/figures/readme-ecdf-1.png" width="60%" />
+
+**Multiple groups.** Map `colour` to a grouping variable to overlay
+ECDFs for several groups. Each group gets its own confidence ribbon,
+computed from that group’s sample size.
+
+``` r
+ggplot(df_two, aes(x = x, colour = group)) +
+  geom_ecdf()
+```
+
+<img src="man/figures/readme-ecdf-grouped-1.png" width="60%" />
+
+**Controlling the band.** Use `level` to change the confidence level and
+`conf_alpha` to adjust ribbon transparency.
+
+``` r
+ggplot(df_single, aes(x = x)) +
+  geom_ecdf(level = 0.99, conf_alpha = 0.15)
+```
+
+<img src="man/figures/readme-ecdf-level-1.png" width="60%" />
+
+### Empirical quantile function: `geom_eqf()`
+
+`geom_eqf()` plots the empirical quantile function
+$Q_n(p) = \inf\{x : \hat{F}_n(x) \ge p\}$ as a left-continuous step
+function on $[0, 1]$, using the same visual conventions as
+`geom_qf_discrete()`. The confidence ribbon inverts the KS ECDF band: at
+probability $p$ the band spans
+$[Q_n(p - \varepsilon), Q_n(p + \varepsilon)]$.
+
+``` r
+ggplot(df_single, aes(x = x)) +
+  geom_eqf()
+```
+
+<img src="man/figures/readme-eqf-1.png" width="60%" />
+
+**Multiple groups.**
+
+``` r
+ggplot(df_two, aes(x = x, colour = group)) +
+  geom_eqf()
+```
+
+<img src="man/figures/readme-eqf-grouped-1.png" width="60%" />
+
+**Informal normality test.** Because the KS confidence band covers the
+true quantile function $Q(p)$ with probability $\ge 1 - \alpha$
+regardless of the null, overlaying a parametric $Q_0(p)$ turns the plot
+into a visual goodness-of-fit test: if $Q_0$ lies entirely within the
+band the data are consistent with the hypothesized model; if it exits
+the band there is evidence against it. The comparison below fits a
+normal distribution by maximum likelihood (sample mean and SD) to two
+samples of size $n = 100$—one actually normal, one exponential—and
+overlays the fitted $Q_0$ as a smooth line.
+
+``` r
+set.seed(3)
+df_gof <- data.frame(
+  x      = c(rnorm(100), rexp(100) - 1),
+  sample = rep(c("Normal data", "Exponential data"), each = 100)
+)
+
+# Fitted normal QF for each sample
+normal_qf <- function(p, x) qnorm(p, mean = mean(x), sd = sd(x))
+
+p_norm <- ggplot(subset(df_gof, sample == "Normal data"), aes(x = x)) +
+  geom_eqf() +
+  geom_qf(fun = normal_qf, args = list(x = subset(df_gof, sample == "Normal data")$x),
+          colour = "red") +
+  ggtitle("Normal data")
+
+p_exp <- ggplot(subset(df_gof, sample == "Exponential data"), aes(x = x)) +
+  geom_eqf() +
+  geom_qf(fun = normal_qf, args = list(x = subset(df_gof, sample == "Exponential data")$x),
+          colour = "red") +
+  ggtitle("Exponential data")
+
+library(patchwork)
+p_norm + p_exp
+```
+
+<img src="man/figures/readme-eqf-gof-1.png" width="60%" />
+
+The fitted normal line threads through the center of the band for the
+normal sample; for the exponential sample it departs visibly at the
+tails, where the asymmetry of the exponential distribution is most
+pronounced. Note that estimating parameters from the data makes the band
+slightly conservative (analogous to the Lilliefors correction), so this
+is an informal rather than exact test.
+
+### Empirical PMF: `geom_epmf()`
+
+`geom_epmf()` tabulates the empirical probability mass function—placing
+mass $c_k / n$ at each distinct observed value $x_k$—and renders it as a
+lollipop chart using the same visual conventions as `geom_pmf()`.
+
+``` r
+ggplot(df_single, aes(x = x)) +
+  geom_epmf()
+```
+
+<img src="man/figures/readme-epmf-1.png" width="60%" />
+
+**Multiple groups.**
+
+``` r
+ggplot(df_two, aes(x = x, colour = group)) +
+  geom_epmf()
+```
+
+<img src="man/figures/readme-epmf-grouped-1.png" width="60%" />
 
 ## Getting help
 

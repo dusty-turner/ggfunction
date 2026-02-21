@@ -56,9 +56,11 @@ NULL
 #' @param vert_type Line type for the vertical jump segments. Defaults to
 #'   `"dashed"`.
 #' @param show_points Logical. If `FALSE`, suppresses all endpoint circles.
-#'   Defaults to `TRUE`.
+#'   If `NULL` (the default), circles are shown when there are 100 or fewer
+#'   points and hidden otherwise.
 #' @param show_vert Logical. If `FALSE`, suppresses the vertical jump segments.
-#'   Defaults to `TRUE`.
+#'   If `NULL` (the default), segments are shown when there are 100 or fewer
+#'   points and hidden otherwise.
 #' @param conf_int Logical. If `TRUE` (the default), draws a simultaneous KS
 #'   confidence band around the ECDF.
 #' @param level Confidence level for the band. Defaults to `0.95`.
@@ -69,8 +71,14 @@ NULL
 #'
 #' @examples
 #' set.seed(1)
-#' df <- data.frame(x = rnorm(50))
 #'
+#' df <- data.frame(x = rnorm(20))
+#' ggplot(df, aes(x = x)) + geom_ecdf()
+#'
+#' df <- data.frame(x = rnorm(100))
+#' ggplot(df, aes(x = x)) + geom_ecdf()
+#'
+#' df <- data.frame(x = rnorm(101))
 #' ggplot(df, aes(x = x)) + geom_ecdf()
 #'
 #' # Overlaying multiple groups
@@ -94,8 +102,8 @@ geom_ecdf <- function(
     inherit.aes = TRUE,
     open_fill  = NULL,
     vert_type  = "dashed",
-    show_points = TRUE,
-    show_vert  = TRUE,
+    show_points = NULL,
+    show_vert  = NULL,
     conf_int   = TRUE,
     level      = 0.95,
     conf_alpha = 0.3
@@ -228,8 +236,8 @@ geom_eqf <- function(
     inherit.aes = TRUE,
     open_fill  = NULL,
     vert_type  = "dashed",
-    show_points = TRUE,
-    show_vert  = TRUE,
+    show_points = NULL,
+    show_vert  = NULL,
     conf_int   = TRUE,
     level      = 0.95,
     conf_alpha = 0.3

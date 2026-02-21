@@ -19,9 +19,11 @@
 #' @param vert_type Line type for the vertical jump segments. Defaults to
 #'   `"dashed"`.
 #' @param show_points Logical. If `FALSE`, suppresses all endpoint circles (open
-#'   and closed). Defaults to `TRUE`.
+#'   and closed). If `NULL` (the default), circles are shown when there are
+#'   100 or fewer points and hidden otherwise.
 #' @param show_vert Logical. If `FALSE`, suppresses the vertical jump segments.
-#'   Defaults to `TRUE`.
+#'   If `NULL` (the default), segments are shown when there are 100 or fewer
+#'   points and hidden otherwise.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @return A ggplot2 layer.
@@ -51,8 +53,8 @@ geom_cdf_discrete <- function(
     args = list(),
     open_fill = NULL,
     vert_type = "dashed",
-    show_points = TRUE,
-    show_vert = TRUE
+    show_points = NULL,
+    show_vert = NULL
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -132,12 +134,14 @@ GeomCDFDiscrete <- ggproto("GeomCDFDiscrete", Geom,
 
   draw_group = function(data, panel_params, coord,
                         open_fill = NULL, vert_type = "dashed",
-                        show_points = TRUE, show_vert = TRUE) {
+                        show_points = NULL, show_vert = NULL) {
     if (is.null(open_fill)) {
       bg <- ggplot2::theme_get()$panel.background
       open_fill <- if (!inherits(bg, "element_blank") && !is.null(bg$fill) && !is.na(bg$fill)) bg$fill else "white"
     }
     n <- nrow(data)
+    if (is.null(show_points)) show_points <- n <= 100
+    if (is.null(show_vert))   show_vert   <- n <= 100
 
     # Horizontal segments:
     #   [left_boundary → x[1]] at height 0,
