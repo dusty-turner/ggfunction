@@ -168,6 +168,19 @@ ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
 ```
 
+Tail shading with `p` and HDR shading with `shade_hdr` work the same way as in `geom_pdf()`:
+
+```{r}
+ggplot() +
+  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5), p = 0.8)
+```
+
+```{r}
+ggplot() +
+  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3),
+    shade_hdr = 0.7)
+```
+
 ### Quantile Function
 
 ```{r}

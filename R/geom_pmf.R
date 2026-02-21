@@ -1,9 +1,12 @@
 #' Plot a Probability Mass Function as Lollipops
 #'
 #' `geom_pmf()` creates a ggplot2 layer that plots a probability mass function
-#' (PMF) using a lollipop representation. Vertical dashed segments extend from
+#' (PMF) using a lollipop representation. Vertical segments extend from
 #' zero up to the probability value at each integer support value and a point is
-#' drawn at the top.
+#' drawn at the top. Shading modes mirror those of [geom_pdf()]: a cumulative
+#' threshold (`p`), a two-sided interval (`p_lower`/`p_upper`), or a highest
+#' density region (`shade_hdr`). Non-shaded lollipops are rendered in grey with
+#' dashed segments.
 #'
 #' @inheritParams ggplot2::geom_point
 #' @param fun A function to compute the PMF (e.g. [dbinom] or [dpois]). The
@@ -14,26 +17,51 @@
 #'   over which to evaluate the PMF. If not provided, a default range of 0 to 10
 #'   is used.
 #' @param point_size Size of the points at the top of each lollipop (defaults to
-#'   4).
-#' @param stick_linewidth Linewidth of the vertical sticks (defaults to 0.5).
-#' @param stick_linetype Linetype of the vertical sticks (defaults to
-#'   `"dashed"`).
-#' @param color Color for the points and for the segments (defaults to
+#'   2.5).
+#' @param stick_linewidth Linewidth of the vertical sticks (defaults to 0.25).
+#' @param stick_linetype Linetype of the shaded vertical sticks (defaults to
+#'   `"solid"`). Non-shaded sticks always use `"dashed"`.
+#' @param color Color for the shaded points and segments (defaults to
 #'   `"black"`).
 #' @param args A named list of additional arguments to pass to `fun`.
+#' @param p (Optional) A numeric value between 0 and 1 specifying a cumulative
+#'   probability threshold. When `lower.tail = TRUE` (the default), lollipops
+#'   up to the corresponding quantile are shaded; when `FALSE`, the upper tail
+#'   is shaded.
+#' @param lower.tail Logical; controls the direction of `p`-based shading.
+#'   Defaults to `TRUE`.
+#' @param p_lower (Optional) Lower cumulative probability bound for two-sided
+#'   shading. Used with `p_upper`.
+#' @param p_upper (Optional) Upper cumulative probability bound for two-sided
+#'   shading. Used with `p_lower`.
+#' @param shade_outside Logical; if `TRUE`, shading is applied to the tails
+#'   outside the `p_lower`/`p_upper` interval rather than inside. Defaults to
+#'   `FALSE`.
+#' @param shade_hdr (Optional) A numeric value between 0 and 1 specifying the
+#'   target coverage of the highest density region (HDR) to shade -- the
+#'   smallest set of support points containing at least the specified probability
+#'   mass. Because a discrete distribution may not achieve the exact coverage,
+#'   the smallest HDR with coverage >= `shade_hdr` is used and a message is
+#'   issued via [cli::cli_inform()] reporting both the specified and actual
+#'   coverage whenever they differ.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @return A ggplot2 layer.
 #'
 #' @examples
-#'
-#' # Plot a binomial PMF with n = 10 and p = 0.5 over 0 to 10.
+#' # Basic PMF
 #' ggplot() +
 #'   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.25))
 #'
-#' # Plot a Poisson(6) from x = 0 to x = 15
+#' # Shade the lower tail up to the 80th percentile
 #' ggplot() +
-#'   geom_pmf(fun = dpois, xlim = c(0, 15), args = list(lambda = 6))
+#'   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+#'     p = 0.8)
+#'
+#' # Shade the 80% HDR
+#' ggplot() +
+#'   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+#'     shade_hdr = 0.8)
 #'
 #' @name geom_pmf
 #' @aliases StatPMF GeomPMF
@@ -50,9 +78,15 @@ geom_pmf <- function(mapping = NULL,
                      xlim = NULL,
                      point_size = 2.5,
                      stick_linewidth = 0.25,
-                     stick_linetype = "dashed",
+                     stick_linetype = "solid",
                      color = "black",
-                     args = list()) {
+                     args = list(),
+                     p = NULL,
+                     lower.tail = TRUE,
+                     p_lower = NULL,
+                     p_upper = NULL,
+                     shade_outside = FALSE,
+                     shade_hdr = NULL) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
 
@@ -80,6 +114,12 @@ geom_pmf <- function(mapping = NULL,
       color = color,
       args = args,
       na.rm = na.rm,
+      p = p,
+      lower.tail = lower.tail,
+      p_lower = p_lower,
+      p_upper = p_upper,
+      shade_outside = shade_outside,
+      shade_hdr = shade_hdr,
       ...
     )
   )
@@ -117,24 +157,79 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
 
   draw_panel = function(self, data, panel_params, coord, na.rm = FALSE,
                         point_size = 2.5, stick_linewidth = 0.25,
-                        stick_linetype = "dashed") {
+                        stick_linetype = "solid",
+                        p = NULL, lower.tail = TRUE,
+                        p_lower = NULL, p_upper = NULL,
+                        shade_outside = FALSE, shade_hdr = NULL) {
 
-    # Build segment data for the sticks
-    segment_data <- transform(data, yend = y, y = 0)
-    segment_data$linewidth <- stick_linewidth
-    segment_data$linetype <- stick_linetype
-    segment_data$size <- NULL
+    n <- nrow(data)
+    pmf_vals <- data$y
+    cum_vals  <- cumsum(pmf_vals)
+
+    # Determine which lollipops fall inside the shaded region
+    if (!is.null(shade_hdr)) {
+      fhat_d   <- pmf_vals / sum(pmf_vals)
+      ord      <- order(pmf_vals, decreasing = TRUE)
+      cumprob  <- cumsum(fhat_d[ord])
+      k        <- which(cumprob >= shade_hdr)[1L]
+      if (is.na(k)) k <- n
+      actual   <- cumprob[k]
+      cutoff   <- pmf_vals[ord[k]]
+      in_shade <- pmf_vals >= cutoff
+
+      if (abs(actual - shade_hdr) > 0.005) {
+        fmt <- function(x) paste0(round(x * 100, 1), "%")
+        cli::cli_inform(c(
+          "!" = "shade_hdr: {fmt(shade_hdr)} is not exactly achievable for this discrete distribution.",
+          "i" = "Using smallest HDR with coverage >= {fmt(shade_hdr)}: actual coverage = {fmt(actual)}."
+        ))
+      }
+
+    } else if (!is.null(p_lower) && !is.null(p_upper)) {
+      idx_lo <- which(cum_vals >= p_lower)[1L]
+      if (is.na(idx_lo)) idx_lo <- n
+      idx_hi <- which(cum_vals >= p_upper)[1L]
+      if (is.na(idx_hi)) idx_hi <- n
+      if (shade_outside) {
+        in_shade <- seq_len(n) < idx_lo | seq_len(n) > idx_hi
+      } else {
+        in_shade <- seq_len(n) >= idx_lo & seq_len(n) <= idx_hi
+      }
+
+    } else if (!is.null(p)) {
+      if (lower.tail) {
+        idx <- which(cum_vals >= p)[1L]
+        if (is.na(idx)) idx <- n
+        in_shade <- seq_len(n) <= idx
+      } else {
+        idx <- which(cum_vals >= (1 - p))[1L]
+        if (is.na(idx)) idx <- 0L
+        in_shade <- seq_len(n) > idx
+      }
+
+    } else {
+      in_shade <- rep(TRUE, n)
+    }
+
+    # Build segment data: unshaded segments are grey + dashed
+    seg_data          <- transform(data, yend = y, y = 0)
+    seg_data$linewidth <- stick_linewidth
+    seg_data$linetype  <- ifelse(in_shade, stick_linetype, "dashed")
+    seg_data$colour    <- ifelse(in_shade, seg_data$colour, "grey70")
+    seg_data$size      <- NULL
 
     seg_grob <- ggproto_parent(GeomSegment, self)$draw_panel(
-      segment_data, panel_params, coord, na.rm = na.rm
+      seg_data, panel_params, coord, na.rm = na.rm
     )
 
-    # Build point data with larger size
-    point_data <- data
-    point_data$size <- point_size
+    # Build point data: unshaded points are grey
+    pt_data         <- data
+    pt_data$size    <- point_size
+    pt_data$colour  <- ifelse(in_shade, pt_data$colour, "grey70")
 
     pt_grob <- ggproto_parent(GeomPoint, self)$draw_panel(
-      point_data, panel_params, coord, na.rm = na.rm)
+      pt_data, panel_params, coord, na.rm = na.rm
+    )
 
     grid::grobTree(seg_grob, pt_grob)
   }

@@ -36,17 +36,15 @@ StatHF
 GeomHF
 }
 \arguments{
-\item{mapping}{Set of aesthetic mappings created by \code{\link[ggplot2:aes]{aes()}}. If specified and
-\code{inherit.aes = TRUE} (the default), it is combined with the default mapping
-at the top level of the plot. You must supply \code{mapping} if there is no plot
-mapping.}
+\item{mapping}{Set of aesthetic mappings created by \code{\link[ggplot2:aes]{aes()}}. If specified and \code{inherit.aes = TRUE} (the default), it is combined with the default mapping at the top level
+of the plot. You must supply \code{mapping} if there is no plot mapping.}
 
 \item{data}{Ignored by \code{stat_function()}, do not use.}
 
-\item{stat}{The statistical transformation to use on the data for this layer.
-When using a \verb{geom_*()} function to construct a layer, the \code{stat}
-argument can be used to override the default coupling between geoms and
-stats. The \code{stat} argument accepts the following:
+\item{stat}{The statistical transformation to use on the data for this layer. When using
+a \verb{geom_*()} function to construct a layer, the \code{stat} argument can be used
+to override the default coupling between geoms and stats. The \code{stat} argument
+accepts the following:
 \itemize{
 \item A \code{Stat} ggproto subclass, for example \code{StatCount}.
 \item A string naming the stat. To give the stat as a string, strip the
@@ -56,36 +54,35 @@ give the stat as \code{"count"}.
 \link[ggplot2:layer_stats]{layer stat} documentation.
 }}
 
-\item{position}{A position adjustment to use on the data for this layer. This
-can be used in various ways, including to prevent overplotting and
-improving the display. The \code{position} argument accepts the following:
+\item{position}{A position adjustment to use on the data for this layer. This can be used in
+various ways, including to prevent overplotting and improving the display.
+The \code{position} argument accepts the following:
 \itemize{
 \item The result of calling a position function, such as \code{position_jitter()}.
 This method allows for passing extra arguments to the position.
 \item A string naming the position adjustment. To give the position as a
-string, strip the function name of the \code{position_} prefix. For example,
-to use \code{position_jitter()}, give the position as \code{"jitter"}.
+string, strip the function name of the \code{position_} prefix. For example, to
+use \code{position_jitter()}, give the position as \code{"jitter"}.
 \item For more information and other ways to specify the position, see the
 \link[ggplot2:layer_positions]{layer position} documentation.
 }}
 
 \item{...}{Other parameters passed on to \code{\link[ggplot2:layer]{ggplot2::layer()}}.}
 
-\item{na.rm}{If \code{FALSE}, the default, missing values are removed with
-a warning. If \code{TRUE}, missing values are silently removed.}
+\item{na.rm}{If \code{FALSE}, the default, missing values are removed with a warning. If
+\code{TRUE}, missing values are silently removed.}
 
-\item{show.legend}{logical. Should this layer be included in the legends?
-\code{NA}, the default, includes if any aesthetics are mapped.
-\code{FALSE} never includes, and \code{TRUE} always includes.
-It can also be a named logical vector to finely select the aesthetics to
-display. To include legend keys for all levels, even
-when no data exists, use \code{TRUE}.  If \code{NA}, all levels are shown in legend,
-but unobserved levels are omitted.}
+\item{show.legend}{Logical. Should this layer be included in the legends? \code{NA}, the default,
+includes if any aesthetics are mapped. \code{FALSE} never includes, and \code{TRUE}
+always includes. It can also be a named logical vector to finely select the
+aesthetics to display. To include legend keys for all levels, even when no
+data exists, use \code{TRUE}.  If \code{NA}, all levels are shown in legend, but
+unobserved levels are omitted.}
 
-\item{inherit.aes}{If \code{FALSE}, overrides the default aesthetics,
-rather than combining with them. This is most useful for helper functions
-that define both data and aesthetics and shouldn't inherit behaviour from
-the default plot specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
+\item{inherit.aes}{If \code{FALSE}, overrides the default aesthetics, rather than combining with
+them. This is most useful for helper functions that define both data and
+aesthetics and shouldn't inherit behaviour from the default plot
+specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
 \item{pdf_fun}{A PDF function (e.g. \link{dnorm}).}
 

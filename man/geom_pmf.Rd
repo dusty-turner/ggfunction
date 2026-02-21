@@ -25,9 +25,15 @@ geom_pmf(
   xlim = NULL,
   point_size = 2.5,
   stick_linewidth = 0.25,
-  stick_linetype = "dashed",
+  stick_linetype = "solid",
   color = "black",
-  args = list()
+  args = list(),
+  p = NULL,
+  lower.tail = TRUE,
+  p_lower = NULL,
+  p_upper = NULL,
+  shade_outside = FALSE,
+  shade_hdr = NULL
 )
 
 StatPMF
@@ -35,30 +41,25 @@ StatPMF
 GeomPMF
 }
 \arguments{
-\item{mapping}{Set of aesthetic mappings created by \code{\link[ggplot2:aes]{aes()}}. If specified and
-\code{inherit.aes = TRUE} (the default), it is combined with the default mapping
-at the top level of the plot. You must supply \code{mapping} if there is no plot
-mapping.}
+\item{mapping}{Set of aesthetic mappings created by \code{\link[ggplot2:aes]{aes()}}. If specified and \code{inherit.aes = TRUE} (the default), it is combined with the default mapping at the top level
+of the plot. You must supply \code{mapping} if there is no plot mapping.}
 
-\item{data}{The data to be displayed in this layer. There are three
-options:
+\item{data}{The data to be displayed in this layer. There are three options:
+\itemize{
+\item \code{NULL} (default): the data is inherited from the plot data as specified
+in the call to \code{\link[ggplot2:ggplot]{ggplot()}}.
+\item A \code{data.frame}, or other object, will override the plot data. All objects
+will be fortified to produce a data frame. See \code{\link[ggplot2:fortify]{fortify()}} for which
+variables will be created.
+\item A \code{function} will be called with a single argument, the plot data. The return
+value must be a \code{data.frame}, and will be used as the layer data. A
+\code{function} can be created from a \code{formula} (e.g. \code{~ head(.x, 10)}).
+}}
 
-If \code{NULL}, the default, the data is inherited from the plot
-data as specified in the call to \code{\link[ggplot2:ggplot]{ggplot()}}.
-
-A \code{data.frame}, or other object, will override the plot
-data. All objects will be fortified to produce a data frame. See
-\code{\link[ggplot2:fortify]{fortify()}} for which variables will be created.
-
-A \code{function} will be called with a single argument,
-the plot data. The return value must be a \code{data.frame}, and
-will be used as the layer data. A \code{function} can be created
-from a \code{formula} (e.g. \code{~ head(.x, 10)}).}
-
-\item{stat}{The statistical transformation to use on the data for this layer.
-When using a \verb{geom_*()} function to construct a layer, the \code{stat}
-argument can be used to override the default coupling between geoms and
-stats. The \code{stat} argument accepts the following:
+\item{stat}{The statistical transformation to use on the data for this layer. When using
+a \verb{geom_*()} function to construct a layer, the \code{stat} argument can be used
+to override the default coupling between geoms and stats. The \code{stat} argument
+accepts the following:
 \itemize{
 \item A \code{Stat} ggproto subclass, for example \code{StatCount}.
 \item A string naming the stat. To give the stat as a string, strip the
@@ -68,36 +69,35 @@ give the stat as \code{"count"}.
 \link[ggplot2:layer_stats]{layer stat} documentation.
 }}
 
-\item{position}{A position adjustment to use on the data for this layer. This
-can be used in various ways, including to prevent overplotting and
-improving the display. The \code{position} argument accepts the following:
+\item{position}{A position adjustment to use on the data for this layer. This can be used in
+various ways, including to prevent overplotting and improving the display.
+The \code{position} argument accepts the following:
 \itemize{
 \item The result of calling a position function, such as \code{position_jitter()}.
 This method allows for passing extra arguments to the position.
 \item A string naming the position adjustment. To give the position as a
-string, strip the function name of the \code{position_} prefix. For example,
-to use \code{position_jitter()}, give the position as \code{"jitter"}.
+string, strip the function name of the \code{position_} prefix. For example, to
+use \code{position_jitter()}, give the position as \code{"jitter"}.
 \item For more information and other ways to specify the position, see the
 \link[ggplot2:layer_positions]{layer position} documentation.
 }}
 
 \item{...}{Other parameters passed on to \code{\link[ggplot2:layer]{ggplot2::layer()}}.}
 
-\item{na.rm}{If \code{FALSE}, the default, missing values are removed with
-a warning. If \code{TRUE}, missing values are silently removed.}
+\item{na.rm}{If \code{FALSE}, the default, missing values are removed with a warning. If
+\code{TRUE}, missing values are silently removed.}
 
-\item{show.legend}{logical. Should this layer be included in the legends?
-\code{NA}, the default, includes if any aesthetics are mapped.
-\code{FALSE} never includes, and \code{TRUE} always includes.
-It can also be a named logical vector to finely select the aesthetics to
-display. To include legend keys for all levels, even
-when no data exists, use \code{TRUE}.  If \code{NA}, all levels are shown in legend,
-but unobserved levels are omitted.}
+\item{show.legend}{Logical. Should this layer be included in the legends? \code{NA}, the default,
+includes if any aesthetics are mapped. \code{FALSE} never includes, and \code{TRUE}
+always includes. It can also be a named logical vector to finely select the
+aesthetics to display. To include legend keys for all levels, even when no
+data exists, use \code{TRUE}.  If \code{NA}, all levels are shown in legend, but
+unobserved levels are omitted.}
 
-\item{inherit.aes}{If \code{FALSE}, overrides the default aesthetics,
-rather than combining with them. This is most useful for helper functions
-that define both data and aesthetics and shouldn't inherit behaviour from
-the default plot specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
+\item{inherit.aes}{If \code{FALSE}, overrides the default aesthetics, rather than combining with
+them. This is most useful for helper functions that define both data and
+aesthetics and shouldn't inherit behaviour from the default plot
+specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
 \item{fun}{A function to compute the PMF (e.g. \link{dbinom} or \link{dpois}). The
 function must accept a numeric vector as its first argument and return
@@ -109,36 +109,70 @@ over which to evaluate the PMF. If not provided, a default range of 0 to 10
 is used.}
 
 \item{point_size}{Size of the points at the top of each lollipop (defaults to
-4).}
+2.5).}
 
-\item{stick_linewidth}{Linewidth of the vertical sticks (defaults to 0.5).}
+\item{stick_linewidth}{Linewidth of the vertical sticks (defaults to 0.25).}
 
-\item{stick_linetype}{Linetype of the vertical sticks (defaults to
-\code{"dashed"}).}
+\item{stick_linetype}{Linetype of the shaded vertical sticks (defaults to
+\code{"solid"}). Non-shaded sticks always use \code{"dashed"}.}
 
-\item{color}{Color for the points and for the segments (defaults to
+\item{color}{Color for the shaded points and segments (defaults to
 \code{"black"}).}
 
 \item{args}{A named list of additional arguments to pass to \code{fun}.}
+
+\item{p}{(Optional) A numeric value between 0 and 1 specifying a cumulative
+probability threshold. When \code{lower.tail = TRUE} (the default), lollipops
+up to the corresponding quantile are shaded; when \code{FALSE}, the upper tail
+is shaded.}
+
+\item{lower.tail}{Logical; controls the direction of \code{p}-based shading.
+Defaults to \code{TRUE}.}
+
+\item{p_lower}{(Optional) Lower cumulative probability bound for two-sided
+shading. Used with \code{p_upper}.}
+
+\item{p_upper}{(Optional) Upper cumulative probability bound for two-sided
+shading. Used with \code{p_lower}.}
+
+\item{shade_outside}{Logical; if \code{TRUE}, shading is applied to the tails
+outside the \code{p_lower}/\code{p_upper} interval rather than inside. Defaults to
+\code{FALSE}.}
+
+\item{shade_hdr}{(Optional) A numeric value between 0 and 1 specifying the
+target coverage of the highest density region (HDR) to shade -- the
+smallest set of support points containing at least the specified probability
+mass. Because a discrete distribution may not achieve the exact coverage,
+the smallest HDR with coverage >= \code{shade_hdr} is used and a message is
+issued via \code{\link[cli:cli_abort]{cli::cli_inform()}} reporting both the specified and actual
+coverage whenever they differ.}
 }
 \value{
 A ggplot2 layer.
 }
 \description{
 \code{geom_pmf()} creates a ggplot2 layer that plots a probability mass function
-(PMF) using a lollipop representation. Vertical dashed segments extend from
+(PMF) using a lollipop representation. Vertical segments extend from
 zero up to the probability value at each integer support value and a point is
-drawn at the top.
+drawn at the top. Shading modes mirror those of \code{\link[=geom_pdf]{geom_pdf()}}: a cumulative
+threshold (\code{p}), a two-sided interval (\code{p_lower}/\code{p_upper}), or a highest
+density region (\code{shade_hdr}). Non-shaded lollipops are rendered in grey with
+dashed segments.
 }
 \examples{
-
-# Plot a binomial PMF with n = 10 and p = 0.5 over 0 to 10.
+# Basic PMF
 ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.25))
 
-# Plot a Poisson(6) from x = 0 to x = 15
+# Shade the lower tail up to the 80th percentile
 ggplot() +
-  geom_pmf(fun = dpois, xlim = c(0, 15), args = list(lambda = 6))
+  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+    p = 0.8)
+
+# Shade the 80\% HDR
+ggplot() +
+  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+    shade_hdr = 0.8)
 
 }
 \keyword{datasets}
