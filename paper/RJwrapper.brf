@@ -7,10 +7,10 @@
 \backcite {ggvfields}{{7}{2.3.4}{figure.caption.8}}
 \backcite {cli}{{8}{2.4.1}{equation.2.2}}
 \backcite {otto2023ggdensity}{{8}{2.4.1}{figure.caption.12}}
-\backcite {casella2002statistical}{{15}{2.4.9}{equation.2.6}}
-\backcite {wickham2016ggplot2}{{20}{1}{Item.3}}
-\backcite {kay2024ggdist}{{20}{2}{Item.4}}
-\backcite {otto2023ggdensity}{{20}{3}{Item.5}}
+\backcite {casella2002statistical}{{16}{2.4.5}{equation.2.4}}
+\backcite {wickham2016ggplot2}{{19}{1}{Item.3}}
+\backcite {kay2024ggdist}{{19}{2}{Item.4}}
+\backcite {otto2023ggdensity}{{19}{3}{Item.5}}
 \backcite {pruim2017mosaic}{{20}{4}{Item.6}}
 \backcite {metR}{{20}{5}{Item.7}}
 \backcite {ggvfields}{{20}{6}{Item.8}}

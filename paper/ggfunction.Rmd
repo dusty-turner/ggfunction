@@ -330,23 +330,6 @@ A_k = \sum_{i=1}^{k-1} \frac{y_i + y_{i+1}}{2} \, (x_{i+1} - x_i).
 
 The normalized values $A_k / A_n$ are then compared against the specified probability thresholds to determine the shading boundaries.
 
-## Cumulative distribution functions: `geom_cdf()`
-
-The CDF $F(x) = P(X \leq x)$ is the integral of the density:
-
-\begin{equation}
-F(x) = \int_{-\infty}^{x} f(t)\, dt.
-(\#eq:cdf)
-\end{equation}
-
-`geom_cdf()` evaluates a user-supplied CDF directly (e.g., `pnorm`) and supports the same `p`, `p_lower`/`p_upper`, and `shade_outside` parameters as `geom_pdf()`. Since the CDF maps directly to probabilities, the shading thresholds correspond to horizontal lines at the specified levels.
-
-```{r cdf-shaded, echo=TRUE}
-#| fig.cap: "The standard normal CDF with the region below $p = 0.975$ shaded."
-ggplot() +
-  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975)
-```
-
 ## Probability mass functions: `geom_pmf()`
 
 For a discrete random variable with integer support, the PMF $p(k) = P(X = k)$ satisfies $\sum_k p(k) = 1$. `geom_pmf()` evaluates the PMF at each integer in `xlim` and renders the result as a lollipop chart--vertical segments from the $x$-axis to the probability value, capped with points. The underlying `StatPMF` validates normalization by summing the computed probabilities and issues a warning if they depart significantly from unity. When the support is not a sequence of consecutive integers, the `support` argument accepts an explicit numeric vector that overrides `xlim`.
@@ -391,19 +374,19 @@ p2 <- ggplot() +
 grid.arrange(p1, p2, ncol = 2)
 ```
 
-## Quantile functions: `geom_qf()`
+## Cumulative distribution and survival functions
 
-The quantile function $Q(p) = F^{-1}(p) = \inf\{x : F(x) \geq p\}$ inverts the CDF. `geom_qf()` evaluates a user-supplied quantile function (e.g., `qnorm`) over the unit interval $(0, 1)$. Evaluation points are placed at Chebyshev nodes of the first kind, $p_k = (1 - \cos((2k-1)\pi / 2n))/2$ for $k = 1, \ldots, n$, which cluster near 0 and 1 where quantile functions are typically most curved. This also avoids evaluating at the exact endpoints, preventing $\pm\infty$ for unbounded distributions.
+The CDF $F(x) = P(X \leq x)$ and survival function $S(x) = 1 - F(x) = P(X > x)$ are complementary summaries of a distribution. \pkg{ggfunction} provides continuous and discrete variants of both.
 
-```{r qf-normal, echo=TRUE}
-#| fig.cap: "The quantile function of the standard normal distribution."
+**Continuous CDF (`geom_cdf()`).** `geom_cdf()` evaluates a user-supplied CDF (e.g., `pnorm`) and renders it as a line. It supports the same `p`, `p_lower`/`p_upper`, and `shade_outside` shading parameters as `geom_pdf()`.
+
+```{r cdf-shaded, echo=TRUE}
+#| fig.cap: "The standard normal CDF."
 ggplot() +
-  geom_qf(fun = qnorm)
+  geom_cdf(fun = pnorm, xlim = c(-3, 3))
 ```
 
-## Discrete CDFs: `geom_cdf_discrete()`
-
-For discrete distributions, the CDF is a step function. `geom_cdf_discrete()` takes a PMF as input, computes cumulative sums, and renders the result as a right-continuous step function with dashed vertical jumps, open circles at the pre-jump value (the left limit), and closed circles at the achieved value. The `show_points` and `show_vert` parameters independently suppress the endpoint circles or vertical jump segments. As with `geom_pmf()`, the `support` argument accepts an explicit numeric vector of mass points, overriding `xlim` for distributions with non-integer or non-consecutive support.
+**Discrete CDF (`geom_cdf_discrete()`).** For discrete distributions, the CDF is a right-continuous step function. `geom_cdf_discrete()` takes a PMF, computes cumulative sums, and renders the result with horizontal segments, dashed vertical jumps, open circles at the pre-jump value (the left limit), and closed circles at the achieved value. The `show_points` and `show_vert` parameters independently suppress the endpoint circles or vertical jump segments. The `support` argument accepts an explicit numeric vector of mass points, overriding `xlim` for distributions with non-integer or non-consecutive support.
 
 ```{r discrete-cdf, echo=TRUE}
 #| fig.cap: "The discrete CDF of a $\\mathrm{Binomial}(10, 0.5)$ distribution."
@@ -413,21 +396,15 @@ ggplot() +
   )
 ```
 
-## Discrete quantile functions: `geom_qf_discrete()`
+**Continuous survival (`geom_survival()`).** In reliability theory and biostatistics, $S(x) = 1 - F(x) = P(X > x)$ gives the probability that the event of interest has not yet occurred by time $x$. `geom_survival()` accepts a CDF and plots its complement.
 
-The quantile function $Q(p) = \inf\{x : F(x) \geq p\}$ of a discrete distribution is a left-continuous step function on $[0, 1]$. `geom_qf_discrete()` takes the same PMF input as `geom_cdf_discrete()`, computes the cumulative sum, and renders the inverse function with horizontal segments on $[0, 1]$, dashed vertical jumps, closed circles at the bottom of each jump (the value is achieved), and open circles at the top (the next value is not yet reached). The `support` argument is accepted and behaves as in `geom_cdf_discrete()`.
-
-```{r discrete-qf, echo=TRUE}
-#| fig.cap: "The discrete quantile function of a $\\mathrm{Binomial}(10, 0.5)$ distribution as a left-continuous step function on $[0, 1]$."
+```{r survival-exp, echo=TRUE}
+#| fig.cap: "The survival function of an $\\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$."
 ggplot() +
-  geom_qf_discrete(
-    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
-  )
+  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
 ```
 
-## Discrete survival functions: `geom_survival_discrete()`
-
-For discrete distributions, the survival function $S(x) = 1 - F(x) = P(X > x)$ is itself a right-continuous step function. `geom_survival_discrete()` computes $S$ from a PMF and renders it with the same visual conventions as `geom_cdf_discrete()`: horizontal segments, dashed vertical jumps, open circles at the pre-drop value, and closed circles at the achieved (lower) value. The `support` argument is accepted and behaves as in `geom_cdf_discrete()`.
+**Discrete survival (`geom_survival_discrete()`).** For discrete distributions, $S(x) = 1 - F(x)$ is itself a right-continuous step function. `geom_survival_discrete()` computes $S$ from a PMF and renders it with the same visual conventions as `geom_cdf_discrete()`. The `support` argument behaves as in `geom_cdf_discrete()`.
 
 ```{r discrete-survival, echo=TRUE}
 #| fig.cap: "The discrete survival function of a $\\mathrm{Binomial}(10, 0.5)$ distribution, descending from 1 to 0."
@@ -437,21 +414,26 @@ ggplot() +
   )
 ```
 
-## Survival functions: `geom_survival()`
+## Quantile functions
 
-In reliability theory and biostatistics, the survival function
+The quantile function $Q(p) = \inf\{x : F(x) \geq p\}$ inverts the CDF. \pkg{ggfunction} provides continuous and discrete variants.
 
-\begin{equation}
-S(x) = 1 - F(x) = P(X > x)
-(\#eq:survival)
-\end{equation}
+**Continuous (`geom_qf()`).** `geom_qf()` evaluates a user-supplied quantile function (e.g., `qnorm`) over the unit interval $(0, 1)$. Evaluation points are placed at Chebyshev nodes of the first kind, $p_k = (1 - \cos((2k-1)\pi / 2n))/2$ for $k = 1, \ldots, n$, which cluster near 0 and 1 where quantile functions are typically most curved and avoid evaluating at the exact endpoints, preventing $\pm\infty$ for unbounded distributions.
 
-gives the probability that the event of interest has not yet occurred by time $x$. `geom_survival()` accepts a CDF and plots its complement.
-
-```{r survival-exp, echo=TRUE}
-#| fig.cap: "The survival function of an $\\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$."
+```{r qf-normal, echo=TRUE}
+#| fig.cap: "The quantile function of the standard normal distribution."
 ggplot() +
-  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
+  geom_qf(fun = qnorm)
+```
+
+**Discrete (`geom_qf_discrete()`).** The quantile function of a discrete distribution is a left-continuous step function on $[0, 1]$. `geom_qf_discrete()` takes a PMF, computes the cumulative sum, and renders the inverse function with horizontal segments on $[0, 1]$, dashed vertical jumps, closed circles at the bottom of each jump (the value is achieved), and open circles at the top (the next value is not yet reached). The `support` argument behaves as in `geom_cdf_discrete()`.
+
+```{r discrete-qf, echo=TRUE}
+#| fig.cap: "The discrete quantile function of a $\\mathrm{Binomial}(10, 0.5)$ distribution as a left-continuous step function on $[0, 1]$."
+ggplot() +
+  geom_qf_discrete(
+    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+  )
 ```
 
 ## Hazard functions: `geom_hf()`

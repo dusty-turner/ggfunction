@@ -144,12 +144,6 @@ ggplot() +
   geom_pdf(fun = f_mix, xlim = c(-5, 6), shade_hdr = 0.8)
 
 
-## ----cdf-shaded, echo=TRUE----------------------------------------------------
-#| fig.cap: "The standard normal CDF with the region below $p = 0.975$ shaded."
-ggplot() +
-  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975)
-
-
 ## ----pmf-binomial, echo=TRUE--------------------------------------------------
 #| fig.cap: "The PMF of a $\\mathrm{Binomial}(10, 0.3)$ distribution, rendered as a lollipop chart."
 ggplot() +
@@ -186,10 +180,10 @@ p2 <- ggplot() +
 grid.arrange(p1, p2, ncol = 2)
 
 
-## ----qf-normal, echo=TRUE-----------------------------------------------------
-#| fig.cap: "The quantile function of the standard normal distribution."
+## ----cdf-shaded, echo=TRUE----------------------------------------------------
+#| fig.cap: "The standard normal CDF."
 ggplot() +
-  geom_qf(fun = qnorm)
+  geom_cdf(fun = pnorm, xlim = c(-3, 3))
 
 
 ## ----discrete-cdf, echo=TRUE--------------------------------------------------
@@ -200,12 +194,10 @@ ggplot() +
   )
 
 
-## ----discrete-qf, echo=TRUE---------------------------------------------------
-#| fig.cap: "The discrete quantile function of a $\\mathrm{Binomial}(10, 0.5)$ distribution as a left-continuous step function on $[0, 1]$."
+## ----survival-exp, echo=TRUE--------------------------------------------------
+#| fig.cap: "The survival function of an $\\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$."
 ggplot() +
-  geom_qf_discrete(
-    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
-  )
+  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
 
 
 ## ----discrete-survival, echo=TRUE---------------------------------------------
@@ -216,10 +208,18 @@ ggplot() +
   )
 
 
-## ----survival-exp, echo=TRUE--------------------------------------------------
-#| fig.cap: "The survival function of an $\\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$."
+## ----qf-normal, echo=TRUE-----------------------------------------------------
+#| fig.cap: "The quantile function of the standard normal distribution."
 ggplot() +
-  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
+  geom_qf(fun = qnorm)
+
+
+## ----discrete-qf, echo=TRUE---------------------------------------------------
+#| fig.cap: "The discrete quantile function of a $\\mathrm{Binomial}(10, 0.5)$ distribution as a left-continuous step function on $[0, 1]$."
+ggplot() +
+  geom_qf_discrete(
+    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+  )
 
 
 ## ----hazard-exp, echo=TRUE----------------------------------------------------
