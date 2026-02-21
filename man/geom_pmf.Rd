@@ -23,8 +23,8 @@ geom_pmf(
   inherit.aes = TRUE,
   fun,
   xlim = NULL,
-  point_size = 4,
-  stick_linewidth = 0.5,
+  point_size = 2.5,
+  stick_linewidth = 0.25,
   stick_linetype = "dashed",
   color = "black",
   args = list()
@@ -99,20 +99,25 @@ rather than combining with them. This is most useful for helper functions
 that define both data and aesthetics and shouldn't inherit behaviour from
 the default plot specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
-\item{fun}{A function to compute the PMF (e.g. \link{dbinom} or \link{dpois}). The function must
-accept a numeric vector as its first argument and return non-negative probability values.
-(Ideally, the probabilities sum to 1 over the support.)}
+\item{fun}{A function to compute the PMF (e.g. \link{dbinom} or \link{dpois}). The
+function must accept a numeric vector as its first argument and return
+non-negative probability values. (Ideally, the probabilities sum to 1 over
+the support.)}
 
-\item{xlim}{A numeric vector of length 2 specifying the range (of x values) over which to
-evaluate the PMF. If not provided, a default range of 0 to 10 is used.}
+\item{xlim}{A numeric vector of length 2 specifying the range (of x values)
+over which to evaluate the PMF. If not provided, a default range of 0 to 10
+is used.}
 
-\item{point_size}{Size of the points at the top of each lollipop (defaults to 4).}
+\item{point_size}{Size of the points at the top of each lollipop (defaults to
+4).}
 
 \item{stick_linewidth}{Linewidth of the vertical sticks (defaults to 0.5).}
 
-\item{stick_linetype}{Linetype of the vertical sticks (defaults to \code{"dashed"}).}
+\item{stick_linetype}{Linetype of the vertical sticks (defaults to
+\code{"dashed"}).}
 
-\item{color}{Color for the points and for the segments (defaults to \code{"black"}).}
+\item{color}{Color for the points and for the segments (defaults to
+\code{"black"}).}
 
 \item{args}{A named list of additional arguments to pass to \code{fun}.}
 }
@@ -120,18 +125,20 @@ evaluate the PMF. If not provided, a default range of 0 to 10 is used.}
 A ggplot2 layer.
 }
 \description{
-\code{geom_pmf()} creates a ggplot2 layer that plots a probability mass function (PMF)
-using a lollipop representation. Vertical dashed segments extend from zero up to the
-probability value at each integer support value and a point is drawn at the top.
+\code{geom_pmf()} creates a ggplot2 layer that plots a probability mass function
+(PMF) using a lollipop representation. Vertical dashed segments extend from
+zero up to the probability value at each integer support value and a point is
+drawn at the top.
 }
 \examples{
-  # Plot a binomial PMF with n = 10 and p = 0.5 over 0 to 10.
-  ggplot() +
-    geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.25), xlim = c(0, 10))
 
-  # now a Poisson
-  ggplot() +
-    geom_pmf(fun = dpois, args = list(lambda = 6), xlim = c(0, 15))
+# Plot a binomial PMF with n = 10 and p = 0.5 over 0 to 10.
+ggplot() +
+  geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.25), xlim = c(0, 10))
+
+# Plot a Poisson(6) from x = 0 to x = 15
+ggplot() +
+  geom_pmf(fun = dpois, args = list(lambda = 6), xlim = c(0, 15))
 
 }
 \keyword{datasets}

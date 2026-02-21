@@ -2,227 +2,344 @@ ggfunction
 ================
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
 <!-- badges: start -->
+
 <!-- badges: end -->
 
 **ggfunction** extends [**ggplot2**](https://ggplot2.tidyverse.org/)
-with geoms and stats for plotting mathematical functions. It also
-provides more specialized geoms/stats for plotting *statistical*
-functions related to probability distributions.
+with geoms and stats for plotting mathematical functions and probability
+distributions directly from function objects. Supply a function and a
+domain; **ggfunction** handles evaluation, rendering, and shading.
 
 ## Overview
 
 The package is organized around two families of geoms:
 
-| Family          | Geom                    | Maps                            | Description                                     |
-|-----------------|-------------------------|---------------------------------|-------------------------------------------------|
-| **Dimensional** | `geom_function_1d_1d()` | $\mathbb{R} \to \mathbb{R}$     | Scalar functions with optional interval shading |
-|                 | `geom_function_1d_2d()` | $\mathbb{R} \to \mathbb{R}^2$   | Parametric curves                               |
-|                 | `geom_function_2d_1d()` | $\mathbb{R}^2 \to \mathbb{R}$   | Scalar fields (raster, contour, filled contour) |
-|                 | `geom_function_2d_2d()` | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector field streamlines                        |
-| **Probability** | `geom_pdf()`            |                                 | Probability density function                    |
-|                 | `geom_cdf()`            |                                 | Cumulative distribution function                |
-|                 | `geom_pmf()`            |                                 | Probability mass function (lollipop)            |
-|                 | `geom_qf()`             |                                 | Quantile function                               |
-|                 | `geom_discrete_cdf()`   |                                 | Discrete CDF (step function)                    |
-|                 | `geom_survival()`       |                                 | Survival function $S(x) = 1 - F(x)$             |
-|                 | `geom_hf()`             |                                 | Hazard function $h(x) = f(x)/S(x)$              |
+| Family | Geom | Maps | Description |
+|----|----|----|----|
+| **Dimensional** | `geom_function_1d_1d()` | $\mathbb{R} \to \mathbb{R}$ | Scalar functions with optional interval shading |
+|  | `geom_function_1d_2d()` | $\mathbb{R} \to \mathbb{R}^2$ | Parametric curves |
+|  | `geom_function_2d_1d()` | $\mathbb{R}^2 \to \mathbb{R}$ | Scalar fields (raster, contour, filled contour) |
+|  | `geom_function_2d_2d()` | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector field streamlines |
+| **Probability** | `geom_pdf()` |  | Probability density function |
+|  | `geom_cdf()` |  | Cumulative distribution function |
+|  | `geom_pmf()` |  | Probability mass function (lollipop) |
+|  | `geom_qf()` |  | Quantile function |
+|  | `geom_discrete_cdf()` |  | Discrete CDF (step function) |
+|  | `geom_survival()` |  | Survival function $S(x) = 1 - F(x)$ |
+|  | `geom_hf()` |  | Hazard function $h(x) = f(x)/S(x)$ |
 
 ## Dimensional Taxonomy
 
-### Scalar functions ($\mathbb{R} \to \mathbb{R}$)
+### Scalar functions: `geom_function_1d_1d()`
 
-At a basic level, `geom_function_1d_1d()` is essentially a
-re-implementation of `ggplot2::geom_function()`:
+`geom_function_1d_1d()` evaluates a function
+$f\colon \mathbb{R} \to \mathbb{R}$ at `n` equally-spaced points over
+`xlim` and draws it as a curve, extending `ggplot2::stat_function()`
+with built-in region shading. The following example plots the sine
+function over one full period.
 
 ``` r
+library("ggfunction")
+
 ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(0, 2*pi))
 ```
 
-<img src="man/figures/readme-1d-1d-1.png" alt="" width="60%" />
+<img src="man/figures/readme-1d-1d-1.png" width="60%" />
 
-However, `geom_function_1d_1d()` also allows for shading to the $x$
-axis:
+**Shading intervals.** The `shade_from` and `shade_to` parameters fill
+the region between the curve and the $x$-axis over a specified interval.
+Here we shade the standard normal density between $-1$ and $1$,
+corresponding to approximately 68% of the total area.
 
 ``` r
 ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(-3, 3), shade_from = -1, shade_to = 1)
 ```
 
-<img src="man/figures/readme-1d-1d-shade-1.png" alt="" width="60%" />
+<img src="man/figures/readme-1d-1d-shade-1.png" width="60%" />
 
-### Parametric curves ($\mathbb{R} \to \mathbb{R}^2$)
+### Parametric curves: `geom_function_1d_2d()`
 
-The graph of a function $\phi(t) = (x(t), y(t))$ is a curve in the plane
-$\mathbb{R}^{2}$.
-
-``` r
-f <- function(t) c(sin(t), t * cos(t))
-ggplot() +
-  geom_function_1d_2d(fun = f, T = 20)
-```
-
-<img src="man/figures/readme-1d-2d-1.png" alt="" width="60%" />
-
-Tail points can be added with `tail_point = TRUE`:
+`geom_function_1d_2d()` evaluates a parametric curve
+$\boldsymbol{\gamma}(t) = (x(t),\, y(t))$ over the range `tlim` with
+step size `dt`, coloring the path by the time parameter by default. The
+following example traces a three-petal rose curve
+$\boldsymbol{\gamma}(t) = (\cos(3t)\cos t,\, \cos(3t)\sin t)$ for
+$t \in [0, \pi]$.
 
 ``` r
-ggplot() +
-  geom_function_1d_2d(fun = f, T = 20, tail_point = TRUE)
-```
-
-<img src="man/figures/readme-1d-2d-tail-1.png" alt="" width="60%" />
-
-### Scalar fields ($\mathbb{R}^2 \to \mathbb{R}$)
-
-Visualize a scalar field as a raster, contour lines, or filled contours
-using the `type` argument.
-
-``` r
-f <- function(v) exp(-(v[1]^2 + v[2]^2) / 2)
+f <- function(t) c(cos(3*t)*cos(t), cos(3*t)*sin(t))
 
 ggplot() +
-  geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3))
+  geom_function_1d_2d(fun = f, tlim = c(0, pi))
 ```
 
-<img src="man/figures/readme-2d-1d-raster-1.png" alt="" width="60%" />
+<img src="man/figures/readme-1d-2d-1.png" width="60%" />
+
+**Tail points.** Setting `tail_point = TRUE` marks the starting position
+of the curve with a point, useful for showing an initial condition.
 
 ``` r
 ggplot() +
-  geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour")
+  geom_function_1d_2d(fun = f, tlim = c(0, pi), tail_point = TRUE)
 ```
 
-<img src="man/figures/readme-2d-1d-contour-1.png" alt="" width="60%" />
+<img src="man/figures/readme-1d-2d-tail-1.png" width="60%" />
+
+**Parameterized families.** Extra parameters for `fun` are passed via
+`args`. The following example traces a Lissajous figure, a closed curve
+that results when two sinusoids with a rational frequency ratio are
+combined.
+
+``` r
+lissajous <- function(t, a = 3, b = 2, delta = pi/2) {
+  c(sin(a * t + delta), sin(b * t))
+}
+
+ggplot() +
+  geom_function_1d_2d(
+    fun = lissajous, tlim = c(0, 2 * pi),
+    args = list(a = 3, b = 2, delta = pi/2)
+  )
+```
+
+<img src="man/figures/readme-1d-2d-lissajous-1.png" width="60%" />
+
+**Adding arrowheads.** Pass a `grid::arrow()` specification to add an
+arrowhead indicating direction of travel along the curve.
 
 ``` r
 ggplot() +
-  geom_function_2d_1d(fun = f, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour_filled")
+  geom_function_1d_2d(
+    fun = f, tlim = c(0, pi),
+    arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"), type = "closed")
+  )
 ```
 
-<img src="man/figures/readme-2d-1d-filled-1.png" alt="" width="60%" />
+<img src="man/figures/readme-1d-2d-arrow-1.png" width="60%" />
 
-### Vector fields ($\mathbb{R}^2 \to \mathbb{R}^2$)
+### Scalar fields: `geom_function_2d_1d()`
 
-Draw streamlines from a vector field.
+`geom_function_2d_1d()` evaluates a scalar field
+$f\colon \mathbb{R}^2 \to \mathbb{R}$ on an $n \times n$ grid over
+`xlim` $\times$ `ylim`. The function must accept a numeric vector of
+length 2 and return a scalar; extracting components with
+`x <- v[1]; y <- v[2]` is the recommended pattern. The example below
+shows a Gaussian bump $f(x,y) = \exp\!\bigl(-(x^2+y^2)/2\bigr)$ rendered
+as a raster heatmap (the default `type`).
 
 ``` r
-f <- function(u) c(-u[2], u[1])
+f <- function(v) {
+  x <- v[1]; y <- v[2]
+  sin(2*pi*x) + sin(2*pi*y)
+}
+
+ggplot() +
+  geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
+```
+
+<img src="man/figures/readme-2d-1d-raster-1.png" width="60%" />
+
+**Contour modes.** The `type` argument switches among three visual
+encodings of the same field. `"contour"` draws iso-level curves and
+`"contour_filled"` draws filled regions between levels; both are
+rendered using **ggplot2**’s contour infrastructure so they respond to
+`bins`, `binwidth`, and `breaks`.
+
+``` r
+ggplot() +
+  geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "contour")
+```
+
+<img src="man/figures/readme-2d-1d-contour-1.png" width="60%" />
+
+``` r
+ggplot() +
+  geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "contour_filled")
+```
+
+<img src="man/figures/readme-2d-1d-filled-1.png" width="60%" />
+
+### Vector fields: `geom_function_2d_2d()`
+
+`geom_function_2d_2d()` visualizes a vector field
+$\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2$ as streamlines—integral
+curves that are everywhere tangent to the field—computed by numerical
+integration via
+[**ggvfields**](https://github.com/dusty-turner/ggvfields). The function
+should accept a length-2 vector and return a length-2 vector. The
+following example shows the rotation field
+$\mathbf{F}(x,y) = (-y,\, x)$, whose streamlines are circles.
+
+``` r
+f <- function(u) {
+  x <- u[1]; y <- u[2]
+  c(-y, x)
+}
+
 ggplot() +
   geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
 ```
 
-<img src="man/figures/readme-2d-2d-1.png" alt="" width="60%" />
+<img src="man/figures/readme-2d-2d-1.png" width="60%" />
 
 ## Probability Distributions
 
-### PDF
+The probability family provides a geom for each of the standard
+functions associated with a distribution. Each accepts a plain R
+function (e.g. `dnorm`, `pnorm`) and `xlim`; distribution parameters are
+passed via `args`.
 
-Shade below a quantile, between two quantiles, or shade the tails.
+### PDF: `geom_pdf()`
+
+`geom_pdf()` draws a probability density function as a filled area. It
+validates that the supplied function integrates to 1 over `xlim`,
+warning via [**cli**](https://cli.r-lib.org/) if it does not. The basic
+call draws the full density with no shading.
 
 ``` r
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3))
 ```
 
-<img src="man/figures/readme-geom-pdf-1.png" alt="" width="60%" />
+<img src="man/figures/readme-geom-pdf-1.png" width="60%" />
+
+**Single threshold.** The `p` parameter shades from the left boundary up
+to the $p$-quantile (`lower.tail = TRUE`, the default). Setting
+`lower.tail = FALSE` shades the upper tail instead. Here we shade the
+lower 97.5%.
 
 ``` r
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975)
 ```
 
-<img src="man/figures/readme-geom-pdf-p-1.png" alt="" width="60%" />
+<img src="man/figures/readme-geom-pdf-p-1.png" width="60%" />
+
+**Two-sided interval.** `p_lower` and `p_upper` together shade the
+central region between two quantiles—the natural picture for a
+confidence interval. The following example shades the central 95%.
 
 ``` r
-# Middle 95%
 ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975)
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p_lower = 0.025, p_upper = 0.975)
 ```
 
-<img src="man/figures/readme-pdf-twosided-1.png" alt="" width="60%" />
+<img src="man/figures/readme-pdf-twosided-1.png" width="60%" />
+
+**Tail shading.** Setting `shade_outside = TRUE` inverts the two-sided
+region, shading both tails. This is the rejection region of a two-sided
+hypothesis test at level $\alpha = 0.05$.
 
 ``` r
-# Both tails
 ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE)
+  geom_pdf(
+    fun = dnorm, xlim = c(-3, 3),
+    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE
+  )
 ```
 
-<img src="man/figures/readme-pdf-tails-1.png" alt="" width="60%" />
+<img src="man/figures/readme-pdf-tails-1.png" width="60%" />
 
-### CDF
+### CDF: `geom_cdf()`
+
+`geom_cdf()` draws a cumulative distribution function as a line with
+optional filled shading. It supports the same `p`, `lower.tail`,
+`p_lower`, and `p_upper` arguments as `geom_pdf()`. Here we plot the
+standard normal CDF, then shade the region below $p = 0.975$.
 
 ``` r
 ggplot() +
   geom_cdf(fun = pnorm, xlim = c(-3, 3))
 ```
 
-<img src="man/figures/readme-geom-cdf-1.png" alt="" width="60%" />
+<img src="man/figures/readme-geom-cdf-1.png" width="60%" />
 
 ``` r
 ggplot() +
   geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975)
 ```
 
-<img src="man/figures/readme-geom-cdf-p-1.png" alt="" width="60%" />
+<img src="man/figures/readme-geom-cdf-p-1.png" width="60%" />
 
-### PMF (lollipop)
+### PMF: `geom_pmf()`
+
+`geom_pmf()` evaluates a probability mass function at each integer in
+`xlim` and renders the result as a lollipop chart—vertical segments
+capped with points. Distribution parameters are supplied via `args`. The
+following example plots a $\text{Binomial}(10, 0.3)$ distribution.
 
 ``` r
 ggplot() +
   geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
 ```
 
-<img src="man/figures/readme-geom-pmf-1.png" alt="" width="60%" />
+<img src="man/figures/readme-geom-pmf-1.png" width="60%" />
 
-### Quantile function
+### Quantile function: `geom_qf()`
 
-``` r
-ggplot() +
-  geom_qf(fun = qnorm, args = list(mean = 0, sd = 1))
-```
-
-<img src="man/figures/readme-geom-qf-1.png" alt="" width="60%" />
-
-### Discrete CDF (step function)
+`geom_qf()` evaluates a quantile function $Q(p) = F^{-1}(p)$ over the
+unit interval $(0, 1)$ and draws it as a curve. The following example
+plots the standard normal quantile function.
 
 ``` r
 ggplot() +
-  geom_discrete_cdf(fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10))
+  geom_qf(fun = qnorm)
 ```
 
-<img src="man/figures/readme-discrete-cdf-1.png" alt="" width="60%" />
+<img src="man/figures/readme-geom-qf-1.png" width="60%" />
 
-### Survival function
+### Discrete CDF: `geom_discrete_cdf()`
 
-$S(x) = 1 - F(x)$
+`geom_discrete_cdf()` takes a PMF as input, accumulates it into a
+step-function CDF, and renders it as a staircase. Like `geom_cdf()`, it
+supports `p`-based shading via the `p` parameter. Here we plot the
+$\text{Binomial}(10, 0.5)$ CDF and shade the region below $p = 0.9$.
+
+``` r
+ggplot() +
+  geom_discrete_cdf(
+    fun = dbinom, args = list(size = 10, prob = 0.5),
+    xlim = c(0, 10), p = 0.9
+  )
+```
+
+<img src="man/figures/readme-discrete-cdf-1.png" width="60%" />
+
+### Survival function: `geom_survival()`
+
+`geom_survival()` plots $S(x) = 1 - F(x)$, the probability that the
+event of interest has not yet occurred by time $x$. It accepts a CDF via
+`fun`. The following example shows the survival function of an
+$\text{Exponential}(0.5)$ distribution, which decays as
+$S(x) = e^{-0.5x}$.
 
 ``` r
 ggplot() +
   geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 ```
 
-<img src="man/figures/readme-survival-1.png" alt="" width="60%" />
+<img src="man/figures/readme-survival-1.png" width="60%" />
 
-### Hazard function
+### Hazard function: `geom_hf()`
 
-$h(x) = f(x) / S(x)$
+`geom_hf()` plots the hazard function $h(x) = f(x) / S(x)$, the
+instantaneous rate of failure at time $x$ conditional on survival to
+that point. It requires both a PDF (`pdf_fun`) and a CDF (`cdf_fun`).
+Shared parameters go in `args`; use `pdf_args` and `cdf_args` for
+overrides when the two functions have different parameterizations. The
+exponential distribution’s constant hazard confirms the memoryless
+property.
 
 ``` r
 ggplot() +
   geom_hf(pdf_fun = dexp, cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0.01, 10))
 ```
 
-<img src="man/figures/readme-hazard-1.png" alt="" width="60%" />
-
-## Installation
-
-``` r
-# install.packages("pak")
-pak::pak("dusty-turner/ggfunction")
-```
+<img src="man/figures/readme-hazard-1.png" width="60%" />
 
 ## Getting help
 
@@ -230,3 +347,10 @@ pak::pak("dusty-turner/ggfunction")
   walkthrough
 - File bugs or feature requests at
   <https://github.com/dusty-turner/ggfunction/issues>
+
+## Installation
+
+``` r
+# install.packages("pak")
+pak::pak("dusty-turner/ggfunction")
+```

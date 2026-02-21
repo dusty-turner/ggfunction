@@ -27,6 +27,8 @@ geom_pdf(
   xlim = NULL,
   fill = "grey20",
   color = "black",
+  linewidth = NULL,
+  alpha = 0.35,
   p = NULL,
   lower.tail = TRUE,
   p_lower = NULL,
@@ -130,6 +132,10 @@ to 1.}
 
 \item{color}{Line color for the outline of the density curve.}
 
+\item{linewidth}{Line width for the outline of the density curve.}
+
+\item{alpha}{Alpha transparency for the shaded area.}
+
 \item{p}{(Optional) A numeric value between 0 and 1 specifying the cumulative probability
 threshold. The area will be shaded up until the point where the cumulative density reaches
 this value.}
@@ -156,8 +162,8 @@ This function is similar to \code{\link[ggplot2:geom_function]{ggplot2::geom_fun
 a given proportion of the total density.
 }
 \examples{
-  ggplot() +
-    geom_pdf(fun = dnorm, xlim = c(-3, 3),  p = .975, lower.tail = TRUE)
+ggplot() +
+  geom_pdf(fun = dnorm, xlim = c(-3, 3),  p = .975, lower.tail = TRUE)
 
 }
 \keyword{datasets}

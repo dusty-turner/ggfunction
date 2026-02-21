@@ -41,7 +41,7 @@
 #' @param tail_point Logical. If `TRUE`, a point is drawn at the tail (starting
 #'   position) of the stream.
 #' @param arrow A [grid::arrow()] specification to add arrowheads to the stream.
-#'   The default is a closed arrow with a 30° angle and a length of `0.02` npc.
+#'   Defaults to `NULL` (no arrowhead). Pass `grid::arrow()` to add one.
 #' @param ... Other arguments passed on to [ggplot2::layer()].
 #'
 #' @return A ggplot2 layer that computes and plots a stream by evaluating a
@@ -145,8 +145,7 @@ geom_function_1d_2d <- function(mapping = NULL, data = NULL,
                               args = list(),
                               tail_point = FALSE,
                               type = "stream",
-                              arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"),
-                                                  type = "closed")
+                              arrow = NULL
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -199,8 +198,7 @@ stat_function_1d_2d <- function(mapping = NULL, data = NULL,
                                args = list(),
                                tail_point = FALSE,
                                type = "stream",
-                               arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"),
-                                                   type = "closed")
+                               arrow = NULL
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)

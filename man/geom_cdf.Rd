@@ -5,7 +5,7 @@
 \alias{geom_cdf}
 \alias{StatCDF}
 \alias{GeomCDF}
-\title{Plot a Cumulative Distribution Function with a Filled Area}
+\title{Plot a Cumulative Distribution Function}
 \format{
 An object of class \code{StatCDF} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
@@ -120,8 +120,8 @@ A ggplot2 layer.
 }
 \description{
 \code{geom_cdf()} creates a ggplot2 layer that plots a cumulative distribution function (CDF)
-as a line with a shaded area. You can specify a cumulative probability threshold via \code{p}
-so that the area under the CDF is shaded up to (or from) that threshold.
+as a line. You can optionally shade a region by specifying a cumulative probability
+threshold via \code{p}, or a two-sided interval via \code{p_lower} and \code{p_upper}.
 }
 \examples{
   # Plot the standard normal CDF, shading up to the 97.5th percentile.

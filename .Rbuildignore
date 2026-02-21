@@ -15,3 +15,6 @@ dusty_files*
 ^\.claude$
 ^doc$
 ^Meta$
+^\.Rprofile$
+^paper$
+^README_files$

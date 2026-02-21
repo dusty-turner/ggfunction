@@ -1,8 +1,8 @@
-#' Plot a Cumulative Distribution Function with a Filled Area
+#' Plot a Cumulative Distribution Function
 #'
 #' `geom_cdf()` creates a ggplot2 layer that plots a cumulative distribution function (CDF)
-#' as a line with a shaded area. You can specify a cumulative probability threshold via `p`
-#' so that the area under the CDF is shaded up to (or from) that threshold.
+#' as a line. You can optionally shade a region by specifying a cumulative probability
+#' threshold via `p`, or a two-sided interval via `p_lower` and `p_upper`.
 #'
 #' @inheritParams ggplot2::geom_function
 #' @param fun A function to compute the CDF (e.g. [pnorm]). The function must accept a numeric
@@ -161,8 +161,18 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
         clip_range <- c(threshold_x, max(x_vals))
       }
     } else {
-      clip_range <- range(x_vals, na.rm = TRUE)
-      clip_data <- data[data$x >= clip_range[1] & data$x <= clip_range[2], , drop = FALSE]
+      clip_data <- NULL
+      clip_range <- NULL
+    }
+
+    # Create the line grob for the entire function using GeomPath’s draw_panel.
+    line_grob <- ggproto_parent(GeomPath, self)$draw_panel(
+      data, panel_params, coord, arrow = arrow, lineend = lineend,
+      linejoin = linejoin, linemitre = linemitre, na.rm = na.rm
+    )
+
+    if (is.null(clip_data)) {
+      return(line_grob)
     }
 
     # Close the polygon by adding baseline (y=0) points at the boundaries.
@@ -174,15 +184,9 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
 
     poly_data$colour <- NA
 
-    # Draw the filled area using GeomArea's draw_panel (without passing na.rm).
+    # Draw the filled area using GeomArea’s draw_panel.
     area_grob <- ggproto_parent(GeomArea, self)$draw_panel(
       poly_data, panel_params, coord, na.rm = na.rm
-    )
-
-    # Create the line grob for the entire function using GeomPath’s draw_panel.
-    line_grob <- ggproto_parent(GeomPath, self)$draw_panel(
-      data, panel_params, coord, arrow = arrow, lineend = lineend,
-      linejoin = linejoin, linemitre = linemitre, na.rm = na.rm
     )
 
     grid::grobTree(area_grob, line_grob)
