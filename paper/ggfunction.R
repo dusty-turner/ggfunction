@@ -28,7 +28,7 @@ library(ggplot2)
 # ggplot() + geom_pdf(fun = function(x) dnorm(x, mean = 5, sd = 2), xlim = c(0, 10))
 # 
 # # users can write:
-# ggplot() + geom_pdf(fun = dnorm, args = list(mean = 5, sd = 2), xlim = c(0, 10))
+# ggplot() + geom_pdf(fun = dnorm, xlim = c(0, 10), args = list(mean = 5, sd = 2))
 
 
 ## ----sin-curve, echo=TRUE-----------------------------------------------------
@@ -62,7 +62,7 @@ lissajous <- function(t, A = 1, B = 1, a = 3, b = 2, delta = pi/2) {
 
 ggplot() +
   geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 2 * pi), arrow = NULL,
+    fun = lissajous, tlim = c(0, 2 * pi),
     args = list(A = 1, B = 1, a = 3, b = 2, delta = pi/2)
   )
 
@@ -96,7 +96,7 @@ grid.arrange(p_contour, p_filled, ncol = 2)
 
 
 ## ----rotation-field, echo=TRUE------------------------------------------------
-#| fig.cap: "The rotation field $\\mathbf{F}(x, y) = (-y, x)$ visualized as streamlines. Each curve follows the counterclockwise flow induced by the field."
+#| fig.cap: "The rotation field $\\mathbf{F}(x, y) = (-y, x)$ displayed as short arrows at each grid point."
 f_rotation <- function(u) {
   x <- u[1]; y <- u[2]
   c(-y, x)
@@ -104,6 +104,13 @@ f_rotation <- function(u) {
 
 ggplot() +
   geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1))
+
+
+## ----rotation-stream, echo=TRUE-----------------------------------------------
+#| fig.cap: "The same rotation field rendered as streamlines, each following the counterclockwise flow induced by the field."
+ggplot() +
+  geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1),
+    type = "stream")
 
 
 ## ----pdf-single, echo=TRUE----------------------------------------------------
@@ -130,6 +137,13 @@ ggplot() +
   )
 
 
+## ----pdf-hdr, echo=TRUE-------------------------------------------------------
+#| fig.cap: "The 80\\% highest density region of an asymmetric bimodal density ($0.6\\,\\mathcal{N}(-2,\\,0.6^2) + 0.4\\,\\mathcal{N}(2,\\,1.2^2)$), shading both modes as two disjoint intervals with more area allocated to the taller, narrower component."
+f_mix <- function(x) 0.6 * dnorm(x, mean = -2, sd = 0.6) + 0.4 * dnorm(x, mean = 2, sd = 1.2)
+ggplot() +
+  geom_pdf(fun = f_mix, xlim = c(-5, 6), shade_hdr = 0.8)
+
+
 ## ----cdf-shaded, echo=TRUE----------------------------------------------------
 #| fig.cap: "The standard normal CDF with the region below $p = 0.975$ shaded."
 ggplot() +
@@ -139,7 +153,7 @@ ggplot() +
 ## ----pmf-binomial, echo=TRUE--------------------------------------------------
 #| fig.cap: "The PMF of a $\\mathrm{Binomial}(10, 0.3)$ distribution, rendered as a lollipop chart."
 ggplot() +
-  geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
+  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
 
 
 ## ----qf-normal, echo=TRUE-----------------------------------------------------
@@ -149,18 +163,33 @@ ggplot() +
 
 
 ## ----discrete-cdf, echo=TRUE--------------------------------------------------
-#| fig.cap: "The discrete CDF of a $\\mathrm{Binomial}(10, 0.5)$ distribution with the region below $p = 0.9$ shaded."
+#| fig.cap: "The discrete CDF of a $\\mathrm{Binomial}(10, 0.5)$ distribution."
 ggplot() +
-  geom_discrete_cdf(
-    fun = dbinom, args = list(size = 10, prob = 0.5),
-    xlim = c(0, 10), p = 0.9
+  geom_cdf_discrete(
+    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+  )
+
+
+## ----discrete-qf, echo=TRUE---------------------------------------------------
+#| fig.cap: "The discrete quantile function of a $\\mathrm{Binomial}(10, 0.5)$ distribution as a left-continuous step function on $[0, 1]$."
+ggplot() +
+  geom_qf_discrete(
+    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+  )
+
+
+## ----discrete-survival, echo=TRUE---------------------------------------------
+#| fig.cap: "The discrete survival function of a $\\mathrm{Binomial}(10, 0.5)$ distribution, descending from 1 to 0."
+ggplot() +
+  geom_survival_discrete(
+    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
   )
 
 
 ## ----survival-exp, echo=TRUE--------------------------------------------------
 #| fig.cap: "The survival function of an $\\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$."
 ggplot() +
-  geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
+  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
 
 
 ## ----hazard-exp, echo=TRUE----------------------------------------------------
@@ -168,7 +197,7 @@ ggplot() +
 ggplot() +
   geom_hf(
     pdf_fun = dexp, cdf_fun = pexp,
-    args = list(rate = 0.5), xlim = c(0.01, 10)
+    xlim = c(0.01, 10), args = list(rate = 0.5)
   )
 
 
@@ -177,7 +206,7 @@ ggplot() +
 ggplot() +
   geom_hf(
     pdf_fun = dnorm, cdf_fun = pnorm,
-    args = list(mean = 0, sd = 1), xlim = c(-3, 3)
+    xlim = c(-3, 3), args = list(mean = 0, sd = 1)
   )
 
 
@@ -191,12 +220,12 @@ ggplot() +
 #| fig.cap: "Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics."
 ggplot() +
   geom_pdf(
-    fun = dnorm, args = list(mean = 0, sd = 1),
-    xlim = c(-5, 8), alpha = 0.4
+    fun = dnorm, xlim = c(-5, 8),
+    args = list(mean = 0, sd = 1), alpha = 0.4
   ) +
   geom_pdf(
-    fun = dnorm, args = list(mean = 3, sd = 1.5),
-    xlim = c(-5, 8), alpha = 0.4
+    fun = dnorm, xlim = c(-5, 8),
+    args = list(mean = 3, sd = 1.5), alpha = 0.4
   ) +
   labs(x = "x", y = "f(x)", title = "Comparing two normal densities") +
   theme_minimal()

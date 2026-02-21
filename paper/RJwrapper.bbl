@@ -1,4 +1,4 @@
-\begin{thebibliography}{9}
+\begin{thebibliography}{10}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -27,6 +27,12 @@ M.~Kay.
 \newblock {ggdist}: Visualizations of distributions and uncertainty in the grammar of graphics.
 \newblock \emph{IEEE Transactions on Visualization and Computer Graphics}, 30\penalty0 (1):\penalty0 983--993, 2024.
 \newblock \doi{10.1109/TVCG.2023.3327195}.
+
+\bibitem[Otto and Kahle(2023)]{otto2023ggdensity}
+J.~Otto and D.~Kahle.
+\newblock {ggdensity}: Improved bivariate density visualization in {R}.
+\newblock \emph{The R Journal}, 15\penalty0 (2):\penalty0 220--236, 2023.
+\newblock \doi{10.32614/RJ-2023-048}.
 
 \bibitem[Pruim et~al.(2017)Pruim, Kaplan, and Horton]{pruim2017mosaic}
 R.~Pruim, D.~T. Kaplan, and N.~J. Horton.

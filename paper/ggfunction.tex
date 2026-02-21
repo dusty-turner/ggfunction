@@ -2,12 +2,12 @@
 \title{ggfunction: A Grammar of Graphics for Mathematical Functions and Probability Distributions}
 
 
-\author{by Dusty Turner, David Kahle, and Rodney X. Sturdivant}
+\author{by Dusty Turner, James Otto, Rodney X. Sturdivant, and David Kahle}
 
 \maketitle
 
 \abstract{%
-The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions and probability distributions. It is organized around two complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for probability distributions--density, cumulative distribution, mass, quantile, survival, and hazard functions--each with built-in support for region shading central to hypothesis testing and interval estimation. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
+The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions and probability distributions. It is organized around two complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for probability distributions--density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, and hazard functions--each with built-in support for region shading central to hypothesis testing and interval estimation. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
 }
 
 \section{Introduction}\label{introduction}
@@ -24,7 +24,7 @@ Several packages address pieces of this gap. \CRANpkg{ggdist} \citep{kay2024ggdi
 \item
   A \textbf{dimensional taxonomy} covering four function types: \(\mathbb{R} \to \mathbb{R}\), \(\mathbb{R} \to \mathbb{R}^2\), \(\mathbb{R}^2 \to \mathbb{R}\), and \(\mathbb{R}^2 \to \mathbb{R}^2\).
 \item
-  A \textbf{probability distribution family} providing specialized layers for density, cumulative distribution, mass, quantile, survival, and hazard functions.
+  A \textbf{probability distribution family} providing specialized layers for density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, and hazard functions.
 \end{enumerate}
 
 Each layer follows the \CRANpkg{ggplot2} extension pattern: a \texttt{Stat} object evaluates the user-supplied function on a grid or sequence, and a corresponding \texttt{Geom} renders the result. Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the full ecosystem of scales, coordinates, themes, and facets.
@@ -58,7 +58,7 @@ Each class admits a natural visual encoding:
 \item
   \textbf{Scalar fields} (\(\mathbb{R}^2 \to \mathbb{R}\)): raster heatmaps, contour lines, or filled contour regions.
 \item
-  \textbf{Vector fields} (\(\mathbb{R}^2 \to \mathbb{R}^2\)): streamlines computed by numerical integration of the field.
+  \textbf{Vector fields} (\(\mathbb{R}^2 \to \mathbb{R}^2\)): short arrows at grid points (default) or streamlines computed by numerical integration of the field.
 \end{itemize}
 
 The naming convention--\texttt{geom\_function\_1d\_1d()}, \texttt{geom\_function\_1d\_2d()}, \texttt{geom\_function\_2d\_1d()}, and \texttt{geom\_function\_2d\_2d()}--encodes the dimensional signature directly, making the function's type explicit at the point of use.
@@ -76,7 +76,7 @@ A key design choice is the use of \texttt{rlang::inject()} to splice additional 
 ggplot() + geom_pdf(fun = function(x) dnorm(x, mean = 5, sd = 2), xlim = c(0, 10))
 
 # users can write:
-ggplot() + geom_pdf(fun = dnorm, args = list(mean = 5, sd = 2), xlim = c(0, 10))
+ggplot() + geom_pdf(fun = dnorm, xlim = c(0, 10), args = list(mean = 5, sd = 2))
 \end{verbatim}
 
 This pattern is consistent across all \pkg{ggfunction} layers and mirrors the \texttt{args} parameter already familiar from \texttt{ggplot2::stat\_function()}.
@@ -149,7 +149,7 @@ lissajous <- function(t, A = 1, B = 1, a = 3, b = 2, delta = pi/2) {
 
 ggplot() +
   geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 2 * pi), arrow = NULL,
+    fun = lissajous, tlim = c(0, 2 * pi),
     args = list(A = 1, B = 1, a = 3, b = 2, delta = pi/2)
   )
 \end{verbatim}
@@ -227,7 +227,9 @@ For the contour variants, the \texttt{StatFunction2dContour} and \texttt{StatFun
 
 \subsection{\texorpdfstring{Vector fields: \(\mathbb{R}^2 \to \mathbb{R}^2\)}{Vector fields: \textbackslash mathbb\{R\}\^{}2 \textbackslash to \textbackslash mathbb\{R\}\^{}2}}\label{sec-vector-fields}
 
-A vector field \(\mathbf{F}(x, y) = (F_1(x, y),\; F_2(x, y))\) assigns a direction and magnitude to each point in the plane. Visualizing such fields requires computing integral curves--trajectories that are everywhere tangent to the field. \texttt{geom\_function\_2d\_2d()} provides this capability by delegating to \pkg{ggvfields} \citep{ggvfields}, which numerically integrates the field using a fourth-order Runge--Kutta method. Streamlines are seeded on a regular grid and rendered as directed paths.
+A vector field \(\mathbf{F}(x, y) = (F_1(x, y),\; F_2(x, y))\) assigns a direction and magnitude to each point in the plane. \texttt{geom\_function\_2d\_2d()} delegates to \pkg{ggvfields} \citep{ggvfields} and supports two display modes through the \texttt{type} argument.
+
+\textbf{Vector arrows (default).} With \texttt{type\ =\ "vector"} (the default), short arrows are drawn at each grid point, oriented according to the field direction and scaled relative to the grid spacing.
 
 \begin{verbatim}
 f_rotation <- function(u) {
@@ -245,14 +247,31 @@ ggplot() +
 
 }
 
-\caption{The rotation field $\mathbf{F}(x, y) = (-y, x)$ visualized as streamlines. Each curve follows the counterclockwise flow induced by the field.}\label{fig:rotation-field}
+\caption{The rotation field $\mathbf{F}(x, y) = (-y, x)$ displayed as short arrows at each grid point.}\label{fig:rotation-field}
 \end{figure}
 
-The \texttt{normalize} parameter (default \texttt{TRUE}) scales streamline lengths relative to the grid spacing, producing a uniform visual density. Setting \texttt{normalize\ =\ FALSE} allows streamlines to reflect the true magnitude of the field through their arc length, controlled by the integration time \texttt{T}. Users whose primary interest is vector fields will find that \pkg{ggvfields} provides a richer collection of tools, including gradient fields, stream plots, and potential functions.
+\textbf{Streamlines.} With \texttt{type\ =\ "stream"}, integral curves are computed by numerical integration of the field using a fourth-order Runge--Kutta method \citep{ggvfields} and rendered as directed paths seeded on a regular grid.
+
+\begin{verbatim}
+ggplot() +
+  geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1),
+    type = "stream")
+\end{verbatim}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/rotation-stream-1} 
+
+}
+
+\caption{The same rotation field rendered as streamlines, each following the counterclockwise flow induced by the field.}\label{fig:rotation-stream}
+\end{figure}
+
+Users whose primary interest is vector fields will find that \pkg{ggvfields} provides a richer collection of tools, including gradient fields, stream plots, and potential functions.
 
 \section{The probability distribution family}\label{the-probability-distribution-family}
 
-Statistics education depends heavily on the visual language of probability distributions. Instructors shade tail areas to illustrate \(p\)-values, draw CDFs to connect probabilities with quantiles, and mark central regions to delineate confidence intervals. \pkg{ggfunction} provides a family of seven geoms that map directly onto the standard functions associated with a probability distribution, each with built-in shading support. Throughout, the user supplies an R function (e.g., \texttt{dnorm}, \texttt{pnorm}, \texttt{qnorm}) and a range; \pkg{ggfunction} handles evaluation, shading, and validation automatically.
+Statistics education depends heavily on the visual language of probability distributions. Instructors shade tail areas to illustrate \(p\)-values, draw CDFs to connect probabilities with quantiles, and mark central regions to delineate confidence intervals. \pkg{ggfunction} provides a family of nine geoms that map directly onto the standard functions associated with a probability distribution, each with built-in shading support. Throughout, the user supplies an R function (e.g., \texttt{dnorm}, \texttt{pnorm}, \texttt{qnorm}) and a range; \pkg{ggfunction} handles evaluation, shading, and validation automatically.
 
 \subsection{\texorpdfstring{Density functions: \texttt{geom\_pdf()}}{Density functions: geom\_pdf()}}\label{density-functions-geom_pdf}
 
@@ -265,7 +284,7 @@ f(x) \geq 0 \quad \text{and} \quad \int_{-\infty}^{\infty} f(x)\, dx = 1.
 
 \texttt{geom\_pdf()} evaluates a user-supplied density and renders it as a filled area with an overlaid outline. The underlying \texttt{StatPDF} validates the normalization property \eqref{eq:pdf} using \texttt{stats::integrate()}, issuing a diagnostic via \CRANpkg{cli} \citep{cli} if the integral departs from unity by more than a specified tolerance--a guard against accidentally passing an unnormalized function.
 
-Three shading modes are supported, corresponding to common pedagogical operations.
+Four shading modes are supported, corresponding to common pedagogical operations.
 
 \textbf{Single threshold.} The \texttt{p} parameter specifies a cumulative probability. When \texttt{lower.tail\ =\ TRUE} (the default), the region from the left boundary to the \(p\)-quantile is shaded, representing \(P(X \leq x_p) = p\). Setting \texttt{lower.tail\ =\ FALSE} shades the complementary upper tail.
 
@@ -321,7 +340,24 @@ ggplot() +
 \caption{The rejection region of a two-sided test at $\alpha = 0.05$, shading the area outside the central 95\%.}\label{fig:pdf-tails}
 \end{figure}
 
-The shading boundaries are determined by trapezoidal accumulation. For \(n\) evaluation points \(x_1, \ldots, x_n\) with density values \(y_1, \ldots, y_n\), the cumulative area at the \(k\)-th point is
+\textbf{Highest density region.} The \texttt{shade\_hdr} parameter specifies a coverage probability and shades the corresponding highest density region (HDR)--the smallest subset of the domain containing the specified probability mass. For multimodal densities the HDR may be disconnected, producing multiple disjoint shaded intervals. The algorithm follows \citet{otto2023ggdensity}: evaluate the density on the grid, normalize the values to sum to one, sort in descending order, accumulate until the target coverage is reached, and shade all grid intervals at or above the resulting density threshold.
+
+\begin{verbatim}
+f_mix <- function(x) 0.6 * dnorm(x, mean = -2, sd = 0.6) + 0.4 * dnorm(x, mean = 2, sd = 1.2)
+ggplot() +
+  geom_pdf(fun = f_mix, xlim = c(-5, 6), shade_hdr = 0.8)
+\end{verbatim}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/pdf-hdr-1} 
+
+}
+
+\caption{The 80\% highest density region of an asymmetric bimodal density ($0.6\,\mathcal{N}(-2,\,0.6^2) + 0.4\,\mathcal{N}(2,\,1.2^2)$), shading both modes as two disjoint intervals with more area allocated to the taller, narrower component.}\label{fig:pdf-hdr}
+\end{figure}
+
+The shading boundaries for the interval-based modes are determined by trapezoidal accumulation. For \(n\) evaluation points \(x_1, \ldots, x_n\) with density values \(y_1, \ldots, y_n\), the cumulative area at the \(k\)-th point is
 
 \begin{equation}
 A_k = \sum_{i=1}^{k-1} \frac{y_i + y_{i+1}}{2} \, (x_{i+1} - x_i).
@@ -361,7 +397,7 @@ For a discrete random variable with integer support, the PMF \(p(k) = P(X = k)\)
 
 \begin{verbatim}
 ggplot() +
-  geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
+  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
 \end{verbatim}
 
 \begin{figure}
@@ -375,7 +411,7 @@ ggplot() +
 
 \subsection{\texorpdfstring{Quantile functions: \texttt{geom\_qf()}}{Quantile functions: geom\_qf()}}\label{quantile-functions-geom_qf}
 
-The quantile function \(Q(p) = F^{-1}(p) = \inf\{x : F(x) \geq p\}\) inverts the CDF. \texttt{geom\_qf()} evaluates a user-supplied quantile function (e.g., \texttt{qnorm}) over the unit interval \((0, 1)\).
+The quantile function \(Q(p) = F^{-1}(p) = \inf\{x : F(x) \geq p\}\) inverts the CDF. \texttt{geom\_qf()} evaluates a user-supplied quantile function (e.g., \texttt{qnorm}) over the unit interval \((0, 1)\). Evaluation points are placed at Chebyshev nodes of the first kind, \(p_k = (1 - \cos((2k-1)\pi / 2n))/2\) for \(k = 1, \ldots, n\), which cluster near 0 and 1 where quantile functions are typically most curved. This also avoids evaluating at the exact endpoints, preventing \(\pm\infty\) for unbounded distributions.
 
 \begin{verbatim}
 ggplot() +
@@ -391,15 +427,14 @@ ggplot() +
 \caption{The quantile function of the standard normal distribution.}\label{fig:qf-normal}
 \end{figure}
 
-\subsection{\texorpdfstring{Discrete CDFs: \texttt{geom\_discrete\_cdf()}}{Discrete CDFs: geom\_discrete\_cdf()}}\label{discrete-cdfs-geom_discrete_cdf}
+\subsection{\texorpdfstring{Discrete CDFs: \texttt{geom\_cdf\_discrete()}}{Discrete CDFs: geom\_cdf\_discrete()}}\label{discrete-cdfs-geom_cdf_discrete}
 
-For discrete distributions, the CDF is a step function. \texttt{geom\_discrete\_cdf()} takes a PMF as input, computes cumulative sums, and renders the result as step-function vertices constructed by the internal \texttt{build\_step\_polygon()} helper. Like \texttt{geom\_cdf()}, it supports \texttt{p}-based shading.
+For discrete distributions, the CDF is a step function. \texttt{geom\_cdf\_discrete()} takes a PMF as input, computes cumulative sums, and renders the result as a right-continuous step function with dashed vertical jumps, open circles at the pre-jump value (the left limit), and closed circles at the achieved value. The \texttt{show\_points} and \texttt{show\_vert} parameters independently suppress the endpoint circles or vertical jump segments.
 
 \begin{verbatim}
 ggplot() +
-  geom_discrete_cdf(
-    fun = dbinom, args = list(size = 10, prob = 0.5),
-    xlim = c(0, 10), p = 0.9
+  geom_cdf_discrete(
+    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
   )
 \end{verbatim}
 
@@ -409,7 +444,47 @@ ggplot() +
 
 }
 
-\caption{The discrete CDF of a $\mathrm{Binomial}(10, 0.5)$ distribution with the region below $p = 0.9$ shaded.}\label{fig:discrete-cdf}
+\caption{The discrete CDF of a $\mathrm{Binomial}(10, 0.5)$ distribution.}\label{fig:discrete-cdf}
+\end{figure}
+
+\subsection{\texorpdfstring{Discrete quantile functions: \texttt{geom\_qf\_discrete()}}{Discrete quantile functions: geom\_qf\_discrete()}}\label{discrete-quantile-functions-geom_qf_discrete}
+
+The quantile function \(Q(p) = \inf\{x : F(x) \geq p\}\) of a discrete distribution is a left-continuous step function on \([0, 1]\). \texttt{geom\_qf\_discrete()} takes the same PMF input as \texttt{geom\_cdf\_discrete()}, computes the cumulative sum, and renders the inverse function with horizontal segments on \([0, 1]\), dashed vertical jumps, closed circles at the bottom of each jump (the value is achieved), and open circles at the top (the next value is not yet reached).
+
+\begin{verbatim}
+ggplot() +
+  geom_qf_discrete(
+    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+  )
+\end{verbatim}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/discrete-qf-1} 
+
+}
+
+\caption{The discrete quantile function of a $\mathrm{Binomial}(10, 0.5)$ distribution as a left-continuous step function on $[0, 1]$.}\label{fig:discrete-qf}
+\end{figure}
+
+\subsection{\texorpdfstring{Discrete survival functions: \texttt{geom\_survival\_discrete()}}{Discrete survival functions: geom\_survival\_discrete()}}\label{discrete-survival-functions-geom_survival_discrete}
+
+For discrete distributions, the survival function \(S(x) = 1 - F(x) = P(X > x)\) is itself a right-continuous step function. \texttt{geom\_survival\_discrete()} computes \(S\) from a PMF and renders it with the same visual conventions as \texttt{geom\_cdf\_discrete()}: horizontal segments, dashed vertical jumps, open circles at the pre-drop value, and closed circles at the achieved (lower) value.
+
+\begin{verbatim}
+ggplot() +
+  geom_survival_discrete(
+    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+  )
+\end{verbatim}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/discrete-survival-1} 
+
+}
+
+\caption{The discrete survival function of a $\mathrm{Binomial}(10, 0.5)$ distribution, descending from 1 to 0.}\label{fig:discrete-survival}
 \end{figure}
 
 \subsection{\texorpdfstring{Survival functions: \texttt{geom\_survival()}}{Survival functions: geom\_survival()}}\label{survival-functions-geom_survival}
@@ -425,7 +500,7 @@ gives the probability that the event of interest has not yet occurred by time \(
 
 \begin{verbatim}
 ggplot() +
-  geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
+  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
 \end{verbatim}
 
 \begin{figure}
@@ -454,7 +529,7 @@ Division by \(S(x)\) can cause numerical instability in the tail as \(S(x) \to 0
 ggplot() +
   geom_hf(
     pdf_fun = dexp, cdf_fun = pexp,
-    args = list(rate = 0.5), xlim = c(0.01, 10)
+    xlim = c(0.01, 10), args = list(rate = 0.5)
   )
 \end{verbatim}
 
@@ -473,7 +548,7 @@ For distributions without the memoryless property, the hazard function reveals s
 ggplot() +
   geom_hf(
     pdf_fun = dnorm, cdf_fun = pnorm,
-    args = list(mean = 0, sd = 1), xlim = c(-3, 3)
+    xlim = c(-3, 3), args = list(mean = 0, sd = 1)
   )
 \end{verbatim}
 
@@ -519,6 +594,8 @@ Several layers involve numerical integration or accumulation:
 \item
   \textbf{Boundary interpolation} in \texttt{GeomFunction1d} uses \texttt{stats::approxfun()} to compute exact \(y\)-values at shade endpoints that fall between evaluation points.
 \item
+  \textbf{Quantile function evaluation} in \texttt{geom\_qf()} uses Chebyshev nodes of the first kind rather than a uniform grid, concentrating evaluation points near \(p = 0\) and \(p = 1\) where the function is most curved and avoiding evaluation at the exact endpoints.
+\item
   \textbf{Vector field integration} (via \pkg{ggvfields}) uses a fourth-order Runge--Kutta method with configurable step size and maximum iterations.
 \end{itemize}
 
@@ -531,12 +608,12 @@ Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it c
 \begin{verbatim}
 ggplot() +
   geom_pdf(
-    fun = dnorm, args = list(mean = 0, sd = 1),
-    xlim = c(-5, 8), alpha = 0.4
+    fun = dnorm, xlim = c(-5, 8),
+    args = list(mean = 0, sd = 1), alpha = 0.4
   ) +
   geom_pdf(
-    fun = dnorm, args = list(mean = 3, sd = 1.5),
-    xlim = c(-5, 8), alpha = 0.4
+    fun = dnorm, xlim = c(-5, 8),
+    args = list(mean = 3, sd = 1.5), alpha = 0.4
   ) +
   labs(x = "x", y = "f(x)", title = "Comparing two normal densities") +
   theme_minimal()
@@ -564,6 +641,8 @@ Several existing packages overlap with \pkg{ggfunction} in purpose, and understa
 \item
   \CRANpkg{ggdist} \citep{kay2024ggdist}. This package excels at visualizing distributional uncertainty in Bayesian workflows: posterior distributions, predictive intervals, and uncertainty estimates from fitted models. Its geoms work primarily with samples or distributional objects rather than the \texttt{d}/\texttt{p}/\texttt{q}/\texttt{h} function families that \pkg{ggfunction} targets.
 \item
+  \CRANpkg{ggdensity} \citep{otto2023ggdensity}. This package improves bivariate density visualization in \CRANpkg{ggplot2}, with a particular focus on highest density regions (HDRs). \pkg{ggfunction}'s \texttt{shade\_hdr} parameter in \texttt{geom\_pdf()} follows the HDR computation approach introduced there: normalizing density values, sorting in descending order, and accumulating until the target coverage is reached.
+\item
   \CRANpkg{mosaic} \citep{pruim2017mosaic}. The \texttt{plotDist()} function provides quick plots of named distributions and supports shading, but it operates outside the grammar of graphics and cannot be composed with \CRANpkg{ggplot2} layers.
 \item
   \CRANpkg{metR} \citep{metR}. This package provides contour and vector-field geoms designed for meteorological data, requiring precomputed grids as inputs rather than function objects. Users who already have gridded data may find \CRANpkg{metR} more convenient; users who want to visualize a function directly will find \pkg{ggfunction} more natural.
@@ -575,7 +654,7 @@ Taken together, these packages reflect the breadth of interest in function visua
 
 \section{Summary}\label{summary}
 
-\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions and probability distributions. Its organizing taxonomy--classifying functions by the dimensions of their domain and codomain--yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family adds specialized support for the shading operations central to statistical pedagogy: marking quantiles, delineating confidence regions, and highlighting rejection areas.
+\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions and probability distributions. Its organizing taxonomy--classifying functions by the dimensions of their domain and codomain--yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family covers nine geoms spanning continuous and discrete distributions: density, CDF, PMF, quantile, discrete CDF, discrete quantile, discrete survival, survival, and hazard functions. Each supports the shading operations central to statistical pedagogy---marking quantiles, delineating confidence regions, highlighting rejection areas, and shading highest density regions.
 
 By implementing each layer as a \texttt{ggproto} stat--geom pair, the package inherits the full composability of the grammar of graphics. Functions can be overlaid, themed, faceted, and annotated using the same tools that \CRANpkg{ggplot2} users already know. The \texttt{args} injection pattern provides a clean interface for parameterized function families, and built-in validation catches common errors--such as unnormalized densities--before they produce misleading graphics.
 
@@ -598,13 +677,13 @@ West Point, NY\\
 }
 
 \address{%
-David Kahle\\
-Baylor University\\%
-Waco, TX\\
+James Otto\\
+Alcon Inc.\\%
+Fort Worth, TX\\
 %
 %
 %
-\href{mailto:david_kahle@baylor.edu}{\nolinkurl{david\_kahle@baylor.edu}}%
+\href{mailto:james.otto@alcon.com}{\nolinkurl{james.otto@alcon.com}}%
 }
 
 \address{%
@@ -615,4 +694,14 @@ Waco, TX\\
 %
 %
 \href{mailto:rodney_sturdivant@baylor.edu}{\nolinkurl{rodney\_sturdivant@baylor.edu}}%
+}
+
+\address{%
+David Kahle\\
+Baylor University\\%
+Waco, TX\\
+%
+%
+%
+\href{mailto:david_kahle@baylor.edu}{\nolinkurl{david\_kahle@baylor.edu}}%
 }
