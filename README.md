@@ -68,28 +68,33 @@ ggplot() +
 `geom_function_1d_2d()` evaluates a parametric curve
 $\boldsymbol{\gamma}(t) = (x(t),\, y(t))$ over the range `tlim` with
 step size `dt`, coloring the path by the time parameter by default. The
-following example traces a three-petal rose curve
-$\boldsymbol{\gamma}(t) = (\cos(3t)\cos t,\, \cos(3t)\sin t)$ for
-$t \in [0, \pi]$.
+following example traces the lemniscate of Bernoulli – a figure-eight
+curve along which the product of distances to the two foci is constant –
+$\boldsymbol{\gamma}(t) = \bigl(\cos t\,/\,(1 + \sin^2 t),\; \sin t\cos t\,/\,(1 + \sin^2 t)\bigr)$.
 
 ``` r
-f <- function(t) c(cos(3*t)*cos(t), cos(3*t)*sin(t))
+lemniscate <- function(t) c(cos(t) / (1 + sin(t)^2), sin(t) * cos(t) / (1 + sin(t)^2))
 
 ggplot() +
-  geom_function_1d_2d(fun = f, tlim = c(0, 2*pi))
+  geom_function_1d_2d(fun = lemniscate, tlim = c(0, 1.9 * pi))
 ```
 
 <img src="man/figures/readme-1d-2d-1.png" width="60%" />
 
-**Tail points.** Setting `tail_point = TRUE` marks the starting position
-of the curve with a point, useful for showing an initial condition.
+**Arrowheads and tail points.** Setting `tail_point = TRUE` and passing
+`grid::arrow()` to `arrow` marks the starting position of the curve with
+a point and the tail with an arrowhead, respectively, useful for showing
+an initial condition and direction of the curve.
 
 ``` r
 ggplot() +
-  geom_function_1d_2d(fun = f, tlim = c(0, pi), tail_point = TRUE)
+  geom_function_1d_2d(
+    fun = lemniscate, tlim = c(0, 1.9 * pi), tail_point = TRUE,
+    arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"), type = "closed")
+  )
 ```
 
-<img src="man/figures/readme-1d-2d-tail-1.png" width="60%" />
+<img src="man/figures/readme-1d-2d-arrows-and-tail-1.png" width="60%" />
 
 **Parameterized families.** Extra parameters for `fun` are passed via
 `args`. The following example traces a Lissajous figure, a closed curve
@@ -103,25 +108,12 @@ lissajous <- function(t, a = 3, b = 2, delta = pi/2) {
 
 ggplot() +
   geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 2 * pi),
+    fun = lissajous, tlim = c(0, 1.9 * pi),
     args = list(a = 3, b = 2, delta = pi/2)
   )
 ```
 
 <img src="man/figures/readme-1d-2d-lissajous-1.png" width="60%" />
-
-**Adding arrowheads.** Pass a `grid::arrow()` specification to add an
-arrowhead indicating direction of travel along the curve.
-
-``` r
-ggplot() +
-  geom_function_1d_2d(
-    fun = f, tlim = c(0, pi),
-    arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"), type = "closed")
-  )
-```
-
-<img src="man/figures/readme-1d-2d-arrow-1.png" width="60%" />
 
 ### Scalar fields: `geom_function_2d_1d()`
 

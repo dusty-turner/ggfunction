@@ -49,12 +49,12 @@ ggplot() +
   )
 
 
-## ----spiral, echo=TRUE--------------------------------------------------------
-#| fig.cap: "A parametric spiral $\\boldsymbol{\\gamma}(t) = (\\sin t,\\; t\\cos t)$ for $t \\in [0, 20]$, with color encoding the time parameter."
-f_spiral <- function(t) c(sin(t), t * cos(t))
+## ----lemniscate, echo=TRUE----------------------------------------------------
+#| fig.cap: "The lemniscate of Bernoulli $\\boldsymbol{\\gamma}(t) = (\\cos t\\,/\\,(1+\\sin^2 t),\\; \\sin t\\cos t\\,/\\,(1+\\sin^2 t))$--a figure-eight curve along which the product of distances to the two foci is constant--with color encoding the parameter $t$."
+lemniscate <- function(t) c(cos(t) / (1 + sin(t)^2), sin(t) * cos(t) / (1 + sin(t)^2))
 
 ggplot() +
-  geom_function_1d_2d(fun = f_spiral, tlim = c(0, 20), tail_point = TRUE)
+  geom_function_1d_2d(fun = lemniscate, tlim = c(0, 1.9 * pi), tail_point = TRUE)
 
 
 ## ----lissajous, echo=TRUE-----------------------------------------------------
@@ -65,7 +65,7 @@ lissajous <- function(t, A = 1, B = 1, a = 3, b = 2, delta = pi/2) {
 
 ggplot() +
   geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 2 * pi),
+    fun = lissajous, tlim = c(0, 1.9 * pi),
     args = list(A = 1, B = 1, a = 3, b = 2, delta = pi/2)
   )
 
