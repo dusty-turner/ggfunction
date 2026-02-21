@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.18)  20 FEB 2026 18:04
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.20)  20 FEB 2026 22:38
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -6,9 +6,9 @@ entering extended mode
 (./RJwrapper.tex
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/base/report.cls
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/base/report.cls
 Document Class: report 2025/01/22 v1.4n Standard LaTeX document class
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/base/size10.clo
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/base/size10.clo
 File: size10.clo 2025/01/22 v1.4n Standard LaTeX file (size option)
 )
 \c@part=\count275
@@ -23,48 +23,48 @@ File: size10.clo 2025/01/22 v1.4n Standard LaTeX file (size option)
 \abovecaptionskip=\skip49
 \belowcaptionskip=\skip50
 \bibindent=\dimen148
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/base/inputenc.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/base/inputenc.sty
 Package: inputenc 2024/02/08 v1.3d Input encoding file
 \inpenc@prehook=\toks17
 \inpenc@posthook=\toks18
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/base/fontenc.sty
 Package: fontenc 2025/07/18 v2.1d Standard LaTeX package
 ) (./RJournal.sty
 Package: RJournal 2022/06/27 v0.14 RJournal package
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/pgf/frontendlayer/tikz.sty (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/pgf/basiclayer/pgf.sty (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.tex
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/pgf/frontendlayer/tikz.sty (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/pgf/basiclayer/pgf.sty (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/pgf/utilities/pgfrcs.sty (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfutil-common.tex
 \pgfutil@everybye=\toks19
 \pgfutil@tempdima=\dimen149
 \pgfutil@tempdimb=\dimen150
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfutil-latex.def
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfutil-latex.def
 \pgfutil@abb=\box53
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfrcs.code.tex (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/pgf.revision.tex)
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfrcs.code.tex (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/pgf.revision.tex)
 Package: pgfrcs 2025-08-29 v3.1.11a (3.1.11a)
 ))
 Package: pgf 2025-08-29 v3.1.11a (3.1.11a)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/pgf/basiclayer/pgfcore.sty (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/graphics/graphicx.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/pgf/basiclayer/pgfcore.sty (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 2024/12/31 v1.2e Enhanced LaTeX Graphics (DPC,SPQR)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/graphics/keyval.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/graphics/keyval.sty
 Package: keyval 2022/05/29 v1.15 key=value parser (DPC)
 \KV@toks@=\toks20
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/graphics/graphics.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/graphics/graphics.sty
 Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/graphics/trig.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/graphics/trig.sty
 Package: trig 2023/12/02 v1.11 sin cos tan (DPC)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
 File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
 )
 Package graphics Info: Driver file: pdftex.def on input line 106.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/graphics-def/pdftex.def
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/graphics-def/pdftex.def
 File: pdftex.def 2025/09/29 v1.2d Graphics/color driver for pdftex
 ))
 \Gin@req@height=\dimen151
 \Gin@req@width=\dimen152
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/pgf/systemlayer/pgfsys.sty (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsys.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/pgf/systemlayer/pgfsys.sty (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsys.code.tex
 Package: pgfsys 2025-08-29 v3.1.11a (3.1.11a)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex
 \pgfkeys@pathtoks=\toks21
 \pgfkeys@temptoks=\toks22
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfkeyslibraryfiltered.code.tex
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfkeyslibraryfiltered.code.tex
 \pgfkeys@tmptoks=\toks23
 ))
 \pgf@x=\dimen153
@@ -87,27 +87,27 @@ Package: pgfsys 2025-08-29 v3.1.11a (3.1.11a)
 \t@pgf@tokb=\toks25
 \t@pgf@tokc=\toks26
 \pgf@sys@id@count=\count288
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgf.cfg
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgf.cfg
 File: pgf.cfg 2025-08-29 v3.1.11a (3.1.11a)
 )
 Driver file for pgf: pgfsys-pdftex.def
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-pdftex.def
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-pdftex.def
 File: pgfsys-pdftex.def 2025-08-29 v3.1.11a (3.1.11a)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-common-pdf.def
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsys-common-pdf.def
 File: pgfsys-common-pdf.def 2025-08-29 v3.1.11a (3.1.11a)
-))) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsyssoftpath.code.tex
+))) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsyssoftpath.code.tex
 File: pgfsyssoftpath.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfsyssoftpath@smallbuffer@items=\count289
 \pgfsyssoftpath@bigbuffer@items=\count290
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsysprotocol.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/systemlayer/pgfsysprotocol.code.tex
 File: pgfsysprotocol.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-)) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/xcolor/xcolor.sty
+)) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/xcolor/xcolor.sty
 Package: xcolor 2024/09/29 v3.02 LaTeX color extensions (UK)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/graphics-cfg/color.cfg
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/graphics-cfg/color.cfg
 File: color.cfg 2016/01/02 v1.6 sample color configuration
 )
 Package xcolor Info: Driver file: pdftex.def on input line 274.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/graphics/mathcolor.ltx)
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/graphics/mathcolor.ltx)
 Package xcolor Info: Model `cmy' substituted by `cmy0' on input line 1349.
 Package xcolor Info: Model `hsb' substituted by `rgb' on input line 1353.
 Package xcolor Info: Model `RGB' extended on input line 1365.
@@ -117,18 +117,18 @@ Package xcolor Info: Model `tHsb' substituted by `hsb' on input line 1369.
 Package xcolor Info: Model `HSB' substituted by `hsb' on input line 1370.
 Package xcolor Info: Model `Gray' substituted by `gray' on input line 1371.
 Package xcolor Info: Model `wave' substituted by `hsb' on input line 1372.
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcore.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcore.code.tex
 Package: pgfcore 2025-08-29 v3.1.11a (3.1.11a)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathutil.code.tex) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathparser.code.tex
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathutil.code.tex) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathparser.code.tex
 \pgfmath@dimen=\dimen163
 \pgfmath@count=\count291
 \pgfmath@box=\box54
 \pgfmath@toks=\toks27
 \pgfmath@stack@operand=\toks28
 \pgfmath@stack@operation=\toks29
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.code.tex) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.basic.code.tex) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.trigonometric.code.tex) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.random.code.tex) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.comparison.code.tex) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.base.code.tex) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.round.code.tex) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.misc.code.tex) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.integerarithmetics.code.tex) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathcalc.code.tex) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfloat.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.code.tex) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.basic.code.tex) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.trigonometric.code.tex) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.random.code.tex) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.comparison.code.tex) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.base.code.tex) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.round.code.tex) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.misc.code.tex) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfunctions.integerarithmetics.code.tex) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathcalc.code.tex) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmathfloat.code.tex
 \c@pgfmathroundto@lastzeros=\count292
-)) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfint.code.tex) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepoints.code.tex
+)) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfint.code.tex) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepoints.code.tex
 File: pgfcorepoints.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@picminx=\dimen164
 \pgf@picmaxx=\dimen165
@@ -144,75 +144,75 @@ File: pgfcorepoints.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@yy=\dimen175
 \pgf@zx=\dimen176
 \pgf@zy=\dimen177
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathconstruct.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathconstruct.code.tex
 File: pgfcorepathconstruct.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@path@lastx=\dimen178
 \pgf@path@lasty=\dimen179
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathusage.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathusage.code.tex
 File: pgfcorepathusage.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@shorten@end@additional=\dimen180
 \pgf@shorten@start@additional=\dimen181
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorescopes.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorescopes.code.tex
 File: pgfcorescopes.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfpic=\box55
 \pgf@hbox=\box56
 \pgf@layerbox@main=\box57
 \pgf@picture@serial@count=\count293
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoregraphicstate.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoregraphicstate.code.tex
 File: pgfcoregraphicstate.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgflinewidth=\dimen182
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransformations.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransformations.code.tex
 File: pgfcoretransformations.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@pt@x=\dimen183
 \pgf@pt@y=\dimen184
 \pgf@pt@temp=\dimen185
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorequick.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorequick.code.tex
 File: pgfcorequick.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreobjects.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreobjects.code.tex
 File: pgfcoreobjects.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathprocessing.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepathprocessing.code.tex
 File: pgfcorepathprocessing.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorearrows.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorearrows.code.tex
 File: pgfcorearrows.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfarrowsep=\dimen186
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreshade.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreshade.code.tex
 File: pgfcoreshade.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@max=\dimen187
 \pgf@sys@shading@range@num=\count294
 \pgf@shadingcount=\count295
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreimage.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreimage.code.tex
 File: pgfcoreimage.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreexternal.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoreexternal.code.tex
 File: pgfcoreexternal.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfexternal@startupbox=\box58
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorelayers.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorelayers.code.tex
 File: pgfcorelayers.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransparency.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcoretransparency.code.tex
 File: pgfcoretransparency.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepatterns.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorepatterns.code.tex
 File: pgfcorepatterns.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorerdf.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/basiclayer/pgfcorerdf.code.tex
 File: pgfcorerdf.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-))) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/modules/pgfmoduleshapes.code.tex
+))) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/modules/pgfmoduleshapes.code.tex
 File: pgfmoduleshapes.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfnodeparttextbox=\box59
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/modules/pgfmoduleplot.code.tex
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/modules/pgfmoduleplot.code.tex
 File: pgfmoduleplot.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version-0-65.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version-0-65.sty
 Package: pgfcomp-version-0-65 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@nodesepstart=\dimen188
 \pgf@nodesepend=\dimen189
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version-1-18.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version-1-18.sty
 Package: pgfcomp-version-1-18 2025-08-29 v3.1.11a (3.1.11a)
-)) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/pgf/utilities/pgffor.sty (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/pgf/utilities/pgfkeys.sty (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex)) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/pgf/math/pgfmath.sty (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex)) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgffor.code.tex
+)) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/pgf/utilities/pgffor.sty (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/pgf/utilities/pgfkeys.sty (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgfkeys.code.tex)) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/pgf/math/pgfmath.sty (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/math/pgfmath.code.tex)) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/utilities/pgffor.code.tex
 Package: pgffor 2025-08-29 v3.1.11a (3.1.11a)
 \pgffor@iter=\dimen190
 \pgffor@skip=\dimen191
 \pgffor@stack=\toks30
 \pgffor@toks=\toks31
-)) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/frontendlayer/tikz/tikz.code.tex
+)) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/frontendlayer/tikz/tikz.code.tex
 Package: tikz 2025-08-29 v3.1.11a (3.1.11a)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/libraries/pgflibraryplothandlers.code.tex
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/libraries/pgflibraryplothandlers.code.tex
 File: pgflibraryplothandlers.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgf@plot@mark@count=\count296
 \pgfplotmarksize=\dimen192
@@ -233,20 +233,20 @@ File: pgflibraryplothandlers.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \tikznumberofchildren=\count298
 \tikznumberofcurrentchild=\count299
 \tikz@fig@count=\count300
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/modules/pgfmodulematrix.code.tex
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/modules/pgfmodulematrix.code.tex
 File: pgfmodulematrix.code.tex 2025-08-29 v3.1.11a (3.1.11a)
 \pgfmatrixcurrentrow=\count301
 \pgfmatrixcurrentcolumn=\count302
 \pgf@matrix@numberofcolumns=\count303
 )
 \tikz@expandcount=\count304
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarytopaths.code.tex
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarytopaths.code.tex
 File: tikzlibrarytopaths.code.tex 2025-08-29 v3.1.11a (3.1.11a)
-))) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/geometry/geometry.sty
+))) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/geometry/geometry.sty
 Package: geometry 2020/01/02 v5.9 Page Geometry
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/iftex/ifvtex.sty
 Package: ifvtex 2019/10/25 v1.7 ifvtex legacy package. Use iftex instead.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/iftex/iftex.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/iftex/iftex.sty
 Package: iftex 2024/12/12 v1.0g TeX engine tests
 ))
 \Gm@cnth=\count305
@@ -261,7 +261,7 @@ Package: iftex 2024/12/12 v1.0g TeX engine tests
 \Gm@layouthoffset=\dimen263
 \Gm@layoutvoffset=\dimen264
 \Gm@dimlist=\toks32
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/fancyhdr/fancyhdr.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/fancyhdr/fancyhdr.sty
 Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
 \f@nch@headwidth=\skip51
 \f@nch@offset@elh=\skip52
@@ -278,9 +278,9 @@ Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
 \f@nch@widthC=\skip63
 \f@nch@widthR=\skip64
 \@temptokenb=\toks33
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/microtype/microtype.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/microtype/microtype.sty
 Package: microtype 2025/07/09 v3.2b Micro-typographical refinements (RS)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/etoolbox/etoolbox.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/etoolbox/etoolbox.sty
 Package: etoolbox 2025/10/02 v2.5m e-TeX tools for LaTeX (JAW)
 \etb@tempcnta=\count308
 )
@@ -296,31 +296,31 @@ LaTeX Info: Redefining \textls on input line 1449.
 LaTeX Info: Redefining \microtypecontext on input line 2053.
 LaTeX Info: Redefining \textmicrotypecontext on input line 2070.
 \MT@listname@count=\count310
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/microtype/microtype-pdftex.def
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/microtype/microtype-pdftex.def
 File: microtype-pdftex.def 2025/07/09 v3.2b Definitions specific to pdftex (RS)
 LaTeX Info: Redefining \lsstyle on input line 944.
 LaTeX Info: Redefining \lslig on input line 944.
 \MT@outer@space=\skip65
 )
 Package microtype Info: Loading configuration file microtype.cfg.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/microtype/microtype.cfg
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/microtype/microtype.cfg
 File: microtype.cfg 2025/07/09 v3.2b microtype main configuration file (RS)
 )
 LaTeX Info: Redefining \microtypesetup on input line 3065.
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/helvet.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/psnfss/helvet.sty
 Package: helvet 2020/03/25 PSNFSS-v9.3 (WaS) 
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/palatino.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/psnfss/palatino.sty
 Package: palatino 2020/03/25 PSNFSS-v9.3 (SPQR) 
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/mathpazo.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/psnfss/mathpazo.sty
 Package: mathpazo 2020/03/25 PSNFSS-v9.3 Palatino w/ Pazo Math (D.Puga, WaS) 
 \symupright=\mathgroup4
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/inconsolata/inconsolata.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/inconsolata/inconsolata.sty
 Package: inconsolata 2019/05/17 v1.12
-`inconsolata-zi4' v1.12, 2019/05/17 Text macros for Inconsolata (msharpe) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/base/textcomp.sty
+`inconsolata-zi4' v1.12, 2019/05/17 Text macros for Inconsolata (msharpe) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/base/textcomp.sty
 Package: textcomp 2024/04/24 v2.1b Standard LaTeX package
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/xkeyval/xkeyval.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/xkeyval/xkeyval.sty
 Package: xkeyval 2025/11/04 v2.10 package option processing (HA)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/xkeyval/xkeyval.tex (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/xkeyval/xkvutils.tex
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/xkeyval/xkeyval.tex (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/xkeyval/xkvutils.tex
 \XKV@toks=\toks36
 \XKV@tempa@toks=\toks37
 \XKV@tempb@toks=\toks38
@@ -329,59 +329,59 @@ Package: xkeyval 2025/11/04 v2.10 package option processing (HA)
 File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
 ))
 \zifour@ocount=\count312
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/base/fontenc.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/base/fontenc.sty
 Package: fontenc 2025/07/18 v2.1d Standard LaTeX package
 LaTeX Font Info:    Trying to load font information for T1+ppl on input line 116.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/t1ppl.fd
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/psnfss/t1ppl.fd
 File: t1ppl.fd 2001/06/04 font definitions for T1/ppl.
-)) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/url/url.sty
+)) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip17
 Package: url 2013/09/16  ver 3.4  Verb mode for urls, etc.
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/hyperref/hyperref.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/hyperref/hyperref.sty
 Package: hyperref 2026-01-29 v7.01p Hypertext links for LaTeX
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty
 Package: kvsetkeys 2022-10-05 v1.19 Key value parser (HO)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty
 Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pdfescape/pdfescape.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pdfescape/pdfescape.sty
 Package: pdfescape 2019/12/09 v1.15 Implements pdfTeX's escape features (HO)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty
 Package: ltxcmds 2023-12-04 v1.26 LaTeX kernel commands for general use (HO)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
 Package: pdftexcmds 2020-06-27 v0.33 Utility functions of pdfTeX for LuaTeX (HO)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/infwarerr/infwarerr.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/infwarerr/infwarerr.sty
 Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
 )
 Package pdftexcmds Info: \pdf@primitive is available.
 Package pdftexcmds Info: \pdf@ifprimitive is available.
 Package pdftexcmds Info: \pdfdraftmode found.
-)) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/hycolor/hycolor.sty
+)) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/hycolor/hycolor.sty
 Package: hycolor 2020-01-27 v1.10 Color options for hyperref/bookmark (HO)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/hyperref/nameref.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2026-01-29 v2.58 Cross-referencing by name of section
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/refcount/refcount.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/refcount/refcount.sty
 Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/kvoptions/kvoptions.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/kvoptions/kvoptions.sty
 Package: kvoptions 2022-06-15 v3.15 Key value format for package options (HO)
 ))
 \c@section@level=\count313
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/stringenc/stringenc.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/stringenc/stringenc.sty
 Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO)
 )
 \@linkdim=\dimen266
 \Hy@linkcounter=\count314
 \Hy@pagecounter=\count315
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/hyperref/pd1enc.def
 File: pd1enc.def 2026-01-29 v7.01p Hyperref: PDFDocEncoding definition (HO)
 Now handling font encoding PD1 ...
 ... no UTF-8 mapping file for font encoding PD1
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/intcalc/intcalc.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/generic/intcalc/intcalc.sty
 Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
 )
 \Hy@SavedSpaceFactor=\count316
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/hyperref/puenc.def
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/hyperref/puenc.def
 File: puenc.def 2026-01-29 v7.01p Hyperref: PDF Unicode definition (HO)
 Now handling font encoding PU ...
 ... no UTF-8 mapping file for font encoding PU
@@ -393,13 +393,13 @@ Package hyperref Info: Plain pages OFF on input line 4216.
 Package hyperref Info: Backreferencing ON on input line 4219.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
 Package hyperref Info: Bookmarks ON on input line 4468.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/hyperref/backref.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/hyperref/backref.sty
 Package: backref 2025-06-21 v1.45 Bibliographical back referencing
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
 Package: rerunfilecheck 2025-06-21 v1.11 Rerun checks for auxiliary files (HO)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty
 Package: uniquecounter 2019/12/15 v1.4 Provide unlimited unique counter (HO)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty
 Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO)
 ))
 Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 284.
@@ -407,7 +407,7 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 28
 \c@Hy@tempcnt=\count317
 LaTeX Info: Redefining \url on input line 4807.
 \XeTeXLinkMargin=\dimen267
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/generic/bitset/bitset.sty
 Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
 )
 \Fld@menulength=\count318
@@ -425,16 +425,16 @@ Package hyperref Info: PDF/A mode OFF on input line 6114.
 \c@Hfootnote=\count321
 )
 Package hyperref Info: Driver (autodetected): hpdftex.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/hyperref/hpdftex.def
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/hyperref/hpdftex.def
 File: hpdftex.def 2026-01-29 v7.01p Hyperref driver for pdfTeX
 \Fld@listcount=\count322
 \c@bookmark@seq@number=\count323
 \Hy@SectionHShift=\skip66
 )
 Package hyperref Info: Option `colorlinks' set `true' on input line 68.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/setspace/setspace.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/setspace/setspace.sty
 Package: setspace 2022/12/04 v6.7b set line spacing
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/titlesec/titlesec.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/titlesec/titlesec.sty
 Package: titlesec 2025/01/04 v2.17 Sectioning titles
 \ttl@box=\box65
 \beforetitleunit=\skip67
@@ -445,18 +445,18 @@ Package: titlesec 2025/01/04 v2.17 Sectioning titles
 \titlewidth=\dimen272
 \titlewidthlast=\dimen273
 \titlewidthfirst=\dimen274
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/titlesec/titletoc.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/titlesec/titletoc.sty
 Package: titletoc 2025/01/04 v2.17 TOC entries
 \ttl@leftsep=\dimen275
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/placeins/placeins.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/placeins/placeins.sty
 Package: placeins 2005/04/18  v 2.2
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/natbib/natbib.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/natbib/natbib.sty
 Package: natbib 2010/09/13 8.31b (PWD, AO)
 \bibhang=\skip69
 \bibsep=\skip70
 LaTeX Info: Redefining \cite on input line 694.
 \c@NAT@ctr=\count324
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/fancyvrb/fancyvrb.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/fancyvrb/fancyvrb.sty
 Package: fancyvrb 2025/07/28 4.6 verbatim text (tvz,hv)
 \FV@CodeLineNo=\count325
 \FV@InFile=\read3
@@ -464,9 +464,9 @@ Package: fancyvrb 2025/07/28 4.6 verbatim text (tvz,hv)
 \c@FancyVerbLine=\count326
 \FV@StepNumber=\count327
 \FV@OutFile=\write4
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/base/alltt.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/base/alltt.sty
 Package: alltt 2024/07/07 v2.0g defines alltt environment
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/amsfonts.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/amsfonts/amsfonts.sty
 Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
 \@emptytoks=\toks40
 \symAMSa=\mathgroup5
@@ -474,9 +474,9 @@ Package: amsfonts 2013/01/14 v3.01 Basic AMSFonts support
 LaTeX Font Info:    Redeclaring math symbol \hbar on input line 98.
 LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
 (Font)                  U/euf/m/n --> U/euf/b/n on input line 106.
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/caption/caption.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/caption/caption.sty
 Package: caption 2023/08/05 v3.6o Customizing captions (AR)
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/caption/caption3.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/caption/caption3.sty
 Package: caption3 2023/07/31 v2.4d caption3 kernel (AR)
 \caption@tempdima=\dimen276
 \captionmargin=\dimen277
@@ -491,26 +491,26 @@ Package caption Info: Standard document class detected.
 \c@caption@flags=\count328
 \c@continuedfloat=\count329
 Package caption Info: hyperref package is loaded.
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/environ/environ.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/environ/environ.sty
 Package: environ 2014/05/04 v0.3 A new way to define environments
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/trimspaces/trimspaces.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/trimspaces/trimspaces.sty
 Package: trimspaces 2009/09/17 v1.1 Trim spaces around a token list
 )
 \@envbody=\toks41
-)) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
+)) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/amsmath/amsmath.sty
 Package: amsmath 2025/07/09 v2.17z AMS math features
 \@mathmargin=\skip71
 For additional information on amsmath, use the `?' option.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/amsmath/amstext.sty
 Package: amstext 2024/11/17 v2.01 AMS text
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/amsmath/amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0 generic functions
 \@emptytoks=\toks42
 \ex@=\dimen284
-)) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty
+)) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/amsmath/amsbsy.sty
 Package: amsbsy 1999/11/29 v1.2d Bold Symbols
 \pmbraise@=\dimen285
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/amsmath/amsopn.sty
 Package: amsopn 2022/04/08 v2.04 operator names
 LaTeX Info: Redefining \operatorname on input line 43.
 )
@@ -561,9 +561,9 @@ LaTeX Info: Redefining \Relbar on input line 970.
 \mathdisplay@stack=\toks46
 LaTeX Info: Redefining \[ on input line 2950.
 LaTeX Info: Redefining \] on input line 2951.
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/amssymb.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/amsfonts/amssymb.sty
 Package: amssymb 2013/01/14 v3.01 AMS font symbols
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/tools/array.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/tools/array.sty
 Package: array 2025/09/25 v2.6n Tabular extension package (FMi)
 \col@sep=\dimen293
 \ar@mcellbox=\box69
@@ -572,7 +572,7 @@ Package: array 2025/09/25 v2.6n Tabular extension package (FMi)
 \extratabsurround=\skip74
 \backup@length=\skip75
 \ar@cellbox=\box70
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/booktabs/booktabs.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/booktabs/booktabs.sty
 Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
 \heavyrulewidth=\dimen295
 \lightrulewidth=\dimen296
@@ -591,7 +591,7 @@ Package: booktabs 2020/01/12 v1.61803398 Publication quality tables
 \@thisruleclass=\count344
 \@lastruleclass=\count345
 \@thisrulewidth=\dimen307
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/tools/longtable.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/tools/longtable.sty
 Package: longtable 2025-10-13 v4.24 Multi-page Table package (DPC)
 \LTleft=\skip76
 \LTright=\skip77
@@ -612,7 +612,7 @@ Package: longtable 2025-10-13 v4.24 Multi-page Table package (DPC)
 )
 \cslhangindent=\skip80
 \csllabelwidth=\skip81
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/tools/calc.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/tools/calc.sty
 Package: calc 2025/03/01 v4.3b Infix arithmetic (KKT,FJ)
 \calc@Acount=\count351
 \calc@Bcount=\count352
@@ -624,7 +624,7 @@ LaTeX Info: Redefining \setlength on input line 86.
 LaTeX Info: Redefining \addtolength on input line 87.
 \calc@Ccount=\count353
 \calc@Cskip=\skip84
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2025-10-09 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count354
 ) (./RJwrapper.aux)
@@ -648,10 +648,10 @@ LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 54.
 LaTeX Font Info:    ... okay on input line 54.
 LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 54.
 LaTeX Font Info:    ... okay on input line 54.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 485.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ))
 *geometry* driver: auto-detecting
@@ -709,9 +709,9 @@ Package microtype Info: Patching command `\showhyphens'.
 Package microtype Info: No adjustment of tracking.
 Package microtype Info: No adjustment of interword spacing.
 Package microtype Info: No adjustment of character kerning.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/microtype/mt-ppl.cfg
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/microtype/mt-ppl.cfg
 File: mt-ppl.cfg 2005/11/16 v1.6 microtype config. file: Palatino (RS)
-) (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/upquote/upquote.sty
+) (/home/dustypi/.TinyTeX/texmf-dist/tex/latex/upquote/upquote.sty
 Package: upquote 2012/04/19 v1.3 upright-quote and grave-accent glyphs in verbatim
 )
 Package backref Info: ** backref set up for natbib ** on input line 54.
@@ -722,29 +722,29 @@ Package hyperref Info: Link coloring ON on input line 54.
 
 Package caption Info: Begin \AtBeginDocument code.
 Package caption Info: longtable package is loaded.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/caption/ltcaption.sty
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/caption/ltcaption.sty
 Package: ltcaption 2021/01/08 v1.4c longtable captions (AR)
 )
 Package caption Info: End \AtBeginDocument code.
 (./ggfunction.tex
 LaTeX Font Info:    Trying to load font information for OT1+ppl on input line 11.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ot1ppl.fd
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/psnfss/ot1ppl.fd
 File: ot1ppl.fd 2001/06/04 font definitions for OT1/ppl.
 )
 LaTeX Font Info:    Trying to load font information for OML+zplm on input line 11.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/omlzplm.fd
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/psnfss/omlzplm.fd
 File: omlzplm.fd 2002/09/08 Fontinst v1.914 font definitions for OML/zplm.
 )
 LaTeX Font Info:    Trying to load font information for OMS+zplm on input line 11.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/omszplm.fd
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/psnfss/omszplm.fd
 File: omszplm.fd 2002/09/08 Fontinst v1.914 font definitions for OMS/zplm.
 )
 LaTeX Font Info:    Trying to load font information for OMX+zplm on input line 11.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/omxzplm.fd
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/psnfss/omxzplm.fd
 File: omxzplm.fd 2002/09/08 Fontinst v1.914 font definitions for OMX/zplm.
 )
 LaTeX Font Info:    Trying to load font information for OT1+zplm on input line 11.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ot1zplm.fd
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/psnfss/ot1zplm.fd
 File: ot1zplm.fd 2002/09/08 Fontinst v1.914 font definitions for OT1/zplm.
 )
 Package microtype Info: Loading generic protrusion settings for font family
@@ -753,7 +753,7 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
 (Font)              scaled to size 9.37807pt on input line 11.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/microtype/mt-msa.cfg
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
@@ -762,7 +762,7 @@ LaTeX Font Info:    Font shape `U/msa/m/n' will be
 (Font)              scaled to size 5.21004pt on input line 11.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
 (Font)              scaled to size 9.37807pt on input line 11.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/microtype/mt-msb.cfg
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
@@ -770,11 +770,11 @@ LaTeX Font Info:    Font shape `U/msb/m/n' will be
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
 (Font)              scaled to size 5.21004pt on input line 11.
 LaTeX Font Info:    Trying to load font information for U+fplmbb on input line 11.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ufplmbb.fd
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/psnfss/ufplmbb.fd
 File: ufplmbb.fd 2003/10/30 Fontinst v1.914 font definitions for U/fplmbb.
 )
 LaTeX Font Info:    Trying to load font information for T1+zi4 on input line 15.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/inconsolata/t1zi4.fd
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/inconsolata/t1zi4.fd
 File: t1zi4.fd 2018/01/14 T1/zi4 (Inconsolata)
 )
 LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
@@ -783,15 +783,15 @@ Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `zi4' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
-[1{/Users/david_kahle/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/enc/dvips/base/8r.enc}
+[1{/home/dustypi/.TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/home/dustypi/.TinyTeX/texmf-dist/fonts/enc/dvips/base/8r.enc}
 
-{/Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-0.enc}]
+{/home/dustypi/.TinyTeX/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-0.enc}]
 LaTeX Font Info:    Trying to load font information for TS1+ppl on input line 55.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ts1ppl.fd
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/psnfss/ts1ppl.fd
 File: ts1ppl.fd 2001/06/04 font definitions for TS1/ppl.
 )
-Overfull \hbox (15.49413pt too wide) in paragraph at lines 64--65
-[]\T1/ppl/m/n/9 (-20) The nam-ing convention---\T1/zi4/m/n/9 geom_function_1d_1d()\T1/ppl/m/n/9 (-20) , \T1/zi4/m/n/9 geom_function_1d_2d()\T1/ppl/m/n/9 (-20) , \T1/zi4/m/n/9 geom_function_2d_1d()\T1/ppl/m/n/9 (-20) ,
+Overfull \hbox (11.08412pt too wide) in paragraph at lines 64--65
+[]\T1/ppl/m/n/9 (-20) The nam-ing convention--\T1/zi4/m/n/9 geom_function_1d_1d()\T1/ppl/m/n/9 (-20) , \T1/zi4/m/n/9 geom_function_1d_2d()\T1/ppl/m/n/9 (-20) , \T1/zi4/m/n/9 geom_function_2d_1d()\T1/ppl/m/n/9 (-20) ,
  []
 
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
@@ -806,126 +806,126 @@ LaTeX Font Info:    Font shape `U/msb/m/n' will be
 (Font)              scaled to size 7.91925pt on input line 86.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
 (Font)              scaled to size 6.25204pt on input line 86.
-<ggfunction_files/figure-latex/sin-curve-1.pdf, id=151, 421.575pt x 277.035pt>
+<ggfunction_files/figure-latex/sin-curve-1.pdf, id=151, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/sin-curve-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/sin-curve-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/sin-curve-1.pdf  used on input line 97.
-(pdftex.def)             Requested size: 338.59021pt x 222.50755pt.
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
 
 Overfull \hbox (0.8848pt too wide) in paragraph at lines 104--105
 \T1/ppl/m/n/9 (-20) spec-i-fied in-ter-val $\OT1/zplm/m/n/9 [\OML/zplm/m/it/9 a\OT1/ppl/m/n/9 (-20) , \OML/zplm/m/it/9 b\OT1/zplm/m/n/9 ]$\T1/ppl/m/n/9 (-20) . Bound-ary val-ues are com-puted by lin-ear in-ter-po-la-tion via \T1/zi4/m/n/9 stats::approxfun()\T1/ppl/m/n/9 (-20) ,
  []
 
 [2]
-<ggfunction_files/figure-latex/shaded-normal-1.pdf, id=159, 421.575pt x 277.035pt>
+<ggfunction_files/figure-latex/shaded-normal-1.pdf, id=159, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/shaded-normal-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/shaded-normal-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/shaded-normal-1.pdf  used on input line 116.
-(pdftex.def)             Requested size: 338.59021pt x 222.50755pt.
-<ggfunction_files/figure-latex/spiral-1.pdf, id=160, 417.56pt x 277.035pt>
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
+<ggfunction_files/figure-latex/spiral-1.pdf, id=160, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/spiral-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/spiral-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/spiral-1.pdf  used on input line 136.
-(pdftex.def)             Requested size: 338.59021pt x 224.65497pt.
-<ggfunction_files/figure-latex/lissajous-1.pdf, id=161, 417.56pt x 277.035pt>
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
+<ggfunction_files/figure-latex/lissajous-1.pdf, id=161, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/lissajous-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/lissajous-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/lissajous-1.pdf  used on input line 159.
-(pdftex.def)             Requested size: 338.59021pt x 224.65497pt.
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
 [3 <./ggfunction_files/figure-latex/sin-curve-1.pdf>] [4 <./ggfunction_files/figure-latex/shaded-normal-1.pdf> <./ggfunction_files/figure-latex/spiral-1.pdf>]
 Overfull \hbox (16.14485pt too wide) in paragraph at lines 177--178
 []\T1/zi4/m/n/9 "contour_filled"\T1/ppl/m/n/9 (-20) : filled re-gions be-tween con-tour lev-els ren-dered by \T1/zi4/m/n/9 ggplot2::GeomContourFilled\T1/ppl/m/n/9 (-20) . 
  []
 
-<ggfunction_files/figure-latex/gaussian-raster-1.pdf, id=200, 415.5525pt x 277.035pt>
+<ggfunction_files/figure-latex/gaussian-raster-1.pdf, id=194, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/gaussian-raster-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/gaussian-raster-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/gaussian-raster-1.pdf  used on input line 192.
-(pdftex.def)             Requested size: 338.59021pt x 225.73714pt.
-<ggfunction_files/figure-latex/gaussian-contour-1.pdf, id=201, 706.64pt x 277.035pt>
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
+<ggfunction_files/figure-latex/gaussian-contour-1.pdf, id=195, 722.7pt x 289.08pt>
 File: ggfunction_files/figure-latex/gaussian-contour-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/gaussian-contour-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/gaussian-contour-1.pdf  used on input line 219.
-(pdftex.def)             Requested size: 338.59021pt x 132.74278pt.
+(pdftex.def)             Requested size: 338.59021pt x 135.43533pt.
 [5 <./ggfunction_files/figure-latex/lissajous-1.pdf>] [6 <./ggfunction_files/figure-latex/gaussian-raster-1.pdf> <./ggfunction_files/figure-latex/gaussian-contour-1.pdf>]
-<ggfunction_files/figure-latex/rotation-field-1.pdf, id=240, 417.56pt x 277.035pt>
+<ggfunction_files/figure-latex/rotation-field-1.pdf, id=228, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/rotation-field-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/rotation-field-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/rotation-field-1.pdf  used on input line 244.
-(pdftex.def)             Requested size: 338.59021pt x 224.65497pt.
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
 LaTeX Font Info:    Font shape `T1/zi4/b/n' will be
 (Font)              scaled to size 10.20004pt on input line 257.
 [7 <./ggfunction_files/figure-latex/rotation-field-1.pdf>]
-<ggfunction_files/figure-latex/pdf-single-1.pdf, id=264, 421.575pt x 277.035pt>
+<ggfunction_files/figure-latex/pdf-single-1.pdf, id=250, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/pdf-single-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/pdf-single-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/pdf-single-1.pdf  used on input line 279.
-(pdftex.def)             Requested size: 338.59021pt x 222.50755pt.
-<ggfunction_files/figure-latex/pdf-two-sided-1.pdf, id=265, 421.575pt x 277.035pt>
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
+<ggfunction_files/figure-latex/pdf-two-sided-1.pdf, id=251, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/pdf-two-sided-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/pdf-two-sided-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/pdf-two-sided-1.pdf  used on input line 298.
-(pdftex.def)             Requested size: 338.59021pt x 222.50755pt.
-<ggfunction_files/figure-latex/pdf-tails-1.pdf, id=266, 421.575pt x 277.035pt>
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
+<ggfunction_files/figure-latex/pdf-tails-1.pdf, id=252, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/pdf-tails-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/pdf-tails-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/pdf-tails-1.pdf  used on input line 317.
-(pdftex.def)             Requested size: 338.59021pt x 222.50755pt.
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
 [8 <./ggfunction_files/figure-latex/pdf-single-1.pdf>] [9 <./ggfunction_files/figure-latex/pdf-two-sided-1.pdf> <./ggfunction_files/figure-latex/pdf-tails-1.pdf>]
 Overfull \hbox (31.81445pt too wide) in paragraph at lines 342--343
 []\T1/zi4/m/n/9 geom_cdf() \T1/ppl/m/n/9 (-20) eval-u-ates a user-supplied CDF di-rectly (e.g., \T1/zi4/m/n/9 pnorm\T1/ppl/m/n/9 (-20) ) and sup-ports the same \T1/zi4/m/n/9 p\T1/ppl/m/n/9 (-20) , \T1/zi4/m/n/9 p_lower\T1/ppl/m/n/9 (-20) /\T1/zi4/m/n/9 p_upper\T1/ppl/m/n/9 (-20) ,
  []
 
-<ggfunction_files/figure-latex/cdf-shaded-1.pdf, id=314, 421.575pt x 277.035pt>
+<ggfunction_files/figure-latex/cdf-shaded-1.pdf, id=281, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/cdf-shaded-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/cdf-shaded-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/cdf-shaded-1.pdf  used on input line 351.
-(pdftex.def)             Requested size: 338.59021pt x 222.50755pt.
-<ggfunction_files/figure-latex/pmf-binomial-1.pdf, id=315, 421.575pt x 277.035pt>
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
+<ggfunction_files/figure-latex/pmf-binomial-1.pdf, id=282, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/pmf-binomial-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/pmf-binomial-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/pmf-binomial-1.pdf  used on input line 369.
-(pdftex.def)             Requested size: 338.59021pt x 222.50755pt.
-<ggfunction_files/figure-latex/qf-normal-1.pdf, id=316, 421.575pt x 279.0425pt>
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
+<ggfunction_files/figure-latex/qf-normal-1.pdf, id=283, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/qf-normal-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/qf-normal-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/qf-normal-1.pdf  used on input line 387.
-(pdftex.def)             Requested size: 338.59021pt x 224.11992pt.
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
 [10 <./ggfunction_files/figure-latex/cdf-shaded-1.pdf>] [11 <./ggfunction_files/figure-latex/pmf-binomial-1.pdf> <./ggfunction_files/figure-latex/qf-normal-1.pdf>]
-<ggfunction_files/figure-latex/discrete-cdf-1.pdf, id=350, 421.575pt x 277.035pt>
+<ggfunction_files/figure-latex/discrete-cdf-1.pdf, id=312, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/discrete-cdf-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/discrete-cdf-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/discrete-cdf-1.pdf  used on input line 408.
-(pdftex.def)             Requested size: 338.59021pt x 222.50755pt.
-<ggfunction_files/figure-latex/survival-exp-1.pdf, id=351, 421.575pt x 277.035pt>
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
+<ggfunction_files/figure-latex/survival-exp-1.pdf, id=313, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/survival-exp-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/survival-exp-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/survival-exp-1.pdf  used on input line 433.
-(pdftex.def)             Requested size: 338.59021pt x 222.50755pt.
-<ggfunction_files/figure-latex/hazard-exp-1.pdf, id=354, 421.575pt x 280.04625pt>
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
+[12 <./ggfunction_files/figure-latex/discrete-cdf-1.pdf>]
+<ggfunction_files/figure-latex/hazard-exp-1.pdf, id=331, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/hazard-exp-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/hazard-exp-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/hazard-exp-1.pdf  used on input line 463.
-(pdftex.def)             Requested size: 338.59021pt x 224.9261pt.
-[12 <./ggfunction_files/figure-latex/discrete-cdf-1.pdf>] [13 <./ggfunction_files/figure-latex/survival-exp-1.pdf> <./ggfunction_files/figure-latex/hazard-exp-1.pdf>]
-<ggfunction_files/figure-latex/hazard-normal-1.pdf, id=393, 421.575pt x 277.035pt>
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
+<ggfunction_files/figure-latex/hazard-normal-1.pdf, id=332, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/hazard-normal-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/hazard-normal-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/hazard-normal-1.pdf  used on input line 482.
-(pdftex.def)             Requested size: 338.59021pt x 222.50755pt.
-[14 <./ggfunction_files/figure-latex/hazard-normal-1.pdf>]
-<ggfunction_files/figure-latex/composability-1.pdf, id=411, 423.5825pt x 277.035pt>
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
+[13 <./ggfunction_files/figure-latex/survival-exp-1.pdf>] [14 <./ggfunction_files/figure-latex/hazard-exp-1.pdf> <./ggfunction_files/figure-latex/hazard-normal-1.pdf>]
+<ggfunction_files/figure-latex/composability-1.pdf, id=365, 433.62pt x 289.08pt>
 File: ggfunction_files/figure-latex/composability-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/composability-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/composability-1.pdf  used on input line 547.
-(pdftex.def)             Requested size: 338.59021pt x 221.45497pt.
-[15 <./ggfunction_files/figure-latex/composability-1.pdf>] (./RJwrapper.bbl (./RJwrapper.brf)
+(pdftex.def)             Requested size: 338.59021pt x 225.73732pt.
+[15] (./RJwrapper.bbl (./RJwrapper.brf)
 \tf@brf=\write6
 \openout6 = `RJwrapper.brf'.
 
-[16]
+[16 <./ggfunction_files/figure-latex/composability-1.pdf>]
 LaTeX Font Info:    Trying to load font information for T1+phv on input line 36.
-(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/t1phv.fd
+(/home/dustypi/.TinyTeX/texmf-dist/tex/latex/psnfss/t1phv.fd
 File: t1phv.fd 2020/03/25 scalable font definitions for T1/phv.
 )
 LaTeX Font Info:    Font shape `T1/phv/m/n' will be
@@ -952,21 +952,21 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 Package rerunfilecheck Info: File `RJwrapper.out' has not changed.
 (rerunfilecheck)             Checksum: 976D18088CB978FFB1B5B668D3A7BB9B;5868.
 Package rerunfilecheck Info: File `RJwrapper.brf' has not changed.
-(rerunfilecheck)             Checksum: F07FD1F72274E1287E5314650C34C4D1;636.
+(rerunfilecheck)             Checksum: 506D80E794C9AD92326A023C7C058874;636.
  ) 
 Here is how much of TeX's memory you used:
- 27544 strings out of 469453
- 507836 string characters out of 5466496
- 919632 words of memory out of 5000000
- 55294 multiletter control sequences out of 15000+600000
- 691937 words of font info for 352 fonts, out of 8000000 for 9000
- 36 hyphenation exceptions out of 8191
- 117i,12n,131p,1129b,946s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4b.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbb.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbi.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on RJwrapper.pdf (17 pages, 380918 bytes).
+ 27550 strings out of 469514
+ 503372 string characters out of 5469666
+ 919416 words of memory out of 5000000
+ 55279 multiletter control sequences out of 15000+600000
+ 692181 words of font info for 356 fonts, out of 8000000 for 9000
+ 14 hyphenation exceptions out of 8191
+ 117i,12n,131p,1127b,970s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</home/dustypi/.TinyTeX/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4b.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbb.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbi.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></home/dustypi/.TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
+Output written on RJwrapper.pdf (17 pages, 361193 bytes).
 PDF statistics:
- 572 PDF objects out of 1000 (max. 8388607)
- 461 compressed objects within 5 object streams
+ 524 PDF objects out of 1000 (max. 8388607)
+ 431 compressed objects within 5 object streams
  86 named destinations out of 1000 (max. 500000)
  83255 words of extra memory for PDF output out of 89155 (max. 10000000)
 

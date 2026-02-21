@@ -7,12 +7,12 @@
 \maketitle
 
 \abstract{%
-The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions and probability distributions. It is organized around two complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for probability distributions---density, cumulative distribution, mass, quantile, survival, and hazard functions---each with built-in support for region shading central to hypothesis testing and interval estimation. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
+The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions and probability distributions. It is organized around two complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for probability distributions--density, cumulative distribution, mass, quantile, survival, and hazard functions--each with built-in support for region shading central to hypothesis testing and interval estimation. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
 }
 
 \section{Introduction}\label{introduction}
 
-Visualizing mathematical functions is one of the most common tasks in applied mathematics and statistics---and one of the most under-supported in the grammar of graphics. Whether an instructor is shading a rejection region under a normal curve, a researcher is inspecting a scalar field over a spatial domain, or a student is tracing a parametric spiral, the need to move quickly from a function's definition to its graphical representation arises constantly. In R, \CRANpkg{ggplot2} \citep{wickham2010layered, wickham2016ggplot2} has become the dominant visualization framework, yet its native support for plotting functions remains narrow. The built-in \texttt{stat\_function()} evaluates a univariate function over a range and draws it as a path---perfectly adequate for \(f\colon \mathbb{R} \to \mathbb{R}\), but offering nothing for parametric curves, scalar fields, vector fields, or the rich family of functions associated with probability distributions.
+Visualizing mathematical functions is one of the most common tasks in applied mathematics and statistics--and one of the most under-supported in the grammar of graphics. Whether an instructor is shading a rejection region under a normal curve, a researcher is inspecting a scalar field over a spatial domain, or a student is tracing a parametric spiral, the need to move quickly from a function's definition to its graphical representation arises constantly. In R, \CRANpkg{ggplot2} \citep{wickham2010layered, wickham2016ggplot2} has become the dominant visualization framework, yet its native support for plotting functions remains narrow. The built-in \texttt{stat\_function()} evaluates a univariate function over a range and draws it as a path--perfectly adequate for \(f\colon \mathbb{R} \to \mathbb{R}\), but offering nothing for parametric curves, scalar fields, vector fields, or the rich family of functions associated with probability distributions.
 
 Several packages address pieces of this gap. \CRANpkg{ggdist} \citep{kay2024ggdist} provides sophisticated distribution visualizations oriented toward Bayesian uncertainty communication. \CRANpkg{mosaic} \citep{pruim2017mosaic} offers \texttt{plotDist()} for pedagogical work, but outside the grammar of graphics. \CRANpkg{metR} provides contour and vector-field displays for meteorological data, though it requires precomputed grids rather than function objects. None of these packages offers a unified treatment of functions organized by their dimensional structure.
 
@@ -61,7 +61,7 @@ Each class admits a natural visual encoding:
   \textbf{Vector fields} (\(\mathbb{R}^2 \to \mathbb{R}^2\)): streamlines computed by numerical integration of the field.
 \end{itemize}
 
-The naming convention---\texttt{geom\_function\_1d\_1d()}, \texttt{geom\_function\_1d\_2d()}, \texttt{geom\_function\_2d\_1d()}, and \texttt{geom\_function\_2d\_2d()}---encodes the dimensional signature directly, making the function's type explicit at the point of use.
+The naming convention--\texttt{geom\_function\_1d\_1d()}, \texttt{geom\_function\_1d\_2d()}, \texttt{geom\_function\_2d\_1d()}, and \texttt{geom\_function\_2d\_2d()}--encodes the dimensional signature directly, making the function's type explicit at the point of use.
 
 \subsection{Integration with the grammar of graphics}\label{integration-with-the-grammar-of-graphics}
 
@@ -122,7 +122,7 @@ ggplot() +
 
 \subsection{\texorpdfstring{Parametric curves: \(\mathbb{R} \to \mathbb{R}^2\)}{Parametric curves: \textbackslash mathbb\{R\} \textbackslash to \textbackslash mathbb\{R\}\^{}2}}\label{sec-parametric}
 
-A parametric curve \(\boldsymbol{\gamma}(t) = (x(t),\, y(t))\) maps a scalar parameter---typically time---to a trajectory in the plane. \texttt{geom\_function\_1d\_2d()} evaluates the user-supplied function over the range specified by \texttt{tlim} with step size \texttt{dt}, producing columns \texttt{t}, \texttt{x}, and \texttt{y}. By default, color is mapped to \texttt{after\_stat(t)} to encode progression along the curve.
+A parametric curve \(\boldsymbol{\gamma}(t) = (x(t),\, y(t))\) maps a scalar parameter--typically time--to a trajectory in the plane. \texttt{geom\_function\_1d\_2d()} evaluates the user-supplied function over the range specified by \texttt{tlim} with step size \texttt{dt}, producing columns \texttt{t}, \texttt{x}, and \texttt{y}. By default, color is mapped to \texttt{after\_stat(t)} to encode progression along the curve.
 
 \begin{verbatim}
 f_spiral <- function(t) c(sin(t), t * cos(t))
@@ -227,7 +227,7 @@ For the contour variants, the \texttt{StatFunction2dContour} and \texttt{StatFun
 
 \subsection{\texorpdfstring{Vector fields: \(\mathbb{R}^2 \to \mathbb{R}^2\)}{Vector fields: \textbackslash mathbb\{R\}\^{}2 \textbackslash to \textbackslash mathbb\{R\}\^{}2}}\label{sec-vector-fields}
 
-A vector field \(\mathbf{F}(x, y) = (F_1(x, y),\; F_2(x, y))\) assigns a direction and magnitude to each point in the plane. Visualizing such fields requires computing integral curves---trajectories that are everywhere tangent to the field. \texttt{geom\_function\_2d\_2d()} provides this capability by delegating to \pkg{ggvfields} \citep{ggvfields}, which numerically integrates the field using a fourth-order Runge--Kutta method. Streamlines are seeded on a regular grid and rendered as directed paths.
+A vector field \(\mathbf{F}(x, y) = (F_1(x, y),\; F_2(x, y))\) assigns a direction and magnitude to each point in the plane. Visualizing such fields requires computing integral curves--trajectories that are everywhere tangent to the field. \texttt{geom\_function\_2d\_2d()} provides this capability by delegating to \pkg{ggvfields} \citep{ggvfields}, which numerically integrates the field using a fourth-order Runge--Kutta method. Streamlines are seeded on a regular grid and rendered as directed paths.
 
 \begin{verbatim}
 f_rotation <- function(u) {
@@ -263,7 +263,7 @@ f(x) \geq 0 \quad \text{and} \quad \int_{-\infty}^{\infty} f(x)\, dx = 1.
 \label{eq:pdf}
 \end{equation}
 
-\texttt{geom\_pdf()} evaluates a user-supplied density and renders it as a filled area with an overlaid outline. The underlying \texttt{StatPDF} validates the normalization property \eqref{eq:pdf} using \texttt{stats::integrate()}, issuing a diagnostic via \CRANpkg{cli} \citep{cli} if the integral departs from unity by more than a specified tolerance---a guard against accidentally passing an unnormalized function.
+\texttt{geom\_pdf()} evaluates a user-supplied density and renders it as a filled area with an overlaid outline. The underlying \texttt{StatPDF} validates the normalization property \eqref{eq:pdf} using \texttt{stats::integrate()}, issuing a diagnostic via \CRANpkg{cli} \citep{cli} if the integral departs from unity by more than a specified tolerance--a guard against accidentally passing an unnormalized function.
 
 Three shading modes are supported, corresponding to common pedagogical operations.
 
@@ -283,7 +283,7 @@ ggplot() +
 \caption{Standard normal density with the lower 97.5\% shaded.}\label{fig:pdf-single}
 \end{figure}
 
-\textbf{Two-sided interval.} The \texttt{p\_lower} and \texttt{p\_upper} parameters define a central region---the natural representation for a \((1 - \alpha)\) confidence interval.
+\textbf{Two-sided interval.} The \texttt{p\_lower} and \texttt{p\_upper} parameters define a central region--the natural representation for a \((1 - \alpha)\) confidence interval.
 
 \begin{verbatim}
 ggplot() +
@@ -357,7 +357,7 @@ ggplot() +
 
 \subsection{\texorpdfstring{Probability mass functions: \texttt{geom\_pmf()}}{Probability mass functions: geom\_pmf()}}\label{probability-mass-functions-geom_pmf}
 
-For a discrete random variable with integer support, the PMF \(p(k) = P(X = k)\) satisfies \(\sum_k p(k) = 1\). \texttt{geom\_pmf()} evaluates the PMF at each integer in \texttt{xlim} and renders the result as a lollipop chart---vertical segments from the \(x\)-axis to the probability value, capped with points. The underlying \texttt{StatPMF} validates normalization by summing the computed probabilities and issues a warning if they depart significantly from unity.
+For a discrete random variable with integer support, the PMF \(p(k) = P(X = k)\) satisfies \(\sum_k p(k) = 1\). \texttt{geom\_pmf()} evaluates the PMF at each integer in \texttt{xlim} and renders the result as a lollipop chart--vertical segments from the \(x\)-axis to the probability value, capped with points. The underlying \texttt{StatPMF} validates normalization by summing the computed probabilities and issues a warning if they depart significantly from unity.
 
 \begin{verbatim}
 ggplot() +
@@ -464,7 +464,7 @@ ggplot() +
 
 }
 
-\caption{The hazard function of an $\mathrm{Exponential}(0.5)$ distribution, constant at $h(x) = 0.5$---a consequence of the memoryless property.}\label{fig:hazard-exp}
+\caption{The hazard function of an $\mathrm{Exponential}(0.5)$ distribution, constant at $h(x) = 0.5$--a consequence of the memoryless property.}\label{fig:hazard-exp}
 \end{figure}
 
 For distributions without the memoryless property, the hazard function reveals structure not apparent from the density alone. The standard normal distribution has an increasing hazard, for instance:
@@ -490,7 +490,7 @@ ggplot() +
 
 \subsection{Architecture}\label{architecture}
 
-Each \pkg{ggfunction} layer is implemented as a pair of \texttt{ggproto} objects---a \texttt{Stat} and a \texttt{Geom}---wired together by a constructor function. The constructor creates a standard \CRANpkg{ggplot2} \texttt{layer()} call, threading the user-supplied function and its parameters through to the stat's \texttt{compute\_group()} method. That method performs the core computation: evaluating the function on a grid or sequence and returning a data frame whose columns correspond to the aesthetic variables expected by the geom.
+Each \pkg{ggfunction} layer is implemented as a pair of \texttt{ggproto} objects--a \texttt{Stat} and a \texttt{Geom}--wired together by a constructor function. The constructor creates a standard \CRANpkg{ggplot2} \texttt{layer()} call, threading the user-supplied function and its parameters through to the stat's \texttt{compute\_group()} method. That method performs the core computation: evaluating the function on a grid or sequence and returning a data frame whose columns correspond to the aesthetic variables expected by the geom.
 
 The separation of computation (stat) from rendering (geom) is not merely organizational. It allows users to substitute alternative geoms or compose multiple layers from the same stat. The \texttt{StatFunction2d} object, for instance, computes a grid of scalar-field values that can be rendered by \texttt{GeomRaster}, \texttt{GeomContour}, or \texttt{GeomContourFilled}, selected at construction time through the \texttt{type} parameter.
 
@@ -568,16 +568,16 @@ Several existing packages overlap with \pkg{ggfunction} in purpose, and understa
 \item
   \CRANpkg{metR} \citep{metR}. This package provides contour and vector-field geoms designed for meteorological data, requiring precomputed grids as inputs rather than function objects. Users who already have gridded data may find \CRANpkg{metR} more convenient; users who want to visualize a function directly will find \pkg{ggfunction} more natural.
 \item
-  \pkg{ggvfields} \citep{ggvfields}. \pkg{ggfunction}'s \texttt{geom\_function\_2d\_2d()} delegates to \pkg{ggvfields} for streamline computation. For users whose primary interest is vector fields---including stream plots, gradient fields, and potential functions---\pkg{ggvfields} offers a substantially richer collection of tools built on the same \CRANpkg{ggplot2} extension architecture.
+  \pkg{ggvfields} \citep{ggvfields}. \pkg{ggfunction}'s \texttt{geom\_function\_2d\_2d()} delegates to \pkg{ggvfields} for streamline computation. For users whose primary interest is vector fields--including stream plots, gradient fields, and potential functions--\pkg{ggvfields} offers a substantially richer collection of tools built on the same \CRANpkg{ggplot2} extension architecture.
 \end{enumerate}
 
-Taken together, these packages reflect the breadth of interest in function visualization within the R ecosystem. \pkg{ggfunction} is distinguished by its unified dimensional taxonomy and its integration of the full probability distribution function family---capabilities that, to our knowledge, no other single package provides within the grammar of graphics.
+Taken together, these packages reflect the breadth of interest in function visualization within the R ecosystem. \pkg{ggfunction} is distinguished by its unified dimensional taxonomy and its integration of the full probability distribution function family--capabilities that, to our knowledge, no other single package provides within the grammar of graphics.
 
 \section{Summary}\label{summary}
 
-\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions and probability distributions. Its organizing taxonomy---classifying functions by the dimensions of their domain and codomain---yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family adds specialized support for the shading operations central to statistical pedagogy: marking quantiles, delineating confidence regions, and highlighting rejection areas.
+\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions and probability distributions. Its organizing taxonomy--classifying functions by the dimensions of their domain and codomain--yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family adds specialized support for the shading operations central to statistical pedagogy: marking quantiles, delineating confidence regions, and highlighting rejection areas.
 
-By implementing each layer as a \texttt{ggproto} stat--geom pair, the package inherits the full composability of the grammar of graphics. Functions can be overlaid, themed, faceted, and annotated using the same tools that \CRANpkg{ggplot2} users already know. The \texttt{args} injection pattern provides a clean interface for parameterized function families, and built-in validation catches common errors---such as unnormalized densities---before they produce misleading graphics.
+By implementing each layer as a \texttt{ggproto} stat--geom pair, the package inherits the full composability of the grammar of graphics. Functions can be overlaid, themed, faceted, and annotated using the same tools that \CRANpkg{ggplot2} users already know. The \texttt{args} injection pattern provides a clean interface for parameterized function families, and built-in validation catches common errors--such as unnormalized densities--before they produce misleading graphics.
 
 \pkg{ggfunction} is available at \url{https://github.com/dusty-turner/ggfunction} and can be installed via \texttt{pak::pak("dusty-turner/ggfunction")}.
 

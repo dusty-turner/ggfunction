@@ -164,7 +164,7 @@ ggplot() +
 
 
 ## ----hazard-exp, echo=TRUE----------------------------------------------------
-#| fig.cap: "The hazard function of an $\\mathrm{Exponential}(0.5)$ distribution, constant at $h(x) = 0.5$---a consequence of the memoryless property."
+#| fig.cap: "The hazard function of an $\\mathrm{Exponential}(0.5)$ distribution, constant at $h(x) = 0.5$--a consequence of the memoryless property."
 ggplot() +
   geom_hf(
     pdf_fun = dexp, cdf_fun = pexp,
