@@ -1,0 +1,42 @@
+name: Move Docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+
+jobs:
+  move-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config --global user.email "dusty.s.turner@gmail.com"
+          git config --global user.name "dusty-turner"
+
+      - name: Move docs to blog-reboot
+        env:
+          PAT: ${{ secrets.PAT }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync
+
+          # Clone the target repository
+          git clone https://$PAT@github.com/dusty-turner/blog-reboot.git
+
+          # Synchronize the files to the target repository, replacing existing contents
+          rsync -av --delete docs/ blog-reboot/public/ggfunction/
+
+          # Commit and push the changes
+          cd blog-reboot
+          git add .
+          git commit -m "Move docs from ggfunction"
+          git push https://$PAT@github.com/dusty-turner/blog-reboot.git
