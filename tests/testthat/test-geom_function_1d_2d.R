@@ -5,8 +5,7 @@ test_that("Stat_1d_2d computes trajectory correctly", {
     data = data.frame(group = 1),
     scales = scales,
     fun = f,
-    t0 = 0,
-    T = 2 * pi,
+    tlim = c(0, 2 * pi),
     dt = 0.1,
     args = list()
   )

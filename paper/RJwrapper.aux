@@ -14,7 +14,6 @@
 \@writefile{brf}{\backcite{kay2024ggdist}{{1}{2.1}{section.2.1}}}
 \@writefile{brf}{\backcite{pruim2017mosaic}{{1}{2.1}{section.2.1}}}
 \citation{wilkinson2005grammar}
-\citation{rlang}
 \@writefile{toc}{\contentsline {section}{\numberline {2.2}Design principles}{2}{section.2.2}\protected@file@percent }
 \newlabel{design-principles}{{2.2}{2}{Design principles}{section.2.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}A taxonomy grounded in dimension}{2}{subsection.2.2.1}\protected@file@percent }
@@ -23,11 +22,10 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}Integration with the grammar of graphics}{2}{subsection.2.2.2}\protected@file@percent }
 \newlabel{integration-with-the-grammar-of-graphics}{{2.2.2}{2}{Integration with the grammar of graphics}{subsection.2.2.2}{}}
 \@writefile{brf}{\backcite{wilkinson2005grammar}{{2}{2.2.2}{subsection.2.2.2}}}
-\@writefile{brf}{\backcite{rlang}{{2}{2.2.2}{subsection.2.2.2}}}
 \@writefile{toc}{\contentsline {section}{\numberline {2.3}The dimensional taxonomy}{2}{section.2.3}\protected@file@percent }
 \newlabel{the-dimensional-taxonomy}{{2.3}{2}{The dimensional taxonomy}{section.2.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Scalar functions: \(\PazoBB  {R} \to \PazoBB  {R}\)}{2}{subsection.2.3.1}\protected@file@percent }
-\newlabel{scalar-functions-mathbbr-to-mathbbr}{{2.3.1}{2}{\texorpdfstring {Scalar functions: \(\mathbb {R} \to \mathbb {R}\)}{Scalar functions: \textbackslash mathbb\{R\} \textbackslash to \textbackslash mathbb\{R\}}}{subsection.2.3.1}{}}
+\newlabel{sec-1d-1d}{{2.3.1}{2}{\texorpdfstring {Scalar functions: \(\mathbb {R} \to \mathbb {R}\)}{Scalar functions: \textbackslash mathbb\{R\} \textbackslash to \textbackslash mathbb\{R\}}}{subsection.2.3.1}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces The sine function over one full period.}}{3}{figure.caption.2}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
 \newlabel{fig:sin-curve}{{1}{3}{The sine function over one full period}{figure.caption.2}{}}
@@ -35,8 +33,8 @@
 \newlabel{sec-parametric}{{2.3.2}{3}{\texorpdfstring {Parametric curves: \(\mathbb {R} \to \mathbb {R}^2\)}{Parametric curves: \textbackslash mathbb\{R\} \textbackslash to \textbackslash mathbb\{R\}\^{}2}}{subsection.2.3.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces The standard normal density with the interval $[-1, 1]$ shaded, corresponding to approximately 68\% of the total area.}}{4}{figure.caption.3}\protected@file@percent }
 \newlabel{fig:shaded-normal}{{2}{4}{The standard normal density with the interval $[-1, 1]$ shaded, corresponding to approximately 68\% of the total area}{figure.caption.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces A parametric spiral defined by $\boldsymbol  {\gamma }(t) = (\sin t,\tmspace  +\thickmuskip {.2777em} t\cos t)$ for $t \in [0, 20]$, with color encoding the time parameter.}}{4}{figure.caption.4}\protected@file@percent }
-\newlabel{fig:spiral}{{3}{4}{A parametric spiral defined by $\boldsymbol {\gamma }(t) = (\sin t,\; t\cos t)$ for $t \in [0, 20]$, with color encoding the time parameter}{figure.caption.4}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces A parametric spiral $\boldsymbol  {\gamma }(t) = (\sin t,\tmspace  +\thickmuskip {.2777em} t\cos t)$ for $t \in [0, 20]$, with color encoding the time parameter.}}{4}{figure.caption.4}\protected@file@percent }
+\newlabel{fig:spiral}{{3}{4}{A parametric spiral $\boldsymbol {\gamma }(t) = (\sin t,\; t\cos t)$ for $t \in [0, 20]$, with color encoding the time parameter}{figure.caption.4}{}}
 \citation{ggvfields}
 \@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces A Lissajous figure with frequency ratio $a/b = 3/2$ and phase offset $\delta = \pi /2$.}}{5}{figure.caption.5}\protected@file@percent }
 \newlabel{fig:lissajous}{{4}{5}{A Lissajous figure with frequency ratio $a/b = 3/2$ and phase offset $\delta = \pi /2$}{figure.caption.5}{}}
@@ -57,32 +55,32 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4.1}Density functions: \texttt  {geom\_pdf()}}{7}{subsection.2.4.1}\protected@file@percent }
 \newlabel{density-functions-geom_pdf}{{2.4.1}{7}{\texorpdfstring {Density functions: \texttt {geom\_pdf()}}{Density functions: geom\_pdf()}}{subsection.2.4.1}{}}
 \newlabel{eq:pdf}{{2}{7}{\texorpdfstring {Density functions: \texttt {geom\_pdf()}}{Density functions: geom\_pdf()}}{equation.2.2}{}}
-\@writefile{brf}{\backcite{cli}{{7}{2.4.1}{equation.2.2}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Standard normal density with the region corresponding to $P(X \leq x_{0.975})$ shaded.}}{8}{figure.caption.9}\protected@file@percent }
-\newlabel{fig:pdf-single}{{8}{8}{Standard normal density with the region corresponding to $P(X \leq x_{0.975})$ shaded}{figure.caption.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Standard normal density with the lower 97.5\% shaded.}}{8}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:pdf-single}{{8}{8}{Standard normal density with the lower 97.5\% shaded}{figure.caption.9}{}}
+\@writefile{brf}{\backcite{cli}{{8}{2.4.1}{equation.2.2}}}
 \newlabel{eq:trapezoid}{{3}{8}{\texorpdfstring {Density functions: \texttt {geom\_pdf()}}{Density functions: geom\_pdf()}}{equation.2.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.2}Cumulative distribution functions: \texttt  {geom\_cdf()}}{8}{subsection.2.4.2}\protected@file@percent }
-\newlabel{cumulative-distribution-functions-geom_cdf}{{2.4.2}{8}{\texorpdfstring {Cumulative distribution functions: \texttt {geom\_cdf()}}{Cumulative distribution functions: geom\_cdf()}}{subsection.2.4.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces The central 95\% of the standard normal density, corresponding to the interval between the 2.5th and 97.5th percentiles.}}{9}{figure.caption.10}\protected@file@percent }
 \newlabel{fig:pdf-two-sided}{{9}{9}{The central 95\% of the standard normal density, corresponding to the interval between the 2.5th and 97.5th percentiles}{figure.caption.10}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces The rejection region of a two-sided test at $\alpha = 0.05$, shading the area outside the central 95\%.}}{9}{figure.caption.11}\protected@file@percent }
 \newlabel{fig:pdf-tails}{{10}{9}{The rejection region of a two-sided test at $\alpha = 0.05$, shading the area outside the central 95\%}{figure.caption.11}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces The standard normal CDF with the region below $p = 0.975$ shaded.}}{10}{figure.caption.12}\protected@file@percent }
 \newlabel{fig:cdf-shaded}{{11}{10}{The standard normal CDF with the region below $p = 0.975$ shaded}{figure.caption.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.2}Cumulative distribution functions: \texttt  {geom\_cdf()}}{10}{subsection.2.4.2}\protected@file@percent }
+\newlabel{cumulative-distribution-functions-geom_cdf}{{2.4.2}{10}{\texorpdfstring {Cumulative distribution functions: \texttt {geom\_cdf()}}{Cumulative distribution functions: geom\_cdf()}}{subsection.2.4.2}{}}
 \newlabel{eq:cdf}{{4}{10}{\texorpdfstring {Cumulative distribution functions: \texttt {geom\_cdf()}}{Cumulative distribution functions: geom\_cdf()}}{equation.2.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4.3}Probability mass functions: \texttt  {geom\_pmf()}}{10}{subsection.2.4.3}\protected@file@percent }
 \newlabel{probability-mass-functions-geom_pmf}{{2.4.3}{10}{\texorpdfstring {Probability mass functions: \texttt {geom\_pmf()}}{Probability mass functions: geom\_pmf()}}{subsection.2.4.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4.4}Quantile functions: \texttt  {geom\_qf()}}{10}{subsection.2.4.4}\protected@file@percent }
 \newlabel{quantile-functions-geom_qf}{{2.4.4}{10}{\texorpdfstring {Quantile functions: \texttt {geom\_qf()}}{Quantile functions: geom\_qf()}}{subsection.2.4.4}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.5}Discrete cumulative distribution functions: \texttt  {geom\_discrete\_cdf()}}{10}{subsection.2.4.5}\protected@file@percent }
-\newlabel{discrete-cumulative-distribution-functions-geom_discrete_cdf}{{2.4.5}{10}{\texorpdfstring {Discrete cumulative distribution functions: \texttt {geom\_discrete\_cdf()}}{Discrete cumulative distribution functions: geom\_discrete\_cdf()}}{subsection.2.4.5}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces The PMF of a Binomial(10, 0.3) distribution, rendered as a lollipop chart.}}{11}{figure.caption.13}\protected@file@percent }
-\newlabel{fig:pmf-binomial}{{12}{11}{The PMF of a Binomial(10, 0.3) distribution, rendered as a lollipop chart}{figure.caption.13}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.5}Discrete CDFs: \texttt  {geom\_discrete\_cdf()}}{10}{subsection.2.4.5}\protected@file@percent }
+\newlabel{discrete-cdfs-geom_discrete_cdf}{{2.4.5}{10}{\texorpdfstring {Discrete CDFs: \texttt {geom\_discrete\_cdf()}}{Discrete CDFs: geom\_discrete\_cdf()}}{subsection.2.4.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces The PMF of a $\mathrm  {Binomial}(10, 0.3)$ distribution, rendered as a lollipop chart.}}{11}{figure.caption.13}\protected@file@percent }
+\newlabel{fig:pmf-binomial}{{12}{11}{The PMF of a $\mathrm {Binomial}(10, 0.3)$ distribution, rendered as a lollipop chart}{figure.caption.13}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces The quantile function of the standard normal distribution.}}{11}{figure.caption.14}\protected@file@percent }
 \newlabel{fig:qf-normal}{{13}{11}{The quantile function of the standard normal distribution}{figure.caption.14}{}}
 \citation{casella2002statistical}
-\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces The discrete CDF of a Binomial(10, 0.5) distribution with the region below $p = 0.9$ shaded.}}{12}{figure.caption.15}\protected@file@percent }
-\newlabel{fig:discrete-cdf}{{14}{12}{The discrete CDF of a Binomial(10, 0.5) distribution with the region below $p = 0.9$ shaded}{figure.caption.15}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces The discrete CDF of a $\mathrm  {Binomial}(10, 0.5)$ distribution with the region below $p = 0.9$ shaded.}}{12}{figure.caption.15}\protected@file@percent }
+\newlabel{fig:discrete-cdf}{{14}{12}{The discrete CDF of a $\mathrm {Binomial}(10, 0.5)$ distribution with the region below $p = 0.9$ shaded}{figure.caption.15}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4.6}Survival functions: \texttt  {geom\_survival()}}{12}{subsection.2.4.6}\protected@file@percent }
 \newlabel{survival-functions-geom_survival}{{2.4.6}{12}{\texorpdfstring {Survival functions: \texttt {geom\_survival()}}{Survival functions: geom\_survival()}}{subsection.2.4.6}{}}
 \newlabel{eq:survival}{{5}{12}{\texorpdfstring {Survival functions: \texttt {geom\_survival()}}{Survival functions: geom\_survival()}}{equation.2.5}{}}
@@ -90,37 +88,49 @@
 \newlabel{hazard-functions-geom_hf}{{2.4.7}{12}{\texorpdfstring {Hazard functions: \texttt {geom\_hf()}}{Hazard functions: geom\_hf()}}{subsection.2.4.7}{}}
 \newlabel{eq:hazard}{{6}{12}{\texorpdfstring {Hazard functions: \texttt {geom\_hf()}}{Hazard functions: geom\_hf()}}{equation.2.6}{}}
 \@writefile{brf}{\backcite{casella2002statistical}{{12}{2.4.7}{equation.2.6}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces The survival function of an Exponential($\lambda = 0.5$) distribution, representing $S(x) = e^{-0.5x}$.}}{13}{figure.caption.16}\protected@file@percent }
-\newlabel{fig:survival-exp}{{15}{13}{The survival function of an Exponential($\lambda = 0.5$) distribution, representing $S(x) = e^{-0.5x}$}{figure.caption.16}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.5}Implementation}{13}{section.2.5}\protected@file@percent }
-\newlabel{implementation}{{2.5}{13}{Implementation}{section.2.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.1}Architecture}{13}{subsection.2.5.1}\protected@file@percent }
-\newlabel{architecture}{{2.5.1}{13}{Architecture}{subsection.2.5.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.2}Function injection}{13}{subsection.2.5.2}\protected@file@percent }
-\newlabel{function-injection}{{2.5.2}{13}{Function injection}{subsection.2.5.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces The hazard function of an Exponential($\lambda = 0.5$) distribution, which is constant at $h(x) = 0.5$---the memoryless property.}}{14}{figure.caption.17}\protected@file@percent }
-\newlabel{fig:hazard-exp}{{16}{14}{The hazard function of an Exponential($\lambda = 0.5$) distribution, which is constant at $h(x) = 0.5$---the memoryless property}{figure.caption.17}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces The hazard function of the standard normal distribution, illustrating the increasing failure rate.}}{14}{figure.caption.18}\protected@file@percent }
-\newlabel{fig:hazard-normal}{{17}{14}{The hazard function of the standard normal distribution, illustrating the increasing failure rate}{figure.caption.18}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {18}{\ignorespaces Two normal densities overlaid with custom colors, scales, and theme, demonstrating composability with the grammar of graphics.}}{15}{figure.caption.19}\protected@file@percent }
-\newlabel{fig:composability}{{18}{15}{Two normal densities overlaid with custom colors, scales, and theme, demonstrating composability with the grammar of graphics}{figure.caption.19}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces The survival function of an $\mathrm  {Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$.}}{13}{figure.caption.16}\protected@file@percent }
+\newlabel{fig:survival-exp}{{15}{13}{The survival function of an $\mathrm {Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$}{figure.caption.16}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces The hazard function of an $\mathrm  {Exponential}(0.5)$ distribution, constant at $h(x) = 0.5$---a consequence of the memoryless property.}}{13}{figure.caption.17}\protected@file@percent }
+\newlabel{fig:hazard-exp}{{16}{13}{The hazard function of an $\mathrm {Exponential}(0.5)$ distribution, constant at $h(x) = 0.5$---a consequence of the memoryless property}{figure.caption.17}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces The increasing hazard function of the standard normal distribution.}}{14}{figure.caption.18}\protected@file@percent }
+\newlabel{fig:hazard-normal}{{17}{14}{The increasing hazard function of the standard normal distribution}{figure.caption.18}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.5}Implementation}{14}{section.2.5}\protected@file@percent }
+\newlabel{implementation}{{2.5}{14}{Implementation}{section.2.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.1}Architecture}{14}{subsection.2.5.1}\protected@file@percent }
+\newlabel{architecture}{{2.5.1}{14}{Architecture}{subsection.2.5.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.2}Function injection}{14}{subsection.2.5.2}\protected@file@percent }
+\newlabel{function-injection}{{2.5.2}{14}{Function injection}{subsection.2.5.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {18}{\ignorespaces Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics.}}{15}{figure.caption.19}\protected@file@percent }
+\newlabel{fig:composability}{{18}{15}{Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics}{figure.caption.19}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.5.3}Numerical considerations}{15}{subsection.2.5.3}\protected@file@percent }
 \newlabel{numerical-considerations}{{2.5.3}{15}{Numerical considerations}{subsection.2.5.3}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {2.6}Composability and the grammar}{15}{section.2.6}\protected@file@percent }
 \newlabel{composability-and-the-grammar}{{2.6}{15}{Composability and the grammar}{section.2.6}{}}
+\citation{wickham2016ggplot2}
+\citation{kay2024ggdist}
+\citation{pruim2017mosaic}
+\citation{metR}
+\citation{ggvfields}
 \bibdata{RJreferences.bib}
-\bibcite{casella2002statistical}{{1}{2002}{{Casella and Berger}}{{}}}
-\bibcite{cli}{{2}{2024}{{Cs{\'a}rdi}}{{}}}
-\bibcite{rlang}{{3}{2024}{{Henry and Wickham}}{{}}}
+\bibcite{metR}{{1}{2024}{{Campitelli}}{{}}}
+\bibcite{casella2002statistical}{{2}{2002}{{Casella and Berger}}{{}}}
+\bibcite{cli}{{3}{2024}{{Cs{\'a}rdi}}{{}}}
 \bibcite{kay2024ggdist}{{4}{2024}{{Kay}}{{}}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.7}Related packages}{16}{section.2.7}\protected@file@percent }
+\newlabel{sec:related}{{2.7}{16}{Related packages}{section.2.7}{}}
+\@writefile{brf}{\backcite{wickham2016ggplot2}{{16}{1}{Item.3}}}
+\@writefile{brf}{\backcite{kay2024ggdist}{{16}{2}{Item.4}}}
+\@writefile{brf}{\backcite{pruim2017mosaic}{{16}{3}{Item.5}}}
+\@writefile{brf}{\backcite{metR}{{16}{4}{Item.6}}}
+\@writefile{brf}{\backcite{ggvfields}{{16}{5}{Item.7}}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.8}Summary}{16}{section.2.8}\protected@file@percent }
+\newlabel{summary}{{2.8}{16}{Summary}{section.2.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.9}Acknowledgments}{16}{section.2.9}\protected@file@percent }
+\newlabel{acknowledgments}{{2.9}{16}{Acknowledgments}{section.2.9}{}}
 \bibcite{pruim2017mosaic}{{5}{2017}{{Pruim et~al.}}{{Pruim, Kaplan, and Horton}}}
 \bibcite{ggvfields}{{6}{2026}{{Turner and Kahle}}{{}}}
 \bibcite{wickham2010layered}{{7}{2010}{{Wickham}}{{}}}
 \bibcite{wickham2016ggplot2}{{8}{2016}{{Wickham}}{{}}}
 \bibcite{wilkinson2005grammar}{{9}{2005}{{Wilkinson}}{{}}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.7}Summary}{16}{section.2.7}\protected@file@percent }
-\newlabel{summary}{{2.7}{16}{Summary}{section.2.7}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.8}Acknowledgments}{16}{section.2.8}\protected@file@percent }
-\newlabel{acknowledgments}{{2.8}{16}{Acknowledgments}{section.2.8}{}}
 \ttl@finishall
 \gdef \@abspage@last{17}

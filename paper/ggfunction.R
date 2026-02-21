@@ -3,7 +3,7 @@
 
 ## ----setup, include=FALSE-----------------------------------------------------
 knitr::opts_chunk$set(
-  echo = TRUE,
+  echo = FALSE,
   collapse = TRUE,
   comment = "#>",
   fig.width = 6,
@@ -13,133 +13,158 @@ knitr::opts_chunk$set(
   warning = FALSE,
   message = FALSE
 )
+
+options(
+  ggplot2.continuous.colour = NULL,
+  ggplot2.continuous.fill = NULL
+)
+
 library(ggfunction)
 library(ggplot2)
 
 
-## ----eval=FALSE---------------------------------------------------------------
-# # Instead of wrapping:
+## ----eval=FALSE, echo=TRUE----------------------------------------------------
+# # instead of wrapping in an anonymous function:
 # ggplot() + geom_pdf(fun = function(x) dnorm(x, mean = 5, sd = 2), xlim = c(0, 10))
 # 
-# # Users can write:
+# # users can write:
 # ggplot() + geom_pdf(fun = dnorm, args = list(mean = 5, sd = 2), xlim = c(0, 10))
 
 
-## ----sin-curve, fig.cap="The sine function over one full period."-------------
+## ----sin-curve, echo=TRUE-----------------------------------------------------
+#| fig.cap: "The sine function over one full period."
 ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi))
 
 
-## ----shaded-normal, fig.cap="The standard normal density with the interval $[-1, 1]$ shaded, corresponding to approximately 68\\% of the total area."----
+## ----shaded-normal, echo=TRUE-------------------------------------------------
+#| fig.cap: "The standard normal density with the interval $[-1, 1]$ shaded, corresponding to approximately 68\\% of the total area."
 ggplot() +
   geom_function_1d_1d(
     fun = dnorm, xlim = c(-3, 3),
-    shade_from = -1, shade_to = 1, fill = "steelblue"
+    shade_from = -1, shade_to = 1
   )
 
 
-## ----spiral, fig.cap="A parametric spiral defined by $\\boldsymbol{\\gamma}(t) = (\\sin t,\\; t\\cos t)$ for $t \\in [0, 20]$, with color encoding the time parameter."----
+## ----spiral, echo=TRUE--------------------------------------------------------
+#| fig.cap: "A parametric spiral $\\boldsymbol{\\gamma}(t) = (\\sin t,\\; t\\cos t)$ for $t \\in [0, 20]$, with color encoding the time parameter."
 f_spiral <- function(t) c(sin(t), t * cos(t))
+
 ggplot() +
-  geom_function_1d_2d(fun = f_spiral, T = 20, tail_point = TRUE)
+  geom_function_1d_2d(fun = f_spiral, tlim = c(0, 20), tail_point = TRUE)
 
 
-## ----lissajous, fig.cap="A Lissajous figure with frequency ratio $a/b = 3/2$ and phase offset $\\delta = \\pi/2$."----
+## ----lissajous, echo=TRUE-----------------------------------------------------
+#| fig.cap: "A Lissajous figure with frequency ratio $a/b = 3/2$ and phase offset $\\delta = \\pi/2$."
 lissajous <- function(t, A = 1, B = 1, a = 3, b = 2, delta = pi/2) {
   c(A * sin(a * t + delta), B * sin(b * t))
 }
 
 ggplot() +
   geom_function_1d_2d(
-    fun = lissajous, T = 2 * pi, color = "black", arrow = NULL,
+    fun = lissajous, tlim = c(0, 2 * pi), arrow = NULL,
     args = list(A = 1, B = 1, a = 3, b = 2, delta = pi/2)
   )
 
 
-## ----gaussian-raster, fig.cap="A Gaussian bump $f(x, y) = \\exp(-(x^2 + y^2)/2)$ rendered as a raster heatmap."----
-f_gaussian <- function(v) exp(-(v[1]^2 + v[2]^2) / 2)
+## ----gaussian-raster, echo=TRUE-----------------------------------------------
+#| fig.cap: "A Gaussian bump $f(x, y) = \\exp(-(x^2 + y^2)/2)$ rendered as a raster heatmap."
+f_gaussian <- function(u) {
+  x <- u[1]; y <- u[2]
+  exp(-(x^2 + y^2) / 2)
+}
 
 ggplot() +
-  geom_function_2d_1d(
-    fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3)
-  )
+  geom_function_2d_1d(fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3))
 
 
-## ----gaussian-contour, fig.cap="The same Gaussian bump rendered as contour lines (left) and filled contours (right).", fig.width=10, fig.height=4----
-library(gridExtra)
+## ----gaussian-contour, echo=TRUE, fig.width=10, fig.height=4------------------
+#| fig.cap: "The same Gaussian bump rendered as contour lines (left) and filled contours (right)."
+library("gridExtra")
+
 p_contour <- ggplot() +
   geom_function_2d_1d(
     fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour"
-  ) + ggtitle("Contour lines")
+  ) + ggtitle("type = \"contour\"")
 
 p_filled <- ggplot() +
   geom_function_2d_1d(
     fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour_filled"
-  ) + ggtitle("Filled contours")
+  ) + ggtitle("type = \"contour_filled\"")
 
 grid.arrange(p_contour, p_filled, ncol = 2)
 
 
-## ----rotation-field, fig.cap="The rotation field $\\mathbf{F}(x, y) = (-y, x)$ visualized as streamlines. Each curve follows the counterclockwise flow induced by the field."----
-f_rotation <- function(v) c(-v[2], v[1])
+## ----rotation-field, echo=TRUE------------------------------------------------
+#| fig.cap: "The rotation field $\\mathbf{F}(x, y) = (-y, x)$ visualized as streamlines. Each curve follows the counterclockwise flow induced by the field."
+f_rotation <- function(u) {
+  x <- u[1]; y <- u[2]
+  c(-y, x)
+}
+
 ggplot() +
-  geom_function_2d_2d(
-    fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1)
-  )
+  geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1))
 
 
-## ----pdf-single, fig.cap="Standard normal density with the region corresponding to $P(X \\leq x_{0.975})$ shaded."----
+## ----pdf-single, echo=TRUE----------------------------------------------------
+#| fig.cap: "Standard normal density with the lower 97.5\\% shaded."
 ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975, fill = "tomato")
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975)
 
 
-## ----pdf-two-sided, fig.cap="The central 95\\% of the standard normal density, corresponding to the interval between the 2.5th and 97.5th percentiles."----
-ggplot() +
-  geom_pdf(
-    fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, fill = "steelblue"
-  )
-
-
-## ----pdf-tails, fig.cap="The rejection region of a two-sided test at $\\alpha = 0.05$, shading the area outside the central 95\\%."----
+## ----pdf-two-sided, echo=TRUE-------------------------------------------------
+#| fig.cap: "The central 95\\% of the standard normal density, corresponding to the interval between the 2.5th and 97.5th percentiles."
 ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE, fill = "tomato"
+    p_lower = 0.025, p_upper = 0.975
   )
 
 
-## ----cdf-shaded, fig.cap="The standard normal CDF with the region below $p = 0.975$ shaded."----
+## ----pdf-tails, echo=TRUE-----------------------------------------------------
+#| fig.cap: "The rejection region of a two-sided test at $\\alpha = 0.05$, shading the area outside the central 95\\%."
 ggplot() +
-  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, fill = "darkgreen")
+  geom_pdf(
+    fun = dnorm, xlim = c(-3, 3),
+    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE
+  )
 
 
-## ----pmf-binomial, fig.cap="The PMF of a Binomial(10, 0.3) distribution, rendered as a lollipop chart."----
+## ----cdf-shaded, echo=TRUE----------------------------------------------------
+#| fig.cap: "The standard normal CDF with the region below $p = 0.975$ shaded."
+ggplot() +
+  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975)
+
+
+## ----pmf-binomial, echo=TRUE--------------------------------------------------
+#| fig.cap: "The PMF of a $\\mathrm{Binomial}(10, 0.3)$ distribution, rendered as a lollipop chart."
 ggplot() +
   geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
 
 
-## ----qf-normal, fig.cap="The quantile function of the standard normal distribution."----
+## ----qf-normal, echo=TRUE-----------------------------------------------------
+#| fig.cap: "The quantile function of the standard normal distribution."
 ggplot() +
-  geom_qf(fun = qnorm, args = list(mean = 0, sd = 1))
+  geom_qf(fun = qnorm)
 
 
-## ----discrete-cdf, fig.cap="The discrete CDF of a Binomial(10, 0.5) distribution with the region below $p = 0.9$ shaded."----
+## ----discrete-cdf, echo=TRUE--------------------------------------------------
+#| fig.cap: "The discrete CDF of a $\\mathrm{Binomial}(10, 0.5)$ distribution with the region below $p = 0.9$ shaded."
 ggplot() +
   geom_discrete_cdf(
     fun = dbinom, args = list(size = 10, prob = 0.5),
-    xlim = c(0, 10), p = 0.9, fill = "steelblue"
+    xlim = c(0, 10), p = 0.9
   )
 
 
-## ----survival-exp, fig.cap="The survival function of an Exponential($\\lambda = 0.5$) distribution, representing $S(x) = e^{-0.5x}$."----
+## ----survival-exp, echo=TRUE--------------------------------------------------
+#| fig.cap: "The survival function of an $\\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$."
 ggplot() +
-  geom_survival(
-    fun = pexp, args = list(rate = 0.5), xlim = c(0, 10)
-  )
+  geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 
 
-## ----hazard-exp, fig.cap="The hazard function of an Exponential($\\lambda = 0.5$) distribution, which is constant at $h(x) = 0.5$---the memoryless property."----
+## ----hazard-exp, echo=TRUE----------------------------------------------------
+#| fig.cap: "The hazard function of an $\\mathrm{Exponential}(0.5)$ distribution, constant at $h(x) = 0.5$---a consequence of the memoryless property."
 ggplot() +
   geom_hf(
     pdf_fun = dexp, cdf_fun = pexp,
@@ -147,7 +172,8 @@ ggplot() +
   )
 
 
-## ----hazard-normal, fig.cap="The hazard function of the standard normal distribution, illustrating the increasing failure rate."----
+## ----hazard-normal, echo=TRUE-------------------------------------------------
+#| fig.cap: "The increasing hazard function of the standard normal distribution."
 ggplot() +
   geom_hf(
     pdf_fun = dnorm, cdf_fun = pnorm,
@@ -155,24 +181,28 @@ ggplot() +
   )
 
 
-## ----eval=FALSE---------------------------------------------------------------
+## ----eval=FALSE, echo=TRUE----------------------------------------------------
 # fun_injected <- function(x) {
 #   rlang::inject(fun(x, !!!args))
 # }
 
 
-## ----composability, fig.cap="Two normal densities overlaid with custom colors, scales, and theme, demonstrating composability with the grammar of graphics."----
+## ----composability, echo=TRUE-------------------------------------------------
+#| fig.cap: "Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics."
 ggplot() +
-  geom_pdf(fun = dnorm, args = list(mean = 0, sd = 1),
-           xlim = c(-5, 8), fill = "steelblue", alpha = 0.4) +
-  geom_pdf(fun = dnorm, args = list(mean = 3, sd = 1.5),
-           xlim = c(-5, 8), fill = "tomato", alpha = 0.4) +
+  geom_pdf(
+    fun = dnorm, args = list(mean = 0, sd = 1),
+    xlim = c(-5, 8), alpha = 0.4
+  ) +
+  geom_pdf(
+    fun = dnorm, args = list(mean = 3, sd = 1.5),
+    xlim = c(-5, 8), alpha = 0.4
+  ) +
   labs(x = "x", y = "f(x)", title = "Comparing two normal densities") +
   theme_minimal()
 
 
 ## ----echo=FALSE, results="asis"-----------------------------------------------
-# Generate package citations
 pkg_list <- c("ggplot2", "rlang", "cli")
 for (pkg in pkg_list) {
   if (requireNamespace(pkg, quietly = TRUE)) invisible(NULL)

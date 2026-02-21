@@ -5,6 +5,12 @@
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
 
+\bibitem[Campitelli(2024)]{metR}
+E.~Campitelli.
+\newblock \emph{{metR}: Tools for Easier Analysis of Meteorological Fields}, 2024.
+\newblock URL \url{https://CRAN.R-project.org/package=metR}.
+\newblock R package.
+
 \bibitem[Casella and Berger(2002)]{casella2002statistical}
 G.~Casella and R.~L. Berger.
 \newblock \emph{Statistical Inference}.
@@ -14,12 +20,6 @@ G.~Casella and R.~L. Berger.
 G.~Cs{\'a}rdi.
 \newblock \emph{{cli}: Helpers for Developing Command Line Interfaces}, 2024.
 \newblock URL \url{https://CRAN.R-project.org/package=cli}.
-\newblock R package.
-
-\bibitem[Henry and Wickham(2024)]{rlang}
-L.~Henry and H.~Wickham.
-\newblock \emph{{rlang}: Functions for Base Types and Core \proglang{R} and Tidyverse Features}, 2024.
-\newblock URL \url{https://CRAN.R-project.org/package=rlang}.
 \newblock R package.
 
 \bibitem[Kay(2024)]{kay2024ggdist}

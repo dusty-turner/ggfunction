@@ -1,24 +1,20 @@
 ---
 title: "ggfunction: A Grammar of Graphics for Mathematical Functions and Probability Distributions"
 abstract: >
-  We introduce ggfunction, an R package that extends ggplot2 to provide a
-  principled, unified interface for visualizing mathematical functions and
-  probability distributions. The package is organized around two complementary
-  families. The first is a dimensional taxonomy that classifies functions by their
-  input and output dimensions: scalar functions
+  The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled,
+  unified interface for visualizing mathematical functions and probability distributions.
+  It is organized around two complementary families. The first is a dimensional taxonomy
+  classifying functions by their input and output dimensions: scalar functions
   $f\colon \mathbb{R} \to \mathbb{R}$, parametric curves
   $\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2$, scalar fields
   $f\colon \mathbb{R}^2 \to \mathbb{R}$, and vector fields
   $\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2$. The second family provides
-  specialized geoms for probability distributions---density, cumulative
-  distribution, mass, quantile, survival, and hazard functions---each with
-  built-in support for region shading that arises naturally in hypothesis testing
-  and interval estimation. By embedding function evaluation, numerical
-  integration, and validation directly into the ggplot2 layer system, ggfunction
-  allows users to move from mathematical definition to publication-quality
-  visualization in a single, composable call. We describe the design of the
-  package, demonstrate its use across both families, and discuss its role in
-  statistical pedagogy.
+  specialized geoms for probability distributions---density, cumulative distribution,
+  mass, quantile, survival, and hazard functions---each with built-in support for
+  region shading central to hypothesis testing and interval estimation. By embedding
+  function evaluation, numerical integration, and validation directly into the
+  \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical
+  definition to a publication-quality visualization in a single, composable call.
 author:
   - name: Dusty Turner
     affiliation: United States Military Academy
@@ -53,7 +49,7 @@ packages:
     - ggfunction
     - ggvfields
 CTV: ~
-output: 
+output:
   rjtools::rjournal_pdf_article:
     toc: no
   rjtools::rjournal_web_article:
@@ -68,7 +64,7 @@ bibliography: RJreferences.bib
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  echo = TRUE,
+  echo = FALSE,
   collapse = TRUE,
   comment = "#>",
   fig.width = 6,
@@ -78,30 +74,36 @@ knitr::opts_chunk$set(
   warning = FALSE,
   message = FALSE
 )
+
+options(
+  ggplot2.continuous.colour = NULL,
+  ggplot2.continuous.fill = NULL
+)
+
 library(ggfunction)
 library(ggplot2)
 ```
 
 # Introduction
 
-The visualization of mathematical functions is a fundamental task in both applied mathematics and statistics education. Whether an instructor is sketching a probability density on the board, a researcher is inspecting a scalar field, or a student is exploring the behavior of a parametric curve, the need to move quickly from a function's definition to its graphical representation arises constantly. In \proglang{R}, the \CRANpkg{ggplot2} system [@wickham2010layered; @wickham2016ggplot2] has become the dominant framework for data visualization, yet its native support for plotting functions---as opposed to data---remains limited. The built-in `stat_function()` evaluates a univariate function over a specified range and renders the result as a path. This single mechanism handles $f\colon \mathbb{R} \to \mathbb{R}$ adequately, but offers no support for parametric curves, scalar fields, vector fields, or the rich family of probability distribution functions that appear throughout statistics.
+Visualizing mathematical functions is one of the most common tasks in applied mathematics and statistics---and one of the most under-supported in the grammar of graphics. Whether an instructor is shading a rejection region under a normal curve, a researcher is inspecting a scalar field over a spatial domain, or a student is tracing a parametric spiral, the need to move quickly from a function's definition to its graphical representation arises constantly. In R, \CRANpkg{ggplot2} [@wickham2010layered; @wickham2016ggplot2] has become the dominant visualization framework, yet its native support for plotting functions remains narrow. The built-in `stat_function()` evaluates a univariate function over a range and draws it as a path---perfectly adequate for $f\colon \mathbb{R} \to \mathbb{R}$, but offering nothing for parametric curves, scalar fields, vector fields, or the rich family of functions associated with probability distributions.
 
-Several packages address parts of this gap. The \CRANpkg{ggdist} package [@kay2024ggdist] provides sophisticated distribution visualizations oriented toward Bayesian uncertainty communication. The \CRANpkg{mosaic} package [@pruim2017mosaic] offers `plotDist()` for pedagogical work, but outside the grammar-of-graphics paradigm. The \CRANpkg{metR} package provides geoms for meteorological contour and vector-field displays, though it is designed around gridded data rather than function objects. None of these packages offers a unified treatment of functions classified by their dimensional signature.
+Several packages address pieces of this gap. \CRANpkg{ggdist} [@kay2024ggdist] provides sophisticated distribution visualizations oriented toward Bayesian uncertainty communication. \CRANpkg{mosaic} [@pruim2017mosaic] offers `plotDist()` for pedagogical work, but outside the grammar of graphics. \CRANpkg{metR} provides contour and vector-field displays for meteorological data, though it requires precomputed grids rather than function objects. None of these packages offers a unified treatment of functions organized by their dimensional structure.
 
-The \pkg{ggfunction} package fills this gap by extending \CRANpkg{ggplot2} with a principled taxonomy of function types, organized by input and output dimension. It provides two complementary families of geoms and stats:
+\pkg{ggfunction} fills this gap by extending \CRANpkg{ggplot2} with a principled taxonomy of function types, classified by the dimensions of their domain and codomain. It provides two complementary families of geoms:
 
 1. A **dimensional taxonomy** covering four function types: $\mathbb{R} \to \mathbb{R}$, $\mathbb{R} \to \mathbb{R}^2$, $\mathbb{R}^2 \to \mathbb{R}$, and $\mathbb{R}^2 \to \mathbb{R}^2$.
 2. A **probability distribution family** providing specialized layers for density, cumulative distribution, mass, quantile, survival, and hazard functions.
 
-Each of these layers follows the standard \CRANpkg{ggplot2} extension pattern: a `Stat` object evaluates the user-supplied function and computes the data required for rendering, and a corresponding `Geom` object handles drawing. This architecture ensures that \pkg{ggfunction} layers compose naturally with the full ecosystem of \CRANpkg{ggplot2} scales, coordinates, themes, and facets.
+Each layer follows the \CRANpkg{ggplot2} extension pattern: a `Stat` object evaluates the user-supplied function on a grid or sequence, and a corresponding `Geom` renders the result. Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the full ecosystem of scales, coordinates, themes, and facets.
 
-The remainder of this article is organized as follows. We first describe the design principles underlying the package and its relationship to the grammar of graphics. We then present the dimensional taxonomy, illustrating each function type with examples. Next, we develop the probability distribution family in detail, with particular attention to the region-shading capabilities that support statistical pedagogy. We conclude with remarks on implementation and future directions.
+The remainder of this article is organized as follows. We describe the design principles underlying the package in Section 2. Sections 3 and 4 present the dimensional taxonomy and probability distribution family, respectively, illustrating each with examples. Section 5 addresses implementation details, Section 6 demonstrates composability with the broader grammar, Section 7 surveys related packages, and Section 8 concludes.
 
 # Design principles
 
 ## A taxonomy grounded in dimension
 
-The central organizing principle of \pkg{ggfunction} is that any function visualizable in two-dimensional space belongs to one of four classes, determined by its domain and codomain dimensions. Let $m$ and $n$ denote the dimensions of the domain and codomain, respectively. The four classes are:
+The central organizing principle of \pkg{ggfunction} is that any function visualizable in two-dimensional space belongs to one of four classes, determined by the dimensions of its domain $m$ and codomain $n$:
 
 \begin{equation}
 \begin{aligned}
@@ -115,26 +117,26 @@ f &\colon \mathbb{R}^2 \to \mathbb{R}      & \quad & (m = 2,\; n = 1) \\
 
 Each class admits a natural visual encoding:
 
-- **Scalar functions** ($\mathbb{R} \to \mathbb{R}$) are rendered as curves in the Cartesian plane.
-- **Parametric curves** ($\mathbb{R} \to \mathbb{R}^2$) are rendered as directed paths with optional arrowheads and color-mapped time.
-- **Scalar fields** ($\mathbb{R}^2 \to \mathbb{R}$) are rendered as raster heatmaps, contour lines, or filled contour regions.
-- **Vector fields** ($\mathbb{R}^2 \to \mathbb{R}^2$) are rendered as streamlines obtained by numerical integration.
+- **Scalar functions** ($\mathbb{R} \to \mathbb{R}$): curves in the Cartesian plane, optionally with region shading between the curve and the $x$-axis.
+- **Parametric curves** ($\mathbb{R} \to \mathbb{R}^2$): directed paths with color encoding the time parameter.
+- **Scalar fields** ($\mathbb{R}^2 \to \mathbb{R}$): raster heatmaps, contour lines, or filled contour regions.
+- **Vector fields** ($\mathbb{R}^2 \to \mathbb{R}^2$): streamlines computed by numerical integration of the field.
 
-This taxonomy is exhaustive for continuous, real-valued functions in two display dimensions. The naming convention adopted by the package---`geom_function_1d_1d()`, `geom_function_1d_2d()`, `geom_function_2d_1d()`, and `geom_function_2d_2d()`---encodes the dimensional signature directly, making the classification explicit at the point of use.
+The naming convention---`geom_function_1d_1d()`, `geom_function_1d_2d()`, `geom_function_2d_1d()`, and `geom_function_2d_2d()`---encodes the dimensional signature directly, making the function's type explicit at the point of use.
 
 ## Integration with the grammar of graphics
 
-The grammar of graphics [@wilkinson2005grammar] decomposes a statistical graphic into orthogonal components: data, aesthetic mappings, geometric objects, statistical transformations, scales, coordinate systems, and facets. In \CRANpkg{ggplot2}, this decomposition is implemented through the `ggproto` object-oriented system, which allows new `Stat` and `Geom` classes to be defined and composed with existing infrastructure.
+The grammar of graphics [@wilkinson2005grammar] decomposes a graphic into orthogonal components: data, aesthetic mappings, geometric objects, statistical transformations, scales, coordinate systems, and facets. \CRANpkg{ggplot2} implements this decomposition through the `ggproto` object system, which allows new `Stat` and `Geom` classes to be defined and composed with existing infrastructure.
 
-Each \pkg{ggfunction} layer follows this pattern. The user supplies a function object (via the `fun` parameter) and domain bounds (via `xlim` and, where appropriate, `ylim`). The `Stat` evaluates the function on a suitable grid or sequence and produces a data frame of computed values. The `Geom` then renders those values according to the visual encoding appropriate for the function's type. Because the result is a standard \CRANpkg{ggplot2} layer, it composes with `+` alongside other layers, scales, and themes.
+Every \pkg{ggfunction} layer follows this pattern. The user supplies a function object via the `fun` parameter and domain bounds via `xlim` and, where appropriate, `ylim`. The `Stat` evaluates the function on a suitable grid and returns a data frame whose columns correspond to the aesthetic variables expected by the `Geom`. Because the result is a standard \CRANpkg{ggplot2} layer, it composes with `+` alongside any other layer, scale, or theme.
 
-A key design choice is the use of `rlang::inject()` [@rlang] to splice additional function arguments supplied through the `args` parameter. This mechanism allows users to parameterize functions without resorting to closures or anonymous wrappers:
+A key design choice is the use of `rlang::inject()` to splice additional function arguments supplied through the `args` parameter. This allows users to parameterize functions without closures or anonymous wrappers:
 
-```{r eval=FALSE}
-# Instead of wrapping:
+```{r, eval=FALSE, echo=TRUE}
+# instead of wrapping in an anonymous function:
 ggplot() + geom_pdf(fun = function(x) dnorm(x, mean = 5, sd = 2), xlim = c(0, 10))
 
-# Users can write:
+# users can write:
 ggplot() + geom_pdf(fun = dnorm, args = list(mean = 5, sd = 2), xlim = c(0, 10))
 ```
 
@@ -142,104 +144,114 @@ This pattern is consistent across all \pkg{ggfunction} layers and mirrors the `a
 
 # The dimensional taxonomy
 
-## Scalar functions: $\mathbb{R} \to \mathbb{R}$
+## Scalar functions: $\mathbb{R} \to \mathbb{R}$ {#sec-1d-1d}
 
-The simplest case is a univariate function mapped to a Cartesian curve. The `geom_function_1d_1d()` layer generalizes `ggplot2::stat_function()` by adding support for shading a subinterval of the domain. The function is evaluated at $n$ equally-spaced points (default $n = 101$) over the specified `xlim` range, and the resulting $(x, y)$ pairs are rendered as a path.
+The simplest case is a univariate function rendered as a curve in the plane. `geom_function_1d_1d()` generalizes `ggplot2::stat_function()` by adding support for region shading. The function is evaluated at $n$ equally-spaced points (default $n = 101$) over the specified `xlim`, and the resulting $(x, y)$ pairs are drawn as a path.
 
-```{r sin-curve, fig.cap="The sine function over one full period."}
+```{r sin-curve, echo=TRUE}
+#| fig.cap: "The sine function over one full period."
 ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi))
 ```
 
-The `shade_from` and `shade_to` parameters specify an interval $[a, b]$ over which the region between the curve and the $x$-axis is filled. Boundary values are computed by linear interpolation via `stats::approxfun()`, ensuring that the shaded region aligns precisely with the requested interval even when $a$ or $b$ fall between grid points.
+The `shade_from` and `shade_to` parameters fill the region between the curve and the $x$-axis over a specified interval $[a, b]$. Boundary values are computed by linear interpolation via `stats::approxfun()`, so the shaded region aligns precisely with the requested interval even when $a$ or $b$ fall between evaluation points.
 
-```{r shaded-normal, fig.cap="The standard normal density with the interval $[-1, 1]$ shaded, corresponding to approximately 68\\% of the total area."}
+```{r shaded-normal, echo=TRUE}
+#| fig.cap: "The standard normal density with the interval $[-1, 1]$ shaded, corresponding to approximately 68\\% of the total area."
 ggplot() +
   geom_function_1d_1d(
     fun = dnorm, xlim = c(-3, 3),
-    shade_from = -1, shade_to = 1, fill = "steelblue"
+    shade_from = -1, shade_to = 1
   )
 ```
 
 ## Parametric curves: $\mathbb{R} \to \mathbb{R}^2$ {#sec-parametric}
 
-A parametric curve $\boldsymbol{\gamma}(t) = (x(t),\, y(t))$ maps a scalar parameter---typically time---to a trajectory in the plane. The `geom_function_1d_2d()` layer evaluates the user-supplied function at a sequence of time values from `t0` to `T` with step size `dt`, producing a data frame with columns `t`, `x`, and `y`. The default aesthetic maps color to `after_stat(t)`, providing a visual encoding of progression along the curve.
+A parametric curve $\boldsymbol{\gamma}(t) = (x(t),\, y(t))$ maps a scalar parameter---typically time---to a trajectory in the plane. `geom_function_1d_2d()` evaluates the user-supplied function over the range specified by `tlim` with step size `dt`, producing columns `t`, `x`, and `y`. By default, color is mapped to `after_stat(t)` to encode progression along the curve.
 
-```{r spiral, fig.cap="A parametric spiral defined by $\\boldsymbol{\\gamma}(t) = (\\sin t,\\; t\\cos t)$ for $t \\in [0, 20]$, with color encoding the time parameter."}
+```{r spiral, echo=TRUE}
+#| fig.cap: "A parametric spiral $\\boldsymbol{\\gamma}(t) = (\\sin t,\\; t\\cos t)$ for $t \\in [0, 20]$, with color encoding the time parameter."
 f_spiral <- function(t) c(sin(t), t * cos(t))
+
 ggplot() +
-  geom_function_1d_2d(fun = f_spiral, T = 20, tail_point = TRUE)
+  geom_function_1d_2d(fun = f_spiral, tlim = c(0, 20), tail_point = TRUE)
 ```
 
-The `tail_point` parameter adds a marker at the starting position, useful for indicating the initial condition. An `arrow` specification (defaulting to a closed arrowhead) indicates the direction of traversal.
+The `tail_point` parameter adds a marker at the starting position, useful for indicating an initial condition. The `args` parameter supports parameterized curve families. Lissajous figures $\boldsymbol{\gamma}(t) = (A\sin(at + \delta),\; B\sin(bt))$, for example, can be explored by varying frequency and phase:
 
-The `args` parameter supports parameterized curve families. For instance, the Lissajous figures $\boldsymbol{\gamma}(t) = (A\sin(at + \delta),\; B\sin(bt))$ can be explored by varying the frequency and phase parameters:
-
-```{r lissajous, fig.cap="A Lissajous figure with frequency ratio $a/b = 3/2$ and phase offset $\\delta = \\pi/2$."}
+```{r lissajous, echo=TRUE}
+#| fig.cap: "A Lissajous figure with frequency ratio $a/b = 3/2$ and phase offset $\\delta = \\pi/2$."
 lissajous <- function(t, A = 1, B = 1, a = 3, b = 2, delta = pi/2) {
   c(A * sin(a * t + delta), B * sin(b * t))
 }
 
 ggplot() +
   geom_function_1d_2d(
-    fun = lissajous, T = 2 * pi, color = "black", arrow = NULL,
+    fun = lissajous, tlim = c(0, 2 * pi), arrow = NULL,
     args = list(A = 1, B = 1, a = 3, b = 2, delta = pi/2)
   )
 ```
 
 ## Scalar fields: $\mathbb{R}^2 \to \mathbb{R}$ {#sec-scalar-fields}
 
-A scalar field assigns a real value to each point in a two-dimensional domain. The `geom_function_2d_1d()` layer evaluates the user-supplied function on a regular $n \times n$ grid (default $n = 50$) over the specified `xlim` and `ylim` ranges. The function must accept a numeric vector of length two and return a scalar. Internally, the helper `vectorize()` applies the function row-wise over the grid matrix.
+A scalar field assigns a real value to each point in a two-dimensional domain. `geom_function_2d_1d()` evaluates the user-supplied function on a regular $n \times n$ grid (default $n = 50$) over `xlim` $\times$ `ylim`. The function must accept a numeric vector of length two and return a scalar; internally, a helper applies it row-wise over the grid. Three visualization modes are available through the `type` argument:
 
-Three visualization modes are supported, controlled by the `type` parameter:
-
-- `"raster"` (default): a heatmap with fill mapped to the computed values via `after_stat(z)`.
+- `"raster"` (default): a heatmap with fill mapped to `after_stat(z)`.
 - `"contour"`: iso-level curves rendered by `ggplot2::GeomContour`.
 - `"contour_filled"`: filled regions between contour levels rendered by `ggplot2::GeomContourFilled`.
 
-```{r gaussian-raster, fig.cap="A Gaussian bump $f(x, y) = \\exp(-(x^2 + y^2)/2)$ rendered as a raster heatmap."}
-f_gaussian <- function(v) exp(-(v[1]^2 + v[2]^2) / 2)
+```{r gaussian-raster, echo=TRUE}
+#| fig.cap: "A Gaussian bump $f(x, y) = \\exp(-(x^2 + y^2)/2)$ rendered as a raster heatmap."
+f_gaussian <- function(u) {
+  x <- u[1]; y <- u[2]
+  exp(-(x^2 + y^2) / 2)
+}
 
 ggplot() +
-  geom_function_2d_1d(
-    fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3)
-  )
+  geom_function_2d_1d(fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3))
 ```
 
-```{r gaussian-contour, fig.cap="The same Gaussian bump rendered as contour lines (left) and filled contours (right).", fig.width=10, fig.height=4}
-library(gridExtra)
+The contour modes are selected simply by changing `type`:
+
+```{r gaussian-contour, echo=TRUE, fig.width=10, fig.height=4}
+#| fig.cap: "The same Gaussian bump rendered as contour lines (left) and filled contours (right)."
+library("gridExtra")
+
 p_contour <- ggplot() +
   geom_function_2d_1d(
     fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour"
-  ) + ggtitle("Contour lines")
+  ) + ggtitle("type = \"contour\"")
 
 p_filled <- ggplot() +
   geom_function_2d_1d(
     fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour_filled"
-  ) + ggtitle("Filled contours")
+  ) + ggtitle("type = \"contour_filled\"")
 
 grid.arrange(p_contour, p_filled, ncol = 2)
 ```
 
-For the contour variants, the `StatFunction2dContour` and `StatFunction2dContourFilled` classes extend the corresponding \CRANpkg{ggplot2} stats. The `setup_params()` method pre-computes the function grid so that `z.range` is available for automatic break computation, then passes the grid forward via `setup_data()`.
+For the contour variants, the `StatFunction2dContour` and `StatFunction2dContourFilled` classes extend the corresponding \CRANpkg{ggplot2} stats. The `setup_params()` method pre-computes the function grid so that `z.range` is available for automatic break computation before any data is rendered.
 
 ## Vector fields: $\mathbb{R}^2 \to \mathbb{R}^2$ {#sec-vector-fields}
 
-A vector field $\mathbf{F}(x, y) = (F_1(x, y),\; F_2(x, y))$ assigns a direction and magnitude to each point in the plane. Visualizing such fields requires computing integral curves---trajectories that are everywhere tangent to the field. The `geom_function_2d_2d()` layer provides this capability by delegating to \pkg{ggvfields} [@ggvfields], which numerically integrates the field using a fourth-order Runge--Kutta method. Streamlines are seeded on a regular grid and rendered as directed paths with arrowheads.
+A vector field $\mathbf{F}(x, y) = (F_1(x, y),\; F_2(x, y))$ assigns a direction and magnitude to each point in the plane. Visualizing such fields requires computing integral curves---trajectories that are everywhere tangent to the field. `geom_function_2d_2d()` provides this capability by delegating to \pkg{ggvfields} [@ggvfields], which numerically integrates the field using a fourth-order Runge--Kutta method. Streamlines are seeded on a regular grid and rendered as directed paths.
 
-```{r rotation-field, fig.cap="The rotation field $\\mathbf{F}(x, y) = (-y, x)$ visualized as streamlines. Each curve follows the counterclockwise flow induced by the field."}
-f_rotation <- function(v) c(-v[2], v[1])
+```{r rotation-field, echo=TRUE}
+#| fig.cap: "The rotation field $\\mathbf{F}(x, y) = (-y, x)$ visualized as streamlines. Each curve follows the counterclockwise flow induced by the field."
+f_rotation <- function(u) {
+  x <- u[1]; y <- u[2]
+  c(-y, x)
+}
+
 ggplot() +
-  geom_function_2d_2d(
-    fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1)
-  )
+  geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1))
 ```
 
-The `normalize` parameter (default `TRUE`) scales streamline lengths relative to the grid spacing, producing a uniform visual density. Setting `normalize = FALSE` allows streamlines to reflect the true magnitude of the field through their arc length, controlled by the integration time `T`.
+The `normalize` parameter (default `TRUE`) scales streamline lengths relative to the grid spacing, producing a uniform visual density. Setting `normalize = FALSE` allows streamlines to reflect the true magnitude of the field through their arc length, controlled by the integration time `T`. Users whose primary interest is vector fields will find that \pkg{ggvfields} provides a richer collection of tools, including gradient fields, stream plots, and potential functions.
 
 # The probability distribution family
 
-Statistics education relies heavily on the visual language of probability distributions. Instructors routinely sketch densities, shade tail areas to illustrate $p$-values, and draw cumulative distribution functions to connect probabilities with quantiles. The \pkg{ggfunction} package provides a family of seven geoms that map directly onto the standard functions associated with a probability distribution.
+Statistics education depends heavily on the visual language of probability distributions. Instructors shade tail areas to illustrate $p$-values, draw CDFs to connect probabilities with quantiles, and mark central regions to delineate confidence intervals. \pkg{ggfunction} provides a family of seven geoms that map directly onto the standard functions associated with a probability distribution, each with built-in shading support. Throughout, the user supplies an R function (e.g., `dnorm`, `pnorm`, `qnorm`) and a range; \pkg{ggfunction} handles evaluation, shading, and validation automatically.
 
 ## Density functions: `geom_pdf()`
 
@@ -250,45 +262,48 @@ f(x) \geq 0 \quad \text{and} \quad \int_{-\infty}^{\infty} f(x)\, dx = 1.
 (\#eq:pdf)
 \end{equation}
 
-The `geom_pdf()` layer evaluates a user-supplied density function and renders it as a filled area with an overlaid outline. The `StatPDF` object validates the normalization property \@ref(eq:pdf) by calling `stats::integrate()` and issuing a diagnostic via \CRANpkg{cli} [@cli] if the integral departs from unity by more than a specified tolerance.
+`geom_pdf()` evaluates a user-supplied density and renders it as a filled area with an overlaid outline. The underlying `StatPDF` validates the normalization property \@ref(eq:pdf) using `stats::integrate()`, issuing a diagnostic via \CRANpkg{cli} [@cli] if the integral departs from unity by more than a specified tolerance---a guard against accidentally passing an unnormalized function.
 
-Three shading modes are supported, corresponding to common pedagogical operations:
+Three shading modes are supported, corresponding to common pedagogical operations.
 
 **Single threshold.** The `p` parameter specifies a cumulative probability. When `lower.tail = TRUE` (the default), the region from the left boundary to the $p$-quantile is shaded, representing $P(X \leq x_p) = p$. Setting `lower.tail = FALSE` shades the complementary upper tail.
 
-```{r pdf-single, fig.cap="Standard normal density with the region corresponding to $P(X \\leq x_{0.975})$ shaded."}
+```{r pdf-single, echo=TRUE}
+#| fig.cap: "Standard normal density with the lower 97.5\\% shaded."
 ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975, fill = "tomato")
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975)
 ```
 
-**Two-sided interval.** The `p_lower` and `p_upper` parameters define a central region. This is the natural representation for a $(1 - \alpha)$ confidence interval, where the shaded area corresponds to the middle $1 - \alpha$ of the distribution.
+**Two-sided interval.** The `p_lower` and `p_upper` parameters define a central region---the natural representation for a $(1 - \alpha)$ confidence interval.
 
-```{r pdf-two-sided, fig.cap="The central 95\\% of the standard normal density, corresponding to the interval between the 2.5th and 97.5th percentiles."}
-ggplot() +
-  geom_pdf(
-    fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, fill = "steelblue"
-  )
-```
-
-**Tail shading.** Setting `shade_outside = TRUE` inverts the two-sided region, shading both tails. This directly represents the rejection region in a two-sided hypothesis test at level $\alpha$.
-
-```{r pdf-tails, fig.cap="The rejection region of a two-sided test at $\\alpha = 0.05$, shading the area outside the central 95\\%."}
+```{r pdf-two-sided, echo=TRUE}
+#| fig.cap: "The central 95\\% of the standard normal density, corresponding to the interval between the 2.5th and 97.5th percentiles."
 ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE, fill = "tomato"
+    p_lower = 0.025, p_upper = 0.975
   )
 ```
 
-The shading boundaries are determined by accumulating area under the density using the trapezoidal rule. For $n$ evaluation points $x_1, \ldots, x_n$ with corresponding density values $y_1, \ldots, y_n$, the cumulative area at the $k$-th point is
+**Tail shading.** Setting `shade_outside = TRUE` inverts the two-sided region, shading both tails. This directly represents the rejection region of a two-sided hypothesis test at level $\alpha$.
+
+```{r pdf-tails, echo=TRUE}
+#| fig.cap: "The rejection region of a two-sided test at $\\alpha = 0.05$, shading the area outside the central 95\\%."
+ggplot() +
+  geom_pdf(
+    fun = dnorm, xlim = c(-3, 3),
+    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE
+  )
+```
+
+The shading boundaries are determined by trapezoidal accumulation. For $n$ evaluation points $x_1, \ldots, x_n$ with density values $y_1, \ldots, y_n$, the cumulative area at the $k$-th point is
 
 \begin{equation}
 A_k = \sum_{i=1}^{k-1} \frac{y_i + y_{i+1}}{2} \, (x_{i+1} - x_i).
 (\#eq:trapezoid)
 \end{equation}
 
-The normalized cumulative values $A_k / A_n$ are then compared against the specified probability thresholds to determine the shading boundaries.
+The normalized values $A_k / A_n$ are then compared against the specified probability thresholds to determine the shading boundaries.
 
 ## Cumulative distribution functions: `geom_cdf()`
 
@@ -299,40 +314,44 @@ F(x) = \int_{-\infty}^{x} f(t)\, dt.
 (\#eq:cdf)
 \end{equation}
 
-The `geom_cdf()` layer evaluates a user-supplied CDF directly (e.g., `pnorm`) and supports the same `p`, `p_lower`/`p_upper`, and `shade_outside` parameters as `geom_pdf()`. Since the CDF maps directly to probabilities, the shading thresholds correspond to horizontal lines at the specified probability levels.
+`geom_cdf()` evaluates a user-supplied CDF directly (e.g., `pnorm`) and supports the same `p`, `p_lower`/`p_upper`, and `shade_outside` parameters as `geom_pdf()`. Since the CDF maps directly to probabilities, the shading thresholds correspond to horizontal lines at the specified levels.
 
-```{r cdf-shaded, fig.cap="The standard normal CDF with the region below $p = 0.975$ shaded."}
+```{r cdf-shaded, echo=TRUE}
+#| fig.cap: "The standard normal CDF with the region below $p = 0.975$ shaded."
 ggplot() +
-  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, fill = "darkgreen")
+  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975)
 ```
 
 ## Probability mass functions: `geom_pmf()`
 
-For a discrete random variable with support on the integers, the probability mass function $p(k) = P(X = k)$ satisfies $\sum_k p(k) = 1$. The `geom_pmf()` layer evaluates the PMF at each integer in the specified `xlim` range and renders the result as a lollipop chart---vertical segments from the $x$-axis to the probability value, capped with points. The `StatPMF` object validates the normalization property by summing the computed probabilities.
+For a discrete random variable with integer support, the PMF $p(k) = P(X = k)$ satisfies $\sum_k p(k) = 1$. `geom_pmf()` evaluates the PMF at each integer in `xlim` and renders the result as a lollipop chart---vertical segments from the $x$-axis to the probability value, capped with points. The underlying `StatPMF` validates normalization by summing the computed probabilities and issues a warning if they depart significantly from unity.
 
-```{r pmf-binomial, fig.cap="The PMF of a Binomial(10, 0.3) distribution, rendered as a lollipop chart."}
+```{r pmf-binomial, echo=TRUE}
+#| fig.cap: "The PMF of a $\\mathrm{Binomial}(10, 0.3)$ distribution, rendered as a lollipop chart."
 ggplot() +
   geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
 ```
 
 ## Quantile functions: `geom_qf()`
 
-The quantile function $Q(p) = F^{-1}(p) = \inf\{x : F(x) \geq p\}$ inverts the CDF. The `geom_qf()` layer evaluates a user-supplied quantile function (e.g., `qnorm`) over the interval $(0, 1)$.
+The quantile function $Q(p) = F^{-1}(p) = \inf\{x : F(x) \geq p\}$ inverts the CDF. `geom_qf()` evaluates a user-supplied quantile function (e.g., `qnorm`) over the unit interval $(0, 1)$.
 
-```{r qf-normal, fig.cap="The quantile function of the standard normal distribution."}
+```{r qf-normal, echo=TRUE}
+#| fig.cap: "The quantile function of the standard normal distribution."
 ggplot() +
-  geom_qf(fun = qnorm, args = list(mean = 0, sd = 1))
+  geom_qf(fun = qnorm)
 ```
 
-## Discrete cumulative distribution functions: `geom_discrete_cdf()`
+## Discrete CDFs: `geom_discrete_cdf()`
 
-For discrete distributions, the CDF is a step function. The `geom_discrete_cdf()` layer takes a PMF (not a CDF) as input, computes the cumulative sums, and renders the result using step-function vertices constructed by the internal `build_step_polygon()` helper. Like `geom_cdf()`, it supports `p`-based shading.
+For discrete distributions, the CDF is a step function. `geom_discrete_cdf()` takes a PMF as input, computes cumulative sums, and renders the result as step-function vertices constructed by the internal `build_step_polygon()` helper. Like `geom_cdf()`, it supports `p`-based shading.
 
-```{r discrete-cdf, fig.cap="The discrete CDF of a Binomial(10, 0.5) distribution with the region below $p = 0.9$ shaded."}
+```{r discrete-cdf, echo=TRUE}
+#| fig.cap: "The discrete CDF of a $\\mathrm{Binomial}(10, 0.5)$ distribution with the region below $p = 0.9$ shaded."
 ggplot() +
   geom_discrete_cdf(
     fun = dbinom, args = list(size = 10, prob = 0.5),
-    xlim = c(0, 10), p = 0.9, fill = "steelblue"
+    xlim = c(0, 10), p = 0.9
   )
 ```
 
@@ -345,13 +364,12 @@ S(x) = 1 - F(x) = P(X > x)
 (\#eq:survival)
 \end{equation}
 
-gives the probability that the event of interest has not yet occurred by time $x$. The `geom_survival()` layer accepts a CDF (e.g., `pexp`) and plots its complement.
+gives the probability that the event of interest has not yet occurred by time $x$. `geom_survival()` accepts a CDF and plots its complement.
 
-```{r survival-exp, fig.cap="The survival function of an Exponential($\\lambda = 0.5$) distribution, representing $S(x) = e^{-0.5x}$."}
+```{r survival-exp, echo=TRUE}
+#| fig.cap: "The survival function of an $\\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$."
 ggplot() +
-  geom_survival(
-    fun = pexp, args = list(rate = 0.5), xlim = c(0, 10)
-  )
+  geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 ```
 
 ## Hazard functions: `geom_hf()`
@@ -363,11 +381,12 @@ h(x) = \frac{f(x)}{S(x)} = \frac{f(x)}{1 - F(x)}
 (\#eq:hazard)
 \end{equation}
 
-represents the instantaneous rate of failure at time $x$, conditional on survival to that point [@casella2002statistical]. The `geom_hf()` layer requires both a PDF and a CDF, supplied via `pdf_fun` and `cdf_fun` respectively. The `args` parameter applies to both; where the two functions require different parameterizations, `pdf_args` and `cdf_args` provide overrides.
+represents the instantaneous rate of failure at time $x$, conditional on survival to that point [@casella2002statistical]. `geom_hf()` requires both a PDF and a CDF, supplied via `pdf_fun` and `cdf_fun` respectively. The `args` parameter applies to both; `pdf_args` and `cdf_args` provide overrides where the two functions require different parameterizations.
 
-The hazard function involves division by $S(x)$, which approaches zero in the tail. The `StatHF` object guards against this by replacing values where $S(x) \leq 0$ with `NaN`, and the `GeomHF` renderer filters these before drawing.
+Division by $S(x)$ can cause numerical instability in the tail as $S(x) \to 0$. `StatHF` guards against this by replacing values where $S(x) \leq 0$ with `NaN`, and `GeomHF` filters these before rendering.
 
-```{r hazard-exp, fig.cap="The hazard function of an Exponential($\\lambda = 0.5$) distribution, which is constant at $h(x) = 0.5$---the memoryless property."}
+```{r hazard-exp, echo=TRUE}
+#| fig.cap: "The hazard function of an $\\mathrm{Exponential}(0.5)$ distribution, constant at $h(x) = 0.5$---a consequence of the memoryless property."
 ggplot() +
   geom_hf(
     pdf_fun = dexp, cdf_fun = pexp,
@@ -375,9 +394,10 @@ ggplot() +
   )
 ```
 
-For distributions without the memoryless property, the hazard function reveals structure not apparent from the density alone. A normal distribution, for example, has an increasing hazard:
+For distributions without the memoryless property, the hazard function reveals structure not apparent from the density alone. The standard normal distribution has an increasing hazard, for instance:
 
-```{r hazard-normal, fig.cap="The hazard function of the standard normal distribution, illustrating the increasing failure rate."}
+```{r hazard-normal, echo=TRUE}
+#| fig.cap: "The increasing hazard function of the standard normal distribution."
 ggplot() +
   geom_hf(
     pdf_fun = dnorm, cdf_fun = pnorm,
@@ -389,63 +409,83 @@ ggplot() +
 
 ## Architecture
 
-Each \pkg{ggfunction} layer is implemented as a pair of `ggproto` objects---a `Stat` and a `Geom`---wired together by a constructor function. The constructor creates a standard \CRANpkg{ggplot2} `layer()` call, passing the user-supplied function and its parameters through to the stat's `compute_group()` method. This method performs the core computation: evaluating the function on a grid or sequence and returning a data frame whose columns correspond to the aesthetic variables expected by the geom.
+Each \pkg{ggfunction} layer is implemented as a pair of `ggproto` objects---a `Stat` and a `Geom`---wired together by a constructor function. The constructor creates a standard \CRANpkg{ggplot2} `layer()` call, threading the user-supplied function and its parameters through to the stat's `compute_group()` method. That method performs the core computation: evaluating the function on a grid or sequence and returning a data frame whose columns correspond to the aesthetic variables expected by the geom.
 
-The separation of computation (stat) from rendering (geom) is not merely organizational. It allows users to substitute alternative geoms or compose multiple layers from the same stat. For instance, the `StatFunction2d` object computes a grid of scalar-field values that can be rendered by `GeomRaster`, `GeomContour`, or `GeomContourFilled`, selected at construction time through the `type` parameter.
+The separation of computation (stat) from rendering (geom) is not merely organizational. It allows users to substitute alternative geoms or compose multiple layers from the same stat. The `StatFunction2d` object, for instance, computes a grid of scalar-field values that can be rendered by `GeomRaster`, `GeomContour`, or `GeomContourFilled`, selected at construction time through the `type` parameter.
 
 ## Function injection
 
-R's standard mechanism for passing additional arguments to a function---the `...` (dots) argument---does not compose well when the function is called inside a stat's `compute_group()` method, which must also receive ggplot2-internal parameters. The \pkg{ggfunction} package adopts the approach used by `ggplot2::stat_function()`: additional arguments are collected in a named list (`args`) and injected at the call site using `rlang::inject()`:
+R's `...` mechanism does not compose well when a function is called inside a stat's `compute_group()` method, which must simultaneously receive \CRANpkg{ggplot2}-internal parameters. \pkg{ggfunction} adopts the approach used by `ggplot2::stat_function()`: additional arguments are collected in a named list (`args`) and injected at the call site via `rlang::inject()`:
 
-```{r eval=FALSE}
+```{r, eval=FALSE, echo=TRUE}
 fun_injected <- function(x) {
   rlang::inject(fun(x, !!!args))
 }
 ```
 
-This pattern is simple, composable, and avoids the ambiguity of passing function arguments through `...`.
+This pattern is simple, composable, and avoids the ambiguity of routing function arguments through `...`.
 
 ## Numerical considerations
 
 Several layers involve numerical integration or accumulation:
 
-- **PDF validation** uses `stats::integrate()` with adaptive quadrature to verify normalization.
-- **Shading boundaries** are computed by trapezoidal accumulation (Equation \@ref(eq:trapezoid)), which is efficient and sufficient for the smooth densities encountered in practice.
-- **Boundary interpolation** in `GeomFunction1d` uses `stats::approxfun()` to compute exact $y$-values at shade endpoints that fall between grid points.
-- **Vector field integration** (via \pkg{ggvfields}) uses fourth-order Runge--Kutta with configurable step size and maximum iterations.
+- **PDF validation** uses `stats::integrate()` with adaptive quadrature to verify that the supplied function integrates to one over the specified domain.
+- **Shading boundaries** are computed by trapezoidal accumulation \@ref(eq:trapezoid), which is efficient and sufficient for the smooth densities encountered in practice.
+- **Boundary interpolation** in `GeomFunction1d` uses `stats::approxfun()` to compute exact $y$-values at shade endpoints that fall between evaluation points.
+- **Vector field integration** (via \pkg{ggvfields}) uses a fourth-order Runge--Kutta method with configurable step size and maximum iterations.
 
-The default resolution of $n = 101$ for one-dimensional functions and $n = 50$ for two-dimensional grids (yielding 2500 evaluation points) provides a good balance between visual fidelity and computational cost. Users may increase $n$ for functions with fine-scale structure.
+The default resolution of $n = 101$ for one-dimensional functions and $n = 50$ for two-dimensional grids (yielding 2500 evaluation points) balances visual fidelity against computational cost. Users may increase $n$ for functions with fine-scale structure.
 
 # Composability and the grammar
 
-Because each \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the rest of the grammar. Users can overlay multiple functions, apply custom themes, adjust scales, and add annotations exactly as they would with any other geom:
+Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the rest of the grammar. Layers can be overlaid, scaled, themed, annotated, and faceted exactly as one would with any other geom. The following example superimposes two normal densities with different means and spreads, demonstrating that function visualization and standard \CRANpkg{ggplot2} idioms are fully interoperable:
 
-```{r composability, fig.cap="Two normal densities overlaid with custom colors, scales, and theme, demonstrating composability with the grammar of graphics."}
+```{r composability, echo=TRUE}
+#| fig.cap: "Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics."
 ggplot() +
-  geom_pdf(fun = dnorm, args = list(mean = 0, sd = 1),
-           xlim = c(-5, 8), fill = "steelblue", alpha = 0.4) +
-  geom_pdf(fun = dnorm, args = list(mean = 3, sd = 1.5),
-           xlim = c(-5, 8), fill = "tomato", alpha = 0.4) +
+  geom_pdf(
+    fun = dnorm, args = list(mean = 0, sd = 1),
+    xlim = c(-5, 8), alpha = 0.4
+  ) +
+  geom_pdf(
+    fun = dnorm, args = list(mean = 3, sd = 1.5),
+    xlim = c(-5, 8), alpha = 0.4
+  ) +
   labs(x = "x", y = "f(x)", title = "Comparing two normal densities") +
   theme_minimal()
 ```
 
-This composability is the primary advantage of embedding function visualization within the grammar-of-graphics framework, rather than providing standalone plotting functions.
+This composability is the primary advantage of embedding function visualization within the grammar of graphics, rather than providing standalone plotting functions.
+
+# Related packages {#sec:related}
+
+Several existing packages overlap with \pkg{ggfunction} in purpose, and understanding their scope helps clarify where \pkg{ggfunction} fits.
+
+1. \CRANpkg{ggplot2} [@wickham2016ggplot2]. The `stat_function()` layer handles scalar functions $\mathbb{R} \to \mathbb{R}$ competently, and `geom_function_1d_1d()` builds directly on this foundation. \CRANpkg{ggplot2} provides no analogues for parametric curves, scalar fields, vector fields, or probability-specific shading operations.
+
+2. \CRANpkg{ggdist} [@kay2024ggdist]. This package excels at visualizing distributional uncertainty in Bayesian workflows: posterior distributions, predictive intervals, and uncertainty estimates from fitted models. Its geoms work primarily with samples or distributional objects rather than the `d`/`p`/`q`/`h` function families that \pkg{ggfunction} targets.
+
+3. \CRANpkg{mosaic} [@pruim2017mosaic]. The `plotDist()` function provides quick plots of named distributions and supports shading, but it operates outside the grammar of graphics and cannot be composed with \CRANpkg{ggplot2} layers.
+
+4. \CRANpkg{metR} [@metR]. This package provides contour and vector-field geoms designed for meteorological data, requiring precomputed grids as inputs rather than function objects. Users who already have gridded data may find \CRANpkg{metR} more convenient; users who want to visualize a function directly will find \pkg{ggfunction} more natural.
+
+5. \pkg{ggvfields} [@ggvfields]. \pkg{ggfunction}'s `geom_function_2d_2d()` delegates to \pkg{ggvfields} for streamline computation. For users whose primary interest is vector fields---including stream plots, gradient fields, and potential functions---\pkg{ggvfields} offers a substantially richer collection of tools built on the same \CRANpkg{ggplot2} extension architecture.
+
+Taken together, these packages reflect the breadth of interest in function visualization within the R ecosystem. \pkg{ggfunction} is distinguished by its unified dimensional taxonomy and its integration of the full probability distribution function family---capabilities that, to our knowledge, no other single package provides within the grammar of graphics.
 
 # Summary
 
-The \pkg{ggfunction} package provides a principled extension of \CRANpkg{ggplot2} for visualizing mathematical functions and probability distributions. Its organizing taxonomy---classifying functions by the dimensions of their domain and codomain---yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family adds specialized support for the shading operations central to statistical pedagogy: marking quantiles, delineating confidence regions, and highlighting rejection areas.
+\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions and probability distributions. Its organizing taxonomy---classifying functions by the dimensions of their domain and codomain---yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family adds specialized support for the shading operations central to statistical pedagogy: marking quantiles, delineating confidence regions, and highlighting rejection areas.
 
 By implementing each layer as a `ggproto` stat--geom pair, the package inherits the full composability of the grammar of graphics. Functions can be overlaid, themed, faceted, and annotated using the same tools that \CRANpkg{ggplot2} users already know. The `args` injection pattern provides a clean interface for parameterized function families, and built-in validation catches common errors---such as unnormalized densities---before they produce misleading graphics.
 
-The \pkg{ggfunction} package is available at \url{https://github.com/dusty-turner/ggfunction} and can be installed via `pak::pak("dusty-turner/ggfunction")`.
+\pkg{ggfunction} is available at \url{https://github.com/dusty-turner/ggfunction} and can be installed via `pak::pak("dusty-turner/ggfunction")`.
 
 # Acknowledgments
 
 We thank the developers of \CRANpkg{ggplot2} for the extension system that makes packages like \pkg{ggfunction} possible.
 
 ```{r, echo=FALSE, results="asis"}
-# Generate package citations
 pkg_list <- c("ggplot2", "rlang", "cli")
 for (pkg in pkg_list) {
   if (requireNamespace(pkg, quietly = TRUE)) invisible(NULL)

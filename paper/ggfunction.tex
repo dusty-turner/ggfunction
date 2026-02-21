@@ -7,16 +7,16 @@
 \maketitle
 
 \abstract{%
-We introduce ggfunction, an R package that extends ggplot2 to provide a principled, unified interface for visualizing mathematical functions and probability distributions. The package is organized around two complementary families. The first is a dimensional taxonomy that classifies functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for probability distributions---density, cumulative distribution, mass, quantile, survival, and hazard functions---each with built-in support for region shading that arises naturally in hypothesis testing and interval estimation. By embedding function evaluation, numerical integration, and validation directly into the ggplot2 layer system, ggfunction allows users to move from mathematical definition to publication-quality visualization in a single, composable call. We describe the design of the package, demonstrate its use across both families, and discuss its role in statistical pedagogy.
+The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions and probability distributions. It is organized around two complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for probability distributions---density, cumulative distribution, mass, quantile, survival, and hazard functions---each with built-in support for region shading central to hypothesis testing and interval estimation. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
 }
 
 \section{Introduction}\label{introduction}
 
-The visualization of mathematical functions is a fundamental task in both applied mathematics and statistics education. Whether an instructor is sketching a probability density on the board, a researcher is inspecting a scalar field, or a student is exploring the behavior of a parametric curve, the need to move quickly from a function's definition to its graphical representation arises constantly. In \proglang{R}, the \CRANpkg{ggplot2} system \citep{wickham2010layered, wickham2016ggplot2} has become the dominant framework for data visualization, yet its native support for plotting functions---as opposed to data---remains limited. The built-in \texttt{stat\_function()} evaluates a univariate function over a specified range and renders the result as a path. This single mechanism handles \(f\colon \mathbb{R} \to \mathbb{R}\) adequately, but offers no support for parametric curves, scalar fields, vector fields, or the rich family of probability distribution functions that appear throughout statistics.
+Visualizing mathematical functions is one of the most common tasks in applied mathematics and statistics---and one of the most under-supported in the grammar of graphics. Whether an instructor is shading a rejection region under a normal curve, a researcher is inspecting a scalar field over a spatial domain, or a student is tracing a parametric spiral, the need to move quickly from a function's definition to its graphical representation arises constantly. In R, \CRANpkg{ggplot2} \citep{wickham2010layered, wickham2016ggplot2} has become the dominant visualization framework, yet its native support for plotting functions remains narrow. The built-in \texttt{stat\_function()} evaluates a univariate function over a range and draws it as a path---perfectly adequate for \(f\colon \mathbb{R} \to \mathbb{R}\), but offering nothing for parametric curves, scalar fields, vector fields, or the rich family of functions associated with probability distributions.
 
-Several packages address parts of this gap. The \CRANpkg{ggdist} package \citep{kay2024ggdist} provides sophisticated distribution visualizations oriented toward Bayesian uncertainty communication. The \CRANpkg{mosaic} package \citep{pruim2017mosaic} offers \texttt{plotDist()} for pedagogical work, but outside the grammar-of-graphics paradigm. The \CRANpkg{metR} package provides geoms for meteorological contour and vector-field displays, though it is designed around gridded data rather than function objects. None of these packages offers a unified treatment of functions classified by their dimensional signature.
+Several packages address pieces of this gap. \CRANpkg{ggdist} \citep{kay2024ggdist} provides sophisticated distribution visualizations oriented toward Bayesian uncertainty communication. \CRANpkg{mosaic} \citep{pruim2017mosaic} offers \texttt{plotDist()} for pedagogical work, but outside the grammar of graphics. \CRANpkg{metR} provides contour and vector-field displays for meteorological data, though it requires precomputed grids rather than function objects. None of these packages offers a unified treatment of functions organized by their dimensional structure.
 
-The \pkg{ggfunction} package fills this gap by extending \CRANpkg{ggplot2} with a principled taxonomy of function types, organized by input and output dimension. It provides two complementary families of geoms and stats:
+\pkg{ggfunction} fills this gap by extending \CRANpkg{ggplot2} with a principled taxonomy of function types, classified by the dimensions of their domain and codomain. It provides two complementary families of geoms:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -27,15 +27,15 @@ The \pkg{ggfunction} package fills this gap by extending \CRANpkg{ggplot2} with 
   A \textbf{probability distribution family} providing specialized layers for density, cumulative distribution, mass, quantile, survival, and hazard functions.
 \end{enumerate}
 
-Each of these layers follows the standard \CRANpkg{ggplot2} extension pattern: a \texttt{Stat} object evaluates the user-supplied function and computes the data required for rendering, and a corresponding \texttt{Geom} object handles drawing. This architecture ensures that \pkg{ggfunction} layers compose naturally with the full ecosystem of \CRANpkg{ggplot2} scales, coordinates, themes, and facets.
+Each layer follows the \CRANpkg{ggplot2} extension pattern: a \texttt{Stat} object evaluates the user-supplied function on a grid or sequence, and a corresponding \texttt{Geom} renders the result. Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the full ecosystem of scales, coordinates, themes, and facets.
 
-The remainder of this article is organized as follows. We first describe the design principles underlying the package and its relationship to the grammar of graphics. We then present the dimensional taxonomy, illustrating each function type with examples. Next, we develop the probability distribution family in detail, with particular attention to the region-shading capabilities that support statistical pedagogy. We conclude with remarks on implementation and future directions.
+The remainder of this article is organized as follows. We describe the design principles underlying the package in Section 2. Sections 3 and 4 present the dimensional taxonomy and probability distribution family, respectively, illustrating each with examples. Section 5 addresses implementation details, Section 6 demonstrates composability with the broader grammar, Section 7 surveys related packages, and Section 8 concludes.
 
 \section{Design principles}\label{design-principles}
 
 \subsection{A taxonomy grounded in dimension}\label{a-taxonomy-grounded-in-dimension}
 
-The central organizing principle of \pkg{ggfunction} is that any function visualizable in two-dimensional space belongs to one of four classes, determined by its domain and codomain dimensions. Let \(m\) and \(n\) denote the dimensions of the domain and codomain, respectively. The four classes are:
+The central organizing principle of \pkg{ggfunction} is that any function visualizable in two-dimensional space belongs to one of four classes, determined by the dimensions of its domain \(m\) and codomain \(n\):
 
 \begin{equation}
 \begin{aligned}
@@ -52,30 +52,30 @@ Each class admits a natural visual encoding:
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Scalar functions} (\(\mathbb{R} \to \mathbb{R}\)) are rendered as curves in the Cartesian plane.
+  \textbf{Scalar functions} (\(\mathbb{R} \to \mathbb{R}\)): curves in the Cartesian plane, optionally with region shading between the curve and the \(x\)-axis.
 \item
-  \textbf{Parametric curves} (\(\mathbb{R} \to \mathbb{R}^2\)) are rendered as directed paths with optional arrowheads and color-mapped time.
+  \textbf{Parametric curves} (\(\mathbb{R} \to \mathbb{R}^2\)): directed paths with color encoding the time parameter.
 \item
-  \textbf{Scalar fields} (\(\mathbb{R}^2 \to \mathbb{R}\)) are rendered as raster heatmaps, contour lines, or filled contour regions.
+  \textbf{Scalar fields} (\(\mathbb{R}^2 \to \mathbb{R}\)): raster heatmaps, contour lines, or filled contour regions.
 \item
-  \textbf{Vector fields} (\(\mathbb{R}^2 \to \mathbb{R}^2\)) are rendered as streamlines obtained by numerical integration.
+  \textbf{Vector fields} (\(\mathbb{R}^2 \to \mathbb{R}^2\)): streamlines computed by numerical integration of the field.
 \end{itemize}
 
-This taxonomy is exhaustive for continuous, real-valued functions in two display dimensions. The naming convention adopted by the package---\texttt{geom\_function\_1d\_1d()}, \texttt{geom\_function\_1d\_2d()}, \texttt{geom\_function\_2d\_1d()}, and \texttt{geom\_function\_2d\_2d()}---encodes the dimensional signature directly, making the classification explicit at the point of use.
+The naming convention---\texttt{geom\_function\_1d\_1d()}, \texttt{geom\_function\_1d\_2d()}, \texttt{geom\_function\_2d\_1d()}, and \texttt{geom\_function\_2d\_2d()}---encodes the dimensional signature directly, making the function's type explicit at the point of use.
 
 \subsection{Integration with the grammar of graphics}\label{integration-with-the-grammar-of-graphics}
 
-The grammar of graphics \citep{wilkinson2005grammar} decomposes a statistical graphic into orthogonal components: data, aesthetic mappings, geometric objects, statistical transformations, scales, coordinate systems, and facets. In \CRANpkg{ggplot2}, this decomposition is implemented through the \texttt{ggproto} object-oriented system, which allows new \texttt{Stat} and \texttt{Geom} classes to be defined and composed with existing infrastructure.
+The grammar of graphics \citep{wilkinson2005grammar} decomposes a graphic into orthogonal components: data, aesthetic mappings, geometric objects, statistical transformations, scales, coordinate systems, and facets. \CRANpkg{ggplot2} implements this decomposition through the \texttt{ggproto} object system, which allows new \texttt{Stat} and \texttt{Geom} classes to be defined and composed with existing infrastructure.
 
-Each \pkg{ggfunction} layer follows this pattern. The user supplies a function object (via the \texttt{fun} parameter) and domain bounds (via \texttt{xlim} and, where appropriate, \texttt{ylim}). The \texttt{Stat} evaluates the function on a suitable grid or sequence and produces a data frame of computed values. The \texttt{Geom} then renders those values according to the visual encoding appropriate for the function's type. Because the result is a standard \CRANpkg{ggplot2} layer, it composes with \texttt{+} alongside other layers, scales, and themes.
+Every \pkg{ggfunction} layer follows this pattern. The user supplies a function object via the \texttt{fun} parameter and domain bounds via \texttt{xlim} and, where appropriate, \texttt{ylim}. The \texttt{Stat} evaluates the function on a suitable grid and returns a data frame whose columns correspond to the aesthetic variables expected by the \texttt{Geom}. Because the result is a standard \CRANpkg{ggplot2} layer, it composes with \texttt{+} alongside any other layer, scale, or theme.
 
-A key design choice is the use of \texttt{rlang::inject()} \citep{rlang} to splice additional function arguments supplied through the \texttt{args} parameter. This mechanism allows users to parameterize functions without resorting to closures or anonymous wrappers:
+A key design choice is the use of \texttt{rlang::inject()} to splice additional function arguments supplied through the \texttt{args} parameter. This allows users to parameterize functions without closures or anonymous wrappers:
 
 \begin{verbatim}
-# Instead of wrapping:
+# instead of wrapping in an anonymous function:
 ggplot() + geom_pdf(fun = function(x) dnorm(x, mean = 5, sd = 2), xlim = c(0, 10))
 
-# Users can write:
+# users can write:
 ggplot() + geom_pdf(fun = dnorm, args = list(mean = 5, sd = 2), xlim = c(0, 10))
 \end{verbatim}
 
@@ -83,9 +83,9 @@ This pattern is consistent across all \pkg{ggfunction} layers and mirrors the \t
 
 \section{The dimensional taxonomy}\label{the-dimensional-taxonomy}
 
-\subsection{\texorpdfstring{Scalar functions: \(\mathbb{R} \to \mathbb{R}\)}{Scalar functions: \textbackslash mathbb\{R\} \textbackslash to \textbackslash mathbb\{R\}}}\label{scalar-functions-mathbbr-to-mathbbr}
+\subsection{\texorpdfstring{Scalar functions: \(\mathbb{R} \to \mathbb{R}\)}{Scalar functions: \textbackslash mathbb\{R\} \textbackslash to \textbackslash mathbb\{R\}}}\label{sec-1d-1d}
 
-The simplest case is a univariate function mapped to a Cartesian curve. The \texttt{geom\_function\_1d\_1d()} layer generalizes \texttt{ggplot2::stat\_function()} by adding support for shading a subinterval of the domain. The function is evaluated at \(n\) equally-spaced points (default \(n = 101\)) over the specified \texttt{xlim} range, and the resulting \((x, y)\) pairs are rendered as a path.
+The simplest case is a univariate function rendered as a curve in the plane. \texttt{geom\_function\_1d\_1d()} generalizes \texttt{ggplot2::stat\_function()} by adding support for region shading. The function is evaluated at \(n\) equally-spaced points (default \(n = 101\)) over the specified \texttt{xlim}, and the resulting \((x, y)\) pairs are drawn as a path.
 
 \begin{verbatim}
 ggplot() +
@@ -101,13 +101,13 @@ ggplot() +
 \caption{The sine function over one full period.}\label{fig:sin-curve}
 \end{figure}
 
-The \texttt{shade\_from} and \texttt{shade\_to} parameters specify an interval \([a, b]\) over which the region between the curve and the \(x\)-axis is filled. Boundary values are computed by linear interpolation via \texttt{stats::approxfun()}, ensuring that the shaded region aligns precisely with the requested interval even when \(a\) or \(b\) fall between grid points.
+The \texttt{shade\_from} and \texttt{shade\_to} parameters fill the region between the curve and the \(x\)-axis over a specified interval \([a, b]\). Boundary values are computed by linear interpolation via \texttt{stats::approxfun()}, so the shaded region aligns precisely with the requested interval even when \(a\) or \(b\) fall between evaluation points.
 
 \begin{verbatim}
 ggplot() +
   geom_function_1d_1d(
     fun = dnorm, xlim = c(-3, 3),
-    shade_from = -1, shade_to = 1, fill = "steelblue"
+    shade_from = -1, shade_to = 1
   )
 \end{verbatim}
 
@@ -122,12 +122,13 @@ ggplot() +
 
 \subsection{\texorpdfstring{Parametric curves: \(\mathbb{R} \to \mathbb{R}^2\)}{Parametric curves: \textbackslash mathbb\{R\} \textbackslash to \textbackslash mathbb\{R\}\^{}2}}\label{sec-parametric}
 
-A parametric curve \(\boldsymbol{\gamma}(t) = (x(t),\, y(t))\) maps a scalar parameter---typically time---to a trajectory in the plane. The \texttt{geom\_function\_1d\_2d()} layer evaluates the user-supplied function at a sequence of time values from \texttt{t0} to \texttt{T} with step size \texttt{dt}, producing a data frame with columns \texttt{t}, \texttt{x}, and \texttt{y}. The default aesthetic maps color to \texttt{after\_stat(t)}, providing a visual encoding of progression along the curve.
+A parametric curve \(\boldsymbol{\gamma}(t) = (x(t),\, y(t))\) maps a scalar parameter---typically time---to a trajectory in the plane. \texttt{geom\_function\_1d\_2d()} evaluates the user-supplied function over the range specified by \texttt{tlim} with step size \texttt{dt}, producing columns \texttt{t}, \texttt{x}, and \texttt{y}. By default, color is mapped to \texttt{after\_stat(t)} to encode progression along the curve.
 
 \begin{verbatim}
 f_spiral <- function(t) c(sin(t), t * cos(t))
+
 ggplot() +
-  geom_function_1d_2d(fun = f_spiral, T = 20, tail_point = TRUE)
+  geom_function_1d_2d(fun = f_spiral, tlim = c(0, 20), tail_point = TRUE)
 \end{verbatim}
 
 \begin{figure}
@@ -136,12 +137,10 @@ ggplot() +
 
 }
 
-\caption{A parametric spiral defined by $\boldsymbol{\gamma}(t) = (\sin t,\; t\cos t)$ for $t \in [0, 20]$, with color encoding the time parameter.}\label{fig:spiral}
+\caption{A parametric spiral $\boldsymbol{\gamma}(t) = (\sin t,\; t\cos t)$ for $t \in [0, 20]$, with color encoding the time parameter.}\label{fig:spiral}
 \end{figure}
 
-The \texttt{tail\_point} parameter adds a marker at the starting position, useful for indicating the initial condition. An \texttt{arrow} specification (defaulting to a closed arrowhead) indicates the direction of traversal.
-
-The \texttt{args} parameter supports parameterized curve families. For instance, the Lissajous figures \(\boldsymbol{\gamma}(t) = (A\sin(at + \delta),\; B\sin(bt))\) can be explored by varying the frequency and phase parameters:
+The \texttt{tail\_point} parameter adds a marker at the starting position, useful for indicating an initial condition. The \texttt{args} parameter supports parameterized curve families. Lissajous figures \(\boldsymbol{\gamma}(t) = (A\sin(at + \delta),\; B\sin(bt))\), for example, can be explored by varying frequency and phase:
 
 \begin{verbatim}
 lissajous <- function(t, A = 1, B = 1, a = 3, b = 2, delta = pi/2) {
@@ -150,7 +149,7 @@ lissajous <- function(t, A = 1, B = 1, a = 3, b = 2, delta = pi/2) {
 
 ggplot() +
   geom_function_1d_2d(
-    fun = lissajous, T = 2 * pi, color = "black", arrow = NULL,
+    fun = lissajous, tlim = c(0, 2 * pi), arrow = NULL,
     args = list(A = 1, B = 1, a = 3, b = 2, delta = pi/2)
   )
 \end{verbatim}
@@ -166,14 +165,12 @@ ggplot() +
 
 \subsection{\texorpdfstring{Scalar fields: \(\mathbb{R}^2 \to \mathbb{R}\)}{Scalar fields: \textbackslash mathbb\{R\}\^{}2 \textbackslash to \textbackslash mathbb\{R\}}}\label{sec-scalar-fields}
 
-A scalar field assigns a real value to each point in a two-dimensional domain. The \texttt{geom\_function\_2d\_1d()} layer evaluates the user-supplied function on a regular \(n \times n\) grid (default \(n = 50\)) over the specified \texttt{xlim} and \texttt{ylim} ranges. The function must accept a numeric vector of length two and return a scalar. Internally, the helper \texttt{vectorize()} applies the function row-wise over the grid matrix.
-
-Three visualization modes are supported, controlled by the \texttt{type} parameter:
+A scalar field assigns a real value to each point in a two-dimensional domain. \texttt{geom\_function\_2d\_1d()} evaluates the user-supplied function on a regular \(n \times n\) grid (default \(n = 50\)) over \texttt{xlim} \(\times\) \texttt{ylim}. The function must accept a numeric vector of length two and return a scalar; internally, a helper applies it row-wise over the grid. Three visualization modes are available through the \texttt{type} argument:
 
 \begin{itemize}
 \tightlist
 \item
-  \texttt{"raster"} (default): a heatmap with fill mapped to the computed values via \texttt{after\_stat(z)}.
+  \texttt{"raster"} (default): a heatmap with fill mapped to \texttt{after\_stat(z)}.
 \item
   \texttt{"contour"}: iso-level curves rendered by \texttt{ggplot2::GeomContour}.
 \item
@@ -181,12 +178,13 @@ Three visualization modes are supported, controlled by the \texttt{type} paramet
 \end{itemize}
 
 \begin{verbatim}
-f_gaussian <- function(v) exp(-(v[1]^2 + v[2]^2) / 2)
+f_gaussian <- function(u) {
+  x <- u[1]; y <- u[2]
+  exp(-(x^2 + y^2) / 2)
+}
 
 ggplot() +
-  geom_function_2d_1d(
-    fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3)
-  )
+  geom_function_2d_1d(fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3))
 \end{verbatim}
 
 \begin{figure}
@@ -198,17 +196,20 @@ ggplot() +
 \caption{A Gaussian bump $f(x, y) = \exp(-(x^2 + y^2)/2)$ rendered as a raster heatmap.}\label{fig:gaussian-raster}
 \end{figure}
 
+The contour modes are selected simply by changing \texttt{type}:
+
 \begin{verbatim}
-library(gridExtra)
+library("gridExtra")
+
 p_contour <- ggplot() +
   geom_function_2d_1d(
     fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour"
-  ) + ggtitle("Contour lines")
+  ) + ggtitle("type = \"contour\"")
 
 p_filled <- ggplot() +
   geom_function_2d_1d(
     fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour_filled"
-  ) + ggtitle("Filled contours")
+  ) + ggtitle("type = \"contour_filled\"")
 
 grid.arrange(p_contour, p_filled, ncol = 2)
 \end{verbatim}
@@ -222,18 +223,20 @@ grid.arrange(p_contour, p_filled, ncol = 2)
 \caption{The same Gaussian bump rendered as contour lines (left) and filled contours (right).}\label{fig:gaussian-contour}
 \end{figure}
 
-For the contour variants, the \texttt{StatFunction2dContour} and \texttt{StatFunction2dContourFilled} classes extend the corresponding \CRANpkg{ggplot2} stats. The \texttt{setup\_params()} method pre-computes the function grid so that \texttt{z.range} is available for automatic break computation, then passes the grid forward via \texttt{setup\_data()}.
+For the contour variants, the \texttt{StatFunction2dContour} and \texttt{StatFunction2dContourFilled} classes extend the corresponding \CRANpkg{ggplot2} stats. The \texttt{setup\_params()} method pre-computes the function grid so that \texttt{z.range} is available for automatic break computation before any data is rendered.
 
 \subsection{\texorpdfstring{Vector fields: \(\mathbb{R}^2 \to \mathbb{R}^2\)}{Vector fields: \textbackslash mathbb\{R\}\^{}2 \textbackslash to \textbackslash mathbb\{R\}\^{}2}}\label{sec-vector-fields}
 
-A vector field \(\mathbf{F}(x, y) = (F_1(x, y),\; F_2(x, y))\) assigns a direction and magnitude to each point in the plane. Visualizing such fields requires computing integral curves---trajectories that are everywhere tangent to the field. The \texttt{geom\_function\_2d\_2d()} layer provides this capability by delegating to \pkg{ggvfields} \citep{ggvfields}, which numerically integrates the field using a fourth-order Runge--Kutta method. Streamlines are seeded on a regular grid and rendered as directed paths with arrowheads.
+A vector field \(\mathbf{F}(x, y) = (F_1(x, y),\; F_2(x, y))\) assigns a direction and magnitude to each point in the plane. Visualizing such fields requires computing integral curves---trajectories that are everywhere tangent to the field. \texttt{geom\_function\_2d\_2d()} provides this capability by delegating to \pkg{ggvfields} \citep{ggvfields}, which numerically integrates the field using a fourth-order Runge--Kutta method. Streamlines are seeded on a regular grid and rendered as directed paths.
 
 \begin{verbatim}
-f_rotation <- function(v) c(-v[2], v[1])
+f_rotation <- function(u) {
+  x <- u[1]; y <- u[2]
+  c(-y, x)
+}
+
 ggplot() +
-  geom_function_2d_2d(
-    fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1)
-  )
+  geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1))
 \end{verbatim}
 
 \begin{figure}
@@ -245,11 +248,11 @@ ggplot() +
 \caption{The rotation field $\mathbf{F}(x, y) = (-y, x)$ visualized as streamlines. Each curve follows the counterclockwise flow induced by the field.}\label{fig:rotation-field}
 \end{figure}
 
-The \texttt{normalize} parameter (default \texttt{TRUE}) scales streamline lengths relative to the grid spacing, producing a uniform visual density. Setting \texttt{normalize\ =\ FALSE} allows streamlines to reflect the true magnitude of the field through their arc length, controlled by the integration time \texttt{T}.
+The \texttt{normalize} parameter (default \texttt{TRUE}) scales streamline lengths relative to the grid spacing, producing a uniform visual density. Setting \texttt{normalize\ =\ FALSE} allows streamlines to reflect the true magnitude of the field through their arc length, controlled by the integration time \texttt{T}. Users whose primary interest is vector fields will find that \pkg{ggvfields} provides a richer collection of tools, including gradient fields, stream plots, and potential functions.
 
 \section{The probability distribution family}\label{the-probability-distribution-family}
 
-Statistics education relies heavily on the visual language of probability distributions. Instructors routinely sketch densities, shade tail areas to illustrate \(p\)-values, and draw cumulative distribution functions to connect probabilities with quantiles. The \pkg{ggfunction} package provides a family of seven geoms that map directly onto the standard functions associated with a probability distribution.
+Statistics education depends heavily on the visual language of probability distributions. Instructors shade tail areas to illustrate \(p\)-values, draw CDFs to connect probabilities with quantiles, and mark central regions to delineate confidence intervals. \pkg{ggfunction} provides a family of seven geoms that map directly onto the standard functions associated with a probability distribution, each with built-in shading support. Throughout, the user supplies an R function (e.g., \texttt{dnorm}, \texttt{pnorm}, \texttt{qnorm}) and a range; \pkg{ggfunction} handles evaluation, shading, and validation automatically.
 
 \subsection{\texorpdfstring{Density functions: \texttt{geom\_pdf()}}{Density functions: geom\_pdf()}}\label{density-functions-geom_pdf}
 
@@ -260,15 +263,15 @@ f(x) \geq 0 \quad \text{and} \quad \int_{-\infty}^{\infty} f(x)\, dx = 1.
 \label{eq:pdf}
 \end{equation}
 
-The \texttt{geom\_pdf()} layer evaluates a user-supplied density function and renders it as a filled area with an overlaid outline. The \texttt{StatPDF} object validates the normalization property \eqref{eq:pdf} by calling \texttt{stats::integrate()} and issuing a diagnostic via \CRANpkg{cli} \citep{cli} if the integral departs from unity by more than a specified tolerance.
+\texttt{geom\_pdf()} evaluates a user-supplied density and renders it as a filled area with an overlaid outline. The underlying \texttt{StatPDF} validates the normalization property \eqref{eq:pdf} using \texttt{stats::integrate()}, issuing a diagnostic via \CRANpkg{cli} \citep{cli} if the integral departs from unity by more than a specified tolerance---a guard against accidentally passing an unnormalized function.
 
-Three shading modes are supported, corresponding to common pedagogical operations:
+Three shading modes are supported, corresponding to common pedagogical operations.
 
 \textbf{Single threshold.} The \texttt{p} parameter specifies a cumulative probability. When \texttt{lower.tail\ =\ TRUE} (the default), the region from the left boundary to the \(p\)-quantile is shaded, representing \(P(X \leq x_p) = p\). Setting \texttt{lower.tail\ =\ FALSE} shades the complementary upper tail.
 
 \begin{verbatim}
 ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975, fill = "tomato")
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975)
 \end{verbatim}
 
 \begin{figure}
@@ -277,16 +280,16 @@ ggplot() +
 
 }
 
-\caption{Standard normal density with the region corresponding to $P(X \leq x_{0.975})$ shaded.}\label{fig:pdf-single}
+\caption{Standard normal density with the lower 97.5\% shaded.}\label{fig:pdf-single}
 \end{figure}
 
-\textbf{Two-sided interval.} The \texttt{p\_lower} and \texttt{p\_upper} parameters define a central region. This is the natural representation for a \((1 - \alpha)\) confidence interval, where the shaded area corresponds to the middle \(1 - \alpha\) of the distribution.
+\textbf{Two-sided interval.} The \texttt{p\_lower} and \texttt{p\_upper} parameters define a central region---the natural representation for a \((1 - \alpha)\) confidence interval.
 
 \begin{verbatim}
 ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, fill = "steelblue"
+    p_lower = 0.025, p_upper = 0.975
   )
 \end{verbatim}
 
@@ -299,13 +302,13 @@ ggplot() +
 \caption{The central 95\% of the standard normal density, corresponding to the interval between the 2.5th and 97.5th percentiles.}\label{fig:pdf-two-sided}
 \end{figure}
 
-\textbf{Tail shading.} Setting \texttt{shade\_outside\ =\ TRUE} inverts the two-sided region, shading both tails. This directly represents the rejection region in a two-sided hypothesis test at level \(\alpha\).
+\textbf{Tail shading.} Setting \texttt{shade\_outside\ =\ TRUE} inverts the two-sided region, shading both tails. This directly represents the rejection region of a two-sided hypothesis test at level \(\alpha\).
 
 \begin{verbatim}
 ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE, fill = "tomato"
+    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE
   )
 \end{verbatim}
 
@@ -318,14 +321,14 @@ ggplot() +
 \caption{The rejection region of a two-sided test at $\alpha = 0.05$, shading the area outside the central 95\%.}\label{fig:pdf-tails}
 \end{figure}
 
-The shading boundaries are determined by accumulating area under the density using the trapezoidal rule. For \(n\) evaluation points \(x_1, \ldots, x_n\) with corresponding density values \(y_1, \ldots, y_n\), the cumulative area at the \(k\)-th point is
+The shading boundaries are determined by trapezoidal accumulation. For \(n\) evaluation points \(x_1, \ldots, x_n\) with density values \(y_1, \ldots, y_n\), the cumulative area at the \(k\)-th point is
 
 \begin{equation}
 A_k = \sum_{i=1}^{k-1} \frac{y_i + y_{i+1}}{2} \, (x_{i+1} - x_i).
 \label{eq:trapezoid}
 \end{equation}
 
-The normalized cumulative values \(A_k / A_n\) are then compared against the specified probability thresholds to determine the shading boundaries.
+The normalized values \(A_k / A_n\) are then compared against the specified probability thresholds to determine the shading boundaries.
 
 \subsection{\texorpdfstring{Cumulative distribution functions: \texttt{geom\_cdf()}}{Cumulative distribution functions: geom\_cdf()}}\label{cumulative-distribution-functions-geom_cdf}
 
@@ -336,11 +339,11 @@ F(x) = \int_{-\infty}^{x} f(t)\, dt.
 \label{eq:cdf}
 \end{equation}
 
-The \texttt{geom\_cdf()} layer evaluates a user-supplied CDF directly (e.g., \texttt{pnorm}) and supports the same \texttt{p}, \texttt{p\_lower}/\texttt{p\_upper}, and \texttt{shade\_outside} parameters as \texttt{geom\_pdf()}. Since the CDF maps directly to probabilities, the shading thresholds correspond to horizontal lines at the specified probability levels.
+\texttt{geom\_cdf()} evaluates a user-supplied CDF directly (e.g., \texttt{pnorm}) and supports the same \texttt{p}, \texttt{p\_lower}/\texttt{p\_upper}, and \texttt{shade\_outside} parameters as \texttt{geom\_pdf()}. Since the CDF maps directly to probabilities, the shading thresholds correspond to horizontal lines at the specified levels.
 
 \begin{verbatim}
 ggplot() +
-  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, fill = "darkgreen")
+  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975)
 \end{verbatim}
 
 \begin{figure}
@@ -354,7 +357,7 @@ ggplot() +
 
 \subsection{\texorpdfstring{Probability mass functions: \texttt{geom\_pmf()}}{Probability mass functions: geom\_pmf()}}\label{probability-mass-functions-geom_pmf}
 
-For a discrete random variable with support on the integers, the probability mass function \(p(k) = P(X = k)\) satisfies \(\sum_k p(k) = 1\). The \texttt{geom\_pmf()} layer evaluates the PMF at each integer in the specified \texttt{xlim} range and renders the result as a lollipop chart---vertical segments from the \(x\)-axis to the probability value, capped with points. The \texttt{StatPMF} object validates the normalization property by summing the computed probabilities.
+For a discrete random variable with integer support, the PMF \(p(k) = P(X = k)\) satisfies \(\sum_k p(k) = 1\). \texttt{geom\_pmf()} evaluates the PMF at each integer in \texttt{xlim} and renders the result as a lollipop chart---vertical segments from the \(x\)-axis to the probability value, capped with points. The underlying \texttt{StatPMF} validates normalization by summing the computed probabilities and issues a warning if they depart significantly from unity.
 
 \begin{verbatim}
 ggplot() +
@@ -367,16 +370,16 @@ ggplot() +
 
 }
 
-\caption{The PMF of a Binomial(10, 0.3) distribution, rendered as a lollipop chart.}\label{fig:pmf-binomial}
+\caption{The PMF of a $\mathrm{Binomial}(10, 0.3)$ distribution, rendered as a lollipop chart.}\label{fig:pmf-binomial}
 \end{figure}
 
 \subsection{\texorpdfstring{Quantile functions: \texttt{geom\_qf()}}{Quantile functions: geom\_qf()}}\label{quantile-functions-geom_qf}
 
-The quantile function \(Q(p) = F^{-1}(p) = \inf\{x : F(x) \geq p\}\) inverts the CDF. The \texttt{geom\_qf()} layer evaluates a user-supplied quantile function (e.g., \texttt{qnorm}) over the interval \((0, 1)\).
+The quantile function \(Q(p) = F^{-1}(p) = \inf\{x : F(x) \geq p\}\) inverts the CDF. \texttt{geom\_qf()} evaluates a user-supplied quantile function (e.g., \texttt{qnorm}) over the unit interval \((0, 1)\).
 
 \begin{verbatim}
 ggplot() +
-  geom_qf(fun = qnorm, args = list(mean = 0, sd = 1))
+  geom_qf(fun = qnorm)
 \end{verbatim}
 
 \begin{figure}
@@ -388,15 +391,15 @@ ggplot() +
 \caption{The quantile function of the standard normal distribution.}\label{fig:qf-normal}
 \end{figure}
 
-\subsection{\texorpdfstring{Discrete cumulative distribution functions: \texttt{geom\_discrete\_cdf()}}{Discrete cumulative distribution functions: geom\_discrete\_cdf()}}\label{discrete-cumulative-distribution-functions-geom_discrete_cdf}
+\subsection{\texorpdfstring{Discrete CDFs: \texttt{geom\_discrete\_cdf()}}{Discrete CDFs: geom\_discrete\_cdf()}}\label{discrete-cdfs-geom_discrete_cdf}
 
-For discrete distributions, the CDF is a step function. The \texttt{geom\_discrete\_cdf()} layer takes a PMF (not a CDF) as input, computes the cumulative sums, and renders the result using step-function vertices constructed by the internal \texttt{build\_step\_polygon()} helper. Like \texttt{geom\_cdf()}, it supports \texttt{p}-based shading.
+For discrete distributions, the CDF is a step function. \texttt{geom\_discrete\_cdf()} takes a PMF as input, computes cumulative sums, and renders the result as step-function vertices constructed by the internal \texttt{build\_step\_polygon()} helper. Like \texttt{geom\_cdf()}, it supports \texttt{p}-based shading.
 
 \begin{verbatim}
 ggplot() +
   geom_discrete_cdf(
     fun = dbinom, args = list(size = 10, prob = 0.5),
-    xlim = c(0, 10), p = 0.9, fill = "steelblue"
+    xlim = c(0, 10), p = 0.9
   )
 \end{verbatim}
 
@@ -406,7 +409,7 @@ ggplot() +
 
 }
 
-\caption{The discrete CDF of a Binomial(10, 0.5) distribution with the region below $p = 0.9$ shaded.}\label{fig:discrete-cdf}
+\caption{The discrete CDF of a $\mathrm{Binomial}(10, 0.5)$ distribution with the region below $p = 0.9$ shaded.}\label{fig:discrete-cdf}
 \end{figure}
 
 \subsection{\texorpdfstring{Survival functions: \texttt{geom\_survival()}}{Survival functions: geom\_survival()}}\label{survival-functions-geom_survival}
@@ -418,13 +421,11 @@ S(x) = 1 - F(x) = P(X > x)
 \label{eq:survival}
 \end{equation}
 
-gives the probability that the event of interest has not yet occurred by time \(x\). The \texttt{geom\_survival()} layer accepts a CDF (e.g., \texttt{pexp}) and plots its complement.
+gives the probability that the event of interest has not yet occurred by time \(x\). \texttt{geom\_survival()} accepts a CDF and plots its complement.
 
 \begin{verbatim}
 ggplot() +
-  geom_survival(
-    fun = pexp, args = list(rate = 0.5), xlim = c(0, 10)
-  )
+  geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 \end{verbatim}
 
 \begin{figure}
@@ -433,7 +434,7 @@ ggplot() +
 
 }
 
-\caption{The survival function of an Exponential($\lambda = 0.5$) distribution, representing $S(x) = e^{-0.5x}$.}\label{fig:survival-exp}
+\caption{The survival function of an $\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$.}\label{fig:survival-exp}
 \end{figure}
 
 \subsection{\texorpdfstring{Hazard functions: \texttt{geom\_hf()}}{Hazard functions: geom\_hf()}}\label{hazard-functions-geom_hf}
@@ -445,9 +446,9 @@ h(x) = \frac{f(x)}{S(x)} = \frac{f(x)}{1 - F(x)}
 \label{eq:hazard}
 \end{equation}
 
-represents the instantaneous rate of failure at time \(x\), conditional on survival to that point \citep{casella2002statistical}. The \texttt{geom\_hf()} layer requires both a PDF and a CDF, supplied via \texttt{pdf\_fun} and \texttt{cdf\_fun} respectively. The \texttt{args} parameter applies to both; where the two functions require different parameterizations, \texttt{pdf\_args} and \texttt{cdf\_args} provide overrides.
+represents the instantaneous rate of failure at time \(x\), conditional on survival to that point \citep{casella2002statistical}. \texttt{geom\_hf()} requires both a PDF and a CDF, supplied via \texttt{pdf\_fun} and \texttt{cdf\_fun} respectively. The \texttt{args} parameter applies to both; \texttt{pdf\_args} and \texttt{cdf\_args} provide overrides where the two functions require different parameterizations.
 
-The hazard function involves division by \(S(x)\), which approaches zero in the tail. The \texttt{StatHF} object guards against this by replacing values where \(S(x) \leq 0\) with \texttt{NaN}, and the \texttt{GeomHF} renderer filters these before drawing.
+Division by \(S(x)\) can cause numerical instability in the tail as \(S(x) \to 0\). \texttt{StatHF} guards against this by replacing values where \(S(x) \leq 0\) with \texttt{NaN}, and \texttt{GeomHF} filters these before rendering.
 
 \begin{verbatim}
 ggplot() +
@@ -463,10 +464,10 @@ ggplot() +
 
 }
 
-\caption{The hazard function of an Exponential($\lambda = 0.5$) distribution, which is constant at $h(x) = 0.5$---the memoryless property.}\label{fig:hazard-exp}
+\caption{The hazard function of an $\mathrm{Exponential}(0.5)$ distribution, constant at $h(x) = 0.5$---a consequence of the memoryless property.}\label{fig:hazard-exp}
 \end{figure}
 
-For distributions without the memoryless property, the hazard function reveals structure not apparent from the density alone. A normal distribution, for example, has an increasing hazard:
+For distributions without the memoryless property, the hazard function reveals structure not apparent from the density alone. The standard normal distribution has an increasing hazard, for instance:
 
 \begin{verbatim}
 ggplot() +
@@ -482,20 +483,20 @@ ggplot() +
 
 }
 
-\caption{The hazard function of the standard normal distribution, illustrating the increasing failure rate.}\label{fig:hazard-normal}
+\caption{The increasing hazard function of the standard normal distribution.}\label{fig:hazard-normal}
 \end{figure}
 
 \section{Implementation}\label{implementation}
 
 \subsection{Architecture}\label{architecture}
 
-Each \pkg{ggfunction} layer is implemented as a pair of \texttt{ggproto} objects---a \texttt{Stat} and a \texttt{Geom}---wired together by a constructor function. The constructor creates a standard \CRANpkg{ggplot2} \texttt{layer()} call, passing the user-supplied function and its parameters through to the stat's \texttt{compute\_group()} method. This method performs the core computation: evaluating the function on a grid or sequence and returning a data frame whose columns correspond to the aesthetic variables expected by the geom.
+Each \pkg{ggfunction} layer is implemented as a pair of \texttt{ggproto} objects---a \texttt{Stat} and a \texttt{Geom}---wired together by a constructor function. The constructor creates a standard \CRANpkg{ggplot2} \texttt{layer()} call, threading the user-supplied function and its parameters through to the stat's \texttt{compute\_group()} method. That method performs the core computation: evaluating the function on a grid or sequence and returning a data frame whose columns correspond to the aesthetic variables expected by the geom.
 
-The separation of computation (stat) from rendering (geom) is not merely organizational. It allows users to substitute alternative geoms or compose multiple layers from the same stat. For instance, the \texttt{StatFunction2d} object computes a grid of scalar-field values that can be rendered by \texttt{GeomRaster}, \texttt{GeomContour}, or \texttt{GeomContourFilled}, selected at construction time through the \texttt{type} parameter.
+The separation of computation (stat) from rendering (geom) is not merely organizational. It allows users to substitute alternative geoms or compose multiple layers from the same stat. The \texttt{StatFunction2d} object, for instance, computes a grid of scalar-field values that can be rendered by \texttt{GeomRaster}, \texttt{GeomContour}, or \texttt{GeomContourFilled}, selected at construction time through the \texttt{type} parameter.
 
 \subsection{Function injection}\label{function-injection}
 
-R's standard mechanism for passing additional arguments to a function---the \texttt{...} (dots) argument---does not compose well when the function is called inside a stat's \texttt{compute\_group()} method, which must also receive ggplot2-internal parameters. The \pkg{ggfunction} package adopts the approach used by \texttt{ggplot2::stat\_function()}: additional arguments are collected in a named list (\texttt{args}) and injected at the call site using \texttt{rlang::inject()}:
+R's \texttt{...} mechanism does not compose well when a function is called inside a stat's \texttt{compute\_group()} method, which must simultaneously receive \CRANpkg{ggplot2}-internal parameters. \pkg{ggfunction} adopts the approach used by \texttt{ggplot2::stat\_function()}: additional arguments are collected in a named list (\texttt{args}) and injected at the call site via \texttt{rlang::inject()}:
 
 \begin{verbatim}
 fun_injected <- function(x) {
@@ -503,7 +504,7 @@ fun_injected <- function(x) {
 }
 \end{verbatim}
 
-This pattern is simple, composable, and avoids the ambiguity of passing function arguments through \texttt{...}.
+This pattern is simple, composable, and avoids the ambiguity of routing function arguments through \texttt{...}.
 
 \subsection{Numerical considerations}\label{numerical-considerations}
 
@@ -512,27 +513,31 @@ Several layers involve numerical integration or accumulation:
 \begin{itemize}
 \tightlist
 \item
-  \textbf{PDF validation} uses \texttt{stats::integrate()} with adaptive quadrature to verify normalization.
+  \textbf{PDF validation} uses \texttt{stats::integrate()} with adaptive quadrature to verify that the supplied function integrates to one over the specified domain.
 \item
-  \textbf{Shading boundaries} are computed by trapezoidal accumulation (Equation \eqref{eq:trapezoid}), which is efficient and sufficient for the smooth densities encountered in practice.
+  \textbf{Shading boundaries} are computed by trapezoidal accumulation \eqref{eq:trapezoid}, which is efficient and sufficient for the smooth densities encountered in practice.
 \item
-  \textbf{Boundary interpolation} in \texttt{GeomFunction1d} uses \texttt{stats::approxfun()} to compute exact \(y\)-values at shade endpoints that fall between grid points.
+  \textbf{Boundary interpolation} in \texttt{GeomFunction1d} uses \texttt{stats::approxfun()} to compute exact \(y\)-values at shade endpoints that fall between evaluation points.
 \item
-  \textbf{Vector field integration} (via \pkg{ggvfields}) uses fourth-order Runge--Kutta with configurable step size and maximum iterations.
+  \textbf{Vector field integration} (via \pkg{ggvfields}) uses a fourth-order Runge--Kutta method with configurable step size and maximum iterations.
 \end{itemize}
 
-The default resolution of \(n = 101\) for one-dimensional functions and \(n = 50\) for two-dimensional grids (yielding 2500 evaluation points) provides a good balance between visual fidelity and computational cost. Users may increase \(n\) for functions with fine-scale structure.
+The default resolution of \(n = 101\) for one-dimensional functions and \(n = 50\) for two-dimensional grids (yielding 2500 evaluation points) balances visual fidelity against computational cost. Users may increase \(n\) for functions with fine-scale structure.
 
 \section{Composability and the grammar}\label{composability-and-the-grammar}
 
-Because each \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the rest of the grammar. Users can overlay multiple functions, apply custom themes, adjust scales, and add annotations exactly as they would with any other geom:
+Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the rest of the grammar. Layers can be overlaid, scaled, themed, annotated, and faceted exactly as one would with any other geom. The following example superimposes two normal densities with different means and spreads, demonstrating that function visualization and standard \CRANpkg{ggplot2} idioms are fully interoperable:
 
 \begin{verbatim}
 ggplot() +
-  geom_pdf(fun = dnorm, args = list(mean = 0, sd = 1),
-           xlim = c(-5, 8), fill = "steelblue", alpha = 0.4) +
-  geom_pdf(fun = dnorm, args = list(mean = 3, sd = 1.5),
-           xlim = c(-5, 8), fill = "tomato", alpha = 0.4) +
+  geom_pdf(
+    fun = dnorm, args = list(mean = 0, sd = 1),
+    xlim = c(-5, 8), alpha = 0.4
+  ) +
+  geom_pdf(
+    fun = dnorm, args = list(mean = 3, sd = 1.5),
+    xlim = c(-5, 8), alpha = 0.4
+  ) +
   labs(x = "x", y = "f(x)", title = "Comparing two normal densities") +
   theme_minimal()
 \end{verbatim}
@@ -543,18 +548,38 @@ ggplot() +
 
 }
 
-\caption{Two normal densities overlaid with custom colors, scales, and theme, demonstrating composability with the grammar of graphics.}\label{fig:composability}
+\caption{Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics.}\label{fig:composability}
 \end{figure}
 
-This composability is the primary advantage of embedding function visualization within the grammar-of-graphics framework, rather than providing standalone plotting functions.
+This composability is the primary advantage of embedding function visualization within the grammar of graphics, rather than providing standalone plotting functions.
+
+\section{Related packages}\label{sec:related}
+
+Several existing packages overlap with \pkg{ggfunction} in purpose, and understanding their scope helps clarify where \pkg{ggfunction} fits.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \CRANpkg{ggplot2} \citep{wickham2016ggplot2}. The \texttt{stat\_function()} layer handles scalar functions \(\mathbb{R} \to \mathbb{R}\) competently, and \texttt{geom\_function\_1d\_1d()} builds directly on this foundation. \CRANpkg{ggplot2} provides no analogues for parametric curves, scalar fields, vector fields, or probability-specific shading operations.
+\item
+  \CRANpkg{ggdist} \citep{kay2024ggdist}. This package excels at visualizing distributional uncertainty in Bayesian workflows: posterior distributions, predictive intervals, and uncertainty estimates from fitted models. Its geoms work primarily with samples or distributional objects rather than the \texttt{d}/\texttt{p}/\texttt{q}/\texttt{h} function families that \pkg{ggfunction} targets.
+\item
+  \CRANpkg{mosaic} \citep{pruim2017mosaic}. The \texttt{plotDist()} function provides quick plots of named distributions and supports shading, but it operates outside the grammar of graphics and cannot be composed with \CRANpkg{ggplot2} layers.
+\item
+  \CRANpkg{metR} \citep{metR}. This package provides contour and vector-field geoms designed for meteorological data, requiring precomputed grids as inputs rather than function objects. Users who already have gridded data may find \CRANpkg{metR} more convenient; users who want to visualize a function directly will find \pkg{ggfunction} more natural.
+\item
+  \pkg{ggvfields} \citep{ggvfields}. \pkg{ggfunction}'s \texttt{geom\_function\_2d\_2d()} delegates to \pkg{ggvfields} for streamline computation. For users whose primary interest is vector fields---including stream plots, gradient fields, and potential functions---\pkg{ggvfields} offers a substantially richer collection of tools built on the same \CRANpkg{ggplot2} extension architecture.
+\end{enumerate}
+
+Taken together, these packages reflect the breadth of interest in function visualization within the R ecosystem. \pkg{ggfunction} is distinguished by its unified dimensional taxonomy and its integration of the full probability distribution function family---capabilities that, to our knowledge, no other single package provides within the grammar of graphics.
 
 \section{Summary}\label{summary}
 
-The \pkg{ggfunction} package provides a principled extension of \CRANpkg{ggplot2} for visualizing mathematical functions and probability distributions. Its organizing taxonomy---classifying functions by the dimensions of their domain and codomain---yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family adds specialized support for the shading operations central to statistical pedagogy: marking quantiles, delineating confidence regions, and highlighting rejection areas.
+\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions and probability distributions. Its organizing taxonomy---classifying functions by the dimensions of their domain and codomain---yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family adds specialized support for the shading operations central to statistical pedagogy: marking quantiles, delineating confidence regions, and highlighting rejection areas.
 
 By implementing each layer as a \texttt{ggproto} stat--geom pair, the package inherits the full composability of the grammar of graphics. Functions can be overlaid, themed, faceted, and annotated using the same tools that \CRANpkg{ggplot2} users already know. The \texttt{args} injection pattern provides a clean interface for parameterized function families, and built-in validation catches common errors---such as unnormalized densities---before they produce misleading graphics.
 
-The \pkg{ggfunction} package is available at \url{https://github.com/dusty-turner/ggfunction} and can be installed via \texttt{pak::pak("dusty-turner/ggfunction")}.
+\pkg{ggfunction} is available at \url{https://github.com/dusty-turner/ggfunction} and can be installed via \texttt{pak::pak("dusty-turner/ggfunction")}.
 
 \section{Acknowledgments}\label{acknowledgments}
 

@@ -5,7 +5,7 @@
 #' two-dimensional coordinates. A user-defined function (`fun`) specifies the
 #' mapping by taking a numeric scalar (e.g. time) and returning a numeric vector
 #' of length 2 (representing \eqn{(x, y)}). The underlying [Stat_1d_2d] evaluates
-#' `fun` over a time sequence (from `t0` to `T` in increments of `dt`), and
+#' `fun` over a time sequence spanning `tlim` in increments of `dt`, and
 #' [GeomStream] renders the resulting path.
 #'
 #' In many cases these layers are useful for visualizing dynamic systems or
@@ -32,8 +32,8 @@
 #'   time) to a two-dimensional coordinate. It should take a numeric scalar and
 #'   return a numeric vector of length 2 representing \eqn{(x, y)}.
 #'   **(Required)**
-#' @param t0 Numeric. The starting value of the time sequence. Defaults to `0`.
-#' @param T Numeric. The ending value of the time sequence. Defaults to `10`.
+#' @param tlim Numeric vector of length 2. The range of the time sequence,
+#'   given as `c(t_start, t_end)`. Defaults to `c(0, 10)`.
 #' @param dt Numeric. The time increment for evaluating `fun`. Defaults to
 #'   `0.01`.
 #' @param args List of additional arguments passed on to the function defined by
@@ -59,7 +59,7 @@
 #' }
 #'
 #' ggplot() +
-#'   geom_function_1d_2d(fun = f, T = 20, tail_point = TRUE)
+#'   geom_function_1d_2d(fun = f, tlim = c(0, 20), tail_point = TRUE)
 #'
 #' f <- function(t) {
 #'   x <- sin(t) * (exp(cos(t)) - 2 * cos(4 * t) - (sin(t / 12))^5)
@@ -68,11 +68,11 @@
 #' }
 #'
 #' ggplot() +
-#'   geom_function_1d_2d(fun = f, T = 6.5, arrow = NULL, color = "black")
+#'   geom_function_1d_2d(fun = f, tlim = c(0, 6.5), arrow = NULL, color = "black")
 #'
 #' f <- function(t)  c(abs(cos(t)*t), t)
 #'
-#' ggplot() + geom_function_1d_2d(fun = f, t0 = -20,  T = 20)
+#' ggplot() + geom_function_1d_2d(fun = f, tlim = c(-20, 20))
 #'
 #' # Lissajous curve
 #' lissajous <- function(t, A = 1, B = 1, a = 3, b = 2, delta = pi/2) {
@@ -80,28 +80,33 @@
 #' }
 #'
 #' ggplot() +
-#'   geom_function_1d_2d( fun = lissajous, T = 2 * pi, color = "black", arrow = NULL,
+#'   geom_function_1d_2d(
+#'     fun = lissajous, tlim = c(0, 2 * pi), color = "black", arrow = NULL,
 #'     args = list(A = 1, B = 1, a = 3, b = 2, delta = pi/2)
 #'   )
 #'
-#' # Example 5: Variations on Lissajous curves
+#' # Variations on Lissajous curves
 #' ggplot() +
-#'   geom_function_1d_2d( fun = lissajous, T = 2 * pi, color = "black", arrow = NULL,
+#'   geom_function_1d_2d(
+#'     fun = lissajous, tlim = c(0, 2 * pi), color = "black", arrow = NULL,
 #'     args = list(A = 2, B = 1, a = 4, b = 2, delta = pi/4)
 #'   )
 #'
 #' ggplot() +
-#'   geom_function_1d_2d( fun = lissajous, T = 2 * pi, color = "black", arrow = NULL,
+#'   geom_function_1d_2d(
+#'     fun = lissajous, tlim = c(0, 2 * pi), color = "black", arrow = NULL,
 #'     args = list(A = 1, B = 2, a = 5, b = 3, delta = pi/3)
 #'   )
 #'
 #' ggplot() +
-#'   geom_function_1d_2d( fun = lissajous, T = 2 * pi, color = "black", arrow = NULL,
+#'   geom_function_1d_2d(
+#'     fun = lissajous, tlim = c(0, 2 * pi), color = "black", arrow = NULL,
 #'     args = list(A = 0.5, B = 0.5, a = 2, b = 3, delta = pi/6)
 #'   )
 #'
 #' ggplot() +
-#'   geom_function_1d_2d( fun = lissajous, T = 2 * pi, color = "black", arrow = NULL,
+#'   geom_function_1d_2d(
+#'     fun = lissajous, tlim = c(0, 2 * pi), color = "black", arrow = NULL,
 #'     args = list(A = 0.5, B = 0.5, a = 5, b = 4, delta = pi/2)
 #'   )
 #'
@@ -117,7 +122,7 @@
 #'     c(x, y)
 #' }
 #'
-#' ggplot() + geom_function_1d_2d(fun = f, t0 = 0,  T = 5)
+#' ggplot() + geom_function_1d_2d(fun = f, tlim = c(0, 5))
 #'
 #' @name geom_function_1d_2d
 #' @aliases geom_function_1d_2d stat_function_1d_2d Stat_1d_2d
@@ -135,8 +140,7 @@ geom_function_1d_2d <- function(mapping = NULL, data = NULL,
                               show.legend = NA,
                               inherit.aes = FALSE,
                               fun,
-                              t0 = 0,
-                              T = 10,
+                              tlim = c(0, 10),
                               dt = 0.01,
                               args = list(),
                               tail_point = FALSE,
@@ -166,8 +170,7 @@ geom_function_1d_2d <- function(mapping = NULL, data = NULL,
     inherit.aes = inherit.aes,
     params = list(
       fun = fun,
-      t0 = t0,
-      T = T,
+      tlim = tlim,
       dt = dt,
       args = args,
       na.rm = na.rm,
@@ -191,8 +194,7 @@ stat_function_1d_2d <- function(mapping = NULL, data = NULL,
                                show.legend = NA,
                                inherit.aes = FALSE,
                                fun,
-                               t0 = 0,
-                               T = 10,
+                               tlim = c(0, 10),
                                dt = 0.01,
                                args = list(),
                                tail_point = FALSE,
@@ -222,8 +224,7 @@ stat_function_1d_2d <- function(mapping = NULL, data = NULL,
     inherit.aes = inherit.aes,
     params = list(
       fun = fun,
-      t0 = t0,
-      T = T,
+      tlim = tlim,
       dt = dt,
       args = args,
       na.rm = na.rm,
@@ -242,9 +243,9 @@ stat_function_1d_2d <- function(mapping = NULL, data = NULL,
 Stat_1d_2d <- ggproto("Stat_1d_2d", Stat,
   default_aes = aes(color = after_stat(t)),
 
-  compute_group = function(data, scales, fun, t0, T, dt, args, ...) {
+  compute_group = function(data, scales, fun, tlim, dt, args, ...) {
 
-    t <- seq(t0, T, dt)
+    t <- seq(tlim[1], tlim[2], dt)
 
     orig_fun <- fun
     fun <- function(v) rlang::inject(orig_fun(v, !!!args))
