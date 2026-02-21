@@ -19,9 +19,11 @@ reference:
   - title: "Probability Distributions"
     contents:
       - geom_pdf
-      - geom_cdf
       - geom_pmf
+      - geom_cdf
+      - geom_cdf_discrete
       - geom_qf
-      - geom_discrete_cdf
+      - geom_qf_discrete
       - geom_survival
+      - geom_survival_discrete
       - geom_hf

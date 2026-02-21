@@ -33,7 +33,14 @@ jobs:
           git clone https://$PAT@github.com/dusty-turner/blog-reboot.git
 
           # Synchronize the files to the target repository, replacing existing contents
-          rsync -av --delete docs/ blog-reboot/static/ggfunction/
+          rsync -av --delete docs/ blog-reboot/public/ggfunction/
+
+          # Inject <base href> tags so relative CSS/JS paths resolve correctly
+          # (without this, visiting /ggfunction without trailing slash breaks all styles)
+          for f in $(find blog-reboot/public/ggfunction -name "*.html"); do
+            dir=$(dirname "$f" | sed 's|^blog-reboot/public/||')
+            sed -i "s|<head>|<head><base href=\"/$dir/\">|" "$f"
+          done
 
           # Commit and push the changes
           cd blog-reboot
