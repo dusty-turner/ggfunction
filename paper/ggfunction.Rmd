@@ -49,6 +49,8 @@ packages:
     - metR
     - rlang
     - cli
+    - patchwork
+    - lattice
   bioc: ~
   other:
     - ggfunction
@@ -73,7 +75,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.width = 6,
-  fig.height = 4,
+  fig.height = 3,
   fig.align = "center",
   out.width = "85%",
   warning = FALSE,
@@ -84,16 +86,13 @@ options(
   ggplot2.continuous.colour = NULL,
   ggplot2.continuous.fill = NULL
 )
-
-library(ggfunction)
-library(ggplot2)
 ```
 
 # Introduction
 
 Visualizing mathematical functions is one of the most common tasks in applied mathematics and statistics--and one of the most under-supported in the grammar of graphics. Whether an instructor is shading a rejection region under a normal curve, a researcher is inspecting a scalar field over a spatial domain, or a student is tracing a parametric spiral, the need to move quickly from a function's definition to its graphical representation arises constantly. In R, \CRANpkg{ggplot2} [@wickham2010layered; @wickham2016ggplot2] has become the dominant visualization framework, yet its native support for plotting functions remains narrow. The built-in `stat_function()` evaluates a univariate function over a range and draws it as a path--perfectly adequate for $f\colon \mathbb{R} \to \mathbb{R}$, but offering nothing for parametric curves, scalar fields, vector fields, or the rich family of functions associated with probability distributions.
 
-Several packages address pieces of this gap. \CRANpkg{ggdist} [@kay2024ggdist] provides sophisticated distribution visualizations oriented toward Bayesian uncertainty communication. \CRANpkg{mosaic} [@pruim2017mosaic] offers `plotDist()` for pedagogical work, but outside the grammar of graphics. \CRANpkg{metR} provides contour and vector-field displays for meteorological data, though it requires precomputed grids rather than function objects. None of these packages offers a unified treatment of functions organized by their dimensional structure.
+Several packages address pieces of this gap. \CRANpkg{ggdist} [@kay2024ggdist] provides sophisticated distribution visualizations oriented toward Bayesian uncertainty communication. \CRANpkg{mosaic} [@pruim2017mosaic] offers `plotDist()` for pedagogical work, but it is built on the \CRANpkg{lattice} [@lattice] framework rather than the grammar of graphics. \CRANpkg{metR} provides contour and vector-field displays for meteorological data, though it requires precomputed grids rather than function objects. None of these packages offers a unified treatment of functions organized by their dimensional structure.
 
 \pkg{ggfunction} fills this gap by extending \CRANpkg{ggplot2} with a principled taxonomy of function types, classified by the dimensions of their domain and codomain. It provides two complementary families of geoms:
 
@@ -155,18 +154,20 @@ The simplest case is a univariate function rendered as a curve in the plane. `ge
 
 ```{r sin-curve, echo=TRUE}
 #| fig.cap: "The sine function over one full period."
+library("ggfunction")
+
 ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi))
 ```
 
 The `shade_from` and `shade_to` parameters fill the region between the curve and the $x$-axis over a specified interval $[a, b]$. Boundary values are computed by linear interpolation via `stats::approxfun()`, so the shaded region aligns precisely with the requested interval even when $a$ or $b$ fall between evaluation points.
 
-```{r shaded-normal, echo=TRUE}
-#| fig.cap: "The standard normal density with the interval $[-1, 1]$ shaded, corresponding to approximately 68\\% of the total area."
+```{r shaded-cosine, echo=TRUE}
+#| fig.cap: "The cosine function over $[0, 2\\pi]$ with the interval $[0, \\pi/2]$ shaded; the shaded area equals $\\int_0^{\\pi/2} \\cos(x)\\,dx = 1$."
 ggplot() +
   geom_function_1d_1d(
-    fun = dnorm, xlim = c(-3, 3),
-    shade_from = -1, shade_to = 1
+    fun = cos, xlim = c(0, 2 * pi),
+    shade_from = 0, shade_to = pi / 2
   )
 ```
 
@@ -218,10 +219,8 @@ ggplot() +
 
 The contour modes are selected simply by changing `type`:
 
-```{r gaussian-contour, echo=TRUE, fig.width=10, fig.height=4}
+```{r gaussian-contour, echo=TRUE, fig.width=10, fig.height=3}
 #| fig.cap: "The same Gaussian bump rendered as contour lines (left) and filled contours (right)."
-library("gridExtra")
-
 p_contour <- ggplot() +
   geom_function_2d_1d(
     fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour"
@@ -232,7 +231,9 @@ p_filled <- ggplot() +
     fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour_filled"
   ) + ggtitle("type = \"contour_filled\"")
 
-grid.arrange(p_contour, p_filled, ncol = 2)
+library("patchwork")
+
+p_contour | p_filled
 ```
 
 For the contour variants, the `StatFunction2dContour` and `StatFunction2dContourFilled` classes extend the corresponding \CRANpkg{ggplot2} stats. The `setup_params()` method pre-computes the function grid so that `z.range` is available for automatic break computation before any data is rendered.
@@ -284,32 +285,29 @@ Four shading modes are supported, corresponding to common pedagogical operations
 
 **Single threshold.** The `p` parameter specifies a cumulative probability. When `lower.tail = TRUE` (the default), the region from the left boundary to the $p$-quantile is shaded, representing $P(X \leq x_p) = p$. Setting `lower.tail = FALSE` shades the complementary upper tail.
 
-```{r pdf-single, echo=TRUE}
-#| fig.cap: "Standard normal density with the lower 97.5\\% shaded."
-ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975)
-```
-
 **Two-sided interval.** The `p_lower` and `p_upper` parameters define a central region--the natural representation for a $(1 - \alpha)$ confidence interval.
-
-```{r pdf-two-sided, echo=TRUE}
-#| fig.cap: "The central 95\\% of the standard normal density, corresponding to the interval between the 2.5th and 97.5th percentiles."
-ggplot() +
-  geom_pdf(
-    fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975
-  )
-```
 
 **Tail shading.** Setting `shade_outside = TRUE` inverts the two-sided region, shading both tails. This directly represents the rejection region of a two-sided hypothesis test at level $\alpha$.
 
-```{r pdf-tails, echo=TRUE}
-#| fig.cap: "The rejection region of a two-sided test at $\\alpha = 0.05$, shading the area outside the central 95\\%."
-ggplot() +
+```{r pdf-shading-modes, echo=TRUE, fig.width=10, fig.height=3}
+#| fig.cap: "Three shading modes for \\texttt{geom\\_pdf()}: lower tail ($p = 0.975$, left), central 95\\% interval (center), and two-tailed rejection region at $\\alpha = 0.05$ (right)."
+p1 <- ggplot() +
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975) +
+  ggtitle("p = 0.975")
+
+p2 <- ggplot() +
+  geom_pdf(
+    fun = dnorm, xlim = c(-3, 3),
+    p_lower = 0.025, p_upper = 0.975
+  ) + ggtitle("Central 95%")
+
+p3 <- ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-3, 3),
     p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE
-  )
+  ) + ggtitle("\u03b1 = 0.05 rejection region")
+
+p1 | p2 | p3
 ```
 
 **Highest density region.** The `shade_hdr` parameter specifies a coverage probability and shades the corresponding highest density region (HDR)--the smallest subset of the domain containing the specified probability mass. For multimodal densities the HDR may be disconnected, producing multiple disjoint shaded intervals. The algorithm follows @otto2023ggdensity: evaluate the density on the grid, normalize the values to sum to one, sort in descending order, accumulate until the target coverage is reached, and shade all grid intervals at or above the resulting density threshold.
@@ -360,7 +358,6 @@ ggplot() +
 
 ```{r pmf-shading, echo=TRUE}
 #| fig.cap: "Shading modes for \\texttt{geom\\_pmf()}: the lower 80\\% by cumulative probability (left) and the 80\\% HDR of a $\\mathrm{Binomial}(10, 0.3)$ distribution (right). Unshaded lollipops are shown in grey."
-library("gridExtra")
 p1 <- ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10),
     args = list(size = 10, prob = 0.5), p = 0.8) +
@@ -371,7 +368,7 @@ p2 <- ggplot() +
     args = list(size = 10, prob = 0.3), shade_hdr = 0.8) +
   ggtitle("shade_hdr = 0.8")
 
-grid.arrange(p1, p2, ncol = 2)
+p1 | p2
 ```
 
 ## Cumulative distribution and survival functions
@@ -449,24 +446,29 @@ represents the instantaneous rate of failure at time $x$, conditional on surviva
 
 Division by $S(x)$ can cause numerical instability in the tail as $S(x) \to 0$. `StatHF` guards against this by replacing values where $S(x) \leq 0$ with `NaN`, and `GeomHF` filters these before rendering.
 
-```{r hazard-exp, echo=TRUE}
-#| fig.cap: "The hazard function of an $\\mathrm{Exponential}(0.5)$ distribution, constant at $h(x) = 0.5$--a consequence of the memoryless property."
-ggplot() +
+Three canonical hazard shapes arise in reliability modeling: decreasing (infant mortality, where early failures dominate), constant (the memoryless Exponential distribution), and increasing (wear-out failure, where older units fail at higher rates).
+
+```{r hazard-shapes, echo=TRUE, fig.width=10, fig.height=3}
+#| fig.cap: "Three canonical hazard shapes: decreasing ($\\mathrm{Weibull}(\\mathrm{shape}{=}0.5,\\,\\mathrm{scale}{=}2)$, left), constant ($\\mathrm{Exponential}(0.5)$, center), and increasing ($\\mathcal{N}(0,1)$, right)."
+p_decr <- ggplot() +
+  geom_hf(
+    pdf_fun = dweibull, cdf_fun = pweibull,
+    xlim = c(0.01, 5), args = list(shape = 0.5, scale = 2)
+  ) + ggtitle("Decreasing (Weibull)")
+
+p_flat <- ggplot() +
   geom_hf(
     pdf_fun = dexp, cdf_fun = pexp,
     xlim = c(0.01, 10), args = list(rate = 0.5)
-  )
-```
+  ) + ggtitle("Flat (Exponential)")
 
-For distributions without the memoryless property, the hazard function reveals structure not apparent from the density alone. The standard normal distribution has an increasing hazard, for instance:
-
-```{r hazard-normal, echo=TRUE}
-#| fig.cap: "The increasing hazard function of the standard normal distribution."
-ggplot() +
+p_incr <- ggplot() +
   geom_hf(
     pdf_fun = dnorm, cdf_fun = pnorm,
     xlim = c(-3, 3), args = list(mean = 0, sd = 1)
-  )
+  ) + ggtitle("Increasing (Normal)")
+
+p_decr | p_flat | p_incr
 ```
 
 # Implementation
@@ -532,7 +534,7 @@ Several existing packages overlap with \pkg{ggfunction} in purpose, and understa
 
 3. \CRANpkg{ggdensity} [@otto2023ggdensity]. This package improves bivariate density visualization in \CRANpkg{ggplot2}, with a particular focus on highest density regions (HDRs). \pkg{ggfunction}'s `shade_hdr` parameter in `geom_pdf()` follows the HDR computation approach introduced there: normalizing density values, sorting in descending order, and accumulating until the target coverage is reached.
 
-4. \CRANpkg{mosaic} [@pruim2017mosaic]. The `plotDist()` function provides quick plots of named distributions and supports shading, but it operates outside the grammar of graphics and cannot be composed with \CRANpkg{ggplot2} layers.
+4. \CRANpkg{mosaic} [@pruim2017mosaic]. The `plotDist()` function provides quick plots of named distributions and supports shading, but it is built on the \CRANpkg{lattice} [@lattice] graphics framework rather than \CRANpkg{ggplot2}, and therefore cannot be composed with \CRANpkg{ggplot2} layers.
 
 5. \CRANpkg{metR} [@metR]. This package provides contour and vector-field geoms designed for meteorological data, requiring precomputed grids as inputs rather than function objects. Users who already have gridded data may find \CRANpkg{metR} more convenient; users who want to visualize a function directly will find \pkg{ggfunction} more natural.
 

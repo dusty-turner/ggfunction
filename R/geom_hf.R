@@ -1,16 +1,30 @@
 #' Plot a Hazard Function h(x) = f(x) / S(x)
 #'
-#' `geom_hf()` creates a ggplot2 layer that plots a hazard function,
-#' computed as \eqn{h(x) = f(x) / (1 - F(x))} where \eqn{f(x)} is the PDF
-#' and \eqn{F(x)} is the CDF. By default only the line is drawn (no fill).
+#' `geom_hf()` creates a ggplot2 layer that plots a hazard function. Two
+#' interfaces are supported:
+#'
+#' * **PDF + CDF interface**: supply `pdf_fun` and `cdf_fun`; the hazard is
+#'   computed internally as \eqn{h(x) = f(x) / (1 - F(x))}.
+#' * **Direct hazard interface**: supply `fun`, a function that returns
+#'   \eqn{h(x)} directly (e.g. a closed-form expression).
+#'
+#' Exactly one of these two interfaces must be used. By default only the line
+#' is drawn (no fill).
 #'
 #' @inheritParams ggplot2::geom_function
-#' @param pdf_fun A PDF function (e.g. [dnorm]).
-#' @param cdf_fun A CDF function (e.g. [pnorm]).
+#' @param fun A hazard function \eqn{h(x)} (optional). When supplied,
+#'   `pdf_fun` and `cdf_fun` must not be provided.
+#' @param pdf_fun A PDF function (e.g. [dnorm]). Required when `fun` is
+#'   not supplied.
+#' @param cdf_fun A CDF function (e.g. [pnorm]). Required when `fun` is
+#'   not supplied.
 #' @param n Number of points at which to evaluate. Defaults to 101.
-#' @param args A named list of arguments shared by both `pdf_fun` and `cdf_fun`.
-#' @param pdf_args A named list of additional arguments specific to `pdf_fun` (overrides `args`).
-#' @param cdf_args A named list of additional arguments specific to `cdf_fun` (overrides `args`).
+#' @param args A named list of arguments passed to `fun`, or shared by
+#'   both `pdf_fun` and `cdf_fun`.
+#' @param pdf_args A named list of additional arguments specific to `pdf_fun`
+#'   (overrides `args`). Ignored when using the direct hazard interface.
+#' @param cdf_args A named list of additional arguments specific to `cdf_fun`
+#'   (overrides `args`). Ignored when using the direct hazard interface.
 #' @param xlim A numeric vector of length 2 giving the x-range.
 #' @param color Line color for the hazard curve.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
@@ -18,12 +32,19 @@
 #' @return A ggplot2 layer.
 #'
 #' @examples
+#'   # PDF + CDF interface
 #'   ggplot() +
 #'     geom_hf(pdf_fun = dnorm, cdf_fun = pnorm, xlim = c(-3, 3))
 #'
 #'   ggplot() +
 #'     geom_hf(pdf_fun = dexp, cdf_fun = pexp,
 #'       args = list(rate = 0.5), xlim = c(0, 10))
+#'
+#'   # Direct hazard interface (Weibull closed-form hazard)
+#'   h_weibull <- function(x, shape, scale) (shape / scale) * (x / scale)^(shape - 1)
+#'   ggplot() +
+#'     geom_hf(fun = h_weibull, xlim = c(0.01, 5),
+#'       args = list(shape = 0.5, scale = 2))
 #'
 #' @name geom_hf
 #' @aliases StatHF GeomHF
@@ -37,8 +58,9 @@ geom_hf <- function(
     na.rm = FALSE,
     show.legend = NA,
     inherit.aes = FALSE,
-    pdf_fun,
-    cdf_fun,
+    fun = NULL,
+    pdf_fun = NULL,
+    cdf_fun = NULL,
     xlim = NULL,
     n = 101,
     args = list(),
@@ -66,6 +88,7 @@ geom_hf <- function(
     show.legend = show.legend,
     inherit.aes = inherit.aes,
     params = list(
+      fun = fun,
       pdf_fun = pdf_fun,
       cdf_fun = cdf_fun,
       n = n,
@@ -85,8 +108,24 @@ geom_hf <- function(
 StatHF <- ggproto("StatHF", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
-  compute_group = function(data, scales, pdf_fun, cdf_fun, xlim = NULL, n = 101,
+  compute_group = function(data, scales, fun = NULL, pdf_fun = NULL,
+                           cdf_fun = NULL, xlim = NULL, n = 101,
                            args = NULL, pdf_args = NULL, cdf_args = NULL) {
+
+    # Validate interface
+    using_fun <- !is.null(fun)
+    using_pdf_cdf <- !is.null(pdf_fun) || !is.null(cdf_fun)
+
+    if (using_fun && using_pdf_cdf) {
+      cli::cli_abort(
+        "Supply either {.arg fun} or {.arg pdf_fun}/{.arg cdf_fun}, not both."
+      )
+    }
+    if (!using_fun && (is.null(pdf_fun) || is.null(cdf_fun))) {
+      cli::cli_abort(
+        "When {.arg fun} is not supplied, both {.arg pdf_fun} and {.arg cdf_fun} are required."
+      )
+    }
 
     range <- if (is.null(scales$x)) {
       xlim %||% c(0, 1)
@@ -94,25 +133,25 @@ StatHF <- ggproto("StatHF", Stat,
       xlim %||% scales$x$dimension()
     }
 
-    # Merge shared args with specific overrides
-    pdf_a <- if (!is.null(pdf_args)) modifyList(args, pdf_args) else args
-    cdf_a <- if (!is.null(cdf_args)) modifyList(args, cdf_args) else args
-
-    pdf_injected <- function(x) {
-      rlang::inject(pdf_fun(x, !!!pdf_a))
-    }
-
-    cdf_injected <- function(x) {
-      rlang::inject(cdf_fun(x, !!!cdf_a))
-    }
-
     xseq <- seq(range[1], range[2], length.out = n)
-    f_vals <- pdf_injected(xseq)
-    F_vals <- cdf_injected(xseq)
-    S_vals <- 1 - F_vals
 
-    # Compute hazard, guarding division by zero
-    y_out <- ifelse(S_vals > 0, f_vals / S_vals, NaN)
+    if (using_fun) {
+      fun_injected <- function(x) rlang::inject(fun(x, !!!args))
+      y_out <- fun_injected(xseq)
+    } else {
+      # Merge shared args with specific overrides
+      pdf_a <- if (!is.null(pdf_args)) modifyList(args, pdf_args) else args
+      cdf_a <- if (!is.null(cdf_args)) modifyList(args, cdf_args) else args
+
+      pdf_injected <- function(x) rlang::inject(pdf_fun(x, !!!pdf_a))
+      cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!cdf_a))
+
+      f_vals <- pdf_injected(xseq)
+      S_vals <- 1 - cdf_injected(xseq)
+
+      # Compute hazard, guarding division by zero
+      y_out <- ifelse(S_vals > 0, f_vals / S_vals, NaN)
+    }
 
     data.frame(x = xseq, y = y_out)
   }

@@ -1,4 +1,4 @@
-\begin{thebibliography}{10}
+\begin{thebibliography}{11}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -39,6 +39,13 @@ R.~Pruim, D.~T. Kaplan, and N.~J. Horton.
 \newblock The mosaic package: Helping students to ``think with data'' using \proglang{R}.
 \newblock \emph{The R Journal}, 9\penalty0 (1):\penalty0 77--102, 2017.
 \newblock \doi{10.32614/RJ-2017-024}.
+
+\bibitem[Sarkar(2008)]{lattice}
+D.~Sarkar.
+\newblock \emph{Lattice: Multivariate Data Visualization with \proglang{R}}.
+\newblock Springer, New York, 2008.
+\newblock ISBN 978-0-387-75968-5.
+\newblock URL \url{https://lmdvr.r-forge.r-project.org}.
 
 \bibitem[Turner and Kahle(2026)]{ggvfields}
 D.~Turner and D.~Kahle.

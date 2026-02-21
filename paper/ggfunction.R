@@ -7,7 +7,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.width = 6,
-  fig.height = 4,
+  fig.height = 3,
   fig.align = "center",
   out.width = "85%",
   warning = FALSE,
@@ -18,9 +18,6 @@ options(
   ggplot2.continuous.colour = NULL,
   ggplot2.continuous.fill = NULL
 )
-
-library(ggfunction)
-library(ggplot2)
 
 
 ## ----eval=FALSE, echo=TRUE----------------------------------------------------
@@ -33,16 +30,18 @@ library(ggplot2)
 
 ## ----sin-curve, echo=TRUE-----------------------------------------------------
 #| fig.cap: "The sine function over one full period."
+library("ggfunction")
+
 ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi))
 
 
-## ----shaded-normal, echo=TRUE-------------------------------------------------
-#| fig.cap: "The standard normal density with the interval $[-1, 1]$ shaded, corresponding to approximately 68\\% of the total area."
+## ----shaded-cosine, echo=TRUE-------------------------------------------------
+#| fig.cap: "The cosine function over $[0, 2\\pi]$ with the interval $[0, \\pi/2]$ shaded; the shaded area equals $\\int_0^{\\pi/2} \\cos(x)\\,dx = 1$."
 ggplot() +
   geom_function_1d_1d(
-    fun = dnorm, xlim = c(-3, 3),
-    shade_from = -1, shade_to = 1
+    fun = cos, xlim = c(0, 2 * pi),
+    shade_from = 0, shade_to = pi / 2
   )
 
 
@@ -78,10 +77,8 @@ ggplot() +
   geom_function_2d_1d(fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3))
 
 
-## ----gaussian-contour, echo=TRUE, fig.width=10, fig.height=4------------------
+## ----gaussian-contour, echo=TRUE, fig.width=10, fig.height=3------------------
 #| fig.cap: "The same Gaussian bump rendered as contour lines (left) and filled contours (right)."
-library("gridExtra")
-
 p_contour <- ggplot() +
   geom_function_2d_1d(
     fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour"
@@ -92,7 +89,9 @@ p_filled <- ggplot() +
     fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3), type = "contour_filled"
   ) + ggtitle("type = \"contour_filled\"")
 
-grid.arrange(p_contour, p_filled, ncol = 2)
+library("patchwork")
+
+p_contour | p_filled
 
 
 ## ----rotation-field, echo=TRUE------------------------------------------------
@@ -113,28 +112,25 @@ ggplot() +
     type = "stream")
 
 
-## ----pdf-single, echo=TRUE----------------------------------------------------
-#| fig.cap: "Standard normal density with the lower 97.5\\% shaded."
-ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975)
+## ----pdf-shading-modes, echo=TRUE, fig.width=10, fig.height=3-----------------
+#| fig.cap: "Three shading modes for \\texttt{geom\\_pdf()}: lower tail ($p = 0.975$, left), central 95\\% interval (center), and two-tailed rejection region at $\\alpha = 0.05$ (right)."
+p1 <- ggplot() +
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975) +
+  ggtitle("p = 0.975")
 
-
-## ----pdf-two-sided, echo=TRUE-------------------------------------------------
-#| fig.cap: "The central 95\\% of the standard normal density, corresponding to the interval between the 2.5th and 97.5th percentiles."
-ggplot() +
+p2 <- ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-3, 3),
     p_lower = 0.025, p_upper = 0.975
-  )
+  ) + ggtitle("Central 95%")
 
-
-## ----pdf-tails, echo=TRUE-----------------------------------------------------
-#| fig.cap: "The rejection region of a two-sided test at $\\alpha = 0.05$, shading the area outside the central 95\\%."
-ggplot() +
+p3 <- ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-3, 3),
     p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE
-  )
+  ) + ggtitle("\u03b1 = 0.05 rejection region")
+
+p1 | p2 | p3
 
 
 ## ----pdf-hdr, echo=TRUE-------------------------------------------------------
@@ -166,7 +162,6 @@ ggplot() +
 
 ## ----pmf-shading, echo=TRUE---------------------------------------------------
 #| fig.cap: "Shading modes for \\texttt{geom\\_pmf()}: the lower 80\\% by cumulative probability (left) and the 80\\% HDR of a $\\mathrm{Binomial}(10, 0.3)$ distribution (right). Unshaded lollipops are shown in grey."
-library("gridExtra")
 p1 <- ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10),
     args = list(size = 10, prob = 0.5), p = 0.8) +
@@ -177,7 +172,7 @@ p2 <- ggplot() +
     args = list(size = 10, prob = 0.3), shade_hdr = 0.8) +
   ggtitle("shade_hdr = 0.8")
 
-grid.arrange(p1, p2, ncol = 2)
+p1 | p2
 
 
 ## ----cdf-shaded, echo=TRUE----------------------------------------------------
@@ -222,22 +217,27 @@ ggplot() +
   )
 
 
-## ----hazard-exp, echo=TRUE----------------------------------------------------
-#| fig.cap: "The hazard function of an $\\mathrm{Exponential}(0.5)$ distribution, constant at $h(x) = 0.5$--a consequence of the memoryless property."
-ggplot() +
+## ----hazard-shapes, echo=TRUE, fig.width=10, fig.height=3---------------------
+#| fig.cap: "Three canonical hazard shapes: decreasing ($\\mathrm{Weibull}(\\mathrm{shape}{=}0.5,\\,\\mathrm{scale}{=}2)$, left), constant ($\\mathrm{Exponential}(0.5)$, center), and increasing ($\\mathcal{N}(0,1)$, right)."
+p_decr <- ggplot() +
+  geom_hf(
+    pdf_fun = dweibull, cdf_fun = pweibull,
+    xlim = c(0.01, 5), args = list(shape = 0.5, scale = 2)
+  ) + ggtitle("Decreasing (Weibull)")
+
+p_flat <- ggplot() +
   geom_hf(
     pdf_fun = dexp, cdf_fun = pexp,
     xlim = c(0.01, 10), args = list(rate = 0.5)
-  )
+  ) + ggtitle("Flat (Exponential)")
 
-
-## ----hazard-normal, echo=TRUE-------------------------------------------------
-#| fig.cap: "The increasing hazard function of the standard normal distribution."
-ggplot() +
+p_incr <- ggplot() +
   geom_hf(
     pdf_fun = dnorm, cdf_fun = pnorm,
     xlim = c(-3, 3), args = list(mean = 0, sd = 1)
-  )
+  ) + ggtitle("Increasing (Normal)")
+
+p_decr | p_flat | p_incr
 
 
 ## ----eval=FALSE, echo=TRUE----------------------------------------------------
