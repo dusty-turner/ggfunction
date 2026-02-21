@@ -77,7 +77,11 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 \item{fun}{A function to compute the quantile function (e.g. \link{qnorm}). The function must
 accept a numeric vector of probabilities (values in \verb{[0,1]}) as its first argument.}
 
-\item{n}{Number of probability points at which to evaluate \code{fun}. Defaults to 101.}
+\item{n}{Number of probability points at which to evaluate \code{fun}. Defaults to 101.
+Points are placed at \href{https://en.wikipedia.org/wiki/Chebyshev_nodes}{Chebyshev nodes}
+of the first kind on $(0, 1)$, which cluster
+near 0 and 1 where quantile functions are typically most curved, and never include
+the exact endpoints (avoiding \eqn{\pm\infty} for unbounded distributions).}
 
 \item{args}{A named list of additional arguments to pass to \code{fun}.}
 }
