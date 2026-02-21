@@ -26,7 +26,8 @@ The package is organized around two families of geoms:
 |  | `geom_cdf()` |  | Cumulative distribution function |
 |  | `geom_pmf()` |  | Probability mass function (lollipop) |
 |  | `geom_qf()` |  | Quantile function |
-|  | `geom_discrete_cdf()` |  | Discrete CDF (step function) |
+|  | `geom_cdf_discrete()` |  | Discrete CDF (step function) |
+|  | `geom_qf_discrete()` |  | Discrete quantile function (step function) |
 |  | `geom_survival()` |  | Survival function $S(x) = 1 - F(x)$ |
 |  | `geom_hf()` |  | Hazard function $h(x) = f(x)/S(x)$ |
 
@@ -74,7 +75,7 @@ $t \in [0, \pi]$.
 f <- function(t) c(cos(3*t)*cos(t), cos(3*t)*sin(t))
 
 ggplot() +
-  geom_function_1d_2d(fun = f, tlim = c(0, pi))
+  geom_function_1d_2d(fun = f, tlim = c(0, 2*pi))
 ```
 
 <img src="man/figures/readme-1d-2d-1.png" width="60%" />
@@ -244,6 +245,27 @@ ggplot() +
 
 <img src="man/figures/readme-pdf-tails-1.png" width="60%" />
 
+### PMF: `geom_pmf()`
+
+`geom_pmf()` evaluates a probability mass function at each integer in
+`xlim` and renders the result as a lollipop chart—vertical segments
+capped with points. Distribution parameters are supplied via `args`. The
+following example plots a $\text{Binomial}(10, 0.3)$ distribution.
+
+``` r
+ggplot() +
+  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
+```
+
+<img src="man/figures/readme-geom-pmf-1.png" width="60%" />
+
+``` r
+ggplot() +
+  geom_pmf(fun = dpois, xlim = c(0, 10), args = list(lambda = 0.3))
+```
+
+<img src="man/figures/readme-geom-pmf-2-1.png" width="60%" />
+
 ### CDF: `geom_cdf()`
 
 `geom_cdf()` draws a cumulative distribution function as a line with
@@ -258,27 +280,6 @@ ggplot() +
 
 <img src="man/figures/readme-geom-cdf-1.png" width="60%" />
 
-``` r
-ggplot() +
-  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975)
-```
-
-<img src="man/figures/readme-geom-cdf-p-1.png" width="60%" />
-
-### PMF: `geom_pmf()`
-
-`geom_pmf()` evaluates a probability mass function at each integer in
-`xlim` and renders the result as a lollipop chart—vertical segments
-capped with points. Distribution parameters are supplied via `args`. The
-following example plots a $\text{Binomial}(10, 0.3)$ distribution.
-
-``` r
-ggplot() +
-  geom_pmf(fun = dbinom, args = list(size = 10, prob = 0.3), xlim = c(0, 10))
-```
-
-<img src="man/figures/readme-geom-pmf-1.png" width="60%" />
-
 ### Quantile function: `geom_qf()`
 
 `geom_qf()` evaluates a quantile function $Q(p) = F^{-1}(p)$ over the
@@ -292,22 +293,92 @@ ggplot() +
 
 <img src="man/figures/readme-geom-qf-1.png" width="60%" />
 
-### Discrete CDF: `geom_discrete_cdf()`
+### Discrete CDF: `geom_cdf_discrete()`
 
-`geom_discrete_cdf()` takes a PMF as input, accumulates it into a
-step-function CDF, and renders it as a staircase. Like `geom_cdf()`, it
-supports `p`-based shading via the `p` parameter. Here we plot the
-$\text{Binomial}(10, 0.5)$ CDF and shade the region below $p = 0.9$.
+`geom_cdf_discrete()` takes a PMF, accumulates it into the
+right-continuous step-function CDF $F(x) = P(X \le x)$, and renders it
+with horizontal segments, dashed vertical jumps at each mass point, open
+circles at the lower limit of each jump, and closed circles at the
+achieved value. The following example plots the
+$\text{Binomial}(10, 0.5)$ CDF.
 
 ``` r
 ggplot() +
-  geom_discrete_cdf(
-    fun = dbinom, args = list(size = 10, prob = 0.5),
-    xlim = c(0, 10), p = 0.9
-  )
+  geom_cdf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 ```
 
 <img src="man/figures/readme-discrete-cdf-1.png" width="60%" />
+
+**Parameterized families.** Distribution parameters are passed via
+`args`. Here we plot a $\text{Poisson}(5)$ CDF.
+
+``` r
+ggplot() +
+  geom_cdf_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+```
+
+<img src="man/figures/readme-discrete-cdf-pois-1.png" width="60%" />
+
+**Hiding points and lines.** Setting `show_points = FALSE` and
+`show_vert = FALSE` removes the open and closed endpoint circles and/or
+vertical lines, leaving only the horizontal lines.
+
+``` r
+ggplot() +
+  geom_cdf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+    show_points = FALSE, show_vert = FALSE)
+```
+
+<img src="man/figures/readme-discrete-cdf-no-points-lines-1.png" width="60%" />
+
+### Discrete quantile function: `geom_qf_discrete()`
+
+`geom_qf_discrete()` takes a PMF and renders the quantile function
+$Q(p) = \inf\{x : F(x) \ge p\}$ as a left-continuous step function on
+the unit interval, with closed circles at the bottom of each jump (the
+value is achieved) and open circles at the top (the next value is not
+yet reached). The following example plots the $\text{Binomial}(10, 0.5)$
+quantile function.
+
+``` r
+ggplot() +
+  geom_qf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+```
+
+<img src="man/figures/readme-discrete-qf-1.png" width="60%" />
+
+**Parameterized families.** Distribution parameters are passed via
+`args`. Here we plot a $\text{Poisson}(5)$ quantile function.
+
+``` r
+ggplot() +
+  geom_qf_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+```
+
+<img src="man/figures/readme-discrete-qf-pois-1.png" width="60%" />
+
+**Hiding points.** Setting `show_points = FALSE` removes the open and
+closed endpoint circles, leaving only the horizontal and vertical lines.
+
+``` r
+ggplot() +
+  geom_qf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+    show_points = FALSE)
+```
+
+<img src="man/figures/readme-discrete-qf-no-points-1.png" width="60%" />
+
+**Hiding vertical lines.** Setting `show_vert = FALSE` removes the
+dashed vertical jump segments, leaving only the horizontal steps and
+endpoint circles.
+
+``` r
+ggplot() +
+  geom_qf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+    show_vert = FALSE)
+```
+
+<img src="man/figures/readme-discrete-qf-no-vert-1.png" width="60%" />
 
 ### Survival function: `geom_survival()`
 
@@ -319,7 +390,7 @@ $S(x) = e^{-0.5x}$.
 
 ``` r
 ggplot() +
-  geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
+  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
 ```
 
 <img src="man/figures/readme-survival-1.png" width="60%" />
@@ -336,7 +407,7 @@ property.
 
 ``` r
 ggplot() +
-  geom_hf(pdf_fun = dexp, cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0.01, 10))
+  geom_hf(pdf_fun = dexp, cdf_fun = pexp, xlim = c(0.01, 10), args = list(rate = 0.5))
 ```
 
 <img src="man/figures/readme-hazard-1.png" width="60%" />
