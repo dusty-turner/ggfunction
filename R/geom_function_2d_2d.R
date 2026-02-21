@@ -36,6 +36,8 @@
 #'   `normalize = TRUE`).
 #' @param method Character. Integration method, e.g. `"rk4"` or `"euler"`
 #'   (`type = "stream"` only). Defaults to `"rk4"`.
+#' @param geom The geometric object to use to display the data. Defaults to
+#'   [ggvfields::GeomStream].
 #' @param ... Other arguments passed to [ggplot2::layer()].
 #'
 #' @return A ggplot2 layer.

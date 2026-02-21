@@ -18,3 +18,5 @@ dusty_files*
 ^\.Rprofile$
 ^paper$
 ^README_files$
+^README\.html$
+^Rplots\.pdf$
