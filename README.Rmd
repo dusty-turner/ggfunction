@@ -455,7 +455,7 @@ ggplot(df_single, aes(x = x)) +
 **Multiple groups.**
 
 ```{r eqf-grouped}
-ggplot(df_two, aes(x = x, colour = group)) +
+ggplot(df_two, aes(x = x, color = group)) +
   geom_eqf()
 ```
 
