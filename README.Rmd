@@ -24,6 +24,7 @@ knitr::opts_chunk$set(
 [![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Codecov test coverage](https://codecov.io/gh/dusty-turner/ggfunction/graph/badge.svg)](https://codecov.io/gh/dusty-turner/ggfunction)
 <!-- badges: end -->
 
 **ggfunction** extends [**ggplot2**](https://ggplot2.tidyverse.org/) with geoms and stats for plotting mathematical functions and probability distributions directly from function objects. Supply a function and a domain; **ggfunction** handles evaluation, rendering, and shading.
