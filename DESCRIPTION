@@ -35,8 +35,9 @@ Imports:
     cli
 URL: https://github.com/dusty-turner/ggfunction
 BugReports: https://github.com/dusty-turner/ggfunction/issues
-Suggests: 
+Suggests:
     knitr,
+    patchwork,
     rmarkdown,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr

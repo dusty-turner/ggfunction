@@ -3,11 +3,13 @@
 it as a left-continuous step function on \([0, 1]\), using the same visual
 conventions as geom_qf_discrete(): horizontal segments, dashed vertical
 jumps, closed circles at the bottom of each jump (value achieved), and open
-circles at the top (next value not yet reached)."><meta property="og:description" content="geom_eqf() computes the empirical quantile function of a sample and renders
+circles at the top (next value not yet reached). An optional simultaneous
+confidence band is drawn using the Kolmogorov-Smirnov construction."><meta property="og:description" content="geom_eqf() computes the empirical quantile function of a sample and renders
 it as a left-continuous step function on \([0, 1]\), using the same visual
 conventions as geom_qf_discrete(): horizontal segments, dashed vertical
 jumps, closed circles at the bottom of each jump (value achieved), and open
-circles at the top (next value not yet reached)."></head><body>
+circles at the top (next value not yet reached). An optional simultaneous
+confidence band is drawn using the Kolmogorov-Smirnov construction."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -25,6 +27,11 @@ circles at the top (next value not yet reached)."></head><body>
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/ggfunction.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
+  </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
 <li class="nav-item"><a class="nav-link" href="https://github.com/dusty-turner/ggfunction/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
@@ -46,7 +53,8 @@ circles at the top (next value not yet reached)."></head><body>
 it as a left-continuous step function on \([0, 1]\), using the same visual
 conventions as <code><a href="geom_qf_discrete.html">geom_qf_discrete()</a></code>: horizontal segments, dashed vertical
 jumps, closed circles at the bottom of each jump (value achieved), and open
-circles at the top (next value not yet reached).</p>
+circles at the top (next value not yet reached). An optional simultaneous
+confidence band is drawn using the Kolmogorov-Smirnov construction.</p>
     </div>
 
     <div class="section level2">
@@ -62,16 +70,22 @@ circles at the top (next value not yet reached).</p>
 <span>  inherit.aes <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  open_fill <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  vert_type <span class="op">=</span> <span class="st">"dashed"</span>,</span>
-<span>  show_points <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  show_vert <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  show_points <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  show_vert <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  conf_int <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  conf_alpha <span class="op">=</span> <span class="fl">0.3</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">StatEQF</span></span></code></pre></div>
+<span><span class="va">StatEQF</span></span>
+<span></span>
+<span><span class="va">StatEQFBand</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="format">Format<a class="anchor" aria-label="anchor" href="#format"></a></h2>
     <p>An object of class <code>StatEQF</code> (inherits from <code>Stat</code>, <code>ggproto</code>, <code>gg</code>) of length 3.</p>
+<p>An object of class <code>StatEQFBand</code> (inherits from <code>Stat</code>, <code>ggproto</code>, <code>gg</code>) of length 3.</p>
     </div>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
@@ -180,22 +194,43 @@ to <code>NULL</code>, which uses the active theme's panel background color.</p><
 
 <dt id="arg-show-points">show_points<a class="anchor" aria-label="anchor" href="#arg-show-points"></a></dt>
 <dd><p>Logical. If <code>FALSE</code>, suppresses all endpoint circles.
-Defaults to <code>TRUE</code>.</p></dd>
+If <code>NULL</code> (the default), circles are shown when there are 100 or fewer
+points and hidden otherwise.</p></dd>
 
 
 <dt id="arg-show-vert">show_vert<a class="anchor" aria-label="anchor" href="#arg-show-vert"></a></dt>
 <dd><p>Logical. If <code>FALSE</code>, suppresses the vertical jump segments.
-Defaults to <code>TRUE</code>.</p></dd>
+If <code>NULL</code> (the default), segments are shown when there are 100 or fewer
+points and hidden otherwise.</p></dd>
+
+
+<dt id="arg-conf-int">conf_int<a class="anchor" aria-label="anchor" href="#arg-conf-int"></a></dt>
+<dd><p>Logical. If <code>TRUE</code> (the default), draws a simultaneous KS
+confidence band around the ECDF.</p></dd>
+
+
+<dt id="arg-level">level<a class="anchor" aria-label="anchor" href="#arg-level"></a></dt>
+<dd><p>Confidence level for the band. Defaults to <code>0.95</code>.</p></dd>
+
+
+<dt id="arg-conf-alpha">conf_alpha<a class="anchor" aria-label="anchor" href="#arg-conf-alpha"></a></dt>
+<dd><p>Alpha (transparency) of the confidence ribbon. Defaults
+to <code>0.3</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A ggplot2 layer.</p>
+    <p>A ggplot2 layer, or a list of two layers when <code>conf_int = TRUE</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The empirical quantile function is the left-continuous inverse of the
 empirical CDF: \(Q(p) = \inf\{x : F_n(x) \geq p\}\).</p>
+<p>The confidence band at probability level \(p\) is
+\([Q_n(p - \varepsilon),\, Q_n(p + \varepsilon)]\), where
+\(\varepsilon = \sqrt{\log(2/\alpha) / (2n)}\) is the KS half-width
+(\(\alpha = 1 - \texttt{level}\)). This follows directly from inverting
+the simultaneous ECDF confidence band.</p>
     </div>
 
     <div class="section level2">

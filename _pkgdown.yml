@@ -8,6 +8,17 @@ template:
   bootstrap: 5
   mathjax: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
 
+articles:
+  - title: "Get Started"
+    navbar: ~
+    contents:
+      - ggfunction
+  - title: "Guides"
+    contents:
+      - getting-started
+      - gallery
+      - learning-statistics
+
 # Reference section for function documentation
 reference:
   - title: "Dimensional Taxonomy"
@@ -29,3 +40,4 @@ reference:
       - geom_hf
       - geom_ecdf
       - geom_eqf
+      - geom_epmf
