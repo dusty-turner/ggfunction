@@ -171,9 +171,6 @@ ggplot(df, aes(x = x)) + geom_ecdf()
 df <- data.frame(x = rnorm(100))
 ggplot(df, aes(x = x)) + geom_ecdf()
 
-df <- data.frame(x = rnorm(101))
-ggplot(df, aes(x = x)) + geom_ecdf()
-
 # Overlaying multiple groups
 df2 <- data.frame(
   x     = c(rnorm(40), rnorm(40, mean = 2)),

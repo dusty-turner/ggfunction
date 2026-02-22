@@ -24,7 +24,6 @@ Maintainer: Dusty Turner <dusty.s.turner@gmail.com>
 Description: A ggplot2 extension for visualizing functions in a two-dimensional space. 
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends:
