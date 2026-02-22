@@ -293,10 +293,10 @@ ggplot(df_pmf, aes(x = x, colour = group)) +
 
 
 ## ----sim-coverage, echo=TRUE, fig.width=8, fig.height=3.5, cache=FALSE--------
-#| fig.cap: "Empirical simultaneous coverage of the KS confidence band over 2,000 simulations from $\\mathcal{N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal and converges toward nominal as $n$ grows, consistent with the asymptotic tightness of the DKW bound \\citep{massart1990tight}."
+#| fig.cap: "Empirical simultaneous coverage of the KS confidence band over 10,000 simulations from $\\mathcal{N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal for all $n$, confirming the finite-sample validity of the DKW bound \\citep{massart1990tight}. The slight conservatism at small $n$ diminishes as $n$ grows because the bound's constant is asymptotically tight."
 set.seed(20240101)
-B      <- 2000
-ns     <- c(10, 20, 50, 100, 200, 500)
+B      <- 10000
+ns     <- c(10, 20, 50, 100, 200, 500, 1000)
 levels <- c(0.90, 0.95, 0.99)
 eps_fn <- function(n, lv) sqrt(log(2 / (1 - lv)) / (2 * n))
 
