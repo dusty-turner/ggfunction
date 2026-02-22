@@ -1,6 +1,9 @@
-# ggfunction <a href="https://github.com/dusty-turner/ggfunction"><img src="man/figures/logo.png" align="right" height="138" alt="ggfunction hex sticker" /></a>
+ggfunction
+================
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# ggfunction <a href="https://github.com/dusty-turner/ggfunction"><img src="man/figures/logo.png" align="right" height="138" alt="ggfunction hex sticker" /></a>
 
 <!-- badges: start -->
 
@@ -24,24 +27,24 @@ domain; **ggfunction** handles evaluation, rendering, and shading.
 
 The package is organized around two families of geoms:
 
-| Family | Geom | Maps | Description |
-|----|----|----|----|
-| **Dimensional** | `geom_function_1d_1d()` | $\mathbb{R} \to \mathbb{R}$ | Scalar functions with optional interval shading |
-|  | `geom_function_1d_2d()` | $\mathbb{R} \to \mathbb{R}^2$ | Parametric curves |
-|  | `geom_function_2d_1d()` | $\mathbb{R}^2 \to \mathbb{R}$ | Scalar fields (raster, contour, filled contour) |
-|  | `geom_function_2d_2d()` | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector field streamlines |
-| **Probability** | `geom_pdf()` |  | Probability density function |
-|  | `geom_pmf()` |  | Probability mass function (lollipop) |
-|  | `geom_cdf()` |  | Cumulative distribution function |
-|  | `geom_cdf_discrete()` |  | Discrete CDF (step function) |
-|  | `geom_survival()` |  | Survival function $S(x) = 1 - F(x)$ |
-|  | `geom_survival_discrete()` |  | Discrete survival function (step function) |
-|  | `geom_qf()` |  | Quantile function |
-|  | `geom_qf_discrete()` |  | Discrete quantile function (step function) |
-|  | `geom_hf()` |  | Hazard function $h(x) = f(x)/S(x)$ |
-| **Data** | `geom_ecdf()` |  | Empirical CDF with KS confidence ribbon |
-|  | `geom_eqf()` |  | Empirical quantile function with confidence ribbon |
-|  | `geom_epmf()` |  | Empirical PMF (lollipop) |
+| Family          | Geom                       | Maps                            | Description                                        |
+|-----------------|----------------------------|---------------------------------|----------------------------------------------------|
+| **Dimensional** | `geom_function_1d_1d()`    | $\mathbb{R} \to \mathbb{R}$     | Scalar functions with optional interval shading    |
+|                 | `geom_function_1d_2d()`    | $\mathbb{R} \to \mathbb{R}^2$   | Parametric curves                                  |
+|                 | `geom_function_2d_1d()`    | $\mathbb{R}^2 \to \mathbb{R}$   | Scalar fields (raster, contour, filled contour)    |
+|                 | `geom_function_2d_2d()`    | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector field streamlines                           |
+| **Probability** | `geom_pdf()`               |                                 | Probability density function                       |
+|                 | `geom_pmf()`               |                                 | Probability mass function (lollipop)               |
+|                 | `geom_cdf()`               |                                 | Cumulative distribution function                   |
+|                 | `geom_cdf_discrete()`      |                                 | Discrete CDF (step function)                       |
+|                 | `geom_survival()`          |                                 | Survival function $S(x) = 1 - F(x)$                |
+|                 | `geom_survival_discrete()` |                                 | Discrete survival function (step function)         |
+|                 | `geom_qf()`                |                                 | Quantile function                                  |
+|                 | `geom_qf_discrete()`       |                                 | Discrete quantile function (step function)         |
+|                 | `geom_hf()`                |                                 | Hazard function $h(x) = f(x)/S(x)$                 |
+| **Data**        | `geom_ecdf()`              |                                 | Empirical CDF with KS confidence ribbon            |
+|                 | `geom_eqf()`               |                                 | Empirical quantile function with confidence ribbon |
+|                 | `geom_epmf()`              |                                 | Empirical PMF (lollipop)                           |
 
 ## Dimensional Taxonomy
 
@@ -60,7 +63,7 @@ ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(0, 2*pi))
 ```
 
-<img src="man/figures/readme-1d-1d-1.png" width="60%" />
+<img src="man/figures/readme-1d-1d-1.png" alt="" width="60%" />
 
 **Shading intervals.** The `shade_from` and `shade_to` parameters fill
 the region between the curve and the $x$-axis over a specified interval.
@@ -72,7 +75,7 @@ ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(-3, 3), shade_from = -1, shade_to = 1)
 ```
 
-<img src="man/figures/readme-1d-1d-shade-1.png" width="60%" />
+<img src="man/figures/readme-1d-1d-shade-1.png" alt="" width="60%" />
 
 ### Parametric curves: `geom_function_1d_2d()`
 
@@ -90,7 +93,7 @@ ggplot() +
   geom_function_1d_2d(fun = lemniscate, tlim = c(0, 1.9 * pi))
 ```
 
-<img src="man/figures/readme-1d-2d-1.png" width="60%" />
+<img src="man/figures/readme-1d-2d-1.png" alt="" width="60%" />
 
 **Arrowheads and tail points.** Setting `tail_point = TRUE` and passing
 `grid::arrow()` to `arrow` marks the starting position of the curve with
@@ -105,7 +108,7 @@ ggplot() +
   )
 ```
 
-<img src="man/figures/readme-1d-2d-arrows-and-tail-1.png" width="60%" />
+<img src="man/figures/readme-1d-2d-arrows-and-tail-1.png" alt="" width="60%" />
 
 **Parameterized families.** Extra parameters for `fun` are passed via
 `args`. The following example traces a Lissajous figure, a closed curve
@@ -124,7 +127,7 @@ ggplot() +
   )
 ```
 
-<img src="man/figures/readme-1d-2d-lissajous-1.png" width="60%" />
+<img src="man/figures/readme-1d-2d-lissajous-1.png" alt="" width="60%" />
 
 ### Scalar fields: `geom_function_2d_1d()`
 
@@ -146,7 +149,7 @@ ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
 ```
 
-<img src="man/figures/readme-2d-1d-raster-1.png" width="60%" />
+<img src="man/figures/readme-2d-1d-raster-1.png" alt="" width="60%" />
 
 **Contour modes.** The `type` argument switches among three visual
 encodings of the same field. `"contour"` draws iso-level curves colored
@@ -158,14 +161,14 @@ ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "contour")
 ```
 
-<img src="man/figures/readme-2d-1d-contour-1.png" width="60%" />
+<img src="man/figures/readme-2d-1d-contour-1.png" alt="" width="60%" />
 
 ``` r
 ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "contour_filled")
 ```
 
-<img src="man/figures/readme-2d-1d-filled-1.png" width="60%" />
+<img src="man/figures/readme-2d-1d-filled-1.png" alt="" width="60%" />
 
 ### Vector fields: `geom_function_2d_2d()`
 
@@ -188,7 +191,7 @@ ggplot() +
   geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
 ```
 
-<img src="man/figures/readme-2d-2d-1.png" width="60%" />
+<img src="man/figures/readme-2d-2d-1.png" alt="" width="60%" />
 
 **Stream field.** Setting `type = "stream"` renders the field as
 integral curves computed by numerical integration, colored by average
@@ -199,7 +202,7 @@ ggplot() +
   geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "stream")
 ```
 
-<img src="man/figures/readme-2d-2d-stream-1.png" width="60%" />
+<img src="man/figures/readme-2d-2d-stream-1.png" alt="" width="60%" />
 
 ## Probability Distributions
 
@@ -220,7 +223,7 @@ ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3))
 ```
 
-<img src="man/figures/readme-geom-pdf-1.png" width="60%" />
+<img src="man/figures/readme-geom-pdf-1.png" alt="" width="60%" />
 
 **Single threshold.** The `p` parameter shades from the left boundary up
 to the $p$-quantile (`lower.tail = TRUE`, the default). Setting
@@ -232,7 +235,7 @@ ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975)
 ```
 
-<img src="man/figures/readme-geom-pdf-p-1.png" width="60%" />
+<img src="man/figures/readme-geom-pdf-p-1.png" alt="" width="60%" />
 
 **Two-sided interval.** `p_lower` and `p_upper` together shade the
 central region between two quantiles—the natural picture for a
@@ -243,7 +246,7 @@ ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3), p_lower = 0.025, p_upper = 0.975)
 ```
 
-<img src="man/figures/readme-pdf-twosided-1.png" width="60%" />
+<img src="man/figures/readme-pdf-twosided-1.png" alt="" width="60%" />
 
 **Tail shading.** Setting `shade_outside = TRUE` inverts the two-sided
 region, shading both tails. This is the rejection region of a two-sided
@@ -257,7 +260,7 @@ ggplot() +
   )
 ```
 
-<img src="man/figures/readme-pdf-tails-1.png" width="60%" />
+<img src="man/figures/readme-pdf-tails-1.png" alt="" width="60%" />
 
 **Highest density region.** `shade_hdr` shades the smallest region of
 the domain containing the specified probability mass—the [highest
@@ -274,7 +277,7 @@ ggplot() +
   geom_pdf(fun = f_mix, xlim = c(-5, 6), shade_hdr = 0.8)
 ```
 
-<img src="man/figures/readme-pdf-hdr-1.png" width="60%" />
+<img src="man/figures/readme-pdf-hdr-1.png" alt="" width="60%" />
 
 ### PMF: `geom_pmf()`
 
@@ -288,7 +291,7 @@ ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
 ```
 
-<img src="man/figures/readme-geom-pmf-1.png" width="60%" />
+<img src="man/figures/readme-geom-pmf-1.png" alt="" width="60%" />
 
 **Single threshold.** The `p` parameter shades lollipops up to the
 $p$-quantile (grey dashed sticks mark the unshaded region). Here we
@@ -299,7 +302,7 @@ ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5), p = 0.8)
 ```
 
-<img src="man/figures/readme-geom-pmf-p-1.png" width="60%" />
+<img src="man/figures/readme-geom-pmf-p-1.png" alt="" width="60%" />
 
 **Highest density region.** `shade_hdr` shades the smallest set of
 support points whose total probability mass meets or exceeds the target
@@ -313,7 +316,7 @@ ggplot() +
     shade_hdr = .70)
 ```
 
-<img src="man/figures/readme-geom-pmf-hdr-1.png" width="60%" />
+<img src="man/figures/readme-geom-pmf-hdr-1.png" alt="" width="60%" />
 
 ``` r
 ggplot() +
@@ -321,7 +324,7 @@ ggplot() +
     shade_hdr = .80)
 ```
 
-<img src="man/figures/readme-geom-pmf-hdr-2-1.png" width="60%" />
+<img src="man/figures/readme-geom-pmf-hdr-2-1.png" alt="" width="60%" />
 
 **Explicit support.** When the support is not a sequence of consecutive
 integers, pass the exact support points via `support`. Here we plot the
@@ -336,7 +339,7 @@ ggplot() +
   geom_pmf(fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
 ```
 
-<img src="man/figures/readme-geom-pmf-support-1.png" width="60%" />
+<img src="man/figures/readme-geom-pmf-support-1.png" alt="" width="60%" />
 
 ### CDF: `geom_cdf()` and `geom_cdf_discrete()`
 
@@ -351,7 +354,7 @@ ggplot() +
   geom_cdf(fun = pnorm, xlim = c(-3, 3))
 ```
 
-<img src="man/figures/readme-geom-cdf-1.png" width="60%" />
+<img src="man/figures/readme-geom-cdf-1.png" alt="" width="60%" />
 
 **Discrete (`geom_cdf_discrete()`).** Takes a PMF, accumulates it into
 the right-continuous step-function CDF, and renders it with horizontal
@@ -364,7 +367,7 @@ ggplot() +
   geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 ```
 
-<img src="man/figures/readme-discrete-cdf-1.png" width="60%" />
+<img src="man/figures/readme-discrete-cdf-1.png" alt="" width="60%" />
 
 **Parameterized families.** Here we plot a $\text{Poisson}(5)$ discrete
 CDF.
@@ -374,7 +377,7 @@ ggplot() +
   geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 ```
 
-<img src="man/figures/readme-discrete-cdf-pois-1.png" width="60%" />
+<img src="man/figures/readme-discrete-cdf-pois-1.png" alt="" width="60%" />
 
 **Hiding points and lines.** `show_points = FALSE` and
 `show_vert = FALSE` remove the endpoint circles and vertical jump
@@ -386,7 +389,7 @@ ggplot() +
     show_points = FALSE, show_vert = FALSE)
 ```
 
-<img src="man/figures/readme-discrete-cdf-no-points-lines-1.png" width="60%" />
+<img src="man/figures/readme-discrete-cdf-no-points-lines-1.png" alt="" width="60%" />
 
 **Explicit support.** Pass non-integer support points directly via
 `support`. Here we plot the CDF of the sample mean of 10 iid
@@ -398,7 +401,7 @@ ggplot() +
   geom_cdf_discrete(pmf_fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
 ```
 
-<img src="man/figures/readme-discrete-cdf-support-1.png" width="60%" />
+<img src="man/figures/readme-discrete-cdf-support-1.png" alt="" width="60%" />
 
 ### Survival function: `geom_survival()` and `geom_survival_discrete()`
 
@@ -415,7 +418,7 @@ ggplot() +
   geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
 ```
 
-<img src="man/figures/readme-survival-1.png" width="60%" />
+<img src="man/figures/readme-survival-1.png" alt="" width="60%" />
 
 **Discrete (`geom_survival_discrete()`).** Takes a PMF and renders
 $S(x) = 1 - F(x)$ as a right-continuous step function using the same
@@ -427,7 +430,7 @@ ggplot() +
   geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 ```
 
-<img src="man/figures/readme-discrete-survival-1.png" width="60%" />
+<img src="man/figures/readme-discrete-survival-1.png" alt="" width="60%" />
 
 **Hiding points.** Setting `show_points = FALSE` removes the endpoint
 circles.
@@ -438,7 +441,7 @@ ggplot() +
     show_points = FALSE)
 ```
 
-<img src="man/figures/readme-discrete-survival-no-points-1.png" width="60%" />
+<img src="man/figures/readme-discrete-survival-no-points-1.png" alt="" width="60%" />
 
 **Explicit support.** The survival function of the sample mean of 10 iid
 $\text{Bernoulli}(0.3)$ draws.
@@ -449,7 +452,7 @@ ggplot() +
   geom_survival_discrete(pmf_fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
 ```
 
-<img src="man/figures/readme-discrete-survival-support-1.png" width="60%" />
+<img src="man/figures/readme-discrete-survival-support-1.png" alt="" width="60%" />
 
 ### Quantile function: `geom_qf()` and `geom_qf_discrete()`
 
@@ -464,7 +467,7 @@ ggplot() +
   geom_qf(fun = qnorm)
 ```
 
-<img src="man/figures/readme-geom-qf-1.png" width="60%" />
+<img src="man/figures/readme-geom-qf-1.png" alt="" width="60%" />
 
 **Discrete (`geom_qf_discrete()`).** Takes a PMF and renders the
 quantile function as a left-continuous step function on the unit
@@ -478,7 +481,7 @@ ggplot() +
   geom_qf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 ```
 
-<img src="man/figures/readme-discrete-qf-1.png" width="60%" />
+<img src="man/figures/readme-discrete-qf-1.png" alt="" width="60%" />
 
 **Parameterized families.** Here we plot a $\text{Poisson}(5)$ discrete
 quantile function.
@@ -488,7 +491,7 @@ ggplot() +
   geom_qf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 ```
 
-<img src="man/figures/readme-discrete-qf-pois-1.png" width="60%" />
+<img src="man/figures/readme-discrete-qf-pois-1.png" alt="" width="60%" />
 
 **Hiding points.** Setting `show_points = FALSE` removes the endpoint
 circles, leaving only the horizontal and vertical lines.
@@ -499,7 +502,7 @@ ggplot() +
     show_points = FALSE)
 ```
 
-<img src="man/figures/readme-discrete-qf-no-points-1.png" width="60%" />
+<img src="man/figures/readme-discrete-qf-no-points-1.png" alt="" width="60%" />
 
 **Hiding vertical lines.** Setting `show_vert = FALSE` removes the
 dashed vertical jump segments, leaving only the horizontal steps and
@@ -511,7 +514,7 @@ ggplot() +
     show_vert = FALSE)
 ```
 
-<img src="man/figures/readme-discrete-qf-no-vert-1.png" width="60%" />
+<img src="man/figures/readme-discrete-qf-no-vert-1.png" alt="" width="60%" />
 
 **Explicit support.** The quantile function of the sample mean of 10 iid
 $\text{Bernoulli}(0.3)$ draws.
@@ -522,7 +525,7 @@ ggplot() +
   geom_qf_discrete(pmf_fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
 ```
 
-<img src="man/figures/readme-discrete-qf-support-1.png" width="60%" />
+<img src="man/figures/readme-discrete-qf-support-1.png" alt="" width="60%" />
 
 ### Hazard function: `geom_hf()`
 
@@ -539,7 +542,7 @@ ggplot() +
   geom_hf(pdf_fun = dexp, cdf_fun = pexp, xlim = c(0.01, 10), args = list(rate = 0.5))
 ```
 
-<img src="man/figures/readme-hazard-1.png" width="60%" />
+<img src="man/figures/readme-hazard-1.png" alt="" width="60%" />
 
 ## Data Functions
 
@@ -561,7 +564,7 @@ ggplot(df_single, aes(x = x)) +
   geom_ecdf()
 ```
 
-<img src="man/figures/readme-ecdf-1.png" width="60%" />
+<img src="man/figures/readme-ecdf-1.png" alt="" width="60%" />
 
 **Multiple groups.** Map `colour` to a grouping variable to overlay
 ECDFs for several groups. Each group gets its own confidence ribbon,
@@ -572,7 +575,7 @@ ggplot(df_two, aes(x = x, colour = group)) +
   geom_ecdf()
 ```
 
-<img src="man/figures/readme-ecdf-grouped-1.png" width="60%" />
+<img src="man/figures/readme-ecdf-grouped-1.png" alt="" width="60%" />
 
 **Controlling the band.** Use `level` to change the confidence level and
 `conf_alpha` to adjust ribbon transparency.
@@ -582,7 +585,7 @@ ggplot(df_single, aes(x = x)) +
   geom_ecdf(level = 0.99, conf_alpha = 0.15)
 ```
 
-<img src="man/figures/readme-ecdf-level-1.png" width="60%" />
+<img src="man/figures/readme-ecdf-level-1.png" alt="" width="60%" />
 
 ### Empirical quantile function: `geom_eqf()`
 
@@ -598,7 +601,7 @@ ggplot(df_single, aes(x = x)) +
   geom_eqf()
 ```
 
-<img src="man/figures/readme-eqf-1.png" width="60%" />
+<img src="man/figures/readme-eqf-1.png" alt="" width="60%" />
 
 **Multiple groups.**
 
@@ -607,7 +610,7 @@ ggplot(df_two, aes(x = x, color = group)) +
   geom_eqf()
 ```
 
-<img src="man/figures/readme-eqf-grouped-1.png" width="60%" />
+<img src="man/figures/readme-eqf-grouped-1.png" alt="" width="60%" />
 
 **Informal normality test.** Because the KS confidence band covers the
 true quantile function $Q(p)$ with probability $\ge 1 - \alpha$
@@ -640,7 +643,7 @@ p_exp <- ggplot(df_exp, aes(x = x)) +
 p_norm | p_exp
 ```
 
-<img src="man/figures/readme-eqf-gof-1.png" width="60%" />
+<img src="man/figures/readme-eqf-gof-1.png" alt="" width="60%" />
 
 The fitted normal line threads through the center of the band for the
 normal sample; for the exponential sample it departs visibly at the
@@ -660,7 +663,7 @@ ggplot(df_single, aes(x = x)) +
   geom_epmf()
 ```
 
-<img src="man/figures/readme-epmf-1.png" width="60%" />
+<img src="man/figures/readme-epmf-1.png" alt="" width="60%" />
 
 **Multiple groups.**
 
@@ -669,7 +672,7 @@ ggplot(df_two, aes(x = x, colour = group)) +
   geom_epmf()
 ```
 
-<img src="man/figures/readme-epmf-grouped-1.png" width="60%" />
+<img src="man/figures/readme-epmf-grouped-1.png" alt="" width="60%" />
 
 ## Getting help
 
