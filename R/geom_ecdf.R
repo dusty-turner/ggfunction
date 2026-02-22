@@ -351,7 +351,6 @@ StatEQFBand <- ggproto("StatEQFBand", Stat,
 #'   `0.25`.
 #' @param stick_linetype Linetype of the vertical segments. Defaults to
 #'   `"dashed"`.
-#' @param color Color for the points and segments. Defaults to `"black"`.
 #'
 #' @return A ggplot2 layer.
 #'
@@ -382,8 +381,7 @@ geom_epmf <- function(
     inherit.aes     = TRUE,
     point_size      = 2.5,
     stick_linewidth = 0.25,
-    stick_linetype  = "dashed",
-    color           = "black"
+    stick_linetype  = "dashed"
 ) {
   default_mapping <- aes(y = after_stat(y))
   if (is.null(mapping)) {
@@ -405,7 +403,6 @@ geom_epmf <- function(
       point_size      = point_size,
       stick_linewidth = stick_linewidth,
       stick_linetype  = stick_linetype,
-      colour          = color,
       ...
     )
   )
