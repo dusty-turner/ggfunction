@@ -510,7 +510,8 @@ visual clutter; this threshold can be overridden by setting `show_vert` and
 `show_points` explicitly.
 
 An optional simultaneous Kolmogorov--Smirnov confidence band is drawn around
-the step function by default. The DKW inequality [@massart1990tight] implies that
+the step function by default. The DKW inequality [@massart1990tight] is a
+finite-sample result that implies
 
 \begin{equation}
 P\!\left(\sup_x |\hat{F}_n(x) - F(x)| \leq \varepsilon\right) \geq 1 - \alpha,
@@ -606,11 +607,13 @@ ggplot(df_pmf, aes(x = x, colour = group)) +
 
 ## Validity of the confidence band
 
-The DKW inequality \@ref(eq:ks-band) guarantees that the simultaneous
-confidence band contains the true CDF everywhere with probability at least
-$1 - \alpha$. Because the KS statistic $D_n = \sup_x |\hat{F}_n(x) - F(x)|$
-has a distribution-free null distribution for continuous $F$, the coverage
-guarantee holds regardless of the shape of the true distribution.
+The DKW inequality \@ref(eq:ks-band) is a \emph{finite-sample} result: it
+holds for every $n \geq 1$, not merely asymptotically. It guarantees that the
+simultaneous confidence band contains the true CDF everywhere with probability
+at least $1 - \alpha$ at any sample size. Because the KS statistic
+$D_n = \sup_x |\hat{F}_n(x) - F(x)|$ has a distribution-free null distribution
+for continuous $F$, the coverage guarantee holds regardless of the shape of the
+true distribution.
 
 We verify the guarantee by simulation. For each combination of sample size $n$
 and nominal level $1 - \alpha$, we draw $B = 2{,}000$ independent samples from
@@ -619,10 +622,10 @@ replications for which $D_n \leq \varepsilon_n$, where $\varepsilon_n$ is the
 half-width used by `geom_ecdf()`.
 
 ```{r sim-coverage, echo=TRUE, fig.width=8, fig.height=3.5, cache=FALSE}
-#| fig.cap: "Empirical simultaneous coverage of the KS confidence band over 2,000 simulations from $\\mathcal{N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal and converges toward nominal as $n$ grows, consistent with the asymptotic tightness of the DKW bound \\citep{massart1990tight}."
+#| fig.cap: "Empirical simultaneous coverage of the KS confidence band over 10,000 simulations from $\\mathcal{N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal for all $n$, confirming the finite-sample validity of the DKW bound \\citep{massart1990tight}. The slight conservatism at small $n$ diminishes as $n$ grows because the bound's constant is asymptotically tight."
 set.seed(20240101)
-B      <- 2000
-ns     <- c(10, 20, 50, 100, 200, 500)
+B      <- 10000
+ns     <- c(10, 20, 50, 100, 200, 500, 1000)
 levels <- c(0.90, 0.95, 0.99)
 eps_fn <- function(n, lv) sqrt(log(2 / (1 - lv)) / (2 * n))
 
@@ -656,10 +659,12 @@ ggplot(sim_res, aes(x = n, y = empirical,
 ```
 
 Empirical coverage (solid lines) lies above each dashed nominal threshold
-across all tested sample sizes. The slight conservatism at small $n$ reflects
-the fact that the DKW bound is an inequality; convergence toward the nominal
-level as $n$ grows is consistent with the asymptotic tightness established by
-@massart1990tight.
+across all tested sample sizes, confirming that the DKW bound is a
+\emph{finite-sample} guarantee: it holds for every $n \geq 1$, not merely in
+the limit. The slight conservatism at small $n$ reflects that the bound is an
+inequality; the constant $C = 2$ is tight [@massart1990tight] in the sense that
+it cannot be universally reduced, and the conservatism diminishes as $n$ grows
+because the KS distribution converges to the Kolmogorov distribution.
 
 # Implementation
 

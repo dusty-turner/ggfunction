@@ -691,34 +691,26 @@ ggplot(df_two, aes(x = x, colour = group)) +
 
 ``` r
 set.seed(3)
-df_gof <- data.frame(
-  x      = c(rnorm(100), rexp(100) - 1),
-  sample = rep(c("Normal data", "Exponential data"), each = 100)
-)
 
-# Fitted normal QF for each sample
 normal_qf <- function(p, x) qnorm(p, mean = mean(x), sd = sd(x))
 
-p_norm <- ggplot(subset(df_gof, sample == "Normal data"), aes(x = x)) +
+df_normal <- data.frame(x = rnorm(100))
+p_norm <- ggplot(df_normal, aes(x = x)) +
   geom_eqf() +
-  geom_qf(fun = normal_qf, args = list(x = subset(df_gof, sample == "Normal data")$x),
-          colour = "red") +
+  geom_qf(fun = normal_qf, args = list(x = df_normal$x), colour = "red") +
   ggtitle("Normal data")
 
-p_exp <- ggplot(subset(df_gof, sample == "Exponential data"), aes(x = x)) +
+df_exp <- data.frame(x = rexp(100) - 1)
+p_exp <- ggplot(df_exp, aes(x = x)) +
   geom_eqf() +
-  geom_qf(fun = normal_qf, args = list(x = subset(df_gof, sample == "Exponential data")$x),
-          colour = "red") +
+  geom_qf(fun = normal_qf, args = list(x = df_exp$x), colour = "red") +
   ggtitle("Exponential data")
 
-library(patchwork)
-p_norm + p_exp
+p_norm | p_exp
+#> Error: Can't find method for generic `|(e1, e2)`:
+#> - e1: <ggplot2::ggplot>
+#> - e2: <ggplot2::ggplot>
 ```
-
-<div class="figure">
-<img src="man/figures/readme-eqf-gof-1.png" alt="plot of chunk eqf-gof" width="60%" />
-<p class="caption">plot of chunk eqf-gof</p>
-</div>
 
 The fitted normal line threads through the center of the band for the normal sample; for the exponential sample it departs visibly at the tails, where the asymmetry of the exponential distribution is most pronounced. Note that estimating parameters from the data makes the band slightly conservative (analogous to the Lilliefors correction), so this is an informal rather than exact test.
 

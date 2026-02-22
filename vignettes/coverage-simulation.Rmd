@@ -50,7 +50,7 @@ true distribution.
 
 For each combination of sample size $n$ and nominal level $1 - \alpha$ we:
 
-1. Draw $B = 4{,}000$ independent samples from $N(0, 1)$.
+1. Draw $B = 10{,}000$ independent samples from $N(0, 1)$.
 2. Compute $D_n = \sup_x \lvert \hat{F}_n(x) - F(x) \rvert$ via `ks.test()`.
 3. Compute $\varepsilon_n$ using the same formula as `geom_ecdf()`.
 4. Record the fraction of replications where $D_n \leq \varepsilon_n$.
@@ -58,8 +58,8 @@ For each combination of sample size $n$ and nominal level $1 - \alpha$ we:
 ```{r sim, cache = FALSE}
 set.seed(20240101)
 
-B      <- 4000
-ns     <- c(10, 20, 50, 100, 200, 500)
+B      <- 10000
+ns     <- c(10, 20, 50, 100, 200, 500, 1000)
 levels <- c(0.90, 0.95, 0.99)
 
 eps_fn <- function(n, level) sqrt(log(2 / (1 - level)) / (2 * n))
@@ -144,7 +144,7 @@ set.seed(20240102)
 n   <- 100
 lv  <- 0.95
 eps <- eps_fn(n, lv)
-B2  <- 4000
+B2  <- 10000
 
 dists <- list(
   Normal      = function() rnorm(n),
