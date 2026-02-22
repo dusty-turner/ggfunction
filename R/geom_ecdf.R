@@ -56,10 +56,10 @@ NULL
 #' @param vert_type Line type for the vertical jump segments. Defaults to
 #'   `"dashed"`.
 #' @param show_points Logical. If `FALSE`, suppresses all endpoint circles.
-#'   If `NULL` (the default), circles are shown when there are 100 or fewer
+#'   If `NULL` (the default), circles are shown when there are 50 or fewer
 #'   points and hidden otherwise.
 #' @param show_vert Logical. If `FALSE`, suppresses the vertical jump segments.
-#'   If `NULL` (the default), segments are shown when there are 100 or fewer
+#'   If `NULL` (the default), segments are shown when there are 50 or fewer
 #'   points and hidden otherwise.
 #' @param conf_int Logical. If `TRUE` (the default), draws a simultaneous KS
 #'   confidence band around the ECDF.

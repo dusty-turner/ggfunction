@@ -20,9 +20,9 @@
 #'   `"dashed"`.
 #' @param show_points Logical. If `FALSE`, suppresses all endpoint circles (open
 #'   and closed). If `NULL` (the default), circles are shown when there are
-#'   100 or fewer points and hidden otherwise.
+#'   50 or fewer points and hidden otherwise.
 #' @param show_vert Logical. If `FALSE`, suppresses the vertical jump segments.
-#'   If `NULL` (the default), segments are shown when there are 100 or fewer
+#'   If `NULL` (the default), segments are shown when there are 50 or fewer
 #'   points and hidden otherwise.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
@@ -141,8 +141,8 @@ GeomQFDiscrete <- ggproto("GeomQFDiscrete", Geom,
       open_fill <- if (!inherits(bg, "element_blank") && !is.null(bg$fill) && !is.na(bg$fill)) bg$fill else "white"
     }
     n <- nrow(data)
-    if (is.null(show_points)) show_points <- n <= 100
-    if (is.null(show_vert))   show_vert   <- n <= 100
+    if (is.null(show_points)) show_points <- n <= 50
+    if (is.null(show_vert))   show_vert   <- n <= 50
 
     # Horizontal segments (n total, defined only on [0, 1]):
     #   [0 → x[1]] at height y[1],
