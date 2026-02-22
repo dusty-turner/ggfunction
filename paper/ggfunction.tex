@@ -213,12 +213,12 @@ The contour modes are selected simply by changing \texttt{type}:
 p_contour <- ggplot() +
   geom_function_2d_1d(
     fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi), type = "contour"
-  ) + ggtitle("type = \"contour\"")
+  ) + ggtitle("type = 'contour'")
 
 p_filled <- ggplot() +
   geom_function_2d_1d(
     fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi), type = "contour_filled"
-  ) + ggtitle("type = \"contour_filled\"")
+  ) + ggtitle("type = 'contour_filled'")
 
 p_contour | p_filled
 \end{verbatim}

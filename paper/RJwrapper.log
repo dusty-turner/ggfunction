@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.18)  21 FEB 2026 21:44
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.2.18)  21 FEB 2026 22:03
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -843,18 +843,28 @@ File: ggfunction_files/figure-latex/sincos-raster-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/sincos-raster-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/sincos-raster-1.pdf  used on input line 203.
 (pdftex.def)             Requested size: 338.59021pt x 166.84918pt.
+LaTeX Font Info:    Trying to load font information for TS1+zi4 on input line 224.
+(/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/inconsolata/ts1zi4.fd
+File: ts1zi4.fd 2018/01/14 TS1/zi4 (Inconsolata)
+)
+LaTeX Font Info:    Font shape `TS1/zi4/m/n' will be
+(Font)              scaled to size 9.18004pt on input line 224.
+Package microtype Info: Loading generic protrusion settings for font family
+(microtype)             `zi4' (encoding: TS1).
+(microtype)             For optimal results, create family-specific settings.
+(microtype)             See the microtype manual for details.
 <ggfunction_files/figure-latex/sincos-contour-1.pdf, id=220, 694.595pt x 266.9975pt>
 File: ggfunction_files/figure-latex/sincos-contour-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/sincos-contour-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/sincos-contour-1.pdf  used on input line 228.
 (pdftex.def)             Requested size: 338.59021pt x 130.15361pt.
-[5 <./ggfunction_files/figure-latex/sincos-raster-1.pdf>]
-<ggfunction_files/figure-latex/rotation-field-1.pdf, id=239, 417.56pt x 204.765pt>
+[5{/Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/enc/dvips/inconsolata/i4-ts1.enc} <./ggfunction_files/figure-latex/sincos-raster-1.pdf>]
+<ggfunction_files/figure-latex/rotation-field-1.pdf, id=240, 417.56pt x 204.765pt>
 File: ggfunction_files/figure-latex/rotation-field-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/rotation-field-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/rotation-field-1.pdf  used on input line 255.
 (pdftex.def)             Requested size: 338.59021pt x 166.04932pt.
-<ggfunction_files/figure-latex/rotation-stream-1.pdf, id=242, 417.56pt x 204.765pt>
+<ggfunction_files/figure-latex/rotation-stream-1.pdf, id=243, 417.56pt x 204.765pt>
 File: ggfunction_files/figure-latex/rotation-stream-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/rotation-stream-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/rotation-stream-1.pdf  used on input line 272.
@@ -862,94 +872,94 @@ Package pdftex.def Info: ggfunction_files/figure-latex/rotation-stream-1.pdf  us
 LaTeX Font Info:    Font shape `T1/zi4/b/n' will be
 (Font)              scaled to size 10.20004pt on input line 285.
 [6 <./ggfunction_files/figure-latex/sincos-contour-1.pdf> <./ggfunction_files/figure-latex/rotation-field-1.pdf>]
-<ggfunction_files/figure-latex/pdf-shading-modes-1.pdf, id=269, 699.61375pt x 265.99374pt>
+<ggfunction_files/figure-latex/pdf-shading-modes-1.pdf, id=270, 699.61375pt x 265.99374pt>
 File: ggfunction_files/figure-latex/pdf-shading-modes-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/pdf-shading-modes-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/pdf-shading-modes-1.pdf  used on input line 326.
 (pdftex.def)             Requested size: 338.59021pt x 128.73486pt.
 [7 <./ggfunction_files/figure-latex/rotation-stream-1.pdf>]
-<ggfunction_files/figure-latex/pdf-hdr-1.pdf, id=291, 421.575pt x 204.765pt>
+<ggfunction_files/figure-latex/pdf-hdr-1.pdf, id=292, 421.575pt x 204.765pt>
 File: ggfunction_files/figure-latex/pdf-hdr-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/pdf-hdr-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/pdf-hdr-1.pdf  used on input line 343.
 (pdftex.def)             Requested size: 338.59021pt x 164.46208pt.
-<ggfunction_files/figure-latex/pmf-binomial-1.pdf, id=292, 421.575pt x 204.765pt>
+<ggfunction_files/figure-latex/pmf-binomial-1.pdf, id=293, 421.575pt x 204.765pt>
 File: ggfunction_files/figure-latex/pmf-binomial-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/pmf-binomial-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/pmf-binomial-1.pdf  used on input line 370.
 (pdftex.def)             Requested size: 338.59021pt x 164.46208pt.
 [8 <./ggfunction_files/figure-latex/pdf-shading-modes-1.pdf> <./ggfunction_files/figure-latex/pdf-hdr-1.pdf>]
-<ggfunction_files/figure-latex/pmf-clt-1.pdf, id=325, 421.575pt x 204.765pt>
+<ggfunction_files/figure-latex/pmf-clt-1.pdf, id=326, 421.575pt x 204.765pt>
 File: ggfunction_files/figure-latex/pmf-clt-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/pmf-clt-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/pmf-clt-1.pdf  used on input line 394.
 (pdftex.def)             Requested size: 338.59021pt x 164.46208pt.
 [9 <./ggfunction_files/figure-latex/pmf-binomial-1.pdf> <./ggfunction_files/figure-latex/pmf-clt-1.pdf>]
-<ggfunction_files/figure-latex/pmf-shading-1.pdf, id=350, 410.53375pt x 193.72375pt>
+<ggfunction_files/figure-latex/pmf-shading-1.pdf, id=351, 410.53375pt x 193.72375pt>
 File: ggfunction_files/figure-latex/pmf-shading-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/pmf-shading-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/pmf-shading-1.pdf  used on input line 419.
 (pdftex.def)             Requested size: 338.59021pt x 159.7738pt.
 LaTeX Font Info:    Font shape `T1/zi4/b/n' will be
 (Font)              scaled to size 9.18004pt on input line 430.
-<ggfunction_files/figure-latex/cdf-shaded-1.pdf, id=351, 421.575pt x 204.765pt>
+<ggfunction_files/figure-latex/cdf-shaded-1.pdf, id=352, 421.575pt x 204.765pt>
 File: ggfunction_files/figure-latex/cdf-shaded-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/cdf-shaded-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/cdf-shaded-1.pdf  used on input line 439.
 (pdftex.def)             Requested size: 338.59021pt x 164.46208pt.
 [10 <./ggfunction_files/figure-latex/pmf-shading-1.pdf> <./ggfunction_files/figure-latex/cdf-shaded-1.pdf>]
-<ggfunction_files/figure-latex/discrete-cdf-1.pdf, id=373, 421.575pt x 204.765pt>
+<ggfunction_files/figure-latex/discrete-cdf-1.pdf, id=374, 421.575pt x 204.765pt>
 File: ggfunction_files/figure-latex/discrete-cdf-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/discrete-cdf-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/discrete-cdf-1.pdf  used on input line 457.
 (pdftex.def)             Requested size: 338.59021pt x 164.46208pt.
-<ggfunction_files/figure-latex/survival-exp-1.pdf, id=374, 421.575pt x 204.765pt>
+<ggfunction_files/figure-latex/survival-exp-1.pdf, id=375, 421.575pt x 204.765pt>
 File: ggfunction_files/figure-latex/survival-exp-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/survival-exp-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/survival-exp-1.pdf  used on input line 473.
 (pdftex.def)             Requested size: 338.59021pt x 164.46208pt.
-<ggfunction_files/figure-latex/discrete-survival-1.pdf, id=375, 421.575pt x 204.765pt>
+<ggfunction_files/figure-latex/discrete-survival-1.pdf, id=376, 421.575pt x 204.765pt>
 File: ggfunction_files/figure-latex/discrete-survival-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/discrete-survival-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/discrete-survival-1.pdf  used on input line 491.
 (pdftex.def)             Requested size: 338.59021pt x 164.46208pt.
 [11 <./ggfunction_files/figure-latex/discrete-cdf-1.pdf> <./ggfunction_files/figure-latex/survival-exp-1.pdf>]
-<ggfunction_files/figure-latex/qf-normal-1.pdf, id=396, 421.575pt x 206.7725pt>
+<ggfunction_files/figure-latex/qf-normal-1.pdf, id=397, 421.575pt x 206.7725pt>
 File: ggfunction_files/figure-latex/qf-normal-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/qf-normal-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/qf-normal-1.pdf  used on input line 511.
 (pdftex.def)             Requested size: 338.59021pt x 166.07448pt.
-<ggfunction_files/figure-latex/discrete-qf-1.pdf, id=397, 421.575pt x 204.765pt>
+<ggfunction_files/figure-latex/discrete-qf-1.pdf, id=398, 421.575pt x 204.765pt>
 File: ggfunction_files/figure-latex/discrete-qf-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/discrete-qf-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/discrete-qf-1.pdf  used on input line 529.
 (pdftex.def)             Requested size: 338.59021pt x 164.46208pt.
 [12 <./ggfunction_files/figure-latex/discrete-survival-1.pdf> <./ggfunction_files/figure-latex/qf-normal-1.pdf>]
-<ggfunction_files/figure-latex/hazard-shapes-1.pdf, id=420, 699.61375pt x 265.99374pt>
+<ggfunction_files/figure-latex/hazard-shapes-1.pdf, id=421, 699.61375pt x 265.99374pt>
 File: ggfunction_files/figure-latex/hazard-shapes-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/hazard-shapes-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/hazard-shapes-1.pdf  used on input line 575.
 (pdftex.def)             Requested size: 338.59021pt x 128.73486pt.
 [13 <./ggfunction_files/figure-latex/discrete-qf-1.pdf>]
-<ggfunction_files/figure-latex/ecdf-basic-1.pdf, id=440, 417.56pt x 204.765pt>
+<ggfunction_files/figure-latex/ecdf-basic-1.pdf, id=441, 417.56pt x 204.765pt>
 File: ggfunction_files/figure-latex/ecdf-basic-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/ecdf-basic-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/ecdf-basic-1.pdf  used on input line 638.
 (pdftex.def)             Requested size: 338.59021pt x 166.04932pt.
 [14 <./ggfunction_files/figure-latex/hazard-shapes-1.pdf>]
-<ggfunction_files/figure-latex/eqf-gof-1.pdf, id=459, 699.61375pt x 265.99374pt>
+<ggfunction_files/figure-latex/eqf-gof-1.pdf, id=460, 699.61375pt x 265.99374pt>
 File: ggfunction_files/figure-latex/eqf-gof-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/eqf-gof-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/eqf-gof-1.pdf  used on input line 695.
 (pdftex.def)             Requested size: 338.59021pt x 128.73486pt.
 [15 <./ggfunction_files/figure-latex/ecdf-basic-1.pdf> <./ggfunction_files/figure-latex/eqf-gof-1.pdf>]
-<ggfunction_files/figure-latex/epmf-grouped-1.pdf, id=487, 417.56pt x 204.765pt>
+<ggfunction_files/figure-latex/epmf-grouped-1.pdf, id=488, 417.56pt x 204.765pt>
 File: ggfunction_files/figure-latex/epmf-grouped-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/epmf-grouped-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/epmf-grouped-1.pdf  used on input line 722.
 (pdftex.def)             Requested size: 338.59021pt x 166.04932pt.
 [16 <./ggfunction_files/figure-latex/epmf-grouped-1.pdf>]
-<ggfunction_files/figure-latex/composability-1.pdf, id=505, 423.5825pt x 204.765pt>
+<ggfunction_files/figure-latex/composability-1.pdf, id=506, 423.5825pt x 204.765pt>
 File: ggfunction_files/figure-latex/composability-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/composability-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/composability-1.pdf  used on input line 789.
@@ -994,18 +1004,18 @@ Package rerunfilecheck Info: File `RJwrapper.brf' has not changed.
 (rerunfilecheck)             Checksum: D138C8F555BB50239C6067399F5D7B31;932.
  ) 
 Here is how much of TeX's memory you used:
- 27713 strings out of 469453
- 512272 string characters out of 5466496
+ 27737 strings out of 469453
+ 512742 string characters out of 5466496
  924517 words of memory out of 5000000
- 55380 multiletter control sequences out of 15000+600000
- 698521 words of font info for 398 fonts, out of 8000000 for 9000
+ 55399 multiletter control sequences out of 15000+600000
+ 698810 words of font info for 399 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
  117i,12n,131p,1504b,961s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4b.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbb.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbi.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/helvetic/uhvro8a.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on RJwrapper.pdf (19 pages, 447595 bytes).
+Output written on RJwrapper.pdf (19 pages, 449120 bytes).
 PDF statistics:
- 689 PDF objects out of 1000 (max. 8388607)
- 553 compressed objects within 6 object streams
+ 693 PDF objects out of 1000 (max. 8388607)
+ 556 compressed objects within 6 object streams
  101 named destinations out of 1000 (max. 500000)
- 87901 words of extra memory for PDF output out of 89155 (max. 10000000)
+ 88413 words of extra memory for PDF output out of 89155 (max. 10000000)
 

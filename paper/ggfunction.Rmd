@@ -504,7 +504,7 @@ The empirical cumulative distribution function
 is the natural nonparametric estimate of the true CDF. `geom_ecdf()` renders
 $\hat{F}_n$ as a right-continuous step function--horizontal segments, dashed vertical
 jumps, and open/closed endpoint circles--matching the visual conventions of
-`geom_cdf_discrete()`. When the sample is large (more than 100 distinct values), the
+`geom_cdf_discrete()`. When the sample is large (more than 50 distinct values), the
 vertical jump segments and endpoint circles are suppressed automatically to avoid
 visual clutter; this threshold can be overridden by setting `show_vert` and
 `show_points` explicitly.
@@ -548,7 +548,7 @@ Q_n(p) = \inf\{x : \hat{F}_n(x) \geq p\},\quad p \in (0,1).
 `geom_eqf()` renders $Q_n$ as a left-continuous step function on $[0,1]$ using the
 same visual conventions as `geom_qf_discrete()`. The same auto-suppression rule
 applies: jump segments and endpoint circles are hidden when the sample has more than
-100 distinct values.
+50 distinct values.
 
 The confidence band for the quantile function follows directly from inverting
 \@ref(eq:ks-band): since $\hat{F}_n(x) - \varepsilon \leq F(x) \leq \hat{F}_n(x) +
@@ -603,6 +603,63 @@ ggplot(df_pmf, aes(x = x, colour = group)) +
   geom_epmf() +
   labs(x = "x", y = "Empirical probability", colour = "Group")
 ```
+
+## Validity of the confidence band
+
+The DKW inequality \@ref(eq:ks-band) guarantees that the simultaneous
+confidence band contains the true CDF everywhere with probability at least
+$1 - \alpha$. Because the KS statistic $D_n = \sup_x |\hat{F}_n(x) - F(x)|$
+has a distribution-free null distribution for continuous $F$, the coverage
+guarantee holds regardless of the shape of the true distribution.
+
+We verify the guarantee by simulation. For each combination of sample size $n$
+and nominal level $1 - \alpha$, we draw $B = 2{,}000$ independent samples from
+$\mathcal{N}(0,1)$, compute $D_n$ via `ks.test()`, and record the fraction of
+replications for which $D_n \leq \varepsilon_n$, where $\varepsilon_n$ is the
+half-width used by `geom_ecdf()`.
+
+```{r sim-coverage, echo=TRUE, fig.width=8, fig.height=3.5, cache=FALSE}
+#| fig.cap: "Empirical simultaneous coverage of the KS confidence band over 2,000 simulations from $\\mathcal{N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal and converges toward nominal as $n$ grows, consistent with the asymptotic tightness of the DKW bound \\citep{massart1990tight}."
+set.seed(20240101)
+B      <- 2000
+ns     <- c(10, 20, 50, 100, 200, 500)
+levels <- c(0.90, 0.95, 0.99)
+eps_fn <- function(n, lv) sqrt(log(2 / (1 - lv)) / (2 * n))
+
+sim_res <- do.call(rbind, lapply(ns, function(n) {
+  do.call(rbind, lapply(levels, function(lv) {
+    eps <- eps_fn(n, lv)
+    dn  <- replicate(B,
+      suppressWarnings(ks.test(rnorm(n), "pnorm", exact = FALSE)$statistic))
+    data.frame(n = n, level = lv, empirical = mean(dn <= eps))
+  }))
+}))
+
+ggplot(sim_res, aes(x = n, y = empirical,
+                    colour = factor(level), group = factor(level))) +
+  geom_hline(aes(yintercept = level, colour = factor(level)),
+             linetype = "dashed", linewidth = 0.4) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  scale_x_log10(breaks = ns) +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 0.1),
+    limits = c(0.88, 1.0)
+  ) +
+  scale_colour_manual(
+    values = c("0.9" = "steelblue", "0.95" = "firebrick", "0.99" = "forestgreen"),
+    labels = c("0.9" = "90%", "0.95" = "95%", "0.99" = "99%"),
+    name   = "Nominal"
+  ) +
+  labs(x = "Sample size n (log scale)", y = "Empirical coverage") +
+  theme_minimal()
+```
+
+Empirical coverage (solid lines) lies above each dashed nominal threshold
+across all tested sample sizes. The slight conservatism at small $n$ reflects
+the fact that the DKW bound is an inequality; convergence toward the nominal
+level as $n$ grows is consistent with the asymptotic tightness established by
+@massart1990tight.
 
 # Implementation
 
