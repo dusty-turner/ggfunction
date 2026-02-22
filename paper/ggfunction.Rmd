@@ -315,7 +315,7 @@ p3 <- ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-3, 3),
     p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE
-  ) + ggtitle("\u03b1 = 0.05 rejection region")
+  ) + ggtitle(expression(alpha == 0.05 ~ "rejection region"))
 
 p1 | p2 | p3
 ```

@@ -10,10 +10,12 @@
 \backcite {otto2023ggdensity}{{7}{2.4.1}{figure.caption.10}}
 \backcite {casella2002statistical}{{13}{2.4.5}{equation.2.4}}
 \backcite {massart1990tight}{{14}{2.5.1}{equation.2.5}}
+\backcite {massart1990tight}{{17}{24}{figure.caption.25}}
+\backcite {massart1990tight}{{17}{2.5.4}{figure.caption.25}}
 \backcite {wickham2016ggplot2}{{18}{1}{Item.4}}
 \backcite {kay2024ggdist}{{18}{2}{Item.5}}
-\backcite {otto2023ggdensity}{{18}{3}{Item.6}}
-\backcite {pruim2017mosaic}{{18}{4}{Item.7}}
-\backcite {lattice}{{18}{4}{Item.7}}
-\backcite {metR}{{18}{5}{Item.8}}
-\backcite {ggvfields}{{18}{6}{Item.9}}
+\backcite {otto2023ggdensity}{{19}{3}{Item.6}}
+\backcite {pruim2017mosaic}{{19}{4}{Item.7}}
+\backcite {lattice}{{19}{4}{Item.7}}
+\backcite {metR}{{19}{5}{Item.8}}
+\backcite {ggvfields}{{19}{6}{Item.9}}

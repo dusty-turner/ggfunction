@@ -133,7 +133,7 @@ p3 <- ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-3, 3),
     p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE
-  ) + ggtitle("\u03b1 = 0.05 rejection region")
+  ) + ggtitle(expression(alpha == 0.05 ~ "rejection region"))
 
 p1 | p2 | p3
 
@@ -290,6 +290,43 @@ df_pmf <- data.frame(
 ggplot(df_pmf, aes(x = x, colour = group)) +
   geom_epmf() +
   labs(x = "x", y = "Empirical probability", colour = "Group")
+
+
+## ----sim-coverage, echo=TRUE, fig.width=8, fig.height=3.5, cache=FALSE--------
+#| fig.cap: "Empirical simultaneous coverage of the KS confidence band over 2,000 simulations from $\\mathcal{N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal and converges toward nominal as $n$ grows, consistent with the asymptotic tightness of the DKW bound \\citep{massart1990tight}."
+set.seed(20240101)
+B      <- 2000
+ns     <- c(10, 20, 50, 100, 200, 500)
+levels <- c(0.90, 0.95, 0.99)
+eps_fn <- function(n, lv) sqrt(log(2 / (1 - lv)) / (2 * n))
+
+sim_res <- do.call(rbind, lapply(ns, function(n) {
+  do.call(rbind, lapply(levels, function(lv) {
+    eps <- eps_fn(n, lv)
+    dn  <- replicate(B,
+      suppressWarnings(ks.test(rnorm(n), "pnorm", exact = FALSE)$statistic))
+    data.frame(n = n, level = lv, empirical = mean(dn <= eps))
+  }))
+}))
+
+ggplot(sim_res, aes(x = n, y = empirical,
+                    colour = factor(level), group = factor(level))) +
+  geom_hline(aes(yintercept = level, colour = factor(level)),
+             linetype = "dashed", linewidth = 0.4) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  scale_x_log10(breaks = ns) +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 0.1),
+    limits = c(0.88, 1.0)
+  ) +
+  scale_colour_manual(
+    values = c("0.9" = "steelblue", "0.95" = "firebrick", "0.99" = "forestgreen"),
+    labels = c("0.9" = "90%", "0.95" = "95%", "0.99" = "99%"),
+    name   = "Nominal"
+  ) +
+  labs(x = "Sample size n (log scale)", y = "Empirical coverage") +
+  theme_minimal()
 
 
 ## ----eval=FALSE, echo=TRUE----------------------------------------------------
