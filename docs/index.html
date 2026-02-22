@@ -58,12 +58,7 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="ggfunction">ggfunction<a class="anchor" aria-label="anchor" href="#ggfunction"></a>
-</h1></div>
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-<!-- badges: start -->
-
+  <main id="main" class="col-md-9">
 <p><strong>ggfunction</strong> extends <a href="https://ggplot2.tidyverse.org/"><strong>ggplot2</strong></a> with geoms and stats for plotting mathematical functions and probability distributions directly from function objects. Supply a function and a domain; <strong>ggfunction</strong> handles evaluation, rendering, and shading.</p>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
@@ -71,10 +66,10 @@
 <p>The package is organized around two families of geoms:</p>
 <table class="table">
 <colgroup>
-<col width="25%">
-<col width="25%">
-<col width="25%">
-<col width="25%">
+<col width="24%">
+<col width="18%">
+<col width="18%">
+<col width="39%">
 </colgroup>
 <thead><tr>
 <th>Family</th>
@@ -197,12 +192,20 @@
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_function_1d_1d.html">geom_function_1d_1d</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">sin</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">2</span><span class="op">*</span><span class="va">pi</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-1d-1d-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-1d-1d-1.png" alt="plot of chunk 1d-1d" width="60%"><p class="caption">
+plot of chunk 1d-1d
+</p>
+</div>
 <p><strong>Shading intervals.</strong> The <code>shade_from</code> and <code>shade_to</code> parameters fill the region between the curve and the <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>-axis over a specified interval. Here we shade the standard normal density between <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mn>1</mn></mrow><annotation encoding="application/x-tex">-1</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>1</mn><annotation encoding="application/x-tex">1</annotation></semantics></math>, corresponding to approximately 68% of the total area.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_function_1d_1d.html">geom_function_1d_1d</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">sin</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span>, shade_from <span class="op">=</span> <span class="op">-</span><span class="fl">1</span>, shade_to <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-1d-1d-shade-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-1d-1d-shade-1.png" alt="plot of chunk 1d-1d-shade" width="60%"><p class="caption">
+plot of chunk 1d-1d-shade
+</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="parametric-curves-geom_function_1d_2d">Parametric curves: <code>geom_function_1d_2d()</code>
@@ -214,7 +217,11 @@
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_function_1d_2d.html">geom_function_1d_2d</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">lemniscate</span>, tlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.9</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-1d-2d-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-1d-2d-1.png" alt="plot of chunk 1d-2d" width="60%"><p class="caption">
+plot of chunk 1d-2d
+</p>
+</div>
 <p><strong>Arrowheads and tail points.</strong> Setting <code>tail_point = TRUE</code> and passing <code><a href="https://rdrr.io/r/grid/arrow.html">grid::arrow()</a></code> to <code>arrow</code> marks the starting position of the curve with a point and the tail with an arrowhead, respectively, useful for showing an initial condition and direction of the curve.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -222,7 +229,11 @@
 <span>    fun <span class="op">=</span> <span class="va">lemniscate</span>, tlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.9</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span>, tail_point <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>    arrow <span class="op">=</span> <span class="fu">grid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grid/arrow.html">arrow</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">30</span>, length <span class="op">=</span> <span class="fu">grid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/grid/unit.html">unit</a></span><span class="op">(</span><span class="fl">0.02</span>, <span class="st">"npc"</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"closed"</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-1d-2d-arrows-and-tail-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-1d-2d-arrows-and-tail-1.png" alt="plot of chunk 1d-2d-arrows-and-tail" width="60%"><p class="caption">
+plot of chunk 1d-2d-arrows-and-tail
+</p>
+</div>
 <p><strong>Parameterized families.</strong> Extra parameters for <code>fun</code> are passed via <code>args</code>. The following example traces a Lissajous figure, a closed curve that results when two sinusoids with a rational frequency ratio are combined.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lissajous</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">t</span>, <span class="va">a</span> <span class="op">=</span> <span class="fl">3</span>, <span class="va">b</span> <span class="op">=</span> <span class="fl">2</span>, <span class="va">delta</span> <span class="op">=</span> <span class="va">pi</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
@@ -234,7 +245,11 @@
 <span>    fun <span class="op">=</span> <span class="va">lissajous</span>, tlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1.9</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span>,</span>
 <span>    args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">3</span>, b <span class="op">=</span> <span class="fl">2</span>, delta <span class="op">=</span> <span class="va">pi</span><span class="op">/</span><span class="fl">2</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-1d-2d-lissajous-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-1d-2d-lissajous-1.png" alt="plot of chunk 1d-2d-lissajous" width="60%"><p class="caption">
+plot of chunk 1d-2d-lissajous
+</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="scalar-fields-geom_function_2d_1d">Scalar fields: <code>geom_function_2d_1d()</code>
@@ -249,16 +264,28 @@
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_function_2d_1d.html">geom_function_2d_1d</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-2d-1d-raster-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-2d-1d-raster-1.png" alt="plot of chunk 2d-1d-raster" width="60%"><p class="caption">
+plot of chunk 2d-1d-raster
+</p>
+</div>
 <p><strong>Contour modes.</strong> The <code>type</code> argument switches among three visual encodings of the same field. <code>"contour"</code> draws iso-level curves colored by level value; <code>"contour_filled"</code> draws filled regions between levels; both respond to <code>bins</code>, <code>binwidth</code>, and <code>breaks</code>.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_function_2d_1d.html">geom_function_2d_1d</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"contour"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-2d-1d-contour-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-2d-1d-contour-1.png" alt="plot of chunk 2d-1d-contour" width="60%"><p class="caption">
+plot of chunk 2d-1d-contour
+</p>
+</div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_function_2d_1d.html">geom_function_2d_1d</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"contour_filled"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-2d-1d-filled-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-2d-1d-filled-1.png" alt="plot of chunk 2d-1d-filled" width="60%"><p class="caption">
+plot of chunk 2d-1d-filled
+</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="vector-fields-geom_function_2d_2d">Vector fields: <code>geom_function_2d_2d()</code>
@@ -273,12 +300,20 @@
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_function_2d_2d.html">geom_function_2d_2d</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-2d-2d-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-2d-2d-1.png" alt="plot of chunk 2d-2d" width="60%"><p class="caption">
+plot of chunk 2d-2d
+</p>
+</div>
 <p><strong>Stream field.</strong> Setting <code>type = "stream"</code> renders the field as integral curves computed by numerical integration, colored by average speed along each curve.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_function_2d_2d.html">geom_function_2d_2d</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, type <span class="op">=</span> <span class="st">"stream"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-2d-2d-stream-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-2d-2d-stream-1.png" alt="plot of chunk 2d-2d-stream" width="60%"><p class="caption">
+plot of chunk 2d-2d-stream
+</p>
+</div>
 </div>
 </div>
 <div class="section level2">
@@ -293,17 +328,29 @@
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_pdf.html">geom_pdf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dnorm</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-geom-pdf-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-geom-pdf-1.png" alt="plot of chunk geom-pdf" width="60%"><p class="caption">
+plot of chunk geom-pdf
+</p>
+</div>
 <p><strong>Single threshold.</strong> The <code>p</code> parameter shades from the left boundary up to the <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>-quantile (<code>lower.tail = TRUE</code>, the default). Setting <code>lower.tail = FALSE</code> shades the upper tail instead. Here we shade the lower 97.5%.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_pdf.html">geom_pdf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dnorm</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span>, p <span class="op">=</span> <span class="fl">0.975</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-geom-pdf-p-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-geom-pdf-p-1.png" alt="plot of chunk geom-pdf-p" width="60%"><p class="caption">
+plot of chunk geom-pdf-p
+</p>
+</div>
 <p><strong>Two-sided interval.</strong> <code>p_lower</code> and <code>p_upper</code> together shade the central region between two quantiles—the natural picture for a confidence interval. The following example shades the central 95%.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_pdf.html">geom_pdf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dnorm</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span>, p_lower <span class="op">=</span> <span class="fl">0.025</span>, p_upper <span class="op">=</span> <span class="fl">0.975</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-pdf-twosided-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-pdf-twosided-1.png" alt="plot of chunk pdf-twosided" width="60%"><p class="caption">
+plot of chunk pdf-twosided
+</p>
+</div>
 <p><strong>Tail shading.</strong> Setting <code>shade_outside = TRUE</code> inverts the two-sided region, shading both tails. This is the rejection region of a two-sided hypothesis test at level <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>0.05</mn></mrow><annotation encoding="application/x-tex">\alpha = 0.05</annotation></semantics></math>.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -311,13 +358,21 @@
 <span>    fun <span class="op">=</span> <span class="va">dnorm</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span>,</span>
 <span>    p_lower <span class="op">=</span> <span class="fl">0.025</span>, p_upper <span class="op">=</span> <span class="fl">0.975</span>, shade_outside <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-pdf-tails-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-pdf-tails-1.png" alt="plot of chunk pdf-tails" width="60%"><p class="caption">
+plot of chunk pdf-tails
+</p>
+</div>
 <p><strong>Highest density region.</strong> <code>shade_hdr</code> shades the smallest region of the domain containing the specified probability mass—the <a href="https://en.wikipedia.org/wiki/Credible_interval#Highest_density_interval">highest density region</a> (HDR). For multimodal densities this region can be disconnected. The following example uses an asymmetric mixture of two normals; the 80% HDR captures both modes as two disjoint intervals, with more area allocated to the taller, narrower component.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f_mix</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fl">0.6</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">dnorm</a></span><span class="op">(</span><span class="va">x</span>, mean <span class="op">=</span> <span class="op">-</span><span class="fl">2</span>, sd <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span> <span class="op">+</span> <span class="fl">0.4</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">dnorm</a></span><span class="op">(</span><span class="va">x</span>, mean <span class="op">=</span> <span class="fl">2</span>, sd <span class="op">=</span> <span class="fl">1.2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_pdf.html">geom_pdf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f_mix</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">5</span>, <span class="fl">6</span><span class="op">)</span>, shade_hdr <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-pdf-hdr-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-pdf-hdr-1.png" alt="plot of chunk pdf-hdr" width="60%"><p class="caption">
+plot of chunk pdf-hdr
+</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="pmf-geom_pmf">PMF: <code>geom_pmf()</code>
@@ -327,29 +382,49 @@
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_pmf.html">geom_pmf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-geom-pmf-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-geom-pmf-1.png" alt="plot of chunk geom-pmf" width="60%"><p class="caption">
+plot of chunk geom-pmf
+</p>
+</div>
 <p><strong>Single threshold.</strong> The <code>p</code> parameter shades lollipops up to the <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>-quantile (grey dashed sticks mark the unshaded region). Here we shade the lower 80% of a <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Binomial</mtext><mo stretchy="false" form="prefix">(</mo><mn>10</mn><mo>,</mo><mn>0.5</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Binomial}(10, 0.5)</annotation></semantics></math> distribution.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_pmf.html">geom_pmf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>, p <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-geom-pmf-p-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-geom-pmf-p-1.png" alt="plot of chunk geom-pmf-p" width="60%"><p class="caption">
+plot of chunk geom-pmf-p
+</p>
+</div>
 <p><strong>Highest density region.</strong> <code>shade_hdr</code> shades the smallest set of support points whose total probability mass meets or exceeds the target coverage. For a symmetric unimodal PMF this is a central interval; for a skewed distribution it is asymmetric. Here the 70% HDR of a <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Binomial</mtext><mo stretchy="false" form="prefix">(</mo><mn>10</mn><mo>,</mo><mn>0.3</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Binomial}(10, 0.3)</annotation></semantics></math> distribution is highlighted.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_pmf.html">geom_pmf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span>,</span>
 <span>    shade_hdr <span class="op">=</span> <span class="fl">.70</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-geom-pmf-hdr-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-geom-pmf-hdr-1.png" alt="plot of chunk geom-pmf-hdr" width="60%"><p class="caption">
+plot of chunk geom-pmf-hdr
+</p>
+</div>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_pmf.html">geom_pmf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span>,</span>
 <span>    shade_hdr <span class="op">=</span> <span class="fl">.80</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-geom-pmf-hdr-2-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-geom-pmf-hdr-2-1.png" alt="plot of chunk geom-pmf-hdr-2" width="60%"><p class="caption">
+plot of chunk geom-pmf-hdr-2
+</p>
+</div>
 <p><strong>Explicit support.</strong> When the support is not a sequence of consecutive integers, pass the exact support points via <code>support</code>. Here we plot the distribution of the sample mean <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mover><mi>X</mi><mo accent="true">‾</mo></mover><annotation encoding="application/x-tex">\bar X</annotation></semantics></math> of 10 iid <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Bernoulli</mtext><mo stretchy="false" form="prefix">(</mo><mn>0.3</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Bernoulli}(0.3)</annotation></semantics></math> draws. The support is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">{</mo><mn>0</mn><mo>,</mo><mn>0.1</mn><mo>,</mo><mn>0.2</mn><mo>,</mo><mi>…</mi><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">\{0, 0.1, 0.2, \ldots, 1\}</annotation></semantics></math> and the PMF is binomial: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mover><mi>X</mi><mo accent="true">‾</mo></mover><mo>=</mo><mi>k</mi><mi>/</mi><mn>10</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><mfrac linethickness="0"><mn>10</mn><mi>k</mi></mfrac><mo stretchy="true" form="postfix">)</mo></mrow><msup><mn>0.3</mn><mi>k</mi></msup><msup><mn>0.7</mn><mrow><mn>10</mn><mo>−</mo><mi>k</mi></mrow></msup></mrow><annotation encoding="application/x-tex">P(\bar X = k/10) = \binom{10}{k}0.3^k 0.7^{10-k}</annotation></semantics></math>.</p>
 <div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f_mean</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">prob</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">dbinom</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">x</span> <span class="op">*</span> <span class="fl">10</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="va">prob</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_pmf.html">geom_pmf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f_mean</span>, support <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>prob <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-geom-pmf-support-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-geom-pmf-support-1.png" alt="plot of chunk geom-pmf-support" width="60%"><p class="caption">
+plot of chunk geom-pmf-support
+</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="cdf-geom_cdf-and-geom_cdf_discrete">CDF: <code>geom_cdf()</code> and <code>geom_cdf_discrete()</code>
@@ -360,29 +435,49 @@
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_cdf.html">geom_cdf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">pnorm</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-geom-cdf-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-geom-cdf-1.png" alt="plot of chunk geom-cdf" width="60%"><p class="caption">
+plot of chunk geom-cdf
+</p>
+</div>
 <p><strong>Discrete (<code><a href="reference/geom_cdf_discrete.html">geom_cdf_discrete()</a></code>).</strong> Takes a PMF, accumulates it into the right-continuous step-function CDF, and renders it with horizontal segments, dashed vertical jumps, open circles at the lower limit of each jump, and closed circles at the achieved value. The following example plots the <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Binomial</mtext><mo stretchy="false" form="prefix">(</mo><mn>10</mn><mo>,</mo><mn>0.5</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Binomial}(10, 0.5)</annotation></semantics></math> CDF.</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_cdf_discrete.html">geom_cdf_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-discrete-cdf-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-discrete-cdf-1.png" alt="plot of chunk discrete-cdf" width="60%"><p class="caption">
+plot of chunk discrete-cdf
+</p>
+</div>
 <p><strong>Parameterized families.</strong> Here we plot a <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Poisson</mtext><mo stretchy="false" form="prefix">(</mo><mn>5</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Poisson}(5)</annotation></semantics></math> discrete CDF.</p>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_cdf_discrete.html">geom_cdf_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dpois</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">15</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>lambda <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-discrete-cdf-pois-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-discrete-cdf-pois-1.png" alt="plot of chunk discrete-cdf-pois" width="60%"><p class="caption">
+plot of chunk discrete-cdf-pois
+</p>
+</div>
 <p><strong>Hiding points and lines.</strong> <code>show_points = FALSE</code> and <code>show_vert = FALSE</code> remove the endpoint circles and vertical jump segments, leaving only the horizontal staircase.</p>
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_cdf_discrete.html">geom_cdf_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
 <span>    show_points <span class="op">=</span> <span class="cn">FALSE</span>, show_vert <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-discrete-cdf-no-points-lines-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-discrete-cdf-no-points-lines-1.png" alt="plot of chunk discrete-cdf-no-points-lines" width="60%"><p class="caption">
+plot of chunk discrete-cdf-no-points-lines
+</p>
+</div>
 <p><strong>Explicit support.</strong> Pass non-integer support points directly via <code>support</code>. Here we plot the CDF of the sample mean of 10 iid <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Bernoulli</mtext><mo stretchy="false" form="prefix">(</mo><mn>0.3</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Bernoulli}(0.3)</annotation></semantics></math> draws.</p>
 <div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f_mean</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">prob</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">dbinom</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">x</span> <span class="op">*</span> <span class="fl">10</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="va">prob</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_cdf_discrete.html">geom_cdf_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f_mean</span>, support <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>prob <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-discrete-cdf-support-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-discrete-cdf-support-1.png" alt="plot of chunk discrete-cdf-support" width="60%"><p class="caption">
+plot of chunk discrete-cdf-support
+</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="survival-function-geom_survival-and-geom_survival_discrete">Survival function: <code>geom_survival()</code> and <code>geom_survival_discrete()</code>
@@ -393,24 +488,40 @@
 <div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_survival.html">geom_survival</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">pexp</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>rate <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-survival-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-survival-1.png" alt="plot of chunk survival" width="60%"><p class="caption">
+plot of chunk survival
+</p>
+</div>
 <p><strong>Discrete (<code><a href="reference/geom_survival_discrete.html">geom_survival_discrete()</a></code>).</strong> Takes a PMF and renders <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>1</mn><mo>−</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">S(x) = 1 - F(x)</annotation></semantics></math> as a right-continuous step function using the same visual conventions as <code><a href="reference/geom_cdf_discrete.html">geom_cdf_discrete()</a></code>. The following example plots the <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Binomial</mtext><mo stretchy="false" form="prefix">(</mo><mn>10</mn><mo>,</mo><mn>0.5</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Binomial}(10, 0.5)</annotation></semantics></math> survival function.</p>
 <div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_survival_discrete.html">geom_survival_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-discrete-survival-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-discrete-survival-1.png" alt="plot of chunk discrete-survival" width="60%"><p class="caption">
+plot of chunk discrete-survival
+</p>
+</div>
 <p><strong>Hiding points.</strong> Setting <code>show_points = FALSE</code> removes the endpoint circles.</p>
 <div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_survival_discrete.html">geom_survival_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
 <span>    show_points <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-discrete-survival-no-points-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-discrete-survival-no-points-1.png" alt="plot of chunk discrete-survival-no-points" width="60%"><p class="caption">
+plot of chunk discrete-survival-no-points
+</p>
+</div>
 <p><strong>Explicit support.</strong> The survival function of the sample mean of 10 iid <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Bernoulli</mtext><mo stretchy="false" form="prefix">(</mo><mn>0.3</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Bernoulli}(0.3)</annotation></semantics></math> draws.</p>
 <div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f_mean</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">prob</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">dbinom</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">x</span> <span class="op">*</span> <span class="fl">10</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="va">prob</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_survival_discrete.html">geom_survival_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f_mean</span>, support <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>prob <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-discrete-survival-support-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-discrete-survival-support-1.png" alt="plot of chunk discrete-survival-support" width="60%"><p class="caption">
+plot of chunk discrete-survival-support
+</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="quantile-function-geom_qf-and-geom_qf_discrete">Quantile function: <code>geom_qf()</code> and <code>geom_qf_discrete()</code>
@@ -421,35 +532,59 @@
 <div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_qf.html">geom_qf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">qnorm</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-geom-qf-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-geom-qf-1.png" alt="plot of chunk geom-qf" width="60%"><p class="caption">
+plot of chunk geom-qf
+</p>
+</div>
 <p><strong>Discrete (<code><a href="reference/geom_qf_discrete.html">geom_qf_discrete()</a></code>).</strong> Takes a PMF and renders the quantile function as a left-continuous step function on the unit interval, with closed circles at the bottom of each jump (the value is achieved) and open circles at the top (the next value is not yet reached). The following example plots the <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Binomial</mtext><mo stretchy="false" form="prefix">(</mo><mn>10</mn><mo>,</mo><mn>0.5</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Binomial}(10, 0.5)</annotation></semantics></math> quantile function.</p>
 <div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_qf_discrete.html">geom_qf_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-discrete-qf-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-discrete-qf-1.png" alt="plot of chunk discrete-qf" width="60%"><p class="caption">
+plot of chunk discrete-qf
+</p>
+</div>
 <p><strong>Parameterized families.</strong> Here we plot a <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Poisson</mtext><mo stretchy="false" form="prefix">(</mo><mn>5</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Poisson}(5)</annotation></semantics></math> discrete quantile function.</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_qf_discrete.html">geom_qf_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dpois</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">15</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>lambda <span class="op">=</span> <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-discrete-qf-pois-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-discrete-qf-pois-1.png" alt="plot of chunk discrete-qf-pois" width="60%"><p class="caption">
+plot of chunk discrete-qf-pois
+</p>
+</div>
 <p><strong>Hiding points.</strong> Setting <code>show_points = FALSE</code> removes the endpoint circles, leaving only the horizontal and vertical lines.</p>
 <div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_qf_discrete.html">geom_qf_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
 <span>    show_points <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-discrete-qf-no-points-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-discrete-qf-no-points-1.png" alt="plot of chunk discrete-qf-no-points" width="60%"><p class="caption">
+plot of chunk discrete-qf-no-points
+</p>
+</div>
 <p><strong>Hiding vertical lines.</strong> Setting <code>show_vert = FALSE</code> removes the dashed vertical jump segments, leaving only the horizontal steps and endpoint circles.</p>
 <div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_qf_discrete.html">geom_qf_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span>
 <span>    show_vert <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-discrete-qf-no-vert-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-discrete-qf-no-vert-1.png" alt="plot of chunk discrete-qf-no-vert" width="60%"><p class="caption">
+plot of chunk discrete-qf-no-vert
+</p>
+</div>
 <p><strong>Explicit support.</strong> The quantile function of the sample mean of 10 iid <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Bernoulli</mtext><mo stretchy="false" form="prefix">(</mo><mn>0.3</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{Bernoulli}(0.3)</annotation></semantics></math> draws.</p>
 <div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f_mean</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">prob</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">dbinom</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">x</span> <span class="op">*</span> <span class="fl">10</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="va">prob</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_qf_discrete.html">geom_qf_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">f_mean</span>, support <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>prob <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-discrete-qf-support-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-discrete-qf-support-1.png" alt="plot of chunk discrete-qf-support" width="60%"><p class="caption">
+plot of chunk discrete-qf-support
+</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="hazard-function-geom_hf">Hazard function: <code>geom_hf()</code>
@@ -459,7 +594,11 @@
 <div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_hf.html">geom_hf</a></span><span class="op">(</span>pdf_fun <span class="op">=</span> <span class="va">dexp</span>, cdf_fun <span class="op">=</span> <span class="va">pexp</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>rate <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-hazard-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-hazard-1.png" alt="plot of chunk hazard" width="60%"><p class="caption">
+plot of chunk hazard
+</p>
+</div>
 </div>
 </div>
 <div class="section level2">
@@ -474,17 +613,29 @@
 <div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_single</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_ecdf.html">geom_ecdf</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-ecdf-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-ecdf-1.png" alt="plot of chunk ecdf" width="60%"><p class="caption">
+plot of chunk ecdf
+</p>
+</div>
 <p><strong>Multiple groups.</strong> Map <code>colour</code> to a grouping variable to overlay ECDFs for several groups. Each group gets its own confidence ribbon, computed from that group’s sample size.</p>
 <div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_two</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, colour <span class="op">=</span> <span class="va">group</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_ecdf.html">geom_ecdf</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-ecdf-grouped-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-ecdf-grouped-1.png" alt="plot of chunk ecdf-grouped" width="60%"><p class="caption">
+plot of chunk ecdf-grouped
+</p>
+</div>
 <p><strong>Controlling the band.</strong> Use <code>level</code> to change the confidence level and <code>conf_alpha</code> to adjust ribbon transparency.</p>
 <div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_single</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_ecdf.html">geom_ecdf</a></span><span class="op">(</span>level <span class="op">=</span> <span class="fl">0.99</span>, conf_alpha <span class="op">=</span> <span class="fl">0.15</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-ecdf-level-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-ecdf-level-1.png" alt="plot of chunk ecdf-level" width="60%"><p class="caption">
+plot of chunk ecdf-level
+</p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="empirical-quantile-function-geom_eqf">Empirical quantile function: <code>geom_eqf()</code>
@@ -494,38 +645,42 @@
 <div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_single</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_eqf.html">geom_eqf</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-eqf-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-eqf-1.png" alt="plot of chunk eqf" width="60%"><p class="caption">
+plot of chunk eqf
+</p>
+</div>
 <p><strong>Multiple groups.</strong></p>
 <div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_two</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, colour <span class="op">=</span> <span class="va">group</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_eqf.html">geom_eqf</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-eqf-grouped-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-eqf-grouped-1.png" alt="plot of chunk eqf-grouped" width="60%"><p class="caption">
+plot of chunk eqf-grouped
+</p>
+</div>
 <p><strong>Informal normality test.</strong> Because the KS confidence band covers the true quantile function <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(p)</annotation></semantics></math> with probability <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≥</mo><mn>1</mn><mo>−</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">\ge 1 - \alpha</annotation></semantics></math> regardless of the null, overlaying a parametric <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q_0(p)</annotation></semantics></math> turns the plot into a visual goodness-of-fit test: if <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Q</mi><mn>0</mn></msub><annotation encoding="application/x-tex">Q_0</annotation></semantics></math> lies entirely within the band the data are consistent with the hypothesized model; if it exits the band there is evidence against it. The comparison below fits a normal distribution by maximum likelihood (sample mean and SD) to two samples of size <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">n = 100</annotation></semantics></math>—one actually normal, one exponential—and overlays the fitted <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Q</mi><mn>0</mn></msub><annotation encoding="application/x-tex">Q_0</annotation></semantics></math> as a smooth line.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
-<span><span class="va">df_gof</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
-<span>  x      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html">rexp</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span>,</span>
-<span>  sample <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Normal data"</span>, <span class="st">"Exponential data"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Fitted normal QF for each sample</span></span>
 <span><span class="va">normal_qf</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span>, <span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span><span class="va">p</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">p_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">df_gof</span>, <span class="va">sample</span> <span class="op">==</span> <span class="st">"Normal data"</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="va">df_normal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">p_norm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_normal</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_eqf.html">geom_eqf</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="reference/geom_qf.html">geom_qf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">normal_qf</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">df_gof</span>, <span class="va">sample</span> <span class="op">==</span> <span class="st">"Normal data"</span><span class="op">)</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>,</span>
-<span>          colour <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="reference/geom_qf.html">geom_qf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">normal_qf</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">df_normal</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Normal data"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">p_exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">df_gof</span>, <span class="va">sample</span> <span class="op">==</span> <span class="st">"Exponential data"</span><span class="op">)</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span><span class="va">df_exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html">rexp</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">p_exp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_exp</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_eqf.html">geom_eqf</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="reference/geom_qf.html">geom_qf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">normal_qf</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html">subset</a></span><span class="op">(</span><span class="va">df_gof</span>, <span class="va">sample</span> <span class="op">==</span> <span class="st">"Exponential data"</span><span class="op">)</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>,</span>
-<span>          colour <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="reference/geom_qf.html">geom_qf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">normal_qf</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">df_exp</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Exponential data"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com">patchwork</a></span><span class="op">)</span></span>
-<span><span class="va">p_norm</span> <span class="op">+</span> <span class="va">p_exp</span></span></code></pre></div>
-<p><img src="reference/figures/readme-eqf-gof-1.png" width="60%"></p>
+<span><span class="va">p_norm</span> <span class="op">|</span> <span class="va">p_exp</span></span>
+<span><span class="co">#&gt; Error: Can't find method for generic `|(e1, e2)`:</span></span>
+<span><span class="co">#&gt; - e1: &lt;ggplot2::ggplot&gt;</span></span>
+<span><span class="co">#&gt; - e2: &lt;ggplot2::ggplot&gt;</span></span></code></pre></div>
 <p>The fitted normal line threads through the center of the band for the normal sample; for the exponential sample it departs visibly at the tails, where the asymmetry of the exponential distribution is most pronounced. Note that estimating parameters from the data makes the band slightly conservative (analogous to the Lilliefors correction), so this is an informal rather than exact test.</p>
 </div>
 <div class="section level3">
@@ -536,12 +691,20 @@
 <div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_single</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_epmf.html">geom_epmf</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-epmf-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-epmf-1.png" alt="plot of chunk epmf" width="60%"><p class="caption">
+plot of chunk epmf
+</p>
+</div>
 <p><strong>Multiple groups.</strong></p>
 <div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_two</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, colour <span class="op">=</span> <span class="va">group</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="reference/geom_epmf.html">geom_epmf</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/readme-epmf-grouped-1.png" width="60%"></p>
+<div class="figure">
+<img src="reference/figures/readme-epmf-grouped-1.png" alt="plot of chunk epmf-grouped" width="60%"><p class="caption">
+plot of chunk epmf-grouped
+</p>
+</div>
 </div>
 </div>
 <div class="section level2">
@@ -560,7 +723,7 @@
 <code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html">pak</a></span><span class="op">(</span><span class="st">"dusty-turner/ggfunction"</span><span class="op">)</span></span></code></pre></div>
 </div>
-</div>
+
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
