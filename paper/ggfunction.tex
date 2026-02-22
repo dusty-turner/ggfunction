@@ -7,7 +7,7 @@
 \maketitle
 
 \abstract{%
-The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions and probability distributions. It is organized around two complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for probability distributions--density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, and hazard functions--each with built-in support for region shading central to hypothesis testing and interval estimation. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
+The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions, probability distributions, and empirical data distributions. It is organized around three complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for theoretical probability distributions--density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, and hazard functions--each with built-in support for region shading central to hypothesis testing and interval estimation. The third family provides geoms for empirical distributions computed from samples: the empirical CDF with a simultaneous Kolmogorov--Smirnov confidence band, the empirical quantile function with the inverted KS band, and the empirical PMF as a lollipop chart. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
 }
 
 \section{Introduction}\label{introduction}
@@ -16,7 +16,7 @@ Visualizing mathematical functions is one of the most common tasks in applied ma
 
 Several packages address pieces of this gap. \CRANpkg{ggdist} \citep{kay2024ggdist} provides sophisticated distribution visualizations oriented toward Bayesian uncertainty communication. \CRANpkg{mosaic} \citep{pruim2017mosaic} offers \texttt{plotDist()} for pedagogical work, but it is built on the \CRANpkg{lattice} \citep{lattice} framework rather than the grammar of graphics. \CRANpkg{metR} provides contour and vector-field displays for meteorological data, though it requires precomputed grids rather than function objects. None of these packages offers a unified treatment of functions organized by their dimensional structure.
 
-\pkg{ggfunction} fills this gap by extending \CRANpkg{ggplot2} with a principled taxonomy of function types, classified by the dimensions of their domain and codomain. It provides two complementary families of geoms:
+\pkg{ggfunction} fills this gap by extending \CRANpkg{ggplot2} with a principled taxonomy of function types, classified by the dimensions of their domain and codomain. It provides three complementary families of geoms:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -25,11 +25,13 @@ Several packages address pieces of this gap. \CRANpkg{ggdist} \citep{kay2024ggdi
   A \textbf{dimensional taxonomy} covering four function types: \(\mathbb{R} \to \mathbb{R}\), \(\mathbb{R} \to \mathbb{R}^2\), \(\mathbb{R}^2 \to \mathbb{R}\), and \(\mathbb{R}^2 \to \mathbb{R}^2\).
 \item
   A \textbf{probability distribution family} providing specialized layers for density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, and hazard functions.
+\item
+  An \textbf{empirical data family} providing layers for the empirical CDF, empirical quantile function, and empirical PMF, each computed directly from a sample and accompanied by simultaneous Kolmogorov--Smirnov confidence bands.
 \end{enumerate}
 
-Each layer follows the \CRANpkg{ggplot2} extension pattern: a \texttt{Stat} object evaluates the user-supplied function on a grid or sequence, and a corresponding \texttt{Geom} renders the result. Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the full ecosystem of scales, coordinates, themes, and facets.
+Each layer follows the \CRANpkg{ggplot2} extension pattern: a \texttt{Stat} object evaluates the user-supplied function on a grid or sequence (or tabulates a sample), and a corresponding \texttt{Geom} renders the result. Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the full ecosystem of scales, coordinates, themes, and facets.
 
-The remainder of this article is organized as follows. We describe the design principles underlying the package in Section 2. Sections 3 and 4 present the dimensional taxonomy and probability distribution family, respectively, illustrating each with examples. Section 5 addresses implementation details, Section 6 demonstrates composability with the broader grammar, Section 7 surveys related packages, and Section 8 concludes.
+The remainder of this article is organized as follows. We describe the design principles underlying the package in Section 2. Sections 3 and 4 present the dimensional taxonomy and probability distribution family, respectively, illustrating each with examples. Section 5 introduces the empirical data family. Section 6 addresses implementation details, Section 7 demonstrates composability with the broader grammar, Section 8 surveys related packages, and Section 9 concludes.
 
 \section{Design principles}\label{design-principles}
 
@@ -107,10 +109,7 @@ The \texttt{shade\_from} and \texttt{shade\_to} parameters fill the region betwe
 
 \begin{verbatim}
 ggplot() +
-  geom_function_1d_1d(
-    fun = cos, xlim = c(0, 2 * pi),
-    shade_from = 0, shade_to = pi / 2
-  )
+  geom_function_1d_1d(fun = cos, xlim = c(0, 2 * pi), shade_from = 0, shade_to = pi/2)
 \end{verbatim}
 
 \begin{figure}
@@ -150,22 +149,18 @@ lissajous <- function(t, a = 3, b = 2, delta = pi/2) {
 }
 
 p1 <- ggplot() +
-  geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 1.9 * pi),
-    args = list(a = 1, b = 1)
-  ) + ggtitle("a = 1, b = 1")
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 1, b = 1)) + 
+  ggtitle("a = 1, b = 1")
 
 p2 <- ggplot() +
-  geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 1.9 * pi),
-    args = list(a = 2, b = 1)
-  ) + ggtitle("a = 2, b = 1")
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 2, b = 1)) + 
+  ggtitle("a = 2, b = 1")
 
 p3 <- ggplot() +
-  geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 1.9 * pi),
-    args = list(a = 3, b = 2)
-  ) + ggtitle("a = 3, b = 2")
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 3, b = 2)) +
+  ggtitle("a = 3, b = 2")
+
+library("patchwork")
 
 (p1 | p2 | p3) + plot_layout(guides = "collect")
 \end{verbatim}
@@ -584,6 +579,153 @@ p_decr | p_flat | p_incr
 \caption{Three canonical hazard shapes: decreasing ($\mathrm{Weibull}(\mathrm{shape}{=}0.5,\,\mathrm{scale}{=}2)$, left), constant ($\mathrm{Exponential}(0.5)$, center), and increasing ($\mathcal{N}(0,1)$, right).}\label{fig:hazard-shapes}
 \end{figure}
 
+\section{The empirical data family}\label{the-empirical-data-family}
+
+Data analysis frequently requires visualizing not a theoretical distribution but the
+distribution of an observed sample. \pkg{ggfunction}'s empirical data family applies
+the same visual language as the probability distribution family to sample data. All
+three geoms tabulate the empirical distribution via a shared helper that places mass
+\(c_k / n\) at each distinct observed value \(x_k\), where \(c_k\) is the count of
+occurrences and \(n\) is the total sample size; ties are handled correctly. Because the
+geoms are standard \CRANpkg{ggplot2} layers, multiple groups can be overlaid by
+mapping the \texttt{colour} aesthetic in the enclosing \texttt{ggplot()} call.
+
+\subsection{\texorpdfstring{Empirical CDF: \texttt{geom\_ecdf()}}{Empirical CDF: geom\_ecdf()}}\label{empirical-cdf-geom_ecdf}
+
+The empirical cumulative distribution function
+
+\begin{equation}
+\hat{F}_n(x) = \frac{1}{n}\sum_{i=1}^n \mathbf{1}(X_i \leq x)
+\label{eq:ecdf}
+\end{equation}
+
+is the natural nonparametric estimate of the true CDF. \texttt{geom\_ecdf()} renders
+\(\hat{F}_n\) as a right-continuous step function--horizontal segments, dashed vertical
+jumps, and open/closed endpoint circles--matching the visual conventions of
+\texttt{geom\_cdf\_discrete()}. When the sample is large (more than 100 distinct values), the
+vertical jump segments and endpoint circles are suppressed automatically to avoid
+visual clutter; this threshold can be overridden by setting \texttt{show\_vert} and
+\texttt{show\_points} explicitly.
+
+An optional simultaneous Kolmogorov--Smirnov confidence band is drawn around
+the step function by default. The DKW inequality \citep{massart1990tight} implies that
+
+\begin{equation}
+P\!\left(\sup_x |\hat{F}_n(x) - F(x)| \leq \varepsilon\right) \geq 1 - \alpha,
+\quad \varepsilon = \sqrt{\frac{\log(2/\alpha)}{2n}},
+\label{eq:ks-band}
+\end{equation}
+
+so the ribbon \([\hat{F}_n(x) - \varepsilon,\, \hat{F}_n(x) + \varepsilon]\) (clipped to
+\([0, 1]\)) covers the true CDF \(F\) simultaneously at all \(x\) with probability at least
+\(1 - \alpha\). The confidence level is controlled by the \texttt{level} parameter (default
+0.95), and the ribbon's transparency by \texttt{conf\_alpha} (default 0.3).
+
+\begin{verbatim}
+set.seed(1)
+df_ecdf <- data.frame(
+  x     = c(rnorm(60), rnorm(40, mean = 2)),
+  group = rep(c("N(0,1), n=60", "N(2,1), n=40"), c(60, 40))
+)
+
+ggplot(df_ecdf, aes(x = x, colour = group)) +
+  geom_ecdf(show_points = FALSE, show_vert = FALSE) +
+  labs(x = "x", y = expression(hat(F)[n](x)), colour = NULL)
+\end{verbatim}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/ecdf-basic-1} 
+
+}
+
+\caption{Empirical CDFs for two groups from populations $\mathcal{N}(0,1)$ and $\mathcal{N}(2,1)$, with simultaneous 95\% KS confidence bands. The bands are narrower for larger samples.}\label{fig:ecdf-basic}
+\end{figure}
+
+\subsection{\texorpdfstring{Empirical quantile function: \texttt{geom\_eqf()}}{Empirical quantile function: geom\_eqf()}}\label{empirical-quantile-function-geom_eqf}
+
+The empirical quantile function is the left-continuous inverse of the empirical CDF:
+
+\begin{equation}
+Q_n(p) = \inf\{x : \hat{F}_n(x) \geq p\},\quad p \in (0,1).
+\label{eq:eqf}
+\end{equation}
+
+\texttt{geom\_eqf()} renders \(Q_n\) as a left-continuous step function on \([0,1]\) using the
+same visual conventions as \texttt{geom\_qf\_discrete()}. The same auto-suppression rule
+applies: jump segments and endpoint circles are hidden when the sample has more than
+100 distinct values.
+
+The confidence band for the quantile function follows directly from inverting
+\eqref{eq:ks-band}: since \(\hat{F}_n(x) - \varepsilon \leq F(x) \leq \hat{F}_n(x) +
+\varepsilon\) simultaneously, applying \(Q\) to all three sides yields
+\(Q_n(p - \varepsilon) \leq Q(p) \leq Q_n(p + \varepsilon)\).
+
+\textbf{Goodness-of-fit testing.} Because the confidence band covers the true quantile
+function \(Q\) with probability at least \(1 - \alpha\) regardless of the underlying
+distribution, overlaying a parametric quantile function \(Q_0\) turns the plot into an
+informal visual test: if \(Q_0\) lies entirely within the band the data are consistent
+with the hypothesized model; if \(Q_0\) exits the band there is evidence against it. The
+following example fits a normal distribution by maximum likelihood to two samples of
+size \(n = 100\)--one genuinely normal, one exponential--and overlays the fitted normal
+quantile function as a red curve.
+
+\begin{verbatim}
+set.seed(3)
+
+normal_qf <- function(p, x) qnorm(p, mean = mean(x), sd = sd(x))
+
+df_normal <- data.frame("x" = rnorm(50))
+p_norm <- ggplot(df_normal, aes(x = x)) +
+  geom_eqf(show_points = FALSE, show_vert = FALSE) +
+  geom_qf(fun  = normal_qf, args = list(x = df_normal$x), colour = "red") +
+  ggtitle("Normal data")
+
+df_exp <- data.frame("x" = rexp(50) - 1)
+p_exp <- ggplot(df_exp, aes(x = x)) +
+  geom_eqf(show_points = FALSE, show_vert = FALSE) +
+  geom_qf(fun  = normal_qf, args = list(x = df_exp$x), colour = "red") +
+  ggtitle("Exponential data")
+
+p_norm | p_exp
+\end{verbatim}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/eqf-gof-1} 
+
+}
+
+\caption{Goodness-of-fit test for normality using \texttt{geom\_eqf()} with a 95\% KS band. The fitted normal quantile function (red) threads through the band for the normal sample (left) but departs at both tails for the exponential sample (right), where asymmetry is most pronounced. Note that estimating parameters from the data makes the band slightly conservative (analogous to the Lilliefors correction).}\label{fig:eqf-gof}
+\end{figure}
+
+\subsection{\texorpdfstring{Empirical PMF: \texttt{geom\_epmf()}}{Empirical PMF: geom\_epmf()}}\label{empirical-pmf-geom_epmf}
+
+For observed data that are discrete or treated as such, the empirical PMF places
+mass \(c_k / n\) at each distinct observed value \(x_k\) and renders the result as a
+lollipop chart using the same conventions as \texttt{geom\_pmf()}.
+
+\begin{verbatim}
+set.seed(2)
+df_pmf <- data.frame(
+  x     = round(c(rnorm(40), rnorm(40, mean = 2)), 1),
+  group = rep(c("A", "B"), each = 40)
+)
+
+ggplot(df_pmf, aes(x = x, colour = group)) +
+  geom_epmf() +
+  labs(x = "x", y = "Empirical probability", colour = "Group")
+\end{verbatim}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/epmf-grouped-1} 
+
+}
+
+\caption{Empirical PMFs for two groups of 40 observations each from $\mathcal{N}(0,1)$ and $\mathcal{N}(2,1)$, colored by group.}\label{fig:epmf-grouped}
+\end{figure}
+
 \section{Implementation}\label{implementation}
 
 \subsection{Architecture}\label{architecture}
@@ -677,9 +819,9 @@ Taken together, these packages reflect the breadth of interest in function visua
 
 \section{Summary}\label{summary}
 
-\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions and probability distributions. Its organizing taxonomy--classifying functions by the dimensions of their domain and codomain--yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family covers nine geoms spanning continuous and discrete distributions: density, CDF, PMF, quantile, discrete CDF, discrete quantile, discrete survival, survival, and hazard functions. Each supports the shading operations central to statistical pedagogy---marking quantiles, delineating confidence regions, highlighting rejection areas, and shading highest density regions.
+\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions, theoretical probability distributions, and empirical data distributions. Its organizing taxonomy--classifying functions by the dimensions of their domain and codomain--yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family covers nine geoms spanning continuous and discrete distributions: density, CDF, PMF, quantile, discrete CDF, discrete quantile, discrete survival, survival, and hazard functions. Each supports the shading operations central to statistical pedagogy---marking quantiles, delineating confidence regions, highlighting rejection areas, and shading highest density regions. The empirical data family complements these theoretical geoms by computing the empirical CDF, quantile function, and PMF directly from samples, each paired with a simultaneous Kolmogorov--Smirnov confidence band derived from the DKW inequality.
 
-By implementing each layer as a \texttt{ggproto} stat--geom pair, the package inherits the full composability of the grammar of graphics. Functions can be overlaid, themed, faceted, and annotated using the same tools that \CRANpkg{ggplot2} users already know. The \texttt{args} injection pattern provides a clean interface for parameterized function families, and built-in validation catches common errors--such as unnormalized densities--before they produce misleading graphics.
+By implementing each layer as a \texttt{ggproto} stat--geom pair, the package inherits the full composability of the grammar of graphics. Functions and empirical summaries can be overlaid, themed, faceted, and annotated using the same tools that \CRANpkg{ggplot2} users already know. The \texttt{args} injection pattern provides a clean interface for parameterized function families, and built-in validation catches common errors--such as unnormalized densities--before they produce misleading graphics.
 
 \pkg{ggfunction} is available at \url{https://github.com/dusty-turner/ggfunction} and can be installed via \texttt{pak::pak("dusty-turner/ggfunction")}.
 

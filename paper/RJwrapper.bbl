@@ -1,4 +1,4 @@
-\begin{thebibliography}{11}
+\begin{thebibliography}{12}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -27,6 +27,12 @@ M.~Kay.
 \newblock {ggdist}: Visualizations of distributions and uncertainty in the grammar of graphics.
 \newblock \emph{IEEE Transactions on Visualization and Computer Graphics}, 30\penalty0 (1):\penalty0 983--993, 2024.
 \newblock \doi{10.1109/TVCG.2023.3327195}.
+
+\bibitem[Massart(1990)]{massart1990tight}
+P.~Massart.
+\newblock The tight constant in the {Dvoretzky--Kiefer--Wolfowitz} inequality.
+\newblock \emph{The Annals of Probability}, 18\penalty0 (3):\penalty0 1269--1283, 1990.
+\newblock \doi{10.1214/aop/1176990746}.
 
 \bibitem[Otto and Kahle(2023)]{otto2023ggdensity}
 J.~Otto and D.~Kahle.

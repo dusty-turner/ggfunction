@@ -90,10 +90,6 @@ options(
   ggplot2.continuous.colour = NULL,
   ggplot2.continuous.fill = NULL
 )
-
-library(ggfunction)
-library(ggplot2)
-library(patchwork)
 ```
 
 # Introduction
@@ -174,10 +170,7 @@ The `shade_from` and `shade_to` parameters fill the region between the curve and
 ```{r shaded-cosine, echo=TRUE}
 #| fig.cap: "The cosine function over $[0, 2\\pi]$ with the interval $[0, \\pi/2]$ shaded; the shaded area equals $\\int_0^{\\pi/2} \\cos(x)\\,dx = 1$."
 ggplot() +
-  geom_function_1d_1d(
-    fun = cos, xlim = c(0, 2 * pi),
-    shade_from = 0, shade_to = pi / 2
-  )
+  geom_function_1d_1d(fun = cos, xlim = c(0, 2 * pi), shade_from = 0, shade_to = pi/2)
 ```
 
 ## Parametric curves: $\mathbb{R} \to \mathbb{R}^2$ {#sec-parametric}
@@ -201,22 +194,18 @@ lissajous <- function(t, a = 3, b = 2, delta = pi/2) {
 }
 
 p1 <- ggplot() +
-  geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 1.9 * pi),
-    args = list(a = 1, b = 1)
-  ) + ggtitle("a = 1, b = 1")
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 1, b = 1)) + 
+  ggtitle("a = 1, b = 1")
 
 p2 <- ggplot() +
-  geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 1.9 * pi),
-    args = list(a = 2, b = 1)
-  ) + ggtitle("a = 2, b = 1")
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 2, b = 1)) + 
+  ggtitle("a = 2, b = 1")
 
 p3 <- ggplot() +
-  geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 1.9 * pi),
-    args = list(a = 3, b = 2)
-  ) + ggtitle("a = 3, b = 2")
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 3, b = 2)) +
+  ggtitle("a = 3, b = 2")
+
+library("patchwork")
 
 (p1 | p2 | p3) + plot_layout(guides = "collect")
 ```
@@ -247,12 +236,12 @@ The contour modes are selected simply by changing `type`:
 p_contour <- ggplot() +
   geom_function_2d_1d(
     fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi), type = "contour"
-  ) + ggtitle("type = \"contour\"")
+  ) + ggtitle("type = 'contour'")
 
 p_filled <- ggplot() +
   geom_function_2d_1d(
     fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi), type = "contour_filled"
-  ) + ggtitle("type = \"contour_filled\"")
+  ) + ggtitle("type = 'contour_filled'")
 
 p_contour | p_filled
 ```
@@ -543,7 +532,7 @@ df_ecdf <- data.frame(
 )
 
 ggplot(df_ecdf, aes(x = x, colour = group)) +
-  geom_ecdf() +
+  geom_ecdf(show_points = FALSE, show_vert = FALSE) +
   labs(x = "x", y = expression(hat(F)[n](x)), colour = NULL)
 ```
 
@@ -578,29 +567,19 @@ quantile function as a red curve.
 ```{r eqf-gof, echo=TRUE, fig.width=10, fig.height=4}
 #| fig.cap: "Goodness-of-fit test for normality using \\texttt{geom\\_eqf()} with a 95\\% KS band. The fitted normal quantile function (red) threads through the band for the normal sample (left) but departs at both tails for the exponential sample (right), where asymmetry is most pronounced. Note that estimating parameters from the data makes the band slightly conservative (analogous to the Lilliefors correction)."
 set.seed(3)
-df_gof <- data.frame(
-  x      = c(rnorm(100), rexp(100) - 1),
-  sample = rep(c("Normal data", "Exponential data"), each = 100)
-)
 
 normal_qf <- function(p, x) qnorm(p, mean = mean(x), sd = sd(x))
 
-p_norm <- ggplot(subset(df_gof, sample == "Normal data"), aes(x = x)) +
-  geom_eqf() +
-  geom_qf(
-    fun  = normal_qf,
-    args = list(x = subset(df_gof, sample == "Normal data")$x),
-    colour = "red"
-  ) +
+df_normal <- data.frame("x" = rnorm(50))
+p_norm <- ggplot(df_normal, aes(x = x)) +
+  geom_eqf(show_points = FALSE, show_vert = FALSE) +
+  geom_qf(fun  = normal_qf, args = list(x = df_normal$x), colour = "red") +
   ggtitle("Normal data")
 
-p_exp <- ggplot(subset(df_gof, sample == "Exponential data"), aes(x = x)) +
-  geom_eqf() +
-  geom_qf(
-    fun  = normal_qf,
-    args = list(x = subset(df_gof, sample == "Exponential data")$x),
-    colour = "red"
-  ) +
+df_exp <- data.frame("x" = rexp(50) - 1)
+p_exp <- ggplot(df_exp, aes(x = x)) +
+  geom_eqf(show_points = FALSE, show_vert = FALSE) +
+  geom_qf(fun  = normal_qf, args = list(x = df_exp$x), colour = "red") +
   ggtitle("Exponential data")
 
 p_norm | p_exp

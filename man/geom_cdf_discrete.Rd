@@ -114,10 +114,10 @@ points to evaluate. When supplied, \code{xlim} is ignored.}
 
 \item{show_points}{Logical. If \code{FALSE}, suppresses all endpoint circles (open
 and closed). If \code{NULL} (the default), circles are shown when there are
-100 or fewer points and hidden otherwise.}
+50 or fewer points and hidden otherwise.}
 
 \item{show_vert}{Logical. If \code{FALSE}, suppresses the vertical jump segments.
-If \code{NULL} (the default), segments are shown when there are 100 or fewer
+If \code{NULL} (the default), segments are shown when there are 50 or fewer
 points and hidden otherwise.}
 }
 \value{

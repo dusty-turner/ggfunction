@@ -409,7 +409,7 @@ geom_epmf <- function(
   )
 
   # Force y-axis to include 0 (the lollipop baseline) without drawing anything.
-  baseline_layer <- geom_blank(
+  baseline_layer <- ggplot2::geom_blank(
     data        = data.frame(y = 0),
     mapping     = aes(y = y),
     inherit.aes = FALSE

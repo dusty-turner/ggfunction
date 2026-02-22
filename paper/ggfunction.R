@@ -19,10 +19,6 @@ options(
   ggplot2.continuous.fill = NULL
 )
 
-library(ggfunction)
-library(ggplot2)
-library(patchwork)
-
 
 ## ----eval=FALSE, echo=TRUE----------------------------------------------------
 # # instead of wrapping in an anonymous function:
@@ -43,10 +39,7 @@ ggplot() +
 ## ----shaded-cosine, echo=TRUE-------------------------------------------------
 #| fig.cap: "The cosine function over $[0, 2\\pi]$ with the interval $[0, \\pi/2]$ shaded; the shaded area equals $\\int_0^{\\pi/2} \\cos(x)\\,dx = 1$."
 ggplot() +
-  geom_function_1d_1d(
-    fun = cos, xlim = c(0, 2 * pi),
-    shade_from = 0, shade_to = pi / 2
-  )
+  geom_function_1d_1d(fun = cos, xlim = c(0, 2 * pi), shade_from = 0, shade_to = pi/2)
 
 
 ## ----lemniscate, echo=TRUE----------------------------------------------------
@@ -64,22 +57,18 @@ lissajous <- function(t, a = 3, b = 2, delta = pi/2) {
 }
 
 p1 <- ggplot() +
-  geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 1.9 * pi),
-    args = list(a = 1, b = 1)
-  ) + ggtitle("a = 1, b = 1")
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 1, b = 1)) + 
+  ggtitle("a = 1, b = 1")
 
 p2 <- ggplot() +
-  geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 1.9 * pi),
-    args = list(a = 2, b = 1)
-  ) + ggtitle("a = 2, b = 1")
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 2, b = 1)) + 
+  ggtitle("a = 2, b = 1")
 
 p3 <- ggplot() +
-  geom_function_1d_2d(
-    fun = lissajous, tlim = c(0, 1.9 * pi),
-    args = list(a = 3, b = 2)
-  ) + ggtitle("a = 3, b = 2")
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 3, b = 2)) +
+  ggtitle("a = 3, b = 2")
+
+library("patchwork")
 
 (p1 | p2 | p3) + plot_layout(guides = "collect")
 
@@ -254,6 +243,53 @@ p_incr <- ggplot() +
   ) + ggtitle("Increasing (Normal)")
 
 p_decr | p_flat | p_incr
+
+
+## ----ecdf-basic, echo=TRUE----------------------------------------------------
+#| fig.cap: "Empirical CDFs for two groups from populations $\\mathcal{N}(0,1)$ and $\\mathcal{N}(2,1)$, with simultaneous 95\\% KS confidence bands. The bands are narrower for larger samples."
+set.seed(1)
+df_ecdf <- data.frame(
+  x     = c(rnorm(60), rnorm(40, mean = 2)),
+  group = rep(c("N(0,1), n=60", "N(2,1), n=40"), c(60, 40))
+)
+
+ggplot(df_ecdf, aes(x = x, colour = group)) +
+  geom_ecdf(show_points = FALSE, show_vert = FALSE) +
+  labs(x = "x", y = expression(hat(F)[n](x)), colour = NULL)
+
+
+## ----eqf-gof, echo=TRUE, fig.width=10, fig.height=4---------------------------
+#| fig.cap: "Goodness-of-fit test for normality using \\texttt{geom\\_eqf()} with a 95\\% KS band. The fitted normal quantile function (red) threads through the band for the normal sample (left) but departs at both tails for the exponential sample (right), where asymmetry is most pronounced. Note that estimating parameters from the data makes the band slightly conservative (analogous to the Lilliefors correction)."
+set.seed(3)
+
+normal_qf <- function(p, x) qnorm(p, mean = mean(x), sd = sd(x))
+
+df_normal <- data.frame("x" = rnorm(50))
+p_norm <- ggplot(df_normal, aes(x = x)) +
+  geom_eqf(show_points = FALSE, show_vert = FALSE) +
+  geom_qf(fun  = normal_qf, args = list(x = df_normal$x), colour = "red") +
+  ggtitle("Normal data")
+
+df_exp <- data.frame("x" = rexp(50) - 1)
+p_exp <- ggplot(df_exp, aes(x = x)) +
+  geom_eqf(show_points = FALSE, show_vert = FALSE) +
+  geom_qf(fun  = normal_qf, args = list(x = df_exp$x), colour = "red") +
+  ggtitle("Exponential data")
+
+p_norm | p_exp
+
+
+## ----epmf-grouped, echo=TRUE--------------------------------------------------
+#| fig.cap: "Empirical PMFs for two groups of 40 observations each from $\\mathcal{N}(0,1)$ and $\\mathcal{N}(2,1)$, colored by group."
+set.seed(2)
+df_pmf <- data.frame(
+  x     = round(c(rnorm(40), rnorm(40, mean = 2)), 1),
+  group = rep(c("A", "B"), each = 40)
+)
+
+ggplot(df_pmf, aes(x = x, colour = group)) +
+  geom_epmf() +
+  labs(x = "x", y = "Empirical probability", colour = "Group")
 
 
 ## ----eval=FALSE, echo=TRUE----------------------------------------------------

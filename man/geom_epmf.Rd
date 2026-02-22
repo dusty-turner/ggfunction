@@ -119,7 +119,8 @@ to \code{2.5}.}
 \code{"dashed"}.}
 }
 \value{
-A ggplot2 layer.
+A list of two ggplot2 layers: a blank layer that anchors the y-axis
+at 0 and the main lollipop layer.
 }
 \description{
 \code{geom_epmf()} computes the empirical PMF of a sample and renders it as a
