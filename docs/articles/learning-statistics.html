@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Learning Statistics with ggfunction • ggfunction</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -61,8 +66,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Learning Statistics with ggfunction</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Learning Statistics with ggfunction</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/dusty-turner/ggfunction/blob/HEAD/vignettes/learning-statistics.Rmd"><code>vignettes/learning-statistics.Rmd</code></a></small>
@@ -81,7 +85,7 @@ likelihood of a continuous random variable taking on a given value. The
 area under the curve over an interval equals the probability of falling
 in that interval.</p>
 <p>For a standard normal,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>−</mi><mn>1</mn><mo>&lt;</mo><mi>X</mi><mo>&lt;</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mo>≈</mo><mn>0.68</mn></mrow><annotation encoding="application/x-tex">P(-1 &lt; X &lt; 1) \approx 0.68</annotation></semantics></math>:</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>−</mi><mn>1</mn><mo>&lt;</mo><mi>X</mi><mo>&lt;</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>≈</mo><mn>0.68</mn></mrow><annotation encoding="application/x-tex">P(-1 &lt; X &lt; 1) \approx 0.68</annotation></semantics></math>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_pdf.html">geom_pdf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dnorm</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">4</span>, <span class="fl">4</span><span class="op">)</span>,</span>
@@ -91,13 +95,13 @@ in that interval.</p>
 <span>       subtitle <span class="op">=</span> <span class="st">"P(-1 &lt; X &lt; 1) \u2248 0.68"</span>,</span>
 <span>       x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"Density"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="learning-statistics_files/figure-html/pdf-intro-1.png" width="576"></p>
+<p><img src="learning-statistics_files/figure-html/pdf-intro-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="from-pdf-to-cdf">From PDF to CDF<a class="anchor" aria-label="anchor" href="#from-pdf-to-cdf"></a>
 </h2>
 <p>The cumulative distribution function (CDF)
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>X</mi><mo>≤</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">F(x) = P(X \le x)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>X</mi><mo>≤</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">F(x) = P(X \le x)</annotation></semantics></math>
 is the running area under the PDF from
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mi>∞</mi></mrow><annotation encoding="application/x-tex">-\infty</annotation></semantics></math>
 to
@@ -118,21 +122,21 @@ tallest:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span></span></code></pre></div>
-<p><img src="learning-statistics_files/figure-html/pdf-to-cdf-1.png" width="768"></p>
+<p><img src="learning-statistics_files/figure-html/pdf-to-cdf-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 <div class="section level2">
 <h2 id="quantiles-and-percentiles">Quantiles and percentiles<a class="anchor" aria-label="anchor" href="#quantiles-and-percentiles"></a>
 </h2>
 <p>The quantile function
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msup><mi>F</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(p) = F^{-1}(p)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msup><mi>F</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>p</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Q(p) = F^{-1}(p)</annotation></semantics></math>
 answers the inverse question: given a probability
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>p</mi><annotation encoding="application/x-tex">p</annotation></semantics></math>,
 what value
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>
 satisfies
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">F(x) = p</annotation></semantics></math>?</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>p</mi></mrow><annotation encoding="application/x-tex">F(x) = p</annotation></semantics></math>?</p>
 <p>The median is the 50th percentile —
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mn>0.5</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(0.5)</annotation></semantics></math>:</p>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0.5</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Q(0.5)</annotation></semantics></math>:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_qf.html">geom_qf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">qnorm</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -142,7 +146,7 @@ satisfies
 <span>       subtitle <span class="op">=</span> <span class="st">"Median at Q(0.5) = 0"</span>,</span>
 <span>       x <span class="op">=</span> <span class="st">"p"</span>, y <span class="op">=</span> <span class="st">"Q(p)"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="learning-statistics_files/figure-html/quantile-fn-1.png" width="576"></p>
+<p><img src="learning-statistics_files/figure-html/quantile-fn-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="discrete-distributions">Discrete distributions<a class="anchor" aria-label="anchor" href="#discrete-distributions"></a>
@@ -160,12 +164,12 @@ the function jumps away from, closed circles mark where it lands:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/geom_cdf_discrete.html">geom_cdf_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="va">binom_args</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_cdf_discrete.html">geom_cdf_discrete</a></span><span class="op">(</span>pmf_fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="va">binom_args</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"CDF: Binomial(10, 0.3)"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span></span></code></pre></div>
-<p><img src="learning-statistics_files/figure-html/discrete-1.png" width="768"></p>
+<p><img src="learning-statistics_files/figure-html/discrete-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 <div class="section level2">
 <h2 id="hypothesis-testing-visually">Hypothesis testing visually<a class="anchor" aria-label="anchor" href="#hypothesis-testing-visually"></a>
@@ -191,7 +195,7 @@ The shaded <strong>rejection region</strong> captures the most extreme
 <span>    x <span class="op">=</span> <span class="st">"Test statistic (z)"</span>, y <span class="op">=</span> <span class="st">"Density"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="learning-statistics_files/figure-html/hyp-test-1.png" width="576"></p>
+<p><img src="learning-statistics_files/figure-html/hyp-test-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="confidence-intervals">Confidence intervals<a class="anchor" aria-label="anchor" href="#confidence-intervals"></a>
@@ -213,13 +217,13 @@ two-sided test:</p>
 <span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"Density"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="learning-statistics_files/figure-html/ci-1.png" width="576"></p>
+<p><img src="learning-statistics_files/figure-html/ci-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="comparing-theory-to-data">Comparing theory to data<a class="anchor" aria-label="anchor" href="#comparing-theory-to-data"></a>
 </h2>
 <p>Generate a sample from
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">N(0, 1)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N(0, 1)</annotation></semantics></math>
 and overlay the empirical CDF with the theoretical CDF. The KS
 confidence band (shown automatically by <code><a href="../reference/geom_ecdf.html">geom_ecdf()</a></code>) helps
 assess whether the data are consistent with the theoretical model:</p>
@@ -237,17 +241,17 @@ assess whether the data are consistent with the theoretical model:</p>
 <span>    x <span class="op">=</span> <span class="st">"x"</span>, y <span class="op">=</span> <span class="st">"F(x)"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="learning-statistics_files/figure-html/ecdf-vs-cdf-1.png" width="576"></p>
+<p><img src="learning-statistics_files/figure-html/ecdf-vs-cdf-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="survival-and-hazard">Survival and hazard<a class="anchor" aria-label="anchor" href="#survival-and-hazard"></a>
 </h2>
 <p>The survival function
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>1</mn><mo>−</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>P</mi><mo stretchy="false" form="prefix">(</mo><mi>X</mi><mo>&gt;</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">S(x) = 1 - F(x) = P(X &gt; x)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn><mo>−</mo><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>X</mi><mo>&gt;</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">S(x) = 1 - F(x) = P(X &gt; x)</annotation></semantics></math>
 gives the probability of surviving past time
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>.
 The hazard function
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mi>/</mi><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">h(x) = f(x) / S(x)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>/</mi><mi>S</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h(x) = f(x) / S(x)</annotation></semantics></math>
 is the instantaneous failure rate.</p>
 <p>The <strong>exponential</strong> distribution has a constant hazard —
 no memory of aging. The <strong>Weibull</strong> distribution allows
@@ -275,7 +279,7 @@ increasing or decreasing hazard depending on the shape parameter:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span></span></code></pre></div>
-<p><img src="learning-statistics_files/figure-html/survival-hazard-1.png" width="768"></p>
+<p><img src="learning-statistics_files/figure-html/survival-hazard-1.png" class="r-plt" alt="" width="768"></p>
 <p><em>Blue = Exponential (constant hazard), Red = Weibull shape 2
 (increasing), Green = Weibull shape 0.5 (decreasing).</em></p>
 </div>
@@ -314,7 +318,7 @@ mixture:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span></span></code></pre></div>
-<p><img src="learning-statistics_files/figure-html/hdr-1.png" width="768"></p>
+<p><img src="learning-statistics_files/figure-html/hdr-1.png" class="r-plt" alt="" width="768"></p>
 <p>The HDR concentrates coverage on the high-density peak, while the
 equal-tailed interval extends far into the sparse right tail.</p>
 </div>
@@ -329,7 +333,7 @@ equal-tailed interval extends far into the sparse right tail.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

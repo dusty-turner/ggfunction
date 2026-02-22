@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Gallery of Visualizations • ggfunction</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -61,8 +66,7 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-
-      <h1>Gallery of Visualizations</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Gallery of Visualizations</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/dusty-turner/ggfunction/blob/HEAD/vignettes/gallery.Rmd"><code>vignettes/gallery.Rmd</code></a></small>
@@ -92,7 +96,7 @@ is self-contained.</p>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html">coord_equal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_void</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="gallery_files/figure-html/lemniscate-1.png" width="576"></p>
+<p><img src="gallery_files/figure-html/lemniscate-1.png" class="r-plt" alt="" width="576"></p>
 <p>Lissajous figures with different frequency ratios:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">make_lissajous</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span><span class="op">)</span> <span class="op">{</span></span>
@@ -112,7 +116,7 @@ is self-contained.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html">coord_equal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"7:6"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_void</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span> <span class="op">+</span> <span class="va">p3</span></span></code></pre></div>
-<p><img src="gallery_files/figure-html/lissajous-1.png" width="864"></p>
+<p><img src="gallery_files/figure-html/lissajous-1.png" class="r-plt" alt="" width="864"></p>
 </div>
 <div class="section level2">
 <h2 id="scalar-fields">Scalar fields<a class="anchor" aria-label="anchor" href="#scalar-fields"></a>
@@ -137,7 +141,7 @@ contours:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Filled contour"</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html">coord_equal</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span> <span class="op">+</span> <span class="va">p3</span></span></code></pre></div>
-<p><img src="gallery_files/figure-html/scalar-fields-1.png" width="864"></p>
+<p><img src="gallery_files/figure-html/scalar-fields-1.png" class="r-plt" alt="" width="864"></p>
 </div>
 <div class="section level2">
 <h2 id="vector-fields">Vector fields<a class="anchor" aria-label="anchor" href="#vector-fields"></a>
@@ -156,7 +160,7 @@ contours:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html">coord_equal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Streamlines"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span></span></code></pre></div>
-<p><img src="gallery_files/figure-html/vector-fields-1.png" width="768"></p>
+<p><img src="gallery_files/figure-html/vector-fields-1.png" class="r-plt" alt="" width="768"></p>
 </div>
 <div class="section level2">
 <h2 id="multimodal-hdr">Multimodal HDR<a class="anchor" aria-label="anchor" href="#multimodal-hdr"></a>
@@ -171,7 +175,7 @@ equal-tailed intervals would miss probability mass:</p>
 <span>           fill <span class="op">=</span> <span class="st">"orchid"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"80% Highest Density Region"</span>, subtitle <span class="op">=</span> <span class="st">"Bimodal mixture"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="gallery_files/figure-html/hdr-1.png" width="576"></p>
+<p><img src="gallery_files/figure-html/hdr-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="tail-shading-and-rejection-regions">Tail shading and rejection regions<a class="anchor" aria-label="anchor" href="#tail-shading-and-rejection-regions"></a>
@@ -188,7 +192,7 @@ testing:</p>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/expression.html">expression</a></span><span class="op">(</span><span class="va">alpha</span> <span class="op">==</span> <span class="fl">0.05</span> <span class="op">~</span> <span class="st">"two-sided rejection region"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="gallery_files/figure-html/rejection-1.png" width="576"></p>
+<p><img src="gallery_files/figure-html/rejection-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="discrete-step-functions">Discrete step functions<a class="anchor" aria-label="anchor" href="#discrete-step-functions"></a>
@@ -199,19 +203,19 @@ same Binomial(10, 0.3) distribution:</p>
 <code class="sourceCode R"><span><span class="va">binom_args</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/geom_cdf_discrete.html">geom_cdf_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="va">binom_args</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_cdf_discrete.html">geom_cdf_discrete</a></span><span class="op">(</span>pmf_fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="va">binom_args</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"CDF"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/geom_qf_discrete.html">geom_qf_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="va">binom_args</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_qf_discrete.html">geom_qf_discrete</a></span><span class="op">(</span>pmf_fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="va">binom_args</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Quantile function"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="../reference/geom_survival_discrete.html">geom_survival_discrete</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="va">binom_args</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_survival_discrete.html">geom_survival_discrete</a></span><span class="op">(</span>pmf_fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="va">binom_args</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Survival"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span> <span class="op">+</span> <span class="va">p3</span></span></code></pre></div>
-<p><img src="gallery_files/figure-html/discrete-trio-1.png" width="864"></p>
+<p><img src="gallery_files/figure-html/discrete-trio-1.png" class="r-plt" alt="" width="864"></p>
 </div>
 <div class="section level2">
 <h2 id="non-integer-support">Non-integer support<a class="anchor" aria-label="anchor" href="#non-integer-support"></a>
@@ -235,7 +239,7 @@ with
 <span>           support <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, by <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Sample mean distribution (n = 2)"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="gallery_files/figure-html/non-integer-1.png" width="576"></p>
+<p><img src="gallery_files/figure-html/non-integer-1.png" class="r-plt" alt="" width="576"></p>
 </div>
 <div class="section level2">
 <h2 id="empirical-vs--theoretical">Empirical vs. theoretical<a class="anchor" aria-label="anchor" href="#empirical-vs--theoretical"></a>
@@ -253,7 +257,7 @@ function to visually assess goodness-of-fit:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Empirical vs. theoretical quantile function"</span>,</span>
 <span>       subtitle <span class="op">=</span> <span class="st">"Blue = data with KS band, Red = N(0, 1)"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="gallery_files/figure-html/emp-vs-theory-1.png" width="576"></p>
+<p><img src="gallery_files/figure-html/emp-vs-theory-1.png" class="r-plt" alt="" width="576"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -266,7 +270,7 @@ function to visually assess goodness-of-fit:</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>
