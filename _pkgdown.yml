@@ -20,6 +20,9 @@ navbar:
         - text: Learning Statistics with ggfunction
           href: articles/learning-statistics.html
         - text: "---"
+        - text: Simulation Verification of KS Coverage
+          href: articles/coverage-simulation.html
+        - text: "---"
         - text: Function Reference
           href: articles/ggfunction.html
 
@@ -34,6 +37,7 @@ articles:
       - getting-started
       - gallery
       - learning-statistics
+      - coverage-simulation
 
 # Reference section for function documentation
 reference:
