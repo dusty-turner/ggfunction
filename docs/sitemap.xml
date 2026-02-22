@@ -1,5 +1,8 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>/404.html</loc></url>
+<url><loc>/LICENSE-text.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/articles/coverage-simulation.html</loc></url>
 <url><loc>/articles/gallery.html</loc></url>
 <url><loc>/articles/getting-started.html</loc></url>
 <url><loc>/articles/ggfunction.html</loc></url>
@@ -7,8 +10,6 @@
 <url><loc>/articles/learning-statistics.html</loc></url>
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
-<url><loc>/LICENSE-text.html</loc></url>
-<url><loc>/LICENSE.html</loc></url>
 <url><loc>/reference/geom_cdf.html</loc></url>
 <url><loc>/reference/geom_cdf_discrete.html</loc></url>
 <url><loc>/reference/geom_ecdf.html</loc></url>
