@@ -1,21 +1,32 @@
 #' Plot a Discrete Quantile Function as a Step Function
 #'
-#' `geom_qf_discrete()` takes a PMF function, computes the cumulative sum, and
-#' renders the inverse (quantile) function as a left-continuous step function
-#' with horizontal segments, dashed vertical jumps, closed circles at the lower
-#' limit of each jump, and open circles at the upper limit.
+#' `geom_qf_discrete()` renders a discrete quantile function as a
+#' left-continuous step function with horizontal segments, dashed vertical
+#' jumps, closed circles at the lower limit of each jump, and open circles at
+#' the upper limit.
+#'
+#' Supply **either** `pmf_fun` (a PMF such as [dbinom], from which the CDF is
+#' computed via cumulative summation and then inverted) **or** `fun` (a
+#' quantile function such as [qbinom], evaluated directly on a dense
+#' probability grid).
 #'
 #' @inheritParams ggplot2::geom_path
-#' @param fun A PMF function (e.g. [dbinom]). The function must accept a numeric
-#'   vector as its first argument and return non-negative probability values that
-#'   sum to 1.
-#' @param args A named list of additional arguments to pass to `fun`.
-#' @param xlim A numeric vector of length 2 specifying the range of integer support
-#'   values.
+#' @param fun A discrete quantile function (e.g. [qbinom]). Evaluated on a
+#'   dense grid of probabilities in \eqn{(0, 1)}. Use `xlim` to restrict the
+#'   range of support values shown. Exactly one of `fun` or `pmf_fun` must be
+#'   provided.
+#' @param pmf_fun A PMF function (e.g. [dbinom]). The quantile function is
+#'   derived internally by inverting the cumulative sum. Exactly one of `fun`
+#'   or `pmf_fun` must be provided.
+#' @param args A named list of additional arguments to pass to `fun` or
+#'   `pmf_fun`.
+#' @param xlim A numeric vector of length 2 specifying the range of support
+#'   values to display (y-axis of the quantile function). For the `pmf_fun`
+#'   path this also defines the integer support to evaluate.
 #' @param support An optional integer or numeric vector giving the exact support
-#'   points to evaluate. When supplied, `xlim` is ignored.
-#' @param open_fill Fill color for the open (hollow) endpoint circles. Defaults to
-#'   `NULL`, which uses the active theme's panel background color.
+#'   points. When supplied, `xlim` is ignored.
+#' @param open_fill Fill color for the open (hollow) endpoint circles. Defaults
+#'   to `NULL`, which uses the active theme's panel background color.
 #' @param vert_type Line type for the vertical jump segments. Defaults to
 #'   `"dashed"`.
 #' @param show_points Logical. If `FALSE`, suppresses all endpoint circles (open
@@ -29,11 +40,16 @@
 #' @return A ggplot2 layer.
 #'
 #' @examples
+#'   # via PMF
 #'   ggplot() +
-#'     geom_qf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+#'     geom_qf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+#'
+#'   # via quantile function directly
+#'   ggplot() +
+#'     geom_qf_discrete(fun = qbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 #'
 #'   ggplot() +
-#'     geom_qf_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+#'     geom_qf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 #'
 #' @name geom_qf_discrete
 #' @aliases StatQFDiscrete GeomQFDiscrete
@@ -47,7 +63,8 @@ geom_qf_discrete <- function(
     na.rm = FALSE,
     show.legend = NA,
     inherit.aes = FALSE,
-    fun,
+    fun = NULL,
+    pmf_fun = NULL,
     xlim = NULL,
     support = NULL,
     args = list(),
@@ -76,6 +93,7 @@ geom_qf_discrete <- function(
     inherit.aes = inherit.aes,
     params = list(
       fun = fun,
+      pmf_fun = pmf_fun,
       args = args,
       xlim = xlim,
       support = support,
@@ -94,25 +112,52 @@ geom_qf_discrete <- function(
 StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
-  compute_group = function(data, scales, fun, xlim = NULL, support = NULL, args = NULL) {
+  compute_group = function(data, scales, fun = NULL, pmf_fun = NULL,
+                           xlim = NULL, support = NULL, args = NULL) {
 
-    if (!is.null(support)) {
-      x_vals <- sort(support)
-    } else if (is.null(xlim)) {
-      x_vals <- 0:10
-    } else {
-      x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))
+    if (!is.null(fun)) {
+      fun_injected <- function(p) rlang::inject(fun(p, !!!args))
+      p_grid <- seq(0.0001, 0.9999, length.out = 5000)
+      q_vals <- fun_injected(p_grid)
+
+      if (!is.null(support)) {
+        keep   <- q_vals %in% support
+        p_grid <- p_grid[keep]
+        q_vals <- q_vals[keep]
+      } else if (!is.null(xlim)) {
+        keep   <- q_vals >= xlim[1] & q_vals <= xlim[2]
+        p_grid <- p_grid[keep]
+        q_vals <- q_vals[keep]
+      }
+
+      # For each unique support value, the right boundary is the largest p
+      # where Q(p) equals that value (= F(x_k) from the CDF).
+      q_unique <- sort(unique(q_vals))
+      p_right  <- vapply(q_unique,
+                         function(xk) max(p_grid[q_vals == xk]),
+                         numeric(1))
+      return(data.frame(x = p_right, y = q_unique))
     }
 
-    fun_injected <- function(x) rlang::inject(fun(x, !!!args))
+    if (!is.null(pmf_fun)) {
+      if (!is.null(support)) {
+        x_vals <- sort(support)
+      } else if (is.null(xlim)) {
+        x_vals <- 0:10
+      } else {
+        x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))
+      }
 
-    invisible(check_pmf_normalization(fun_injected, support = x_vals, tol = 1e-2))
+      fun_injected <- function(x) rlang::inject(pmf_fun(x, !!!args))
+      invisible(check_pmf_normalization(fun_injected, support = x_vals, tol = 1e-2))
+      pmf_vals <- fun_injected(x_vals)
+      cdf_vals <- cumsum(pmf_vals)
 
-    pmf_vals <- fun_injected(x_vals)
-    cdf_vals <- cumsum(pmf_vals)
+      # x = F(x_k) (probability axis), y = x_k (support value axis)
+      return(data.frame(x = cdf_vals, y = x_vals))
+    }
 
-    # x = F(x_k) (probability axis), y = x_k (support value axis)
-    data.frame(x = cdf_vals, y = x_vals)
+    cli::cli_abort("One of {.arg fun} or {.arg pmf_fun} must be provided.")
   }
 )
 

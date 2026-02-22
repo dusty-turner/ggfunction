@@ -146,15 +146,15 @@ Binomial(10, 0.3) distribution:
 binom_args <- list(size = 10, prob = 0.3)
 
 p1 <- ggplot() +
-  geom_cdf_discrete(fun = dbinom, xlim = c(0, 10), args = binom_args) +
+  geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = binom_args) +
   ggtitle("CDF")
 
 p2 <- ggplot() +
-  geom_qf_discrete(fun = dbinom, xlim = c(0, 10), args = binom_args) +
+  geom_qf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = binom_args) +
   ggtitle("Quantile function")
 
 p3 <- ggplot() +
-  geom_survival_discrete(fun = dbinom, xlim = c(0, 10), args = binom_args) +
+  geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = binom_args) +
   ggtitle("Survival")
 
 p1 + p2 + p3

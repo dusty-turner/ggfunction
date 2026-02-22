@@ -21,7 +21,8 @@ geom_qf_discrete(
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = FALSE,
-  fun,
+  fun = NULL,
+  pmf_fun = NULL,
   xlim = NULL,
   support = NULL,
   args = list(),
@@ -94,20 +95,27 @@ them. This is most useful for helper functions that define both data and
 aesthetics and shouldn't inherit behaviour from the default plot
 specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
-\item{fun}{A PMF function (e.g. \link{dbinom}). The function must accept a numeric
-vector as its first argument and return non-negative probability values that
-sum to 1.}
+\item{fun}{A discrete quantile function (e.g. \link{qbinom}). Evaluated on a
+dense grid of probabilities in \eqn{(0, 1)}. Use \code{xlim} to restrict the
+range of support values shown. Exactly one of \code{fun} or \code{pmf_fun} must be
+provided.}
 
-\item{xlim}{A numeric vector of length 2 specifying the range of integer support
-values.}
+\item{pmf_fun}{A PMF function (e.g. \link{dbinom}). The quantile function is
+derived internally by inverting the cumulative sum. Exactly one of \code{fun}
+or \code{pmf_fun} must be provided.}
+
+\item{xlim}{A numeric vector of length 2 specifying the range of support
+values to display (y-axis of the quantile function). For the \code{pmf_fun}
+path this also defines the integer support to evaluate.}
 
 \item{support}{An optional integer or numeric vector giving the exact support
-points to evaluate. When supplied, \code{xlim} is ignored.}
+points. When supplied, \code{xlim} is ignored.}
 
-\item{args}{A named list of additional arguments to pass to \code{fun}.}
+\item{args}{A named list of additional arguments to pass to \code{fun} or
+\code{pmf_fun}.}
 
-\item{open_fill}{Fill color for the open (hollow) endpoint circles. Defaults to
-\code{NULL}, which uses the active theme's panel background color.}
+\item{open_fill}{Fill color for the open (hollow) endpoint circles. Defaults
+to \code{NULL}, which uses the active theme's panel background color.}
 
 \item{vert_type}{Line type for the vertical jump segments. Defaults to
 \code{"dashed"}.}
@@ -124,17 +132,28 @@ points and hidden otherwise.}
 A ggplot2 layer.
 }
 \description{
-\code{geom_qf_discrete()} takes a PMF function, computes the cumulative sum, and
-renders the inverse (quantile) function as a left-continuous step function
-with horizontal segments, dashed vertical jumps, closed circles at the lower
-limit of each jump, and open circles at the upper limit.
+\code{geom_qf_discrete()} renders a discrete quantile function as a
+left-continuous step function with horizontal segments, dashed vertical
+jumps, closed circles at the lower limit of each jump, and open circles at
+the upper limit.
+}
+\details{
+Supply \strong{either} \code{pmf_fun} (a PMF such as \link{dbinom}, from which the CDF is
+computed via cumulative summation and then inverted) \strong{or} \code{fun} (a
+quantile function such as \link{qbinom}, evaluated directly on a dense
+probability grid).
 }
 \examples{
+  # via PMF
   ggplot() +
-    geom_qf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+    geom_qf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+
+  # via quantile function directly
+  ggplot() +
+    geom_qf_discrete(fun = qbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 
   ggplot() +
-    geom_qf_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+    geom_qf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 
 }
 \keyword{datasets}

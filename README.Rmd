@@ -284,21 +284,21 @@ ggplot() +
 
 ```{r discrete-cdf}
 ggplot() +
-  geom_cdf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+  geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 ```
 
 **Parameterized families.** Here we plot a $\text{Poisson}(5)$ discrete CDF.
 
 ```{r discrete-cdf-pois}
 ggplot() +
-  geom_cdf_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+  geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 ```
 
 **Hiding points and lines.** `show_points = FALSE` and `show_vert = FALSE` remove the endpoint circles and vertical jump segments, leaving only the horizontal staircase.
 
 ```{r discrete-cdf-no-points-lines}
 ggplot() +
-  geom_cdf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+  geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
     show_points = FALSE, show_vert = FALSE)
 ```
 
@@ -307,7 +307,7 @@ ggplot() +
 ```{r discrete-cdf-support}
 f_mean <- function(x, prob) dbinom(round(x * 10), size = 10, prob = prob)
 ggplot() +
-  geom_cdf_discrete(fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
+  geom_cdf_discrete(pmf_fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
 ```
 
 
@@ -326,14 +326,14 @@ ggplot() +
 
 ```{r discrete-survival}
 ggplot() +
-  geom_survival_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+  geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 ```
 
 **Hiding points.** Setting `show_points = FALSE` removes the endpoint circles.
 
 ```{r discrete-survival-no-points}
 ggplot() +
-  geom_survival_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+  geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
     show_points = FALSE)
 ```
 
@@ -342,7 +342,7 @@ ggplot() +
 ```{r discrete-survival-support}
 f_mean <- function(x, prob) dbinom(round(x * 10), size = 10, prob = prob)
 ggplot() +
-  geom_survival_discrete(fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
+  geom_survival_discrete(pmf_fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
 ```
 
 
@@ -361,21 +361,21 @@ ggplot() +
 
 ```{r discrete-qf}
 ggplot() +
-  geom_qf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+  geom_qf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 ```
 
 **Parameterized families.** Here we plot a $\text{Poisson}(5)$ discrete quantile function.
 
 ```{r discrete-qf-pois}
 ggplot() +
-  geom_qf_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+  geom_qf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 ```
 
 **Hiding points.** Setting `show_points = FALSE` removes the endpoint circles, leaving only the horizontal and vertical lines.
 
 ```{r discrete-qf-no-points}
 ggplot() +
-  geom_qf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+  geom_qf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
     show_points = FALSE)
 ```
 
@@ -383,7 +383,7 @@ ggplot() +
 
 ```{r discrete-qf-no-vert}
 ggplot() +
-  geom_qf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+  geom_qf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
     show_vert = FALSE)
 ```
 
@@ -392,7 +392,7 @@ ggplot() +
 ```{r discrete-qf-support}
 f_mean <- function(x, prob) dbinom(round(x * 10), size = 10, prob = prob)
 ggplot() +
-  geom_qf_discrete(fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
+  geom_qf_discrete(pmf_fun = f_mean, support = seq(0, 1, by = 0.1), args = list(prob = 0.3))
 ```
 
 

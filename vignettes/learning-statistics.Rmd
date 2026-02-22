@@ -96,7 +96,7 @@ p1 <- ggplot() +
   theme_minimal()
 
 p2 <- ggplot() +
-  geom_cdf_discrete(fun = dbinom, xlim = c(0, 10), args = binom_args) +
+  geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = binom_args) +
   labs(title = "CDF: Binomial(10, 0.3)") +
   theme_minimal()
 

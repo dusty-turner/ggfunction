@@ -21,7 +21,8 @@ geom_cdf_discrete(
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = FALSE,
-  fun,
+  fun = NULL,
+  pmf_fun = NULL,
   xlim = NULL,
   support = NULL,
   args = list(),
@@ -94,20 +95,25 @@ them. This is most useful for helper functions that define both data and
 aesthetics and shouldn't inherit behaviour from the default plot
 specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
-\item{fun}{A PMF function (e.g. \link{dbinom}). The function must accept a numeric
-vector as its first argument and return non-negative probability values that
-sum to 1.}
+\item{fun}{A discrete CDF function (e.g. \link{pbinom}). Evaluated directly on
+the integer support derived from \code{xlim} or \code{support}. Exactly one of
+\code{fun} or \code{pmf_fun} must be provided.}
 
-\item{xlim}{A numeric vector of length 2 specifying the range of integer support
-values.}
+\item{pmf_fun}{A PMF function (e.g. \link{dbinom}). The CDF is computed
+internally via cumulative summation. Exactly one of \code{fun} or \code{pmf_fun}
+must be provided.}
+
+\item{xlim}{A numeric vector of length 2 specifying the range of integer
+support values.}
 
 \item{support}{An optional integer or numeric vector giving the exact support
 points to evaluate. When supplied, \code{xlim} is ignored.}
 
-\item{args}{A named list of additional arguments to pass to \code{fun}.}
+\item{args}{A named list of additional arguments to pass to \code{fun} or
+\code{pmf_fun}.}
 
-\item{open_fill}{Fill color for the open (hollow) endpoint circles. Defaults to
-\code{NULL}, which uses the active theme's panel background color.}
+\item{open_fill}{Fill color for the open (hollow) endpoint circles. Defaults
+to \code{NULL}, which uses the active theme's panel background color.}
 
 \item{vert_type}{Line type for the vertical jump segments. Defaults to
 \code{"dashed"}.}
@@ -124,17 +130,26 @@ points and hidden otherwise.}
 A ggplot2 layer.
 }
 \description{
-\code{geom_cdf_discrete()} takes a PMF function, computes the cumulative sum, and
-renders the result as a right-continuous step function with horizontal segments,
-dashed vertical jumps, open circles at the lower limit of each jump, and closed
-circles at the upper limit.
+\code{geom_cdf_discrete()} renders a discrete CDF as a right-continuous step
+function with horizontal segments, dashed vertical jumps, open circles at
+the lower limit of each jump, and closed circles at the upper limit.
+}
+\details{
+Supply \strong{either} \code{pmf_fun} (a PMF such as \link{dbinom}, from which the CDF is
+computed via cumulative summation) \strong{or} \code{fun} (a CDF such as \link{pbinom},
+evaluated directly on the integer support).
 }
 \examples{
+  # via PMF
   ggplot() +
-    geom_cdf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+    geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+
+  # via CDF directly
+  ggplot() +
+    geom_cdf_discrete(fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 
   ggplot() +
-    geom_cdf_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+    geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 
 }
 \keyword{datasets}

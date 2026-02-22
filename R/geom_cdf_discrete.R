@@ -1,21 +1,28 @@
 #' Plot a Discrete CDF as a Step Function
 #'
-#' `geom_cdf_discrete()` takes a PMF function, computes the cumulative sum, and
-#' renders the result as a right-continuous step function with horizontal segments,
-#' dashed vertical jumps, open circles at the lower limit of each jump, and closed
-#' circles at the upper limit.
+#' `geom_cdf_discrete()` renders a discrete CDF as a right-continuous step
+#' function with horizontal segments, dashed vertical jumps, open circles at
+#' the lower limit of each jump, and closed circles at the upper limit.
+#'
+#' Supply **either** `pmf_fun` (a PMF such as [dbinom], from which the CDF is
+#' computed via cumulative summation) **or** `fun` (a CDF such as [pbinom],
+#' evaluated directly on the integer support).
 #'
 #' @inheritParams ggplot2::geom_path
-#' @param fun A PMF function (e.g. [dbinom]). The function must accept a numeric
-#'   vector as its first argument and return non-negative probability values that
-#'   sum to 1.
-#' @param args A named list of additional arguments to pass to `fun`.
-#' @param xlim A numeric vector of length 2 specifying the range of integer support
-#'   values.
+#' @param fun A discrete CDF function (e.g. [pbinom]). Evaluated directly on
+#'   the integer support derived from `xlim` or `support`. Exactly one of
+#'   `fun` or `pmf_fun` must be provided.
+#' @param pmf_fun A PMF function (e.g. [dbinom]). The CDF is computed
+#'   internally via cumulative summation. Exactly one of `fun` or `pmf_fun`
+#'   must be provided.
+#' @param args A named list of additional arguments to pass to `fun` or
+#'   `pmf_fun`.
+#' @param xlim A numeric vector of length 2 specifying the range of integer
+#'   support values.
 #' @param support An optional integer or numeric vector giving the exact support
 #'   points to evaluate. When supplied, `xlim` is ignored.
-#' @param open_fill Fill color for the open (hollow) endpoint circles. Defaults to
-#'   `NULL`, which uses the active theme's panel background color.
+#' @param open_fill Fill color for the open (hollow) endpoint circles. Defaults
+#'   to `NULL`, which uses the active theme's panel background color.
 #' @param vert_type Line type for the vertical jump segments. Defaults to
 #'   `"dashed"`.
 #' @param show_points Logical. If `FALSE`, suppresses all endpoint circles (open
@@ -29,11 +36,16 @@
 #' @return A ggplot2 layer.
 #'
 #' @examples
+#'   # via PMF
 #'   ggplot() +
-#'     geom_cdf_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+#'     geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+#'
+#'   # via CDF directly
+#'   ggplot() +
+#'     geom_cdf_discrete(fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 #'
 #'   ggplot() +
-#'     geom_cdf_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+#'     geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 #'
 #' @name geom_cdf_discrete
 #' @aliases StatCDFDiscrete GeomCDFDiscrete
@@ -47,7 +59,8 @@ geom_cdf_discrete <- function(
     na.rm = FALSE,
     show.legend = NA,
     inherit.aes = FALSE,
-    fun,
+    fun = NULL,
+    pmf_fun = NULL,
     xlim = NULL,
     support = NULL,
     args = list(),
@@ -76,6 +89,7 @@ geom_cdf_discrete <- function(
     inherit.aes = inherit.aes,
     params = list(
       fun = fun,
+      pmf_fun = pmf_fun,
       args = args,
       xlim = xlim,
       support = support,
@@ -94,7 +108,8 @@ geom_cdf_discrete <- function(
 StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
-  compute_group = function(data, scales, fun, xlim = NULL, support = NULL, args = NULL) {
+  compute_group = function(data, scales, fun = NULL, pmf_fun = NULL,
+                           xlim = NULL, support = NULL, args = NULL) {
 
     if (!is.null(support)) {
       x_vals <- sort(support)
@@ -104,14 +119,21 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
       x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))
     }
 
-    fun_injected <- function(x) rlang::inject(fun(x, !!!args))
+    if (!is.null(fun)) {
+      fun_injected <- function(x) rlang::inject(fun(x, !!!args))
+      cdf_vals <- fun_injected(x_vals)
+      return(data.frame(x = x_vals, y = cdf_vals))
+    }
 
-    invisible(check_pmf_normalization(fun_injected, support = x_vals, tol = 1e-2))
+    if (!is.null(pmf_fun)) {
+      fun_injected <- function(x) rlang::inject(pmf_fun(x, !!!args))
+      invisible(check_pmf_normalization(fun_injected, support = x_vals, tol = 1e-2))
+      pmf_vals <- fun_injected(x_vals)
+      cdf_vals <- cumsum(pmf_vals)
+      return(data.frame(x = x_vals, y = cdf_vals))
+    }
 
-    pmf_vals <- fun_injected(x_vals)
-    cdf_vals <- cumsum(pmf_vals)
-
-    data.frame(x = x_vals, y = cdf_vals)
+    cli::cli_abort("One of {.arg fun} or {.arg pmf_fun} must be provided.")
   }
 )
 

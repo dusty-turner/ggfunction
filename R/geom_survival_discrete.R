@@ -1,21 +1,29 @@
 #' Plot a Discrete Survival Function as a Step Function
 #'
-#' `geom_survival_discrete()` takes a PMF function, computes the cumulative sum,
-#' and renders the complement \eqn{S(x) = 1 - F(x)} as a right-continuous step
-#' function with horizontal segments, dashed vertical jumps, open circles at the
-#' lower limit of each jump, and closed circles at the upper limit.
+#' `geom_survival_discrete()` renders the discrete survival function
+#' \eqn{S(x) = 1 - F(x)} as a right-continuous step function with horizontal
+#' segments, dashed vertical jumps, open circles at the lower limit of each
+#' jump, and closed circles at the upper limit.
+#'
+#' Supply **either** `pmf_fun` (a PMF such as [dbinom], from which the CDF is
+#' computed via cumulative summation) **or** `fun` (a CDF such as [pbinom],
+#' from which \eqn{S(x) = 1 - F(x)} is computed directly).
 #'
 #' @inheritParams ggplot2::geom_path
-#' @param fun A PMF function (e.g. [dbinom]). The function must accept a numeric
-#'   vector as its first argument and return non-negative probability values that
-#'   sum to 1.
-#' @param xlim A numeric vector of length 2 specifying the range of integer support
-#'   values.
+#' @param fun A discrete CDF function (e.g. [pbinom]). \eqn{S(x) = 1 - F(x)}
+#'   is computed directly from this function on the integer support. Exactly
+#'   one of `fun` or `pmf_fun` must be provided.
+#' @param pmf_fun A PMF function (e.g. [dbinom]). The survival function is
+#'   derived as \eqn{1 - \mathrm{cumsum}(\mathrm{pmf})}. Exactly one of `fun`
+#'   or `pmf_fun` must be provided.
+#' @param xlim A numeric vector of length 2 specifying the range of integer
+#'   support values.
 #' @param support An optional integer or numeric vector giving the exact support
 #'   points to evaluate. When supplied, `xlim` is ignored.
-#' @param args A named list of additional arguments to pass to `fun`.
-#' @param open_fill Fill color for the open (hollow) endpoint circles. Defaults to
-#'   `NULL`, which uses the active theme's panel background color.
+#' @param args A named list of additional arguments to pass to `fun` or
+#'   `pmf_fun`.
+#' @param open_fill Fill color for the open (hollow) endpoint circles. Defaults
+#'   to `NULL`, which uses the active theme's panel background color.
 #' @param vert_type Line type for the vertical jump segments. Defaults to
 #'   `"dashed"`.
 #' @param show_points Logical. If `FALSE`, suppresses all endpoint circles (open
@@ -29,11 +37,16 @@
 #' @return A ggplot2 layer.
 #'
 #' @examples
+#'   # via PMF
 #'   ggplot() +
-#'     geom_survival_discrete(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+#'     geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+#'
+#'   # via CDF directly
+#'   ggplot() +
+#'     geom_survival_discrete(fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 #'
 #'   ggplot() +
-#'     geom_survival_discrete(fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+#'     geom_survival_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 #'
 #' @name geom_survival_discrete
 #' @aliases StatSurvivalDiscrete GeomSurvivalDiscrete
@@ -47,7 +60,8 @@ geom_survival_discrete <- function(
     na.rm = FALSE,
     show.legend = NA,
     inherit.aes = FALSE,
-    fun,
+    fun = NULL,
+    pmf_fun = NULL,
     xlim = NULL,
     support = NULL,
     args = list(),
@@ -76,6 +90,7 @@ geom_survival_discrete <- function(
     inherit.aes = inherit.aes,
     params = list(
       fun = fun,
+      pmf_fun = pmf_fun,
       args = args,
       xlim = xlim,
       support = support,
@@ -94,7 +109,8 @@ geom_survival_discrete <- function(
 StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
-  compute_group = function(data, scales, fun, xlim = NULL, support = NULL, args = NULL) {
+  compute_group = function(data, scales, fun = NULL, pmf_fun = NULL,
+                           xlim = NULL, support = NULL, args = NULL) {
 
     if (!is.null(support)) {
       x_vals <- sort(support)
@@ -104,15 +120,22 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
       x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))
     }
 
-    fun_injected <- function(x) rlang::inject(fun(x, !!!args))
+    if (!is.null(fun)) {
+      fun_injected   <- function(x) rlang::inject(fun(x, !!!args))
+      survival_vals  <- 1 - fun_injected(x_vals)
+      return(data.frame(x = x_vals, y = survival_vals))
+    }
 
-    invisible(check_pmf_normalization(fun_injected, support = x_vals, tol = 1e-2))
+    if (!is.null(pmf_fun)) {
+      fun_injected  <- function(x) rlang::inject(pmf_fun(x, !!!args))
+      invisible(check_pmf_normalization(fun_injected, support = x_vals, tol = 1e-2))
+      pmf_vals      <- fun_injected(x_vals)
+      cdf_vals      <- cumsum(pmf_vals)
+      survival_vals <- 1 - cdf_vals
+      return(data.frame(x = x_vals, y = survival_vals))
+    }
 
-    pmf_vals <- fun_injected(x_vals)
-    cdf_vals <- cumsum(pmf_vals)
-    survival_vals <- 1 - cdf_vals
-
-    data.frame(x = x_vals, y = survival_vals)
+    cli::cli_abort("One of {.arg fun} or {.arg pmf_fun} must be provided.")
   }
 )
 
@@ -145,11 +168,9 @@ GeomSurvivalDiscrete <- ggproto("GeomSurvivalDiscrete", Geom,
     if (is.null(show_vert))   show_vert   <- n <= 50
 
     # Horizontal segments (right-continuous):
-    #   [left_boundary → x[1]] at height y[1]  (S before any mass is removed)
-    #   Wait — S is right-continuous: S(x) = P(X > x), so:
-    #   Before x[1]: S = 1; at x[1] it drops. We use CDF convention:
-    #   segment at height S(x[k]) from x[k] to x[k+1], plus
-    #   leftmost extension from panel left to x[1] at height 1 (or S[0] = 1),
+    #   Before x[1]: S = 1; at x[1] it drops.
+    #   Segment at height S(x[k]) from x[k] to x[k+1], plus
+    #   leftmost extension from panel left to x[1] at height 1,
     #   and rightmost extension from x[n] to panel right at height S(x[n]).
     data_hori        <- data[c(1, 1:n), ]
     data_hori$x      <- c(panel_params$x.range[1], data$x)
