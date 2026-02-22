@@ -34,3 +34,27 @@ test_that("geom_function_2d_1d builds contour_filled without error", {
   expect_s3_class(p, "gg")
   expect_no_error(ggplot_build(p))
 })
+
+test_that("geom_function_2d_1d defaults xlim/ylim to c(-1,1)", {
+  f <- function(v) sqrt(v[1]^2 + v[2]^2)
+  p <- ggplot() + geom_function_2d_1d(fun = f)
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("stat_function_2d_1d builds without error", {
+  f <- function(v) sqrt(v[1]^2 + v[2]^2)
+  p <- ggplot() + stat_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), n = 10)
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("geom_function_2d_1d with contour and custom mapping", {
+  f <- function(v) sqrt(v[1]^2 + v[2]^2)
+  p <- ggplot() + geom_function_2d_1d(
+    fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "contour",
+    mapping = aes(colour = after_stat(level))
+  )
+  expect_s3_class(p, "gg")
+  expect_no_error(ggplot_build(p))
+})

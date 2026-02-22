@@ -38,3 +38,26 @@ test_that("geom_function_1d_1d with args builds without error", {
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
 })
+
+test_that("geom_function_1d_1d with shade_from only builds without error", {
+  p <- ggplot() + geom_function_1d_1d(
+    fun = dnorm, xlim = c(-3, 3), shade_from = -1
+  )
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("geom_function_1d_1d with shade_to only builds without error", {
+  p <- ggplot() + geom_function_1d_1d(
+    fun = dnorm, xlim = c(-3, 3), shade_to = 1
+  )
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("geom_function_1d_1d with custom mapping builds without error", {
+  p <- ggplot() + geom_function_1d_1d(
+    fun = sin, xlim = c(0, 2 * pi), mapping = aes(linetype = "solid")
+  )
+  expect_s3_class(p, "gg")
+})

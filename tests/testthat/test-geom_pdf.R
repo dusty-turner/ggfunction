@@ -71,3 +71,14 @@ test_that("geom_pdf with shade_hdr builds without error (bimodal, disconnected H
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
 })
+
+test_that("geom_pdf with lower.tail=FALSE builds without error", {
+  p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975, lower.tail = FALSE)
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("geom_pdf with custom mapping builds without error", {
+  p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3), mapping = aes(linetype = "solid"))
+  expect_s3_class(p, "gg")
+})

@@ -21,3 +21,47 @@ test_that("geom_function_1d_2d builds without error", {
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
 })
+
+test_that("geom_function_1d_2d with tail_point builds without error", {
+  f <- function(t) c(sin(t), cos(t))
+  p <- ggplot() + geom_function_1d_2d(fun = f, tlim = c(0, 5), tail_point = TRUE)
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("geom_function_1d_2d with args builds without error", {
+  lissajous <- function(t, a = 3, b = 2, delta = pi/2) {
+    c(sin(a * t + delta), sin(b * t))
+  }
+  p <- ggplot() + geom_function_1d_2d(
+    fun = lissajous, tlim = c(0, 2 * pi),
+    args = list(a = 3, b = 2, delta = pi/2)
+  )
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("geom_function_1d_2d with arrow builds without error", {
+  f <- function(t) c(sin(t), cos(t))
+  p <- ggplot() + geom_function_1d_2d(
+    fun = f, tlim = c(0, 5),
+    arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"), type = "closed")
+  )
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("geom_function_1d_2d with custom colour mapping", {
+  f <- function(t) c(sin(t), cos(t))
+  p <- ggplot() + geom_function_1d_2d(
+    fun = f, tlim = c(0, 5), mapping = aes(colour = "blue")
+  )
+  expect_s3_class(p, "gg")
+})
+
+test_that("stat_function_1d_2d builds without error", {
+  f <- function(t) c(sin(t), cos(t))
+  p <- ggplot() + stat_function_1d_2d(fun = f, tlim = c(0, 5))
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
