@@ -24,9 +24,9 @@ A showcase of what **ggfunction** can do. Each example is self-contained.
 
 A lemniscate of Bernoulli with an arrowhead and tail marker:
 
-```{r lemniscate, fig.height = 4}
+```{r lemniscate, fig.height = 4, warning = FALSE}
 lemniscate <- function(t) {
-  r <- sqrt(2 * cos(2 * t))
+  r <- sqrt(pmax(2 * cos(2 * t), 0))
   c(r * cos(t), r * sin(t))
 }
 
