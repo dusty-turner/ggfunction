@@ -28,3 +28,11 @@ test_that("geom_survival with exponential builds without error", {
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
 })
+
+test_that("geom_survival with custom mapping builds without error", {
+  p <- ggplot() + geom_survival(
+    fun = pexp, xlim = c(0, 10), args = list(rate = 0.5),
+    mapping = aes(linetype = "solid")
+  )
+  expect_s3_class(p, "gg")
+})
