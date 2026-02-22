@@ -154,7 +154,7 @@ helps assess whether the data are consistent with the theoretical model:
 
 ```{r ecdf-vs-cdf}
 set.seed(2024)
-df <- data.frame(x = rnorm(60))
+df <- data.frame(x = rnorm(40))
 
 ggplot(df, aes(x = x)) +
   geom_ecdf(color = "steelblue") +

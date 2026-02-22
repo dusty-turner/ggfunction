@@ -352,7 +352,8 @@ StatEQFBand <- ggproto("StatEQFBand", Stat,
 #' @param stick_linetype Linetype of the vertical segments. Defaults to
 #'   `"dashed"`.
 #'
-#' @return A ggplot2 layer.
+#' @return A list of two ggplot2 layers: a blank layer that anchors the y-axis
+#'   at 0 and the main lollipop layer.
 #'
 #' @examples
 #' set.seed(1)
@@ -390,7 +391,7 @@ geom_epmf <- function(
     mapping <- modifyList(default_mapping, mapping)
   }
 
-  layer(
+  main_layer <- layer(
     data        = data,
     mapping     = mapping,
     stat        = stat,
@@ -406,6 +407,15 @@ geom_epmf <- function(
       ...
     )
   )
+
+  # Force y-axis to include 0 (the lollipop baseline) without drawing anything.
+  baseline_layer <- geom_blank(
+    data        = data.frame(y = 0),
+    mapping     = aes(y = y),
+    inherit.aes = FALSE
+  )
+
+  list(baseline_layer, main_layer)
 }
 
 #' @rdname geom_epmf

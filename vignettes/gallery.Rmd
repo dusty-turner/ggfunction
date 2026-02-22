@@ -188,7 +188,7 @@ to visually assess goodness-of-fit:
 
 ```{r emp-vs-theory, fig.height = 4}
 set.seed(123)
-df <- data.frame(x = rnorm(80))
+df <- data.frame(x = rnorm(40))
 
 ggplot(df, aes(x = x)) +
   geom_eqf(color = "steelblue") +

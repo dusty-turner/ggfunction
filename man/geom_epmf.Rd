@@ -20,8 +20,7 @@ geom_epmf(
   inherit.aes = TRUE,
   point_size = 2.5,
   stick_linewidth = 0.25,
-  stick_linetype = "dashed",
-  color = "black"
+  stick_linetype = "dashed"
 )
 
 StatEPMF
@@ -118,8 +117,6 @@ to \code{2.5}.}
 
 \item{stick_linetype}{Linetype of the vertical segments. Defaults to
 \code{"dashed"}.}
-
-\item{color}{Color for the points and segments. Defaults to \code{"black"}.}
 }
 \value{
 A ggplot2 layer.
