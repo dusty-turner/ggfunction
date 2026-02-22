@@ -462,6 +462,7 @@ ggplot(df_two, aes(x = x, colour = group)) +
 **Informal normality test.** Because the KS confidence band covers the true quantile function $Q(p)$ with probability $\ge 1 - \alpha$ regardless of the null, overlaying a parametric $Q_0(p)$ turns the plot into a visual goodness-of-fit test: if $Q_0$ lies entirely within the band the data are consistent with the hypothesized model; if it exits the band there is evidence against it. The comparison below fits a normal distribution by maximum likelihood (sample mean and SD) to two samples of size $n = 100$---one actually normal, one exponential---and overlays the fitted $Q_0$ as a smooth line.
 
 ```{r eqf-gof}
+library(patchwork)
 set.seed(3)
 
 normal_qf <- function(p, x) qnorm(p, mean = mean(x), sd = sd(x))
