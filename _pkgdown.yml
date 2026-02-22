@@ -8,6 +8,33 @@ template:
   bootstrap: 5
   mathjax: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
 
+navbar:
+  components:
+    articles:
+      text: Articles
+      menu:
+        - text: Getting Started with ggfunction
+          href: articles/getting-started.html
+        - text: Gallery of Visualizations
+          href: articles/gallery.html
+        - text: Learning Statistics with ggfunction
+          href: articles/learning-statistics.html
+        - text: "---"
+        - text: Function Reference
+          href: articles/ggfunction.html
+
+articles:
+  - title: "Get Started"
+    navbar: ~
+    contents:
+      - ggfunction
+  - title: "Guides"
+    navbar: ~
+    contents:
+      - getting-started
+      - gallery
+      - learning-statistics
+
 # Reference section for function documentation
 reference:
   - title: "Dimensional Taxonomy"
@@ -27,3 +54,6 @@ reference:
       - geom_survival
       - geom_survival_discrete
       - geom_hf
+      - geom_ecdf
+      - geom_eqf
+      - geom_epmf
