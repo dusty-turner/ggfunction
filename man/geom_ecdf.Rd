@@ -27,7 +27,7 @@ geom_ecdf(
   show_vert = NULL,
   conf_int = TRUE,
   level = 0.95,
-  conf_alpha = 0.3
+  conf_alpha = 0.4
 )
 
 StatECDF
@@ -138,7 +138,7 @@ confidence band around the ECDF.}
 \item{level}{Confidence level for the band. Defaults to \code{0.95}.}
 
 \item{conf_alpha}{Alpha (transparency) of the confidence ribbon. Defaults
-to \code{0.3}.}
+to \code{0.4}.}
 }
 \value{
 A ggplot2 layer, or a list of two layers when \code{conf_int = TRUE}.

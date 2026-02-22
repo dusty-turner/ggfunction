@@ -65,7 +65,7 @@ NULL
 #'   confidence band around the ECDF.
 #' @param level Confidence level for the band. Defaults to `0.95`.
 #' @param conf_alpha Alpha (transparency) of the confidence ribbon. Defaults
-#'   to `0.3`.
+#'   to `0.4`.
 #'
 #' @return A ggplot2 layer, or a list of two layers when `conf_int = TRUE`.
 #'
@@ -103,7 +103,7 @@ geom_ecdf <- function(
     show_vert  = NULL,
     conf_int   = TRUE,
     level      = 0.95,
-    conf_alpha = 0.3
+    conf_alpha = 0.4
 ) {
   default_mapping <- aes(y = after_stat(y))
   if (is.null(mapping)) {
@@ -237,7 +237,7 @@ geom_eqf <- function(
     show_vert  = NULL,
     conf_int   = TRUE,
     level      = 0.95,
-    conf_alpha = 0.3
+    conf_alpha = 0.4
 ) {
   default_mapping <- aes(y = after_stat(y))
   if (is.null(mapping)) {

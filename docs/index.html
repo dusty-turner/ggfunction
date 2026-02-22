@@ -661,7 +661,8 @@ plot of chunk eqf-grouped
 </div>
 <p><strong>Informal normality test.</strong> Because the KS confidence band covers the true quantile function <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Q</mi><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q(p)</annotation></semantics></math> with probability <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>≥</mo><mn>1</mn><mo>−</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">\ge 1 - \alpha</annotation></semantics></math> regardless of the null, overlaying a parametric <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mn>0</mn></msub><mo stretchy="false" form="prefix">(</mo><mi>p</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q_0(p)</annotation></semantics></math> turns the plot into a visual goodness-of-fit test: if <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Q</mi><mn>0</mn></msub><annotation encoding="application/x-tex">Q_0</annotation></semantics></math> lies entirely within the band the data are consistent with the hypothesized model; if it exits the band there is evidence against it. The comparison below fits a normal distribution by maximum likelihood (sample mean and SD) to two samples of size <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><mn>100</mn></mrow><annotation encoding="application/x-tex">n = 100</annotation></semantics></math>—one actually normal, one exponential—and overlays the fitted <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Q</mi><mn>0</mn></msub><annotation encoding="application/x-tex">Q_0</annotation></semantics></math> as a smooth line.</p>
 <div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://patchwork.data-imaginist.com">patchwork</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">normal_qf</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span>, <span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">qnorm</a></span><span class="op">(</span><span class="va">p</span>, mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>, sd <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/sd.html">sd</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -677,10 +678,12 @@ plot of chunk eqf-grouped
 <span>  <span class="fu"><a href="reference/geom_qf.html">geom_qf</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">normal_qf</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">df_exp</span><span class="op">$</span><span class="va">x</span><span class="op">)</span>, colour <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Exponential data"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">p_norm</span> <span class="op">|</span> <span class="va">p_exp</span></span>
-<span><span class="co">#&gt; Error: Can't find method for generic `|(e1, e2)`:</span></span>
-<span><span class="co">#&gt; - e1: &lt;ggplot2::ggplot&gt;</span></span>
-<span><span class="co">#&gt; - e2: &lt;ggplot2::ggplot&gt;</span></span></code></pre></div>
+<span><span class="va">p_norm</span> <span class="op">|</span> <span class="va">p_exp</span></span></code></pre></div>
+<div class="figure">
+<img src="reference/figures/readme-eqf-gof-1.png" alt="plot of chunk eqf-gof" width="60%"><p class="caption">
+plot of chunk eqf-gof
+</p>
+</div>
 <p>The fitted normal line threads through the center of the band for the normal sample; for the exponential sample it departs visibly at the tails, where the asymmetry of the exponential distribution is most pronounced. Note that estimating parameters from the data makes the band slightly conservative (analogous to the Lilliefors correction), so this is an informal rather than exact test.</p>
 </div>
 <div class="section level3">
