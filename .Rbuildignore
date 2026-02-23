@@ -20,3 +20,4 @@ dusty_files*
 ^README_files$
 ^README\.html$
 ^Rplots\.pdf$
+^data-raw$
