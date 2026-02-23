@@ -26,18 +26,20 @@ author:
     address: West Point, NY
     email: dusty.s.turner@gmail.com
     orcid: 0000-0000-0000-0000
-  - name: James Otto
-    affiliation: Alcon Inc.
-    address: Fort Worth, TX
-    email: james.otto@alcon.com
+  - name: David Kahle
+    affiliation: Baylor University
+    address: Waco, TX
+    email: david@kahle.io
+    orcid: 0000-0002-9999-1558
   - name: Rodney X. Sturdivant
     affiliation: Baylor University
     address: Waco, TX
     email: rodney_sturdivant@baylor.edu
-  - name: David Kahle
-    affiliation: Baylor University
-    address: Waco, TX
-    email: david_kahle@baylor.edu
+  - name: James Otto
+    affiliation: Alcon Inc.
+    address: Fort Worth, TX
+    email: james.otto@alcon.com
+    note: Early drafts of the (E)CDF stats and geoms.
 date: "2026-02-21"
 date_received: ~
 journal:
