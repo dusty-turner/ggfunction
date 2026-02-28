@@ -700,7 +700,7 @@ Several layers involve numerical integration or accumulation:
 
 The default resolution of $n = 101$ for one-dimensional functions and $n = 50$ for two-dimensional grids (yielding 2500 evaluation points) balances visual fidelity against computational cost. Users may increase $n$ for functions with fine-scale structure.
 
-# Composability and the grammar
+# Composability and the grammar and limitations
 
 Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the rest of the grammar. Layers can be overlaid, scaled, themed, annotated, and faceted exactly as one would with any other geom. The following example superimposes two normal densities with different means and spreads, demonstrating that function visualization and standard \CRANpkg{ggplot2} idioms are fully interoperable:
 
@@ -720,6 +720,10 @@ ggplot() +
 ```
 
 This composability is the primary advantage of embedding function visualization within the grammar of graphics, rather than providing standalone plotting functions.
+
+While \pkg{ggfunction} composes naturally with the grammar, it is worth noting what it does \emph{not} do: it does not extend the grammar of graphics itself. In Wilkinson's formulation and its \CRANpkg{ggplot2} implementation, aesthetics are visual properties of geometric objects---position, color, size, shape, and so on. A function such as $f(x)$ is not such a property; rather, it \emph{references} aesthetics, mapping one visual dimension to another. It is therefore unclear whether functions can serve as aesthetics in any principled sense, since they occupy a different conceptual role than the data-to-visual mappings the grammar was designed around.
+
+This distinction has practical consequences. \proglang{R} is a vectorized language, but not everything in \proglang{R} is a vector of elementary objects, and functions form the prime example. A function cannot be a column of a data frame, and it cannot be mapped within an \code{aes()} call. As a result, some grammar operations that users take for granted---faceting across levels of a variable, for instance---do not transfer directly to function visualization. \pkg{ggfunction} works within these constraints by accepting function objects as layer-level parameters rather than as mapped aesthetics, an approach that is plainly useful but inherently limited. This suggests that further research into the grammar of graphics, and correspondingly into the implementation of \CRANpkg{ggplot2} or an extension package, could enable richer treatment of functions as first-class objects in statistical visualization.
 
 # Related packages {#sec:related}
 
