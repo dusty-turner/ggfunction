@@ -7,16 +7,20 @@
 #' @inheritParams ggplot2::geom_function
 #' @param fun A function to compute the CDF (e.g. [pnorm]). The function must accept a numeric
 #'   vector as its first argument and return values between 0 and 1. Exactly one of `fun`,
-#'   `pdf_fun`, `survival_fun`, or `qf_fun` must be provided.
+#'   `pdf_fun`, `survival_fun`, `qf_fun`, or `hf_fun` must be provided.
 #' @param pdf_fun A PDF function (e.g. [dnorm]). When supplied, the CDF is derived
 #'   numerically via integration. Exactly one of `fun`, `pdf_fun`, `survival_fun`,
-#'   or `qf_fun` must be provided.
+#'   `qf_fun`, or `hf_fun` must be provided.
 #' @param survival_fun A survival function (e.g. `function(x) 1 - pnorm(x)`).
 #'   When supplied, the CDF is computed as \eqn{F(x) = 1 - S(x)}. Exactly one of
-#'   `fun`, `pdf_fun`, `survival_fun`, or `qf_fun` must be provided.
+#'   `fun`, `pdf_fun`, `survival_fun`, `qf_fun`, or `hf_fun` must be provided.
 #' @param qf_fun A quantile function (e.g. [qnorm]). When supplied, the CDF is
 #'   derived via interpolation on a dense grid. Exactly one of `fun`, `pdf_fun`,
-#'   `survival_fun`, or `qf_fun` must be provided.
+#'   `survival_fun`, `qf_fun`, or `hf_fun` must be provided.
+#' @param hf_fun A hazard function (e.g. a Weibull hazard). When supplied, the
+#'   CDF is derived via numerical integration of the cumulative hazard as
+#'   \eqn{F(x) = 1 - \exp(-H(x))}. Exactly one of `fun`, `pdf_fun`,
+#'   `survival_fun`, `qf_fun`, or `hf_fun` must be provided.
 #' @param n Number of points at which to evaluate `fun`.
 #' @param args A named list of additional arguments passed on to `fun`.
 #' @param xlim A numeric vector of length 2 specifying the x-range over which to evaluate the CDF.
@@ -56,6 +60,7 @@ geom_cdf <- function(
     pdf_fun = NULL,
     survival_fun = NULL,
     qf_fun = NULL,
+    hf_fun = NULL,
     xlim = NULL,
     n = 101,
     args = list(),
@@ -88,6 +93,7 @@ geom_cdf <- function(
       pdf_fun = pdf_fun,
       survival_fun = survival_fun,
       qf_fun = qf_fun,
+      hf_fun = hf_fun,
       n = n,
       xlim = xlim,
       args = args,
@@ -111,16 +117,17 @@ StatCDF <- ggproto("StatCDF", Stat,
 
   compute_group = function(data, scales, fun = NULL, pdf_fun = NULL,
                            survival_fun = NULL, qf_fun = NULL,
+                           hf_fun = NULL,
                            xlim = NULL, n = 101, args = NULL) {
 
     # Validate: exactly one source
     n_provided <- (!is.null(fun)) + (!is.null(pdf_fun)) +
-      (!is.null(survival_fun)) + (!is.null(qf_fun))
+      (!is.null(survival_fun)) + (!is.null(qf_fun)) + (!is.null(hf_fun))
     if (n_provided == 0L) {
-      cli::cli_abort("One of {.arg fun}, {.arg pdf_fun}, {.arg survival_fun}, or {.arg qf_fun} must be provided.")
+      cli::cli_abort("One of {.arg fun}, {.arg pdf_fun}, {.arg survival_fun}, {.arg qf_fun}, or {.arg hf_fun} must be provided.")
     }
     if (n_provided > 1L) {
-      cli::cli_abort("Supply only one of {.arg fun}, {.arg pdf_fun}, {.arg survival_fun}, or {.arg qf_fun}.")
+      cli::cli_abort("Supply only one of {.arg fun}, {.arg pdf_fun}, {.arg survival_fun}, {.arg qf_fun}, or {.arg hf_fun}.")
     }
 
     range <- if (is.null(scales$x)) {
@@ -138,6 +145,9 @@ StatCDF <- ggproto("StatCDF", Stat,
     } else if (!is.null(qf_fun)) {
       qf_injected <- function(p) rlang::inject(qf_fun(p, !!!args))
       fun_injected <- qf_to_cdf(qf_injected)
+    } else if (!is.null(hf_fun)) {
+      hf_injected <- function(x) rlang::inject(hf_fun(x, !!!args))
+      fun_injected <- hf_to_cdf(hf_injected)
     } else {
       fun_injected <- function(x) rlang::inject(fun(x, !!!args))
     }

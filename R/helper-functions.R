@@ -162,6 +162,42 @@ qf_to_cdf <- function(qf_fun, n = 10000) {
   stats::approxfun(x_grid, p_grid, rule = 2)
 }
 
+#' Convert a hazard function to a CDF function via numerical integration
+#'
+#' Computes the cumulative hazard H(x) = integral of h(t) from lower to x,
+#' then returns F(x) = 1 - exp(-H(x)).
+#' @noRd
+hf_to_cdf <- function(hf_fun, lower = -Inf) {
+  function(x) {
+    vapply(x, function(xi) {
+      res <- try(
+        stats::integrate(hf_fun, lower = lower, upper = xi, stop.on.error = FALSE),
+        silent = TRUE
+      )
+      if (inherits(res, "try-error")) NA_real_ else 1 - exp(-res$value)
+    }, numeric(1))
+  }
+}
+
+#' Convert a hazard function to a PDF function
+#'
+#' Uses the relationship f(x) = h(x) * exp(-H(x)) where H(x) is the
+#' cumulative hazard. More accurate than hf_to_cdf + cdf_to_pdf since
+#' it avoids nested numerical differentiation.
+#' @noRd
+hf_to_pdf <- function(hf_fun, lower = -Inf) {
+  function(x) {
+    vapply(x, function(xi) {
+      res <- try(
+        stats::integrate(hf_fun, lower = lower, upper = xi, stop.on.error = FALSE),
+        silent = TRUE
+      )
+      if (inherits(res, "try-error")) return(NA_real_)
+      hf_fun(xi) * exp(-res$value)
+    }, numeric(1))
+  }
+}
+
 #' Resolve open_fill for discrete step-function geoms
 #'
 #' Returns the fill color for open (hollow) circles. Checks in order:
@@ -197,4 +233,4 @@ inject_open_fill <- function(data, theme) {
 
 #' @noRd
 utils::globalVariables(c("x", "y", "z", "p", "level", "GeomLine", "pdf_fun", "cdf_fun",
-                         "pmf_fun", "survival_fun", "qf_fun", "ymin", "ymax"))
+                         "pmf_fun", "survival_fun", "qf_fun", "hf_fun", "ymin", "ymax"))

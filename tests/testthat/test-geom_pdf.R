@@ -118,7 +118,7 @@ test_that("StatPDF errors when both fun and cdf_fun provided", {
       n = 101,
       args = list()
     ),
-    "fun.*cdf_fun.*survival_fun.*qf_fun"
+    "fun.*cdf_fun.*survival_fun.*qf_fun.*hf_fun"
   )
 })
 
@@ -132,7 +132,7 @@ test_that("StatPDF errors when neither fun nor cdf_fun provided", {
       n = 101,
       args = list()
     ),
-    "fun.*cdf_fun.*survival_fun.*qf_fun"
+    "fun.*cdf_fun.*survival_fun.*qf_fun.*hf_fun"
   )
 })
 
@@ -184,6 +184,31 @@ test_that("geom_pdf with qf_fun builds without error", {
   expect_silent(ggplot_build(p))
 })
 
+# --- Alternate input: hf_fun ---
+
+test_that("StatPDF computes PDF from hf_fun (exponential hazard)", {
+  h_exp <- function(x) ifelse(x >= 0, 1, 0)  # rate = 1
+  scales <- list(x = NULL)
+  result <- StatPDF$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    hf_fun = h_exp,
+    xlim = c(0, 5),
+    n = 101,
+    args = list()
+  )
+  expect_equal(nrow(result), 101)
+  expected <- dexp(result$x)
+  expect_equal(result$y, expected, tolerance = 1e-2)
+})
+
+test_that("geom_pdf with hf_fun builds without error", {
+  h_exp <- function(x) ifelse(x >= 0, 1, 0)
+  p <- ggplot() + geom_pdf(hf_fun = h_exp, xlim = c(0, 5))
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
 test_that("StatPDF errors when multiple sources provided", {
   scales <- list(x = NULL)
   expect_error(
@@ -196,6 +221,6 @@ test_that("StatPDF errors when multiple sources provided", {
       n = 101,
       args = list()
     ),
-    "fun.*cdf_fun.*survival_fun.*qf_fun"
+    "fun.*cdf_fun.*survival_fun.*qf_fun.*hf_fun"
   )
 })

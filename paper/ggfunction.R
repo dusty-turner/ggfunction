@@ -117,6 +117,34 @@ ggplot() +
     type = "stream")
 
 
+## ----cross-conversion, echo=FALSE---------------------------------------------
+#| tab.cap: "Cross-conversion routes for distribution geoms. Each geom accepts its native function type via \\texttt{fun} and one or more alternate types via the listed parameters."
+cc <- data.frame(
+  Geom = c(
+    "\\texttt{geom\\_pdf()}", "\\texttt{geom\\_cdf()}",
+    "\\texttt{geom\\_survival()}", "\\texttt{geom\\_qf()}",
+    "\\texttt{geom\\_hf()}", "\\texttt{geom\\_chf()}",
+    "\\texttt{geom\\_cdf\\_discrete()}",
+    "\\texttt{geom\\_survival\\_discrete()}", "\\texttt{geom\\_qf\\_discrete()}"
+  ),
+  Native = c("PDF", "CDF", "Survival", "Quantile", "Hazard",
+             "Cumulative hazard", "CDF", "Survival", "Quantile"),
+  Alternates = c(
+    "\\texttt{cdf\\_fun}, \\texttt{survival\\_fun}, \\texttt{qf\\_fun}, \\texttt{hf\\_fun}",
+    "\\texttt{pdf\\_fun}, \\texttt{survival\\_fun}, \\texttt{qf\\_fun}, \\texttt{hf\\_fun}",
+    "\\texttt{cdf\\_fun}, \\texttt{pdf\\_fun}, \\texttt{qf\\_fun}",
+    "\\texttt{cdf\\_fun}, \\texttt{pdf\\_fun}, \\texttt{survival\\_fun}",
+    "\\texttt{pdf\\_fun}, \\texttt{cdf\\_fun}, \\texttt{survival\\_fun}, \\texttt{qf\\_fun}",
+    "\\texttt{hf\\_fun}, \\texttt{cdf\\_fun}, \\texttt{survival\\_fun}, \\texttt{pdf\\_fun}, \\texttt{qf\\_fun}",
+    "\\texttt{pmf\\_fun}, \\texttt{survival\\_fun}",
+    "\\texttt{cdf\\_fun}, \\texttt{pmf\\_fun}",
+    "\\texttt{pmf\\_fun}, \\texttt{cdf\\_fun}, \\texttt{survival\\_fun}"
+  ),
+  check.names = FALSE
+)
+knitr::kable(cc, escape = FALSE, col.names = c("Geom", "Native (\\texttt{fun})", "Alternate inputs"))
+
+
 ## ----pdf-shading-modes, echo=TRUE, fig.width=10, fig.height=4-----------------
 #| fig.cap: "Three shading modes for \\texttt{geom\\_pdf()}: lower tail ($p = 0.975$, left), central 95\\% interval (center), and two-tailed rejection region at $\\alpha = 0.05$ (right)."
 p1 <- ggplot() +
@@ -243,6 +271,23 @@ p_incr <- ggplot() +
   ) + ggtitle("Increasing (Normal)")
 
 p_decr | p_flat | p_incr
+
+
+## ----chf-example, echo=TRUE, fig.width=10, fig.height=4-----------------------
+#| fig.cap: "Cumulative hazard functions for three distributions: $\\mathrm{Exponential}(0.5)$ (left, linear), $\\mathrm{Weibull}(2, 1)$ (center, convex), and $\\mathcal{N}(0,1)$ (right, eventually superlinear). For the exponential, $H(x) = 0.5x$ confirms the constant hazard rate."
+p1 <- ggplot() +
+  geom_chf(cdf_fun = pexp, xlim = c(0, 10), args = list(rate = 0.5)) +
+  ggtitle("Exponential(0.5)")
+
+p2 <- ggplot() +
+  geom_chf(cdf_fun = pweibull, xlim = c(0, 3), args = list(shape = 2, scale = 1)) +
+  ggtitle("Weibull(2, 1)")
+
+p3 <- ggplot() +
+  geom_chf(cdf_fun = pnorm, xlim = c(-3, 3)) +
+  ggtitle("Normal(0, 1)")
+
+p1 | p2 | p3
 
 
 ## ----ecdf-basic, echo=TRUE----------------------------------------------------

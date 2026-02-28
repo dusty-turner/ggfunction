@@ -180,6 +180,29 @@ test_that("qf_to_cdf returns monotonic values in [0,1]", {
   expect_true(all(diff(vals) >= 0))
 })
 
+test_that("hf_to_cdf converts exponential hazard to pexp", {
+  h_exp <- function(x) ifelse(x >= 0, 1, 0)  # rate = 1
+  cdf_derived <- hf_to_cdf(h_exp)
+  x <- c(0.5, 1, 2, 5)
+  expect_equal(cdf_derived(x), pexp(x), tolerance = 1e-3)
+})
+
+test_that("hf_to_cdf converts Weibull hazard to pweibull", {
+  h_weibull <- function(x) ifelse(x > 0, 2 * x, 0)  # shape=2, scale=1
+  cdf_derived <- hf_to_cdf(h_weibull)
+  x <- c(0.5, 1, 2, 3)
+  expect_equal(cdf_derived(x), pweibull(x, shape = 2, scale = 1), tolerance = 1e-3)
+})
+
+test_that("hf_to_cdf returns monotonic values in [0,1]", {
+  h_exp <- function(x) ifelse(x >= 0, 0.5, 0)
+  cdf_derived <- hf_to_cdf(h_exp)
+  x <- seq(0, 10, length.out = 100)
+  vals <- cdf_derived(x)
+  expect_true(all(vals >= 0 & vals <= 1))
+  expect_true(all(diff(vals) >= 0))
+})
+
 test_that("times is multiplication", {
   expect_equal(times(3, 4), 12)
 })

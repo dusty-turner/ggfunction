@@ -9,17 +9,23 @@
 #' @importFrom cli cli_alert
 #' @param fun A function to compute the density (e.g. [dnorm]). The function must accept a
 #'   numeric vector as its first argument and return density values that integrate (approximately)
-#'   to 1. Exactly one of `fun`, `cdf_fun`, `survival_fun`, or `qf_fun` must be provided.
+#'   to 1. Exactly one of `fun`, `cdf_fun`, `survival_fun`, `qf_fun`, or `hf_fun`
+#'   must be provided.
 #' @param cdf_fun A CDF function (e.g. [pnorm]). When supplied, the PDF is derived
 #'   numerically via central finite differences. Exactly one of `fun`, `cdf_fun`,
-#'   `survival_fun`, or `qf_fun` must be provided.
+#'   `survival_fun`, `qf_fun`, or `hf_fun` must be provided.
 #' @param survival_fun A survival function (e.g. `function(x) 1 - pnorm(x)`).
 #'   When supplied, the CDF is computed as \eqn{F(x) = 1 - S(x)} and then
 #'   differentiated to obtain the PDF. Exactly one of `fun`, `cdf_fun`,
-#'   `survival_fun`, or `qf_fun` must be provided.
+#'   `survival_fun`, `qf_fun`, or `hf_fun` must be provided.
 #' @param qf_fun A quantile function (e.g. [qnorm]). When supplied, the CDF is
 #'   derived via interpolation and then differentiated to obtain the PDF. Exactly
-#'   one of `fun`, `cdf_fun`, `survival_fun`, or `qf_fun` must be provided.
+#'   one of `fun`, `cdf_fun`, `survival_fun`, `qf_fun`, or `hf_fun` must be
+#'   provided.
+#' @param hf_fun A hazard function (e.g. a Weibull hazard). When supplied, the
+#'   CDF is derived via numerical integration of the cumulative hazard and then
+#'   differentiated to obtain the PDF. Exactly one of `fun`, `cdf_fun`,
+#'   `survival_fun`, `qf_fun`, or `hf_fun` must be provided.
 #' @param n (defaults to 101)Number of points at which to evaluate `fun`.
 #' @param args A named list of additional arguments to pass to `fun`.
 #' @param xlim A numeric vector of length 2 giving the x-range over which to evaluate the PDF.
@@ -75,6 +81,7 @@ geom_pdf <- function(
     cdf_fun = NULL,
     survival_fun = NULL,
     qf_fun = NULL,
+    hf_fun = NULL,
     xlim = NULL,
     n = 101,
     args = list(),
@@ -122,6 +129,7 @@ geom_pdf <- function(
         cdf_fun = cdf_fun,
         survival_fun = survival_fun,
         qf_fun = qf_fun,
+        hf_fun = hf_fun,
         n = n,
         xlim = xlim,
         args = args,
@@ -149,16 +157,17 @@ StatPDF <- ggproto("StatPDF", Stat,
 
   compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
                            survival_fun = NULL, qf_fun = NULL,
+                           hf_fun = NULL,
                            xlim = NULL, n = 101, args = NULL) {
 
     # Validate: exactly one source
     n_provided <- (!is.null(fun)) + (!is.null(cdf_fun)) +
-      (!is.null(survival_fun)) + (!is.null(qf_fun))
+      (!is.null(survival_fun)) + (!is.null(qf_fun)) + (!is.null(hf_fun))
     if (n_provided == 0L) {
-      cli::cli_abort("One of {.arg fun}, {.arg cdf_fun}, {.arg survival_fun}, or {.arg qf_fun} must be provided.")
+      cli::cli_abort("One of {.arg fun}, {.arg cdf_fun}, {.arg survival_fun}, {.arg qf_fun}, or {.arg hf_fun} must be provided.")
     }
     if (n_provided > 1L) {
-      cli::cli_abort("Supply only one of {.arg fun}, {.arg cdf_fun}, {.arg survival_fun}, or {.arg qf_fun}.")
+      cli::cli_abort("Supply only one of {.arg fun}, {.arg cdf_fun}, {.arg survival_fun}, {.arg qf_fun}, or {.arg hf_fun}.")
     }
 
     range <- if (is.null(scales$x)) {
@@ -178,12 +187,16 @@ StatPDF <- ggproto("StatPDF", Stat,
       qf_injected <- function(p) rlang::inject(qf_fun(p, !!!args))
       cdf_derived <- qf_to_cdf(qf_injected)
       fun_injected <- cdf_to_pdf(cdf_derived)
+    } else if (!is.null(hf_fun)) {
+      hf_injected <- function(x) rlang::inject(hf_fun(x, !!!args))
+      fun_injected <- hf_to_pdf(hf_injected)
     } else {
       fun_injected <- function(x) rlang::inject(fun(x, !!!args))
     }
 
     # Check that the injected function integrates to 1 over the specified range.
-    invisible(check_pdf_normalization(fun_injected, lower = -Inf, upper = range[2], tol = 1e-2))
+    check_lower <- if (is.finite(range[1])) range[1] else -Inf
+    invisible(check_pdf_normalization(fun_injected, lower = check_lower, upper = range[2], tol = 1e-2))
 
     xseq <- seq(range[1], range[2], length.out = n)
     y_out <- fun_injected(xseq)

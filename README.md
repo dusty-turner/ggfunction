@@ -40,6 +40,7 @@ The package is organized around two families of geoms:
 |  | `geom_qf()` |  | Quantile function |
 |  | `geom_qf_discrete()` |  | Discrete quantile function (step function) |
 |  | `geom_hf()` |  | Hazard function $h(x) = f(x)/S(x)$ |
+|  | `geom_chf()` |  | Cumulative hazard function $H(x) = \int_0^x h(t)\,dt$ |
 | **Data** | `geom_ecdf()` |  | Empirical CDF with KS confidence ribbon |
 |  | `geom_eqf()` |  | Empirical quantile function with confidence ribbon |
 |  | `geom_epmf()` |  | Empirical PMF (lollipop) |
@@ -209,7 +210,8 @@ functions associated with a distribution. Each accepts its native
 function type via `fun` (e.g. `dnorm` for `geom_pdf()`, `pnorm` for
 `geom_cdf()`), but most also accept alternate function types that are
 converted internally—for example, `geom_cdf(pdf_fun = dnorm)` derives
-the CDF by numerical integration. Distribution parameters are passed via
+the CDF by numerical integration, and `geom_pdf(hf_fun = h)` derives the
+density from a hazard function. Distribution parameters are passed via
 `args`.
 
 ### PDF: `geom_pdf()`
@@ -546,6 +548,25 @@ ggplot() +
 ```
 
 <img src="man/figures/readme-hazard-1.png" alt="" width="60%" />
+
+### Cumulative hazard function: `geom_chf()`
+
+`geom_chf()` plots the cumulative hazard function
+$H(x) = \int_0^x h(t)\,dt = -\log S(x)$, which accumulates the
+instantaneous hazard over time. It accepts a cumulative hazard function
+directly via `fun`, or derives $H$ from any other characterization:
+`hf_fun` (integrated numerically), `cdf_fun` ($H = -\log(1 - F)$),
+`survival_fun` ($H = -\log S$), `pdf_fun` (integrated to CDF then
+transformed), or `qf_fun` (interpolated to CDF then transformed). The
+exponential distribution’s cumulative hazard is linear, confirming its
+constant hazard rate.
+
+``` r
+ggplot() +
+  geom_chf(cdf_fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
+```
+
+<img src="man/figures/readme-chf-1.png" alt="" width="60%" />
 
 ## Data Functions
 
