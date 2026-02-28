@@ -282,7 +282,33 @@ Users whose primary interest is vector fields will find that \pkg{ggvfields} pro
 
 Statistics education depends heavily on the visual language of probability distributions. Instructors shade tail areas to illustrate $p$-values, draw CDFs to connect probabilities with quantiles, and mark central regions to delineate confidence intervals. \pkg{ggfunction} provides a family of nine geoms that map directly onto the standard functions associated with a probability distribution, each with built-in shading support. Throughout, the user supplies an R function (e.g., `dnorm`, `pnorm`, `qnorm`) and a range; \pkg{ggfunction} handles evaluation, shading, and validation automatically.
 
-Each geom accepts its native function type through the `fun` parameter (e.g., a PDF for `geom_pdf()`, a CDF for `geom_cdf()`), but most also accept alternate function types that are converted internally. For example, `geom_cdf()` accepts `pdf_fun`, `survival_fun`, or `qf_fun` arguments; `geom_pdf()` accepts `cdf_fun`, `survival_fun`, or `qf_fun`; and `geom_qf()` accepts `cdf_fun`, `pdf_fun`, or `survival_fun`. In each case the missing characterization is derived numerically: PDFs are obtained by differentiation, CDFs by integration or interpolation, survival functions by the identity $S = 1 - F$, and quantile functions by root-finding. This cross-conversion feature lets users work with whichever characterization of a distribution is most natural--the PDF, CDF, survival function, or quantile function--regardless of which geom they wish to plot. Exactly one function source must be provided; supplying more than one is an error. The `cross-conversion` vignette documents each conversion path, the numerical method used, and the expected accuracy.
+Each geom accepts its native function type through the `fun` parameter (e.g., a PDF for `geom_pdf()`, a CDF for `geom_cdf()`), but most also accept alternate function types that are converted internally. In each case the missing characterization is derived numerically: PDFs are obtained by differentiation, CDFs by integration or interpolation, survival functions by the identity $S = 1 - F$, and quantile functions by root-finding. This cross-conversion feature lets users work with whichever characterization of a distribution is most natural--the PDF, CDF, survival function, or quantile function--regardless of which geom they wish to plot. Exactly one function source must be provided; supplying more than one is an error. Table \@ref(tab:cross-conversion) summarizes the available routes; the `cross-conversion` vignette documents the numerical methods and expected accuracy in detail.
+
+```{r cross-conversion, echo=FALSE}
+#| tab.cap: "Cross-conversion routes for distribution geoms. Each geom accepts its native function type via \\texttt{fun} and one or more alternate types via the listed parameters."
+cc <- data.frame(
+  Geom = c(
+    "\\texttt{geom\\_pdf()}", "\\texttt{geom\\_cdf()}",
+    "\\texttt{geom\\_survival()}", "\\texttt{geom\\_qf()}",
+    "\\texttt{geom\\_hf()}", "\\texttt{geom\\_cdf\\_discrete()}",
+    "\\texttt{geom\\_survival\\_discrete()}", "\\texttt{geom\\_qf\\_discrete()}"
+  ),
+  Native = c("PDF", "CDF", "Survival", "Quantile", "Hazard",
+             "CDF", "Survival", "Quantile"),
+  Alternates = c(
+    "\\texttt{cdf\\_fun}, \\texttt{survival\\_fun}, \\texttt{qf\\_fun}",
+    "\\texttt{pdf\\_fun}, \\texttt{survival\\_fun}, \\texttt{qf\\_fun}",
+    "\\texttt{cdf\\_fun}, \\texttt{pdf\\_fun}, \\texttt{qf\\_fun}",
+    "\\texttt{cdf\\_fun}, \\texttt{pdf\\_fun}, \\texttt{survival\\_fun}",
+    "\\texttt{pdf\\_fun}, \\texttt{cdf\\_fun}, \\texttt{survival\\_fun}, \\texttt{qf\\_fun}",
+    "\\texttt{pmf\\_fun}, \\texttt{survival\\_fun}",
+    "\\texttt{cdf\\_fun}, \\texttt{pmf\\_fun}",
+    "\\texttt{pmf\\_fun}, \\texttt{cdf\\_fun}, \\texttt{survival\\_fun}"
+  ),
+  check.names = FALSE
+)
+knitr::kable(cc, escape = FALSE, col.names = c("Geom", "Native (\\texttt{fun})", "Alternate inputs"))
+```
 
 ## Density functions: `geom_pdf()`
 
