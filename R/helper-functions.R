@@ -148,6 +148,20 @@ cdf_to_qf <- function(cdf_fun, search_lower = -10, search_upper = 10) {
   }
 }
 
+#' Convert a survival function to a CDF function via exact arithmetic
+#' @noRd
+survival_to_cdf <- function(survival_fun) {
+  function(x) 1 - survival_fun(x)
+}
+
+#' Convert a quantile function to a CDF function via interpolation
+#' @noRd
+qf_to_cdf <- function(qf_fun, n = 10000) {
+  p_grid <- seq(1 / (n + 1), n / (n + 1), length.out = n)
+  x_grid <- qf_fun(p_grid)
+  stats::approxfun(x_grid, p_grid, rule = 2)
+}
+
 #' @noRd
 utils::globalVariables(c("x", "y", "z", "p", "level", "GeomLine", "pdf_fun", "cdf_fun",
-                         "pmf_fun", "ymin", "ymax"))
+                         "pmf_fun", "survival_fun", "qf_fun", "ymin", "ymax"))

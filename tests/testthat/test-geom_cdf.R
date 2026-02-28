@@ -95,7 +95,7 @@ test_that("StatCDF errors when both fun and pdf_fun provided", {
       n = 101,
       args = list()
     ),
-    "fun.*pdf_fun"
+    "fun.*pdf_fun.*survival_fun.*qf_fun"
   )
 })
 
@@ -109,6 +109,70 @@ test_that("StatCDF errors when neither fun nor pdf_fun provided", {
       n = 101,
       args = list()
     ),
-    "fun.*pdf_fun"
+    "fun.*pdf_fun.*survival_fun.*qf_fun"
+  )
+})
+
+# --- Alternate input: survival_fun ---
+
+test_that("StatCDF computes CDF from survival_fun", {
+  s_norm <- function(x) 1 - pnorm(x)
+  scales <- list(x = NULL)
+  result <- StatCDF$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    survival_fun = s_norm,
+    xlim = c(-3, 3),
+    n = 101,
+    args = list()
+  )
+  expect_equal(nrow(result), 101)
+  expected <- pnorm(result$x)
+  expect_equal(result$y, expected, tolerance = 1e-10)
+})
+
+test_that("geom_cdf with survival_fun builds without error", {
+  s_norm <- function(x) 1 - pnorm(x)
+  p <- ggplot() + geom_cdf(survival_fun = s_norm, xlim = c(-3, 3))
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+# --- Alternate input: qf_fun ---
+
+test_that("StatCDF computes CDF from qf_fun", {
+  scales <- list(x = NULL)
+  result <- StatCDF$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    qf_fun = qnorm,
+    xlim = c(-3, 3),
+    n = 101,
+    args = list()
+  )
+  expect_equal(nrow(result), 101)
+  expected <- pnorm(result$x)
+  expect_equal(result$y, expected, tolerance = 1e-3)
+})
+
+test_that("geom_cdf with qf_fun builds without error", {
+  p <- ggplot() + geom_cdf(qf_fun = qnorm, xlim = c(-3, 3))
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("StatCDF errors when multiple sources provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatCDF$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      fun = pnorm,
+      survival_fun = function(x) 1 - pnorm(x),
+      xlim = c(-3, 3),
+      n = 101,
+      args = list()
+    ),
+    "fun.*pdf_fun.*survival_fun.*qf_fun"
   )
 })

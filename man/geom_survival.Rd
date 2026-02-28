@@ -24,6 +24,7 @@ geom_survival(
   fun = NULL,
   cdf_fun = NULL,
   pdf_fun = NULL,
+  qf_fun = NULL,
   xlim = NULL,
   n = 101,
   args = list(),
@@ -85,16 +86,20 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 
 \item{fun}{A survival function \eqn{S(x)} returning values between 0 and 1
 (e.g. \code{function(x) 1 - pnorm(x)}). Evaluated directly. Exactly one of
-\code{fun}, \code{cdf_fun}, or \code{pdf_fun} must be provided.}
+\code{fun}, \code{cdf_fun}, \code{pdf_fun}, or \code{qf_fun} must be provided.}
 
 \item{cdf_fun}{A CDF function (e.g. \link{pnorm}). The survival function is
-computed as \code{1 - cdf_fun(x)}. Exactly one of \code{fun}, \code{cdf_fun}, or
-\code{pdf_fun} must be provided.}
+computed as \code{1 - cdf_fun(x)}. Exactly one of \code{fun}, \code{cdf_fun}, \code{pdf_fun},
+or \code{qf_fun} must be provided.}
 
 \item{pdf_fun}{A PDF function (e.g. \link{dnorm}). The CDF is derived by
 numerical integration and the survival function is computed as
-\code{1 - F(x)}. Exactly one of \code{fun}, \code{cdf_fun}, or \code{pdf_fun} must be
-provided.}
+\code{1 - F(x)}. Exactly one of \code{fun}, \code{cdf_fun}, \code{pdf_fun}, or \code{qf_fun}
+must be provided.}
+
+\item{qf_fun}{A quantile function (e.g. \link{qnorm}). The CDF is derived via
+interpolation and the survival function is computed as \code{1 - F(x)}.
+Exactly one of \code{fun}, \code{cdf_fun}, \code{pdf_fun}, or \code{qf_fun} must be provided.}
 
 \item{xlim}{A numeric vector of length 2 giving the x-range.}
 
@@ -113,10 +118,12 @@ A ggplot2 layer.
 By default only the line is drawn (no fill).
 }
 \details{
-Supply exactly one of \code{fun} (a survival function), \code{cdf_fun} (a CDF), or
-\code{pdf_fun} (a PDF). When \code{cdf_fun} is supplied, \eqn{S(x) = 1 - F(x)}.
-When \code{pdf_fun} is supplied, the CDF is first derived by numerical
-integration and then \eqn{S(x) = 1 - F(x)}.
+Supply exactly one of \code{fun} (a survival function), \code{cdf_fun} (a CDF),
+\code{pdf_fun} (a PDF), or \code{qf_fun} (a quantile function). When \code{cdf_fun} is
+supplied, \eqn{S(x) = 1 - F(x)}. When \code{pdf_fun} is supplied, the CDF is
+first derived by numerical integration and then \eqn{S(x) = 1 - F(x)}.
+When \code{qf_fun} is supplied, the CDF is derived via interpolation and then
+\eqn{S(x) = 1 - F(x)}.
 }
 \examples{
   # Direct survival function

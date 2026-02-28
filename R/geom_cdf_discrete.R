@@ -4,17 +4,21 @@
 #' function with horizontal segments, dashed vertical jumps, open circles at
 #' the lower limit of each jump, and closed circles at the upper limit.
 #'
-#' Supply **either** `pmf_fun` (a PMF such as [dbinom], from which the CDF is
-#' computed via cumulative summation) **or** `fun` (a CDF such as [pbinom],
-#' evaluated directly on the integer support).
+#' Supply exactly one of `fun` (a CDF such as [pbinom], evaluated directly on
+#' the integer support), `pmf_fun` (a PMF such as [dbinom], from which the CDF
+#' is computed via cumulative summation), or `survival_fun` (a discrete
+#' survival function, from which the CDF is computed as \eqn{F(x) = 1 - S(x)}).
 #'
 #' @inheritParams ggplot2::geom_path
 #' @param fun A discrete CDF function (e.g. [pbinom]). Evaluated directly on
 #'   the integer support derived from `xlim` or `support`. Exactly one of
-#'   `fun` or `pmf_fun` must be provided.
+#'   `fun`, `pmf_fun`, or `survival_fun` must be provided.
 #' @param pmf_fun A PMF function (e.g. [dbinom]). The CDF is computed
-#'   internally via cumulative summation. Exactly one of `fun` or `pmf_fun`
-#'   must be provided.
+#'   internally via cumulative summation. Exactly one of `fun`, `pmf_fun`,
+#'   or `survival_fun` must be provided.
+#' @param survival_fun A discrete survival function. The CDF is computed as
+#'   \eqn{F(x) = 1 - S(x)} on the integer support. Exactly one of `fun`,
+#'   `pmf_fun`, or `survival_fun` must be provided.
 #' @param args A named list of additional arguments to pass to `fun` or
 #'   `pmf_fun`.
 #' @param xlim A numeric vector of length 2 specifying the range of integer
@@ -61,6 +65,7 @@ geom_cdf_discrete <- function(
     inherit.aes = FALSE,
     fun = NULL,
     pmf_fun = NULL,
+    survival_fun = NULL,
     xlim = NULL,
     support = NULL,
     args = list(),
@@ -90,6 +95,7 @@ geom_cdf_discrete <- function(
     params = list(
       fun = fun,
       pmf_fun = pmf_fun,
+      survival_fun = survival_fun,
       args = args,
       xlim = xlim,
       support = support,
@@ -109,7 +115,17 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
   compute_group = function(data, scales, fun = NULL, pmf_fun = NULL,
+                           survival_fun = NULL,
                            xlim = NULL, support = NULL, args = NULL) {
+
+    # Validate: exactly one source
+    n_provided <- (!is.null(fun)) + (!is.null(pmf_fun)) + (!is.null(survival_fun))
+    if (n_provided == 0L) {
+      cli::cli_abort("One of {.arg fun}, {.arg pmf_fun}, or {.arg survival_fun} must be provided.")
+    }
+    if (n_provided > 1L) {
+      cli::cli_abort("Supply only one of {.arg fun}, {.arg pmf_fun}, or {.arg survival_fun}.")
+    }
 
     if (!is.null(support)) {
       x_vals <- sort(support)
@@ -133,7 +149,12 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
       return(data.frame(x = x_vals, y = cdf_vals))
     }
 
-    cli::cli_abort("One of {.arg fun} or {.arg pmf_fun} must be provided.")
+    if (!is.null(survival_fun)) {
+      surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
+      surv_vals <- surv_injected(x_vals)
+      cdf_vals <- 1 - surv_vals
+      return(data.frame(x = x_vals, y = cdf_vals))
+    }
   }
 )
 

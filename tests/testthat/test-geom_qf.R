@@ -103,7 +103,7 @@ test_that("StatQF errors when multiple inputs provided", {
       n = 51,
       args = list()
     ),
-    "fun.*cdf_fun.*pdf_fun"
+    "fun.*cdf_fun.*pdf_fun.*survival_fun"
   )
 })
 
@@ -116,6 +116,45 @@ test_that("StatQF errors when no input provided", {
       n = 51,
       args = list()
     ),
-    "fun.*cdf_fun.*pdf_fun"
+    "fun.*cdf_fun.*pdf_fun.*survival_fun"
+  )
+})
+
+# --- Alternate input: survival_fun ---
+
+test_that("StatQF computes QF from survival_fun", {
+  s_norm <- function(x) 1 - pnorm(x)
+  scales <- list(x = NULL)
+  result <- StatQF$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    survival_fun = s_norm,
+    n = 51,
+    args = list()
+  )
+  expect_equal(nrow(result), 51)
+  expected <- qnorm(result$p)
+  expect_equal(result$q, expected, tolerance = 1e-3)
+})
+
+test_that("geom_qf with survival_fun builds without error", {
+  s_norm <- function(x) 1 - pnorm(x)
+  p <- ggplot() + geom_qf(survival_fun = s_norm)
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("StatQF errors when multiple inputs including survival_fun provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatQF$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      fun = qnorm,
+      survival_fun = function(x) 1 - pnorm(x),
+      n = 51,
+      args = list()
+    ),
+    "fun.*cdf_fun.*pdf_fun.*survival_fun"
   )
 })

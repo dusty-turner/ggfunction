@@ -107,7 +107,7 @@ test_that("StatQFDiscrete errors when multiple inputs provided", {
       xlim = c(0, 10),
       args = list(size = 10, prob = 0.5)
     ),
-    "fun.*pmf_fun.*cdf_fun"
+    "fun.*pmf_fun.*cdf_fun.*survival_fun"
   )
 })
 
@@ -120,6 +120,50 @@ test_that("StatQFDiscrete errors when no input provided", {
       xlim = c(0, 10),
       args = list(size = 10, prob = 0.5)
     ),
-    "fun.*pmf_fun.*cdf_fun"
+    "fun.*pmf_fun.*cdf_fun.*survival_fun"
+  )
+})
+
+# --- Alternate input: survival_fun ---
+
+test_that("StatQFDiscrete computes QF from survival_fun", {
+  s_binom <- function(x) 1 - pbinom(x, size = 10, prob = 0.5)
+  scales <- list(x = NULL)
+  result <- StatQFDiscrete$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    survival_fun = s_binom,
+    xlim = c(0, 10),
+    args = list()
+  )
+  expect_equal(nrow(result), 11)
+  # y values should be the support: 0 through 10
+  expect_equal(result$y, 0:10)
+  # x values should be CDF values
+  expected_cdf <- pbinom(0:10, size = 10, prob = 0.5)
+  expect_equal(result$x, expected_cdf, tolerance = 1e-10)
+})
+
+test_that("geom_qf_discrete with survival_fun builds without error", {
+  s_binom <- function(x, size, prob) 1 - pbinom(x, size = size, prob = prob)
+  p <- ggplot() + geom_qf_discrete(
+    survival_fun = s_binom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+  )
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("StatQFDiscrete errors when multiple inputs including survival_fun provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatQFDiscrete$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      pmf_fun = dbinom,
+      survival_fun = function(x) 1 - pbinom(x, size = 10, prob = 0.5),
+      xlim = c(0, 10),
+      args = list(size = 10, prob = 0.5)
+    ),
+    "fun.*pmf_fun.*cdf_fun.*survival_fun"
   )
 })

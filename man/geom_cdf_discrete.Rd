@@ -23,6 +23,7 @@ geom_cdf_discrete(
   inherit.aes = FALSE,
   fun = NULL,
   pmf_fun = NULL,
+  survival_fun = NULL,
   xlim = NULL,
   support = NULL,
   args = list(),
@@ -97,11 +98,15 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 
 \item{fun}{A discrete CDF function (e.g. \link{pbinom}). Evaluated directly on
 the integer support derived from \code{xlim} or \code{support}. Exactly one of
-\code{fun} or \code{pmf_fun} must be provided.}
+\code{fun}, \code{pmf_fun}, or \code{survival_fun} must be provided.}
 
 \item{pmf_fun}{A PMF function (e.g. \link{dbinom}). The CDF is computed
-internally via cumulative summation. Exactly one of \code{fun} or \code{pmf_fun}
-must be provided.}
+internally via cumulative summation. Exactly one of \code{fun}, \code{pmf_fun},
+or \code{survival_fun} must be provided.}
+
+\item{survival_fun}{A discrete survival function. The CDF is computed as
+\eqn{F(x) = 1 - S(x)} on the integer support. Exactly one of \code{fun},
+\code{pmf_fun}, or \code{survival_fun} must be provided.}
 
 \item{xlim}{A numeric vector of length 2 specifying the range of integer
 support values.}
@@ -135,9 +140,10 @@ function with horizontal segments, dashed vertical jumps, open circles at
 the lower limit of each jump, and closed circles at the upper limit.
 }
 \details{
-Supply \strong{either} \code{pmf_fun} (a PMF such as \link{dbinom}, from which the CDF is
-computed via cumulative summation) \strong{or} \code{fun} (a CDF such as \link{pbinom},
-evaluated directly on the integer support).
+Supply exactly one of \code{fun} (a CDF such as \link{pbinom}, evaluated directly on
+the integer support), \code{pmf_fun} (a PMF such as \link{dbinom}, from which the CDF
+is computed via cumulative summation), or \code{survival_fun} (a discrete
+survival function, from which the CDF is computed as \eqn{F(x) = 1 - S(x)}).
 }
 \examples{
   # via PMF

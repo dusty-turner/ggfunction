@@ -108,7 +108,7 @@ test_that("StatSurvival errors when multiple inputs provided", {
       n = 101,
       args = list()
     ),
-    "fun.*cdf_fun.*pdf_fun"
+    "fun.*cdf_fun.*pdf_fun.*qf_fun"
   )
 })
 
@@ -122,6 +122,45 @@ test_that("StatSurvival errors when no input provided", {
       n = 101,
       args = list()
     ),
-    "fun.*cdf_fun.*pdf_fun"
+    "fun.*cdf_fun.*pdf_fun.*qf_fun"
+  )
+})
+
+# --- Alternate input: qf_fun ---
+
+test_that("StatSurvival computes S(x) from qf_fun", {
+  scales <- list(x = NULL)
+  result <- StatSurvival$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    qf_fun = qnorm,
+    xlim = c(-3, 3),
+    n = 101,
+    args = list()
+  )
+  expect_equal(nrow(result), 101)
+  expected <- 1 - pnorm(result$x)
+  expect_equal(result$y, expected, tolerance = 1e-3)
+})
+
+test_that("geom_survival with qf_fun builds without error", {
+  p <- ggplot() + geom_survival(qf_fun = qnorm, xlim = c(-3, 3))
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("StatSurvival errors when multiple inputs including qf_fun provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatSurvival$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      cdf_fun = pnorm,
+      qf_fun = qnorm,
+      xlim = c(-3, 3),
+      n = 101,
+      args = list()
+    ),
+    "fun.*cdf_fun.*pdf_fun.*qf_fun"
   )
 })

@@ -40,14 +40,14 @@ alternate types via named parameters. The table below summarizes the routes:
 
 | Geom | Native (`fun`) | Alternates |
 |------|----------------|------------|
-| `geom_pdf()` | PDF | `cdf_fun` (differentiate) |
-| `geom_cdf()` | CDF | `pdf_fun` (integrate) |
-| `geom_survival()` | Survival | `cdf_fun` ($1 - F$), `pdf_fun` (integrate, then $1 - F$) |
-| `geom_qf()` | Quantile | `cdf_fun` (root-find), `pdf_fun` (integrate, then root-find) |
-| `geom_hf()` | Hazard | `pdf_fun` + `cdf_fun` (ratio), or just one (derive the other) |
-| `geom_cdf_discrete()` | CDF | `pmf_fun` (cumulative sum) |
+| `geom_pdf()` | PDF | `cdf_fun` (differentiate), `survival_fun` ($1 - S$ then differentiate), `qf_fun` (interpolate then differentiate) |
+| `geom_cdf()` | CDF | `pdf_fun` (integrate), `survival_fun` ($1 - S$), `qf_fun` (interpolate) |
+| `geom_survival()` | Survival | `cdf_fun` ($1 - F$), `pdf_fun` (integrate, then $1 - F$), `qf_fun` (interpolate, then $1 - F$) |
+| `geom_qf()` | Quantile | `cdf_fun` (root-find), `pdf_fun` (integrate, then root-find), `survival_fun` ($1 - S$, then root-find) |
+| `geom_hf()` | Hazard | `pdf_fun` + `cdf_fun` (ratio, or just one), `survival_fun` ($1 - S$ then differentiate), `qf_fun` (interpolate then differentiate) |
+| `geom_cdf_discrete()` | CDF | `pmf_fun` (cumulative sum), `survival_fun` ($1 - S$) |
 | `geom_survival_discrete()` | Survival | `cdf_fun` ($1 - F$), `pmf_fun` (cumsum, then $1 - F$) |
-| `geom_qf_discrete()` | Quantile | `cdf_fun` (invert on support), `pmf_fun` (cumsum, then invert) |
+| `geom_qf_discrete()` | Quantile | `cdf_fun` (invert on support), `pmf_fun` (cumsum, then invert), `survival_fun` ($1 - S$, then invert) |
 
 Exactly one function source must be provided; supplying more than one (e.g. both
 `fun` and `pdf_fun`) is an error.
@@ -199,6 +199,49 @@ directly.
 The main cost is one CDF evaluation per `uniroot()` iteration (typically 10--20
 iterations), applied independently at each probability point.
 
+### Survival to CDF: exact arithmetic
+
+Given a survival function $S(x) = 1 - F(x)$, the CDF is recovered by simple
+subtraction:
+
+$$F(x) = 1 - S(x).$$
+
+Internally, `survival_to_cdf()` wraps this in a closure:
+
+```r
+survival_to_cdf <- function(survival_fun) {
+  function(x) 1 - survival_fun(x)
+}
+```
+
+**Accuracy.** This conversion is exact (up to floating-point rounding), with
+errors on the order of machine epsilon ($\approx 2.2 \times 10^{-16}$).
+
+### Quantile function to CDF: interpolation
+
+Given a quantile function $Q(p)$, the CDF can be recovered by inverting the
+relationship: evaluate $Q$ on a dense grid of probabilities $p_1, \ldots, p_n$
+to get the corresponding $x$ values, then interpolate. Internally,
+`qf_to_cdf()` uses `stats::approxfun()` with `rule = 2` (constant
+extrapolation at boundaries):
+
+```r
+qf_to_cdf <- function(qf_fun, n = 10000) {
+  p_grid <- seq(1 / (n + 1), n / (n + 1), length.out = n)
+  x_grid <- qf_fun(p_grid)
+  stats::approxfun(x_grid, p_grid, rule = 2)
+}
+```
+
+The grid avoids $p = 0$ and $p = 1$ (which would map to $\pm\infty$ for
+unbounded distributions). With $n = 10{,}000$ grid points, the interpolation
+error is typically below $10^{-3}$ for smooth distributions.
+
+**Accuracy.** Linear interpolation on $10{,}000$ points gives roughly three
+decimal digits of accuracy. This is more than sufficient for plotting, though
+downstream differentiation (e.g. to obtain a PDF) amplifies the error by one
+order of magnitude.
+
 ### Chained conversions
 
 Some geoms require two conversions in sequence. For example,
@@ -212,6 +255,12 @@ Similarly, `geom_survival(pdf_fun = ...)` integrates the PDF to get $F$, then
 computes $S(x) = 1 - F(x)$. And when `geom_hf()` receives only `pdf_fun`, it
 derives the CDF by integration so that it can compute $h(x) = f(x) / (1 -
 F(x))$.
+
+The new `survival_fun` and `qf_fun` paths also produce chains:
+`geom_pdf(survival_fun = ...)` computes $F = 1 - S$ (exact), then differentiates
+to get $f$. `geom_pdf(qf_fun = ...)` interpolates $Q$ to get $F$, then
+differentiates. `geom_qf(survival_fun = ...)` computes $F = 1 - S$, then
+inverts by root-finding.
 
 ## Accuracy comparison
 
@@ -244,6 +293,48 @@ The derived curves (black) are visually indistinguishable from the exact curves
 (red dashed), confirming that the numerical methods are accurate enough for
 plotting.
 
+## Example: from a survival function
+
+Suppose you only have the survival function of an exponential distribution:
+
+```{r surv-example, fig.width = 10, fig.height = 4}
+my_surv <- function(x, rate) 1 - pexp(x, rate = rate)
+
+p1 <- ggplot() +
+  geom_cdf(survival_fun = my_surv, xlim = c(0, 5), args = list(rate = 1)) +
+  ggtitle("CDF (from survival)")
+
+p2 <- ggplot() +
+  geom_pdf(survival_fun = my_surv, xlim = c(0, 5), args = list(rate = 1)) +
+  ggtitle("PDF (from survival)")
+
+p3 <- ggplot() +
+  geom_qf(survival_fun = my_surv, args = list(rate = 1)) +
+  ggtitle("QF (from survival)")
+
+p1 | p2 | p3
+```
+
+## Example: from a quantile function
+
+Similarly, if you only have a quantile function:
+
+```{r qf-example, fig.width = 10, fig.height = 4}
+p1 <- ggplot() +
+  geom_cdf(qf_fun = qnorm, xlim = c(-3, 3)) +
+  ggtitle("CDF (from QF)")
+
+p2 <- ggplot() +
+  geom_pdf(qf_fun = qnorm, xlim = c(-3, 3)) +
+  ggtitle("PDF (from QF)")
+
+p3 <- ggplot() +
+  geom_survival(qf_fun = qnorm, xlim = c(-3, 3)) +
+  ggtitle("Survival (from QF)")
+
+p1 | p2 | p3
+```
+
 ## Performance considerations
 
 - **Integration** (`pdf_to_cdf`): $O(n)$ calls to `integrate()`, each with
@@ -253,6 +344,11 @@ plotting.
   calls total. Essentially free.
 - **Root-finding** (`cdf_to_qf`): $O(n)$ calls to `uniroot()`, each requiring
   $O(m)$ CDF evaluations ($m \approx 15$). Comparable to integration in cost.
+- **Survival to CDF** (`survival_to_cdf`): A single vectorized
+  evaluation---one subtraction per point. Essentially free.
+- **QF to CDF** (`qf_to_cdf`): One-time cost of evaluating the quantile
+  function on 10,000 grid points to build the interpolation table. After
+  setup, CDF lookups are $O(1)$ via `approxfun()`.
 - **Chained** (`pdf_fun` to quantile): $O(n \cdot m)$ calls to `integrate()`.
   The most expensive path but still completes in under a second for the default
   $n = 101$.
@@ -274,6 +370,10 @@ approximation:
   Again exact.
 - **CDF to quantile (discrete)**: the CDF is evaluated at each support point
   and the step function is inverted directly. No root-finding is needed.
+- **Survival to CDF (discrete)**: $F(x) = 1 - S(x)$ on each support point.
+  Exact.
+- **Survival to quantile (discrete)**: $F(x) = 1 - S(x)$ on each support
+  point, then invert. Exact.
 
 These operations introduce no approximation error, so there is no accuracy
 trade-off for discrete conversions.

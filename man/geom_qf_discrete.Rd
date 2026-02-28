@@ -24,6 +24,7 @@ geom_qf_discrete(
   fun = NULL,
   pmf_fun = NULL,
   cdf_fun = NULL,
+  survival_fun = NULL,
   xlim = NULL,
   support = NULL,
   args = list(),
@@ -98,16 +99,20 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 
 \item{fun}{A discrete quantile function (e.g. \link{qbinom}). Evaluated on a
 dense grid of probabilities in \eqn{(0, 1)}. Use \code{xlim} to restrict the
-range of support values shown. Exactly one of \code{fun}, \code{pmf_fun}, or
-\code{cdf_fun} must be provided.}
+range of support values shown. Exactly one of \code{fun}, \code{pmf_fun}, \code{cdf_fun},
+or \code{survival_fun} must be provided.}
 
 \item{pmf_fun}{A PMF function (e.g. \link{dbinom}). The quantile function is
 derived internally by inverting the cumulative sum. Exactly one of \code{fun},
-\code{pmf_fun}, or \code{cdf_fun} must be provided.}
+\code{pmf_fun}, \code{cdf_fun}, or \code{survival_fun} must be provided.}
 
 \item{cdf_fun}{A discrete CDF function (e.g. \link{pbinom}). Evaluated on the
 integer support and inverted to produce the quantile function. Exactly one
-of \code{fun}, \code{pmf_fun}, or \code{cdf_fun} must be provided.}
+of \code{fun}, \code{pmf_fun}, \code{cdf_fun}, or \code{survival_fun} must be provided.}
+
+\item{survival_fun}{A discrete survival function. The CDF is computed as
+\eqn{F(x) = 1 - S(x)} on the integer support and then inverted. Exactly
+one of \code{fun}, \code{pmf_fun}, \code{cdf_fun}, or \code{survival_fun} must be provided.}
 
 \item{xlim}{A numeric vector of length 2 specifying the range of support
 values to display (y-axis of the quantile function). For the \code{pmf_fun}
@@ -146,8 +151,9 @@ the upper limit.
 Supply exactly one of \code{fun} (a quantile function such as \link{qbinom},
 evaluated directly on a dense probability grid), \code{pmf_fun} (a PMF such as
 \link{dbinom}, from which the CDF is computed via cumulative summation and then
-inverted), or \code{cdf_fun} (a CDF such as \link{pbinom}, evaluated on the integer
-support and inverted).
+inverted), \code{cdf_fun} (a CDF such as \link{pbinom}, evaluated on the integer
+support and inverted), or \code{survival_fun} (a discrete survival function,
+from which the CDF is computed as \eqn{F(x) = 1 - S(x)} and then inverted).
 }
 \examples{
   # via PMF

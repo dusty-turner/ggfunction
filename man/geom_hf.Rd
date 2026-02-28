@@ -24,6 +24,8 @@ geom_hf(
   fun = NULL,
   pdf_fun = NULL,
   cdf_fun = NULL,
+  survival_fun = NULL,
+  qf_fun = NULL,
   xlim = NULL,
   n = 101,
   args = list(),
@@ -86,13 +88,20 @@ aesthetics and shouldn't inherit behaviour from the default plot
 specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
 \item{fun}{A hazard function \eqn{h(x)} (optional). When supplied,
-\code{pdf_fun} and \code{cdf_fun} must not be provided.}
+no other function source must be provided.}
 
 \item{pdf_fun}{A PDF function (e.g. \link{dnorm}). When supplied without
 \code{cdf_fun}, the CDF is derived by numerical integration.}
 
 \item{cdf_fun}{A CDF function (e.g. \link{pnorm}). When supplied without
 \code{pdf_fun}, the PDF is derived by numerical differentiation.}
+
+\item{survival_fun}{A survival function (e.g. \code{function(x) 1 - pnorm(x)}).
+The CDF is computed as \eqn{F(x) = 1 - S(x)} and the PDF by
+differentiation.}
+
+\item{qf_fun}{A quantile function (e.g. \link{qnorm}). The CDF is derived via
+interpolation and the PDF by differentiation.}
 
 \item{xlim}{A numeric vector of length 2 giving the x-range.}
 
@@ -126,11 +135,14 @@ integration.
 differentiation.
 \item \strong{Direct hazard interface}: supply \code{fun}, a function that returns
 \eqn{h(x)} directly (e.g. a closed-form expression).
+\item \strong{Survival function}: supply \code{survival_fun}; the CDF is computed as
+\eqn{F = 1 - S} and the PDF by differentiation.
+\item \strong{Quantile function}: supply \code{qf_fun}; the CDF is derived via
+interpolation and the PDF by differentiation.
 }
 
-Supply either \code{fun} alone, or one or both of \code{pdf_fun}/\code{cdf_fun} (the
-missing component is derived numerically when only one is given). By default
-only the line is drawn (no fill).
+Supply either \code{fun} alone, one or both of \code{pdf_fun}/\code{cdf_fun},
+\code{survival_fun}, or \code{qf_fun}. By default only the line is drawn (no fill).
 }
 \examples{
   # PDF + CDF interface

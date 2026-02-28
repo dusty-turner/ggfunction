@@ -8,20 +8,24 @@
 #' Supply exactly one of `fun` (a quantile function such as [qbinom],
 #' evaluated directly on a dense probability grid), `pmf_fun` (a PMF such as
 #' [dbinom], from which the CDF is computed via cumulative summation and then
-#' inverted), or `cdf_fun` (a CDF such as [pbinom], evaluated on the integer
-#' support and inverted).
+#' inverted), `cdf_fun` (a CDF such as [pbinom], evaluated on the integer
+#' support and inverted), or `survival_fun` (a discrete survival function,
+#' from which the CDF is computed as \eqn{F(x) = 1 - S(x)} and then inverted).
 #'
 #' @inheritParams ggplot2::geom_path
 #' @param fun A discrete quantile function (e.g. [qbinom]). Evaluated on a
 #'   dense grid of probabilities in \eqn{(0, 1)}. Use `xlim` to restrict the
-#'   range of support values shown. Exactly one of `fun`, `pmf_fun`, or
-#'   `cdf_fun` must be provided.
+#'   range of support values shown. Exactly one of `fun`, `pmf_fun`, `cdf_fun`,
+#'   or `survival_fun` must be provided.
 #' @param pmf_fun A PMF function (e.g. [dbinom]). The quantile function is
 #'   derived internally by inverting the cumulative sum. Exactly one of `fun`,
-#'   `pmf_fun`, or `cdf_fun` must be provided.
+#'   `pmf_fun`, `cdf_fun`, or `survival_fun` must be provided.
 #' @param cdf_fun A discrete CDF function (e.g. [pbinom]). Evaluated on the
 #'   integer support and inverted to produce the quantile function. Exactly one
-#'   of `fun`, `pmf_fun`, or `cdf_fun` must be provided.
+#'   of `fun`, `pmf_fun`, `cdf_fun`, or `survival_fun` must be provided.
+#' @param survival_fun A discrete survival function. The CDF is computed as
+#'   \eqn{F(x) = 1 - S(x)} on the integer support and then inverted. Exactly
+#'   one of `fun`, `pmf_fun`, `cdf_fun`, or `survival_fun` must be provided.
 #' @param args A named list of additional arguments to pass to `fun` or
 #'   `pmf_fun`.
 #' @param xlim A numeric vector of length 2 specifying the range of support
@@ -70,6 +74,7 @@ geom_qf_discrete <- function(
     fun = NULL,
     pmf_fun = NULL,
     cdf_fun = NULL,
+    survival_fun = NULL,
     xlim = NULL,
     support = NULL,
     args = list(),
@@ -100,6 +105,7 @@ geom_qf_discrete <- function(
       fun = fun,
       pmf_fun = pmf_fun,
       cdf_fun = cdf_fun,
+      survival_fun = survival_fun,
       args = args,
       xlim = xlim,
       support = support,
@@ -119,16 +125,17 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
   compute_group = function(data, scales, fun = NULL, pmf_fun = NULL,
-                           cdf_fun = NULL, xlim = NULL, support = NULL,
-                           args = NULL) {
+                           cdf_fun = NULL, survival_fun = NULL,
+                           xlim = NULL, support = NULL, args = NULL) {
 
     # Validate: exactly one source
-    n_provided <- (!is.null(fun)) + (!is.null(pmf_fun)) + (!is.null(cdf_fun))
+    n_provided <- (!is.null(fun)) + (!is.null(pmf_fun)) + (!is.null(cdf_fun)) +
+      (!is.null(survival_fun))
     if (n_provided == 0L) {
-      cli::cli_abort("One of {.arg fun}, {.arg pmf_fun}, or {.arg cdf_fun} must be provided.")
+      cli::cli_abort("One of {.arg fun}, {.arg pmf_fun}, {.arg cdf_fun}, or {.arg survival_fun} must be provided.")
     }
     if (n_provided > 1L) {
-      cli::cli_abort("Supply only one of {.arg fun}, {.arg pmf_fun}, or {.arg cdf_fun}.")
+      cli::cli_abort("Supply only one of {.arg fun}, {.arg pmf_fun}, {.arg cdf_fun}, or {.arg survival_fun}.")
     }
 
     if (!is.null(fun)) {
@@ -184,6 +191,23 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
       invisible(check_pmf_normalization(fun_injected, support = x_vals, tol = 1e-2))
       pmf_vals <- fun_injected(x_vals)
       cdf_vals <- cumsum(pmf_vals)
+
+      # x = F(x_k) (probability axis), y = x_k (support value axis)
+      return(data.frame(x = cdf_vals, y = x_vals))
+    }
+
+    if (!is.null(survival_fun)) {
+      if (!is.null(support)) {
+        x_vals <- sort(support)
+      } else if (is.null(xlim)) {
+        x_vals <- 0:10
+      } else {
+        x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))
+      }
+
+      surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
+      surv_vals <- surv_injected(x_vals)
+      cdf_vals <- 1 - surv_vals
 
       # x = F(x_k) (probability axis), y = x_k (support value axis)
       return(data.frame(x = cdf_vals, y = x_vals))

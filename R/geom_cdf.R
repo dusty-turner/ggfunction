@@ -6,10 +6,17 @@
 #'
 #' @inheritParams ggplot2::geom_function
 #' @param fun A function to compute the CDF (e.g. [pnorm]). The function must accept a numeric
-#'   vector as its first argument and return values between 0 and 1. Exactly one of `fun` or
-#'   `pdf_fun` must be provided.
+#'   vector as its first argument and return values between 0 and 1. Exactly one of `fun`,
+#'   `pdf_fun`, `survival_fun`, or `qf_fun` must be provided.
 #' @param pdf_fun A PDF function (e.g. [dnorm]). When supplied, the CDF is derived
-#'   numerically via integration. Exactly one of `fun` or `pdf_fun` must be provided.
+#'   numerically via integration. Exactly one of `fun`, `pdf_fun`, `survival_fun`,
+#'   or `qf_fun` must be provided.
+#' @param survival_fun A survival function (e.g. `function(x) 1 - pnorm(x)`).
+#'   When supplied, the CDF is computed as \eqn{F(x) = 1 - S(x)}. Exactly one of
+#'   `fun`, `pdf_fun`, `survival_fun`, or `qf_fun` must be provided.
+#' @param qf_fun A quantile function (e.g. [qnorm]). When supplied, the CDF is
+#'   derived via interpolation on a dense grid. Exactly one of `fun`, `pdf_fun`,
+#'   `survival_fun`, or `qf_fun` must be provided.
 #' @param n Number of points at which to evaluate `fun`.
 #' @param args A named list of additional arguments passed on to `fun`.
 #' @param xlim A numeric vector of length 2 specifying the x-range over which to evaluate the CDF.
@@ -47,6 +54,8 @@ geom_cdf <- function(
     inherit.aes = FALSE,
     fun = NULL,
     pdf_fun = NULL,
+    survival_fun = NULL,
+    qf_fun = NULL,
     xlim = NULL,
     n = 101,
     args = list(),
@@ -77,6 +86,8 @@ geom_cdf <- function(
     params = list(
       fun = fun,
       pdf_fun = pdf_fun,
+      survival_fun = survival_fun,
+      qf_fun = qf_fun,
       n = n,
       xlim = xlim,
       args = args,
@@ -99,15 +110,17 @@ StatCDF <- ggproto("StatCDF", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
   compute_group = function(data, scales, fun = NULL, pdf_fun = NULL,
+                           survival_fun = NULL, qf_fun = NULL,
                            xlim = NULL, n = 101, args = NULL) {
 
     # Validate: exactly one source
-    n_provided <- (!is.null(fun)) + (!is.null(pdf_fun))
+    n_provided <- (!is.null(fun)) + (!is.null(pdf_fun)) +
+      (!is.null(survival_fun)) + (!is.null(qf_fun))
     if (n_provided == 0L) {
-      cli::cli_abort("One of {.arg fun} or {.arg pdf_fun} must be provided.")
+      cli::cli_abort("One of {.arg fun}, {.arg pdf_fun}, {.arg survival_fun}, or {.arg qf_fun} must be provided.")
     }
     if (n_provided > 1L) {
-      cli::cli_abort("Supply only one of {.arg fun} or {.arg pdf_fun}, not both.")
+      cli::cli_abort("Supply only one of {.arg fun}, {.arg pdf_fun}, {.arg survival_fun}, or {.arg qf_fun}.")
     }
 
     range <- if (is.null(scales$x)) {
@@ -119,6 +132,12 @@ StatCDF <- ggproto("StatCDF", Stat,
     if (!is.null(pdf_fun)) {
       pdf_injected <- function(x) rlang::inject(pdf_fun(x, !!!args))
       fun_injected <- pdf_to_cdf(pdf_injected)
+    } else if (!is.null(survival_fun)) {
+      surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
+      fun_injected <- survival_to_cdf(surv_injected)
+    } else if (!is.null(qf_fun)) {
+      qf_injected <- function(p) rlang::inject(qf_fun(p, !!!args))
+      fun_injected <- qf_to_cdf(qf_injected)
     } else {
       fun_injected <- function(x) rlang::inject(fun(x, !!!args))
     }

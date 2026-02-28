@@ -23,6 +23,8 @@ geom_cdf(
   inherit.aes = FALSE,
   fun = NULL,
   pdf_fun = NULL,
+  survival_fun = NULL,
+  qf_fun = NULL,
   xlim = NULL,
   n = 101,
   args = list(),
@@ -88,11 +90,20 @@ aesthetics and shouldn't inherit behaviour from the default plot
 specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
 \item{fun}{A function to compute the CDF (e.g. \link{pnorm}). The function must accept a numeric
-vector as its first argument and return values between 0 and 1. Exactly one of \code{fun} or
-\code{pdf_fun} must be provided.}
+vector as its first argument and return values between 0 and 1. Exactly one of \code{fun},
+\code{pdf_fun}, \code{survival_fun}, or \code{qf_fun} must be provided.}
 
 \item{pdf_fun}{A PDF function (e.g. \link{dnorm}). When supplied, the CDF is derived
-numerically via integration. Exactly one of \code{fun} or \code{pdf_fun} must be provided.}
+numerically via integration. Exactly one of \code{fun}, \code{pdf_fun}, \code{survival_fun},
+or \code{qf_fun} must be provided.}
+
+\item{survival_fun}{A survival function (e.g. \code{function(x) 1 - pnorm(x)}).
+When supplied, the CDF is computed as \eqn{F(x) = 1 - S(x)}. Exactly one of
+\code{fun}, \code{pdf_fun}, \code{survival_fun}, or \code{qf_fun} must be provided.}
+
+\item{qf_fun}{A quantile function (e.g. \link{qnorm}). When supplied, the CDF is
+derived via interpolation on a dense grid. Exactly one of \code{fun}, \code{pdf_fun},
+\code{survival_fun}, or \code{qf_fun} must be provided.}
 
 \item{xlim}{A numeric vector of length 2 specifying the x-range over which to evaluate the CDF.}
 

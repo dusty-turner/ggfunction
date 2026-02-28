@@ -21,6 +21,7 @@ geom_qf(
   fun = NULL,
   cdf_fun = NULL,
   pdf_fun = NULL,
+  survival_fun = NULL,
   n = 101,
   args = list()
 )
@@ -78,15 +79,20 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 
 \item{fun}{A function to compute the quantile function (e.g. \link{qnorm}). The function must
 accept a numeric vector of probabilities (values in \verb{[0,1]}) as its first argument.
-Exactly one of \code{fun}, \code{cdf_fun}, or \code{pdf_fun} must be provided.}
+Exactly one of \code{fun}, \code{cdf_fun}, \code{pdf_fun}, or \code{survival_fun} must be provided.}
 
 \item{cdf_fun}{A CDF function (e.g. \link{pnorm}). The quantile function is derived
-numerically via root-finding. Exactly one of \code{fun}, \code{cdf_fun}, or \code{pdf_fun}
-must be provided.}
+numerically via root-finding. Exactly one of \code{fun}, \code{cdf_fun}, \code{pdf_fun},
+or \code{survival_fun} must be provided.}
 
 \item{pdf_fun}{A PDF function (e.g. \link{dnorm}). The CDF is first derived by
 numerical integration, then the quantile function by root-finding. Exactly
-one of \code{fun}, \code{cdf_fun}, or \code{pdf_fun} must be provided.}
+one of \code{fun}, \code{cdf_fun}, \code{pdf_fun}, or \code{survival_fun} must be provided.}
+
+\item{survival_fun}{A survival function (e.g. \code{function(x) 1 - pnorm(x)}).
+The CDF is computed as \eqn{F(x) = 1 - S(x)} and then the quantile
+function is derived by root-finding. Exactly one of \code{fun}, \code{cdf_fun},
+\code{pdf_fun}, or \code{survival_fun} must be provided.}
 
 \item{n}{Number of probability points at which to evaluate \code{fun}. Defaults to 101.
 Points are placed at \href{https://en.wikipedia.org/wiki/Chebyshev_nodes}{Chebyshev nodes}
@@ -106,10 +112,12 @@ as a line. It computes quantile values for a sequence of probabilities (from 0 t
 and connects them with a line.
 }
 \details{
-Supply exactly one of \code{fun} (a quantile function), \code{cdf_fun} (a CDF), or
-\code{pdf_fun} (a PDF). When \code{cdf_fun} is supplied, the quantile function is
-derived by numerical root-finding. When \code{pdf_fun} is supplied, the CDF is
-first derived by numerical integration and then inverted.
+Supply exactly one of \code{fun} (a quantile function), \code{cdf_fun} (a CDF),
+\code{pdf_fun} (a PDF), or \code{survival_fun} (a survival function). When \code{cdf_fun}
+is supplied, the quantile function is derived by numerical root-finding.
+When \code{pdf_fun} is supplied, the CDF is first derived by numerical
+integration and then inverted. When \code{survival_fun} is supplied, the CDF is
+computed as \eqn{F(x) = 1 - S(x)} and then inverted.
 }
 \examples{
   ggplot() +

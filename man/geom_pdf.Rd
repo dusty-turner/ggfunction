@@ -23,6 +23,8 @@ geom_pdf(
   inherit.aes = FALSE,
   fun = NULL,
   cdf_fun = NULL,
+  survival_fun = NULL,
+  qf_fun = NULL,
   xlim = NULL,
   n = 101,
   args = list(),
@@ -119,11 +121,20 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 
 \item{fun}{A function to compute the density (e.g. \link{dnorm}). The function must accept a
 numeric vector as its first argument and return density values that integrate (approximately)
-to 1. Exactly one of \code{fun} or \code{cdf_fun} must be provided.}
+to 1. Exactly one of \code{fun}, \code{cdf_fun}, \code{survival_fun}, or \code{qf_fun} must be provided.}
 
 \item{cdf_fun}{A CDF function (e.g. \link{pnorm}). When supplied, the PDF is derived
-numerically via central finite differences. Exactly one of \code{fun} or \code{cdf_fun} must
-be provided.}
+numerically via central finite differences. Exactly one of \code{fun}, \code{cdf_fun},
+\code{survival_fun}, or \code{qf_fun} must be provided.}
+
+\item{survival_fun}{A survival function (e.g. \code{function(x) 1 - pnorm(x)}).
+When supplied, the CDF is computed as \eqn{F(x) = 1 - S(x)} and then
+differentiated to obtain the PDF. Exactly one of \code{fun}, \code{cdf_fun},
+\code{survival_fun}, or \code{qf_fun} must be provided.}
+
+\item{qf_fun}{A quantile function (e.g. \link{qnorm}). When supplied, the CDF is
+derived via interpolation and then differentiated to obtain the PDF. Exactly
+one of \code{fun}, \code{cdf_fun}, \code{survival_fun}, or \code{qf_fun} must be provided.}
 
 \item{xlim}{A numeric vector of length 2 giving the x-range over which to evaluate the PDF.}
 

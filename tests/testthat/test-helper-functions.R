@@ -146,6 +146,40 @@ test_that("cdf_to_qf handles boundary probabilities", {
   expect_equal(qf_derived(1), Inf)
 })
 
+test_that("survival_to_cdf converts 1-pnorm to pnorm", {
+  s_norm <- function(x) 1 - pnorm(x)
+  cdf_derived <- survival_to_cdf(s_norm)
+  x <- c(-2, -1, 0, 1, 2)
+  expect_equal(cdf_derived(x), pnorm(x), tolerance = 1e-10)
+})
+
+test_that("survival_to_cdf converts 1-pexp to pexp", {
+  s_exp <- function(x) 1 - pexp(x, rate = 2)
+  cdf_derived <- survival_to_cdf(s_exp)
+  x <- c(0.1, 0.5, 1, 2, 5)
+  expect_equal(cdf_derived(x), pexp(x, rate = 2), tolerance = 1e-10)
+})
+
+test_that("qf_to_cdf converts qnorm to pnorm", {
+  cdf_derived <- qf_to_cdf(qnorm)
+  x <- c(-2, -1, 0, 1, 2)
+  expect_equal(cdf_derived(x), pnorm(x), tolerance = 1e-3)
+})
+
+test_that("qf_to_cdf converts qexp to pexp", {
+  cdf_derived <- qf_to_cdf(qexp)
+  x <- c(0.1, 0.5, 1, 2, 5)
+  expect_equal(cdf_derived(x), pexp(x), tolerance = 1e-3)
+})
+
+test_that("qf_to_cdf returns monotonic values in [0,1]", {
+  cdf_derived <- qf_to_cdf(qnorm)
+  x <- seq(-3, 3, length.out = 100)
+  vals <- cdf_derived(x)
+  expect_true(all(vals >= 0 & vals <= 1))
+  expect_true(all(diff(vals) >= 0))
+})
+
 test_that("times is multiplication", {
   expect_equal(times(3, 4), 12)
 })

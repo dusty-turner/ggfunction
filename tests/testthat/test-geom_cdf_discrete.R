@@ -71,3 +71,57 @@ test_that("StatCDFDiscrete uses support when provided", {
   )
   expect_equal(nrow(result), 3)
 })
+
+# --- Alternate input: survival_fun ---
+
+test_that("StatCDFDiscrete computes CDF from survival_fun", {
+  s_binom <- function(x) 1 - pbinom(x, size = 10, prob = 0.5)
+  scales <- list(x = NULL)
+  result <- StatCDFDiscrete$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    survival_fun = s_binom,
+    xlim = c(0, 10),
+    args = list()
+  )
+  expect_equal(nrow(result), 11)
+  expected <- pbinom(0:10, size = 10, prob = 0.5)
+  expect_equal(result$y, expected, tolerance = 1e-10)
+})
+
+test_that("geom_cdf_discrete with survival_fun builds without error", {
+  s_binom <- function(x, size, prob) 1 - pbinom(x, size = size, prob = prob)
+  p <- ggplot() + geom_cdf_discrete(
+    survival_fun = s_binom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+  )
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("StatCDFDiscrete errors when multiple sources provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatCDFDiscrete$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      fun = pbinom,
+      survival_fun = function(x) 1 - pbinom(x, size = 10, prob = 0.5),
+      xlim = c(0, 10),
+      args = list(size = 10, prob = 0.5)
+    ),
+    "fun.*pmf_fun.*survival_fun"
+  )
+})
+
+test_that("StatCDFDiscrete errors when no source provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatCDFDiscrete$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      xlim = c(0, 10),
+      args = list()
+    ),
+    "fun.*pmf_fun.*survival_fun"
+  )
+})

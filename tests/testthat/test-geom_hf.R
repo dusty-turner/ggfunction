@@ -88,7 +88,7 @@ test_that("StatHF errors when both fun and pdf_fun/cdf_fun supplied", {
       n = 51,
       args = list()
     ),
-    "fun.*pdf_fun.*cdf_fun"
+    "fun.*pdf_fun.*cdf_fun.*survival_fun.*qf_fun"
   )
 })
 
@@ -164,6 +164,72 @@ test_that("StatHF errors when none of fun/pdf_fun/cdf_fun provided", {
       n = 51,
       args = list()
     ),
-    "fun.*pdf_fun.*cdf_fun"
+    "fun.*pdf_fun.*cdf_fun.*survival_fun.*qf_fun"
+  )
+})
+
+# --- Alternate input: survival_fun ---
+
+test_that("StatHF computes hazard from survival_fun", {
+  # Exponential: h(x) = rate, S(x) = exp(-rate*x)
+  s_exp <- function(x) 1 - pexp(x, rate = 1)
+  scales <- list(x = NULL)
+  result <- StatHF$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    survival_fun = s_exp,
+    xlim = c(0.01, 5),
+    n = 101,
+    args = list()
+  )
+  expect_equal(nrow(result), 101)
+  # Hazard of exponential is constant = rate = 1
+  expect_true(all(abs(result$y - 1) < 0.05, na.rm = TRUE))
+})
+
+test_that("geom_hf with survival_fun builds without error", {
+  s_exp <- function(x) 1 - pexp(x, rate = 1)
+  p <- ggplot() + geom_hf(survival_fun = s_exp, xlim = c(0.01, 5))
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+# --- Alternate input: qf_fun ---
+
+test_that("StatHF computes hazard from qf_fun", {
+  scales <- list(x = NULL)
+  result <- StatHF$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    qf_fun = qexp,
+    xlim = c(0.01, 5),
+    n = 101,
+    args = list(rate = 1)
+  )
+  expect_equal(nrow(result), 101)
+  # Hazard of exponential is constant = rate = 1; interpolation adds noise
+  deviations <- abs(result$y - 1)
+  expect_true(mean(deviations < 0.1, na.rm = TRUE) > 0.90)
+})
+
+test_that("geom_hf with qf_fun builds without error", {
+  p <- ggplot() + geom_hf(qf_fun = qexp, args = list(rate = 1), xlim = c(0.01, 5))
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("StatHF errors when both fun and survival_fun supplied", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatHF$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      fun = identity,
+      survival_fun = function(x) 1 - pnorm(x),
+      xlim = c(0, 5),
+      n = 51,
+      args = list()
+    ),
+    "fun.*pdf_fun.*cdf_fun.*survival_fun.*qf_fun"
   )
 })
