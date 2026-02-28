@@ -42,6 +42,7 @@
 <li><a class="dropdown-item" href="../articles/getting-started.html">Getting Started with ggfunction</a></li>
     <li><a class="dropdown-item" href="../articles/gallery.html">Gallery of Visualizations</a></li>
     <li><a class="dropdown-item" href="../articles/learning-statistics.html">Learning Statistics with ggfunction</a></li>
+    <li><a class="dropdown-item" href="../articles/cross-conversion.html">Cross-Conversion Between Distribution Functions</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/coverage-simulation.html">Simulation Verification of KS Coverage</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -78,13 +79,13 @@
 <p><code><a href="../reference/geom_ecdf.html">geom_ecdf()</a></code> and <code><a href="../reference/geom_eqf.html">geom_eqf()</a></code> draw
 simultaneous confidence bands using the Dvoretzky–Kiefer–Wolfowitz (DKW)
 inequality with Massart’s (1990) tight constant. The half-width is</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mi>n</mi></msub><mo>=</mo><msqrt><mfrac><mrow><mo>log</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>2</mn><mi>/</mi><mi>α</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mrow><mn>2</mn><mi>n</mi></mrow></mfrac></msqrt><mo>,</mo><mspace width="2.0em"></mspace><mi>α</mi><mo>=</mo><mn>1</mn><mo>−</mo><mtext mathvariant="monospace">𝚕𝚎𝚟𝚎𝚕</mtext><mo>,</mo></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ε</mi><mi>n</mi></msub><mo>=</mo><msqrt><mfrac><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>2</mn><mi>/</mi><mi>α</mi><mo stretchy="false" form="postfix">)</mo></mrow><mrow><mn>2</mn><mi>n</mi></mrow></mfrac></msqrt><mo>,</mo><mspace width="2.0em"></mspace><mi>α</mi><mo>=</mo><mn>1</mn><mo>−</mo><mtext mathvariant="monospace">𝚕𝚎𝚟𝚎𝚕</mtext><mo>,</mo></mrow><annotation encoding="application/x-tex">
 \varepsilon_n = \sqrt{\frac{\log(2/\alpha)}{2n}}, \qquad \alpha = 1 - \texttt{level},
 </annotation></semantics></math></p>
 <p>giving the band
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><msub><mover><mi>F</mi><mo accent="true">̂</mo></mover><mi>n</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mi>ε</mi><mi>n</mi></msub><mo>,</mo><mspace width="0.278em"></mspace><msub><mover><mi>F</mi><mo accent="true">̂</mo></mover><mi>n</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>ε</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[\hat{F}_n(x) - \varepsilon_n,\; \hat{F}_n(x) + \varepsilon_n]</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><msub><mover><mi>F</mi><mo accent="true">̂</mo></mover><mi>n</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>ε</mi><mi>n</mi></msub><mo>,</mo><mspace width="0.278em"></mspace><msub><mover><mi>F</mi><mo accent="true">̂</mo></mover><mi>n</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>ε</mi><mi>n</mi></msub><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[\hat{F}_n(x) - \varepsilon_n,\; \hat{F}_n(x) + \varepsilon_n]</annotation></semantics></math>
 clipped to
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0, 1]</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">[</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">]</mo></mrow><annotation encoding="application/x-tex">[0, 1]</annotation></semantics></math>.
 This band is guaranteed to contain the true CDF everywhere
 simultaneously with probability <strong>at least</strong>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">1 - \alpha</annotation></semantics></math>.</p>
@@ -93,16 +94,16 @@ simultaneously with probability <strong>at least</strong>
 <h2 id="what-simultaneous-coverage-means">What “simultaneous coverage” means<a class="anchor" aria-label="anchor" href="#what-simultaneous-coverage-means"></a>
 </h2>
 <p>A band has <strong>simultaneous</strong>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1-\alpha)</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(1-\alpha)</annotation></semantics></math>
 coverage if</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><munder><mo>sup</mo><mi>x</mi></munder><mo stretchy="false" form="prefix">|</mo><msub><mover><mi>F</mi><mo accent="true">̂</mo></mover><mi>n</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="postfix">|</mo><mo>≤</mo><msub><mi>ε</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.278em"></mspace><mo>≥</mo><mspace width="0.278em"></mspace><mn>1</mn><mo>−</mo><mi>α</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><munder><mi mathvariant="normal">sup</mi><mi>x</mi></munder><mo stretchy="false" form="prefix">|</mo><msub><mover><mi>F</mi><mo accent="true">̂</mo></mover><mi>n</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">|</mo><mo>≤</mo><msub><mi>ε</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="0.278em"></mspace><mo>≥</mo><mspace width="0.278em"></mspace><mn>1</mn><mo>−</mo><mi>α</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">
 P\!\left(\sup_{x} \lvert \hat{F}_n(x) - F(x) \rvert \leq \varepsilon_n\right)
 \;\geq\; 1 - \alpha.
 </annotation></semantics></math></p>
 <p>The supremum equals the Kolmogorov–Smirnov statistic
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>D</mi><mi>n</mi></msub><annotation encoding="application/x-tex">D_n</annotation></semantics></math>,
 so we need
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>D</mi><mi>n</mi></msub><mo>≤</mo><msub><mi>ε</mi><mi>n</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>≥</mo><mn>1</mn><mo>−</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">P(D_n \leq \varepsilon_n) \geq 1 - \alpha</annotation></semantics></math>.
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>D</mi><mi>n</mi></msub><mo>≤</mo><msub><mi>ε</mi><mi>n</mi></msub><mo stretchy="false" form="postfix">)</mo><mo>≥</mo><mn>1</mn><mo>−</mo><mi>α</mi></mrow><annotation encoding="application/x-tex">P(D_n \leq \varepsilon_n) \geq 1 - \alpha</annotation></semantics></math>.
 Because
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>F</mi><annotation encoding="application/x-tex">F</annotation></semantics></math>
 is continuous,
@@ -122,9 +123,9 @@ we:</p>
 <li>Draw
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>B</mi><mo>=</mo><mn>10</mn><mo>,</mo><mn>000</mn></mrow><annotation encoding="application/x-tex">B = 10{,}000</annotation></semantics></math>
 independent samples from
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">N(0, 1)</annotation></semantics></math>.</li>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">N(0, 1)</annotation></semantics></math>.</li>
 <li>Compute
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>D</mi><mi>n</mi></msub><mo>=</mo><msub><mo>sup</mo><mi>x</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mover><mi>F</mi><mo accent="true">̂</mo></mover><mi>n</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><mi>F</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>x</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="postfix">|</mo></mrow><annotation encoding="application/x-tex">D_n = \sup_x \lvert \hat{F}_n(x) - F(x) \rvert</annotation></semantics></math>
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>D</mi><mi>n</mi></msub><mo>=</mo><msub><mrow><mi mathvariant="normal">sup</mi><mo>⁡</mo></mrow><mi>x</mi></msub><mo stretchy="false" form="prefix">|</mo><msub><mover><mi>F</mi><mo accent="true">̂</mo></mover><mi>n</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">|</mo></mrow><annotation encoding="application/x-tex">D_n = \sup_x \lvert \hat{F}_n(x) - F(x) \rvert</annotation></semantics></math>
 via <code><a href="https://rdrr.io/r/stats/ks.test.html">ks.test()</a></code>.</li>
 <li>Compute
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>ε</mi><mi>n</mi></msub><annotation encoding="application/x-tex">\varepsilon_n</annotation></semantics></math>
@@ -232,7 +233,7 @@ grows.</p>
 <div class="section level2">
 <h2 id="coverage-plot">Coverage plot<a class="anchor" aria-label="anchor" href="#coverage-plot"></a>
 </h2>
-<p><img src="coverage-simulation_files/figure-html/plot-1.png" class="r-plt" alt="" width="672"></p>
+<p><img src="coverage-simulation_files/figure-html/plot-1.png" alt="" width="672"></p>
 <p>Empirical coverage (solid lines) lies above each dashed nominal line
 across all
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math>.
@@ -343,11 +344,11 @@ distributions.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Dusty Turner, James Otto, Rodney X. Sturdivant, David Kahle.</p>
+  <p>Developed by Dusty Turner, David Kahle, Rodney X. Sturdivant.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

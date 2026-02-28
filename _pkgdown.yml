@@ -19,6 +19,8 @@ navbar:
           href: articles/gallery.html
         - text: Learning Statistics with ggfunction
           href: articles/learning-statistics.html
+        - text: Cross-Conversion Between Distribution Functions
+          href: articles/cross-conversion.html
         - text: "---"
         - text: Simulation Verification of KS Coverage
           href: articles/coverage-simulation.html
@@ -37,6 +39,7 @@ articles:
       - getting-started
       - gallery
       - learning-statistics
+      - cross-conversion
       - coverage-simulation
 
 # Reference section for function documentation

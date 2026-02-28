@@ -26,6 +26,7 @@ a given proportion of the total density."><meta property="og:image" content="/lo
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/getting-started.html">Getting Started with ggfunction</a></li>
     <li><a class="dropdown-item" href="../articles/gallery.html">Gallery of Visualizations</a></li>
     <li><a class="dropdown-item" href="../articles/learning-statistics.html">Learning Statistics with ggfunction</a></li>
+    <li><a class="dropdown-item" href="../articles/cross-conversion.html">Cross-Conversion Between Distribution Functions</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/coverage-simulation.html">Simulation Verification of KS Coverage</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -63,7 +64,10 @@ a given proportion of the total density.</p>
 <span>  na.rm <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  show.legend <span class="op">=</span> <span class="cn">NA</span>,</span>
 <span>  inherit.aes <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  <span class="va">fun</span>,</span>
+<span>  fun <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cdf_fun <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  survival_fun <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  qf_fun <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  xlim <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n <span class="op">=</span> <span class="fl">101</span>,</span>
 <span>  args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
@@ -180,7 +184,26 @@ specification, e.g. <code><a href="https://ggplot2.tidyverse.org/reference/annot
 <dt id="arg-fun">fun<a class="anchor" aria-label="anchor" href="#arg-fun"></a></dt>
 <dd><p>A function to compute the density (e.g. <a href="https://rdrr.io/r/stats/Normal.html">dnorm</a>). The function must accept a
 numeric vector as its first argument and return density values that integrate (approximately)
-to 1.</p></dd>
+to 1. Exactly one of <code>fun</code>, <code>cdf_fun</code>, <code>survival_fun</code>, or <code>qf_fun</code> must be provided.</p></dd>
+
+
+<dt id="arg-cdf-fun">cdf_fun<a class="anchor" aria-label="anchor" href="#arg-cdf-fun"></a></dt>
+<dd><p>A CDF function (e.g. <a href="https://rdrr.io/r/stats/Normal.html">pnorm</a>). When supplied, the PDF is derived
+numerically via central finite differences. Exactly one of <code>fun</code>, <code>cdf_fun</code>,
+<code>survival_fun</code>, or <code>qf_fun</code> must be provided.</p></dd>
+
+
+<dt id="arg-survival-fun">survival_fun<a class="anchor" aria-label="anchor" href="#arg-survival-fun"></a></dt>
+<dd><p>A survival function (e.g. <code>function(x) 1 - pnorm(x)</code>).
+When supplied, the CDF is computed as \(F(x) = 1 - S(x)\) and then
+differentiated to obtain the PDF. Exactly one of <code>fun</code>, <code>cdf_fun</code>,
+<code>survival_fun</code>, or <code>qf_fun</code> must be provided.</p></dd>
+
+
+<dt id="arg-qf-fun">qf_fun<a class="anchor" aria-label="anchor" href="#arg-qf-fun"></a></dt>
+<dd><p>A quantile function (e.g. <a href="https://rdrr.io/r/stats/Normal.html">qnorm</a>). When supplied, the CDF is
+derived via interpolation and then differentiated to obtain the PDF. Exactly
+one of <code>fun</code>, <code>cdf_fun</code>, <code>survival_fun</code>, or <code>qf_fun</code> must be provided.</p></dd>
 
 
 <dt id="arg-xlim">xlim<a class="anchor" aria-label="anchor" href="#arg-xlim"></a></dt>
@@ -274,11 +297,11 @@ which regions are shaded. Takes precedence over <code>p</code>, <code>p_lower</c
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Dusty Turner, James Otto, Rodney X. Sturdivant, David Kahle.</p>
+  <p>Developed by Dusty Turner, David Kahle, Rodney X. Sturdivant.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>
