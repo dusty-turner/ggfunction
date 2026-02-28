@@ -61,17 +61,40 @@ test_that("StatECHF handles ties", {
 # ── StatECHFBand ──────────────────────────────────────────────────────────────
 
 test_that("StatECHFBand structure is valid", {
-  result <- StatECHFBand$compute_group(
+  result <- suppressMessages(StatECHFBand$compute_group(
     data = data.frame(x = c(1, 2, 3, 4, 5)),
     scales = list(),
     na.rm = FALSE,
     level = 0.95
-  )
+  ))
   expect_true(nrow(result) > 0)
   expect_true(all(result$ymin >= 0))
   expect_true(all(result$ymin <= result$ymax))
   expect_true(all(is.finite(result$ymin)))
   expect_true(all(is.finite(result$ymax)))
+})
+
+test_that("StatECHFBand clips upper bound at log(2n)", {
+  n <- 50
+  result <- suppressMessages(StatECHFBand$compute_group(
+    data = data.frame(x = seq_len(n)),
+    scales = list(),
+    na.rm = FALSE,
+    level = 0.95
+  ))
+  expect_true(max(result$ymax) <= log(2 * n) + 0.01)
+})
+
+test_that("StatECHFBand emits message when clipping", {
+  expect_message(
+    StatECHFBand$compute_group(
+      data = data.frame(x = c(1, 2, 3, 4, 5)),
+      scales = list(),
+      na.rm = FALSE,
+      level = 0.95
+    ),
+    "Upper confidence band clipped"
+  )
 })
 
 test_that("StatECHFBand returns empty for empty data", {
@@ -90,7 +113,7 @@ test_that("geom_echf builds without error", {
   df <- data.frame(x = c(1, 2, 3, 4, 5))
   p <- ggplot(df, aes(x = x)) + geom_echf()
   expect_s3_class(p, "gg")
-  expect_silent(ggplot_build(p))
+  suppressMessages(expect_no_warning(ggplot_build(p)))
 })
 
 test_that("geom_echf builds without conf_int", {
@@ -104,7 +127,7 @@ test_that("geom_echf builds with custom level and conf_alpha", {
   df <- data.frame(x = rexp(30))
   p <- ggplot(df, aes(x = x)) + geom_echf(level = 0.99, conf_alpha = 0.15)
   expect_s3_class(p, "gg")
-  expect_silent(ggplot_build(p))
+  suppressMessages(expect_no_warning(ggplot_build(p)))
 })
 
 test_that("geom_echf builds with grouped data", {
@@ -114,7 +137,7 @@ test_that("geom_echf builds with grouped data", {
   )
   p <- ggplot(df, aes(x = x, colour = group)) + geom_echf()
   expect_s3_class(p, "gg")
-  expect_silent(ggplot_build(p))
+  suppressMessages(expect_no_warning(ggplot_build(p)))
 })
 
 test_that("geom_echf auto-suppresses points/vert for large n", {

@@ -161,8 +161,12 @@ cumulative hazard scale. The half-width on the CDF scale is
 \eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}}, where
 \eqn{\alpha = 1 - \texttt{level}}. The CDF bounds
 \eqn{[\hat{F}_n(x) - \varepsilon,\, \hat{F}_n(x) + \varepsilon]} are
-clipped to \eqn{[0, 1 - 10^{-10}]} and transformed via
+clipped to \eqn{[0, 1 - 1/(2n)]} and transformed via
 \eqn{H = -\log(1 - F)} to give the band on the cumulative hazard scale.
+This caps the displayed upper band at \eqn{\log(2n)}, since the ECDF has
+resolution \eqn{1/n} and CDF values closer to 1 than \eqn{1/(2n)} are
+below the estimator's resolution. When clipping occurs, an informational
+message is emitted.
 }
 \examples{
 set.seed(1)

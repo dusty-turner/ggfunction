@@ -446,8 +446,12 @@ StatEPMF <- ggproto("StatEPMF", Stat,
 #' \eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}}, where
 #' \eqn{\alpha = 1 - \texttt{level}}. The CDF bounds
 #' \eqn{[\hat{F}_n(x) - \varepsilon,\, \hat{F}_n(x) + \varepsilon]} are
-#' clipped to \eqn{[0, 1 - 10^{-10}]} and transformed via
+#' clipped to \eqn{[0, 1 - 1/(2n)]} and transformed via
 #' \eqn{H = -\log(1 - F)} to give the band on the cumulative hazard scale.
+#' This caps the displayed upper band at \eqn{\log(2n)}, since the ECDF has
+#' resolution \eqn{1/n} and CDF values closer to 1 than \eqn{1/(2n)} are
+#' below the estimator's resolution. When clipping occurs, an informational
+#' message is emitted.
 #'
 #' @inheritParams geom_ecdf
 #'
@@ -562,7 +566,17 @@ StatECHFBand <- ggproto("StatECHFBand", Stat,
     n   <- tab$n[1L]
     eps <- sqrt(log(2 / (1 - level)) / (2 * n))
     cdf_lower <- pmax(0, tab$cdf - eps)
-    cdf_upper <- pmin(1 - 1e-10, tab$cdf + eps)
+    # Clip upper CDF bound at 1 - 1/(2n) rather than 1 - 1e-10.
+    # When cdf + eps >= 1, the true H could be infinite; clipping at
+    # 1/(2n) resolution caps the displayed band at log(2n).
+    cdf_cap   <- 1 - 1 / (2 * n)
+    clipped   <- any(tab$cdf + eps > cdf_cap)
+    cdf_upper <- pmin(cdf_cap, tab$cdf + eps)
+    if (clipped) {
+      cli::cli_inform(
+        "Upper confidence band clipped at {.val H} = {round(-log(1 - cdf_cap), 2)} ({.code log(2n)}); true upper bound is infinite where {.code F_n(x) + eps >= 1}."
+      )
+    }
     h_lower <- -log(1 - cdf_lower)
     h_upper <- -log(1 - cdf_upper)
     keep <- is.finite(h_lower) & is.finite(h_upper)
