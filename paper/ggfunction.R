@@ -337,6 +337,31 @@ ggplot(df_pmf, aes(x = x, colour = group)) +
   labs(x = "x", y = "Empirical probability", colour = "Group")
 
 
+## ----echf-gof, echo=TRUE, fig.width=8, fig.height=4---------------------------
+#| fig.cap: "Empirical cumulative hazard functions for simulated exponential data. An $\\text{Exp}(0.5)$ sample (left) is overlaid with the theoretical $H(x) = 0.5x$ (red line), which lies within the 95\\% confidence band. An $\\text{Exp}(1)$ sample (right) is tested against the wrong model $H(x) = 0.5x$, which departs from the band."
+set.seed(5)
+
+df_correct <- data.frame(x = rexp(80, rate = 0.5))
+p_correct <- ggplot(df_correct, aes(x = x)) +
+  geom_echf(show_points = FALSE, show_vert = FALSE) +
+  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_correct$x)),
+           args = list(rate = 0.5), colour = "red") +
+  labs(x = "x", y = expression(hat(H)[n](x))) +
+  ggtitle("Correct model") +
+  theme_minimal()
+
+df_wrong <- data.frame(x = rexp(80, rate = 1))
+p_wrong <- ggplot(df_wrong, aes(x = x)) +
+  geom_echf(show_points = FALSE, show_vert = FALSE) +
+  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_wrong$x)),
+           args = list(rate = 0.5), colour = "red") +
+  labs(x = "x", y = expression(hat(H)[n](x))) +
+  ggtitle("Wrong model") +
+  theme_minimal()
+
+p_correct | p_wrong
+
+
 ## ----sim-coverage, echo=TRUE, fig.width=8, fig.height=3.5, cache=FALSE--------
 #| fig.cap: "Empirical simultaneous coverage of the KS confidence band over 10,000 simulations from $\\mathcal{N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal for all $n$, confirming the finite-sample validity of the DKW bound \\citep{massart1990tight}. The slight conservatism at small $n$ diminishes as $n$ grows because the bound's constant is asymptotically tight."
 set.seed(20240101)

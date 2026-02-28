@@ -21,6 +21,8 @@ navbar:
           href: articles/learning-statistics.html
         - text: Cross-Conversion Between Distribution Functions
           href: articles/cross-conversion.html
+        - text: Survival Analysis with ggfunction
+          href: articles/survival-analysis.html
         - text: "---"
         - text: Simulation Verification of KS Coverage
           href: articles/coverage-simulation.html
@@ -40,6 +42,7 @@ articles:
       - gallery
       - learning-statistics
       - cross-conversion
+      - survival-analysis
       - coverage-simulation
 
 # Reference section for function documentation
@@ -65,3 +68,4 @@ reference:
       - geom_ecdf
       - geom_eqf
       - geom_epmf
+      - geom_echf

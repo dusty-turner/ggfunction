@@ -44,6 +44,7 @@ The package is organized around two families of geoms:
 | **Data** | `geom_ecdf()` |  | Empirical CDF with KS confidence ribbon |
 |  | `geom_eqf()` |  | Empirical quantile function with confidence ribbon |
 |  | `geom_epmf()` |  | Empirical PMF (lollipop) |
+|  | `geom_echf()` |  | Empirical cumulative hazard with DKW confidence band |
 
 ## Dimensional Taxonomy
 
@@ -697,6 +698,44 @@ ggplot(df_two, aes(x = x, colour = group)) +
 ```
 
 <img src="man/figures/readme-epmf-grouped-1.png" alt="" width="60%" />
+
+### Empirical cumulative hazard: `geom_echf()`
+
+`geom_echf()` computes the empirical cumulative hazard function
+$\hat{H}_n(x) = -\log(1 - \hat{F}_n(x))$ and renders it as a
+right-continuous step function. A 95% simultaneous confidence band is
+drawn by default, derived by transforming the DKW bounds on the CDF to
+the cumulative hazard scale.
+
+``` r
+ggplot(df_single, aes(x = x)) +
+  geom_echf()
+```
+
+<img src="man/figures/readme-echf-1.png" alt="" width="60%" />
+
+**Multiple groups.**
+
+``` r
+ggplot(df_two, aes(x = x, colour = group)) +
+  geom_echf()
+```
+
+<img src="man/figures/readme-echf-grouped-1.png" alt="" width="60%" />
+
+**Goodness-of-fit check.** Overlaying `geom_chf()` on `geom_echf()`
+provides a visual test: if the theoretical cumulative hazard lies within
+the confidence band, the data are consistent with the model.
+
+``` r
+ggplot(df_single, aes(x = x)) +
+  geom_echf(show_points = FALSE, show_vert = FALSE) +
+  geom_chf(cdf_fun = pnorm, xlim = range(df_single$x),
+           args = list(mean = mean(df_single$x), sd = sd(df_single$x)),
+           colour = "red")
+```
+
+<img src="man/figures/readme-echf-gof-1.png" alt="" width="60%" />
 
 ## Getting help
 

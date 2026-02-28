@@ -16,7 +16,8 @@ abstract: >
   region shading central to hypothesis testing and interval estimation. The third family
   provides geoms for empirical distributions computed from samples: the empirical CDF
   with a simultaneous Kolmogorov--Smirnov confidence band, the empirical quantile
-  function with the inverted KS band, and the empirical PMF as a lollipop chart.
+  function with the inverted KS band, the empirical PMF as a lollipop chart, and the
+  empirical cumulative hazard function with a transformed DKW confidence band.
   By embedding function evaluation, numerical integration, and validation directly into the
   \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical
   definition to a publication-quality visualization in a single, composable call.
@@ -104,7 +105,7 @@ Several packages address pieces of this gap. \CRANpkg{ggdist} [@kay2024ggdist] p
 
 1. A **dimensional taxonomy** covering four function types: $\mathbb{R} \to \mathbb{R}$, $\mathbb{R} \to \mathbb{R}^2$, $\mathbb{R}^2 \to \mathbb{R}$, and $\mathbb{R}^2 \to \mathbb{R}^2$.
 2. A **probability distribution family** providing specialized layers for density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions.
-3. An **empirical data family** providing layers for the empirical CDF, empirical quantile function, and empirical PMF, each computed directly from a sample and accompanied by simultaneous Kolmogorov--Smirnov confidence bands.
+3. An **empirical data family** providing layers for the empirical CDF, empirical quantile function, empirical PMF, and empirical cumulative hazard function, each computed directly from a sample and accompanied by simultaneous Kolmogorov--Smirnov confidence bands.
 
 Each layer follows the \CRANpkg{ggplot2} extension pattern: a `Stat` object evaluates the user-supplied function on a grid or sequence (or tabulates a sample), and a corresponding `Geom` renders the result. Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the full ecosystem of scales, coordinates, themes, and facets.
 
@@ -548,7 +549,7 @@ p1 | p2 | p3
 Data analysis frequently requires visualizing not a theoretical distribution but the
 distribution of an observed sample. \pkg{ggfunction}'s empirical data family applies
 the same visual language as the probability distribution family to sample data. All
-three geoms tabulate the empirical distribution via a shared helper that places mass
+four geoms tabulate the empirical distribution via a shared helper that places mass
 $c_k / n$ at each distinct observed value $x_k$, where $c_k$ is the count of
 occurrences and $n$ is the total sample size; ties are handled correctly. Because the
 geoms are standard \CRANpkg{ggplot2} layers, multiple groups can be overlaid by
@@ -666,6 +667,55 @@ ggplot(df_pmf, aes(x = x, colour = group)) +
   geom_epmf() +
   labs(x = "x", y = "Empirical probability", colour = "Group")
 ```
+
+## Empirical cumulative hazard: `geom_echf()`
+
+The empirical cumulative hazard function transforms the ECDF to the hazard scale:
+
+\begin{equation}
+\hat{H}_n(x) = -\log\bigl(1 - \hat{F}_n(x)\bigr).
+(\#eq:echf)
+\end{equation}
+
+At the largest observation, $\hat{F}_n(x) = 1$ and $\hat{H}_n(x) = \infty$;
+this boundary is dropped automatically and the step function extends to the
+right panel edge at the last finite value.
+
+The simultaneous confidence band is obtained by applying the monotone
+transformation $H = -\log(1 - F)$ to the DKW bounds \@ref(eq:ks-band). Because
+the DKW inequality guarantees $\hat{F}_n(x) - \varepsilon \leq F(x) \leq
+\hat{F}_n(x) + \varepsilon$ simultaneously at all $x$, applying $H = -\log(1 -
+F)$ to both sides (and clipping the CDF bounds to $[0, 1)$) yields a
+simultaneous band for $H(x)$ with the same coverage guarantee.
+
+```{r echf-gof, echo=TRUE, fig.width=8, fig.height=4}
+#| fig.cap: "Empirical cumulative hazard functions for simulated exponential data. An $\\text{Exp}(0.5)$ sample (left) is overlaid with the theoretical $H(x) = 0.5x$ (red line), which lies within the 95\\% confidence band. An $\\text{Exp}(1)$ sample (right) is tested against the wrong model $H(x) = 0.5x$, which departs from the band."
+set.seed(5)
+
+df_correct <- data.frame(x = rexp(80, rate = 0.5))
+p_correct <- ggplot(df_correct, aes(x = x)) +
+  geom_echf(show_points = FALSE, show_vert = FALSE) +
+  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_correct$x)),
+           args = list(rate = 0.5), colour = "red") +
+  labs(x = "x", y = expression(hat(H)[n](x))) +
+  ggtitle("Correct model") +
+  theme_minimal()
+
+df_wrong <- data.frame(x = rexp(80, rate = 1))
+p_wrong <- ggplot(df_wrong, aes(x = x)) +
+  geom_echf(show_points = FALSE, show_vert = FALSE) +
+  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_wrong$x)),
+           args = list(rate = 0.5), colour = "red") +
+  labs(x = "x", y = expression(hat(H)[n](x))) +
+  ggtitle("Wrong model") +
+  theme_minimal()
+
+p_correct | p_wrong
+```
+
+The theoretical cumulative hazard (red) threads through the band for the
+correct model (left panel) but departs visibly for the misspecified model (right
+panel), where the true rate is twice the hypothesized value.
 
 ## Validity of the confidence band
 
@@ -806,7 +856,7 @@ Taken together, these packages reflect the breadth of interest in function visua
 
 # Summary
 
-\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions, theoretical probability distributions, and empirical data distributions. Its organizing taxonomy--classifying functions by the dimensions of their domain and codomain--yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family covers ten geoms spanning continuous and discrete distributions: density, CDF, PMF, quantile, discrete CDF, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions. Each supports the shading operations central to statistical pedagogy---marking quantiles, delineating confidence regions, highlighting rejection areas, and shading highest density regions. The empirical data family complements these theoretical geoms by computing the empirical CDF, quantile function, and PMF directly from samples, each paired with a simultaneous Kolmogorov--Smirnov confidence band derived from the DKW inequality.
+\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions, theoretical probability distributions, and empirical data distributions. Its organizing taxonomy--classifying functions by the dimensions of their domain and codomain--yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family covers ten geoms spanning continuous and discrete distributions: density, CDF, PMF, quantile, discrete CDF, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions. Each supports the shading operations central to statistical pedagogy---marking quantiles, delineating confidence regions, highlighting rejection areas, and shading highest density regions. The empirical data family complements these theoretical geoms by computing the empirical CDF, quantile function, PMF, and cumulative hazard function directly from samples, each paired with a simultaneous Kolmogorov--Smirnov confidence band derived from the DKW inequality.
 
 By implementing each layer as a `ggproto` stat--geom pair, the package inherits the full composability of the grammar of graphics. Functions and empirical summaries can be overlaid, themed, faceted, and annotated using the same tools that \CRANpkg{ggplot2} users already know. The `args` injection pattern provides a clean interface for parameterized function families, and built-in validation catches common errors--such as unnormalized densities--before they produce misleading graphics.
 

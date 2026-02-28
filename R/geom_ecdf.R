@@ -425,3 +425,152 @@ StatEPMF <- ggproto("StatEPMF", Stat,
     data.frame(x = df$x, y = df$pmf)
   }
 )
+
+# ── geom_echf ─────────────────────────────────────────────────────────────────
+
+#' Plot an Empirical Cumulative Hazard Function
+#'
+#' `geom_echf()` computes the empirical cumulative hazard function of a sample
+#' and renders it as a right-continuous step function. The cumulative hazard is
+#' obtained by transforming the empirical CDF:
+#' \eqn{\hat{H}_n(x) = -\log(1 - \hat{F}_n(x))}. An optional simultaneous
+#' confidence band (defaulting to 95%) is drawn using a monotone transformation
+#' of the DKW inequality.
+#'
+#' The final observation, where \eqn{\hat{F}_n(x) = 1} and
+#' \eqn{\hat{H}_n(x) = \infty}, is dropped so the step function extends to the
+#' right panel edge at the last finite value.
+#'
+#' The simultaneous confidence band transforms the DKW bounds on the CDF to the
+#' cumulative hazard scale. The half-width on the CDF scale is
+#' \eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}}, where
+#' \eqn{\alpha = 1 - \texttt{level}}. The CDF bounds
+#' \eqn{[\hat{F}_n(x) - \varepsilon,\, \hat{F}_n(x) + \varepsilon]} are
+#' clipped to \eqn{[0, 1 - 10^{-10}]} and transformed via
+#' \eqn{H = -\log(1 - F)} to give the band on the cumulative hazard scale.
+#'
+#' @inheritParams geom_ecdf
+#'
+#' @return A ggplot2 layer, or a list of two layers when `conf_int = TRUE`.
+#'
+#' @examples
+#' set.seed(1)
+#'
+#' df <- data.frame(x = rexp(20))
+#' ggplot(df, aes(x = x)) + geom_echf()
+#'
+#' df <- data.frame(x = rexp(100))
+#' ggplot(df, aes(x = x)) + geom_echf()
+#'
+#' # Overlaying multiple groups
+#' df2 <- data.frame(
+#'   x     = c(rexp(40, rate = 1), rexp(40, rate = 0.5)),
+#'   group = rep(c("A", "B"), each = 40)
+#' )
+#' ggplot(df2, aes(x = x, colour = group)) + geom_echf()
+#'
+#' @name geom_echf
+#' @aliases StatECHF StatECHFBand
+#' @export
+geom_echf <- function(
+    mapping    = NULL,
+    data       = NULL,
+    stat       = StatECHF,
+    position   = "identity",
+    ...,
+    na.rm      = FALSE,
+    show.legend = NA,
+    inherit.aes = TRUE,
+    open_fill  = NULL,
+    vert_type  = "dashed",
+    show_points = NULL,
+    show_vert  = NULL,
+    conf_int   = TRUE,
+    level      = 0.95,
+    conf_alpha = 0.4
+) {
+  default_mapping <- aes(y = after_stat(y))
+  if (is.null(mapping)) {
+    mapping <- default_mapping
+  } else {
+    mapping <- modifyList(default_mapping, mapping)
+  }
+
+  main_layer <- layer(
+    data        = data,
+    mapping     = mapping,
+    stat        = stat,
+    geom        = GeomCDFDiscrete,
+    position    = position,
+    show.legend = show.legend,
+    inherit.aes = inherit.aes,
+    params      = list(
+      na.rm       = na.rm,
+      open_fill   = open_fill,
+      vert_type   = vert_type,
+      show_points = show_points,
+      show_vert   = show_vert,
+      ...
+    )
+  )
+
+  if (!conf_int) return(main_layer)
+
+  ribbon_layer <- layer(
+    data        = data,
+    mapping     = aes(ymin = after_stat(ymin), ymax = after_stat(ymax)),
+    stat        = StatECHFBand,
+    geom        = GeomRibbon,
+    position    = position,
+    show.legend = FALSE,
+    inherit.aes = inherit.aes,
+    params      = list(
+      na.rm     = na.rm,
+      level     = level,
+      fill      = "grey70",
+      linewidth = 0,
+      alpha     = conf_alpha
+    )
+  )
+
+  list(ribbon_layer, main_layer)
+}
+
+#' @rdname geom_echf
+#' @export
+StatECHF <- ggproto("StatECHF", Stat,
+  required_aes = "x",
+
+  compute_group = function(data, scales, na.rm = FALSE) {
+    df <- .tabulate_empirical(data$x, na.rm = na.rm)
+    if (nrow(df) == 0L) return(data.frame(x = numeric(0), y = numeric(0)))
+    cdf_clamped <- pmin(df$cdf, 1)
+    h <- -log(1 - cdf_clamped)
+    keep <- is.finite(h)
+    data.frame(x = df$x[keep], y = h[keep])
+  }
+)
+
+#' @rdname geom_echf
+#' @export
+StatECHFBand <- ggproto("StatECHFBand", Stat,
+  required_aes = "x",
+
+  compute_group = function(data, scales, na.rm = FALSE, level = 0.95) {
+    tab <- .tabulate_empirical(data$x, na.rm = na.rm)
+    if (nrow(tab) == 0L) return(data.frame())
+    n   <- tab$n[1L]
+    eps <- sqrt(log(2 / (1 - level)) / (2 * n))
+    cdf_lower <- pmax(0, tab$cdf - eps)
+    cdf_upper <- pmin(1 - 1e-10, tab$cdf + eps)
+    h_lower <- -log(1 - cdf_lower)
+    h_upper <- -log(1 - cdf_upper)
+    keep <- is.finite(h_lower) & is.finite(h_upper)
+    df  <- data.frame(
+      x    = tab$x[keep],
+      ymin = h_lower[keep],
+      ymax = h_upper[keep]
+    )
+    .expand_step_ribbon(df)
+  }
+)
