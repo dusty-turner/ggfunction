@@ -749,6 +749,11 @@ By implementing each layer as a `ggproto` stat--geom pair, the package inherits 
 
 
 
+# Acknowledgments
+
+This package and manuscript were made possible by agentic coding platforms, primarily OpenAI's Codex (GPT 5.3 Codex Extra High) and Anthropic's Claude (Sonneta and Opus 4.6). Early drafts of stats and geoms associated with CDFs, in particular the empirical CDF, were done by James Otto and were his contribution to the work. The package and manuscript were written by Dusty Turner and David Kahle, and early reflections on the design of the package were provided by Rodney Sturdivant.
+
+
 
 
 ```{r, echo=FALSE, results="asis"}
