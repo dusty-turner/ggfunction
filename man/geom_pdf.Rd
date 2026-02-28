@@ -21,7 +21,8 @@ geom_pdf(
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = FALSE,
-  fun,
+  fun = NULL,
+  cdf_fun = NULL,
   xlim = NULL,
   n = 101,
   args = list(),
@@ -118,7 +119,11 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 
 \item{fun}{A function to compute the density (e.g. \link{dnorm}). The function must accept a
 numeric vector as its first argument and return density values that integrate (approximately)
-to 1.}
+to 1. Exactly one of \code{fun} or \code{cdf_fun} must be provided.}
+
+\item{cdf_fun}{A CDF function (e.g. \link{pnorm}). When supplied, the PDF is derived
+numerically via central finite differences. Exactly one of \code{fun} or \code{cdf_fun} must
+be provided.}
 
 \item{xlim}{A numeric vector of length 2 giving the x-range over which to evaluate the PDF.}
 

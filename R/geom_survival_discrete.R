@@ -5,23 +5,27 @@
 #' segments, dashed vertical jumps, open circles at the lower limit of each
 #' jump, and closed circles at the upper limit.
 #'
-#' Supply **either** `pmf_fun` (a PMF such as [dbinom], from which the CDF is
-#' computed via cumulative summation) **or** `fun` (a CDF such as [pbinom],
-#' from which \eqn{S(x) = 1 - F(x)} is computed directly).
+#' Supply exactly one of `fun` (a discrete survival function evaluated
+#' directly), `cdf_fun` (a discrete CDF such as [pbinom], from which
+#' \eqn{S(x) = 1 - F(x)} is computed), or `pmf_fun` (a PMF such as [dbinom],
+#' from which the CDF is computed via cumulative summation and then
+#' \eqn{S(x) = 1 - F(x)}).
 #'
 #' @inheritParams ggplot2::geom_path
-#' @param fun A discrete CDF function (e.g. [pbinom]). \eqn{S(x) = 1 - F(x)}
-#'   is computed directly from this function on the integer support. Exactly
-#'   one of `fun` or `pmf_fun` must be provided.
+#' @param fun A discrete survival function evaluated directly on the integer
+#'   support. Exactly one of `fun`, `cdf_fun`, or `pmf_fun` must be provided.
+#' @param cdf_fun A discrete CDF function (e.g. [pbinom]). \eqn{S(x) = 1 - F(x)}
+#'   is computed from this function on the integer support. Exactly one of
+#'   `fun`, `cdf_fun`, or `pmf_fun` must be provided.
 #' @param pmf_fun A PMF function (e.g. [dbinom]). The survival function is
-#'   derived as \eqn{1 - \mathrm{cumsum}(\mathrm{pmf})}. Exactly one of `fun`
-#'   or `pmf_fun` must be provided.
+#'   derived as \eqn{1 - \mathrm{cumsum}(\mathrm{pmf})}. Exactly one of
+#'   `fun`, `cdf_fun`, or `pmf_fun` must be provided.
 #' @param xlim A numeric vector of length 2 specifying the range of integer
 #'   support values.
 #' @param support An optional integer or numeric vector giving the exact support
 #'   points to evaluate. When supplied, `xlim` is ignored.
-#' @param args A named list of additional arguments to pass to `fun` or
-#'   `pmf_fun`.
+#' @param args A named list of additional arguments to pass to `fun`,
+#'   `cdf_fun`, or `pmf_fun`.
 #' @param open_fill Fill color for the open (hollow) endpoint circles. Defaults
 #'   to `NULL`, which uses the active theme's panel background color.
 #' @param vert_type Line type for the vertical jump segments. Defaults to
@@ -41,9 +45,9 @@
 #'   ggplot() +
 #'     geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 #'
-#'   # via CDF directly
+#'   # via CDF
 #'   ggplot() +
-#'     geom_survival_discrete(fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+#'     geom_survival_discrete(cdf_fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 #'
 #'   ggplot() +
 #'     geom_survival_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
@@ -61,6 +65,7 @@ geom_survival_discrete <- function(
     show.legend = NA,
     inherit.aes = FALSE,
     fun = NULL,
+    cdf_fun = NULL,
     pmf_fun = NULL,
     xlim = NULL,
     support = NULL,
@@ -90,6 +95,7 @@ geom_survival_discrete <- function(
     inherit.aes = inherit.aes,
     params = list(
       fun = fun,
+      cdf_fun = cdf_fun,
       pmf_fun = pmf_fun,
       args = args,
       xlim = xlim,
@@ -109,8 +115,18 @@ geom_survival_discrete <- function(
 StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
-  compute_group = function(data, scales, fun = NULL, pmf_fun = NULL,
-                           xlim = NULL, support = NULL, args = NULL) {
+  compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
+                           pmf_fun = NULL, xlim = NULL, support = NULL,
+                           args = NULL) {
+
+    # Validate: exactly one source
+    n_provided <- (!is.null(fun)) + (!is.null(cdf_fun)) + (!is.null(pmf_fun))
+    if (n_provided == 0L) {
+      cli::cli_abort("One of {.arg fun}, {.arg cdf_fun}, or {.arg pmf_fun} must be provided.")
+    }
+    if (n_provided > 1L) {
+      cli::cli_abort("Supply only one of {.arg fun}, {.arg cdf_fun}, or {.arg pmf_fun}.")
+    }
 
     if (!is.null(support)) {
       x_vals <- sort(support)
@@ -122,7 +138,25 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
 
     if (!is.null(fun)) {
       fun_injected   <- function(x) rlang::inject(fun(x, !!!args))
-      survival_vals  <- 1 - fun_injected(x_vals)
+      survival_vals  <- fun_injected(x_vals)
+      if (length(survival_vals) > 1 && any(diff(survival_vals) > 0)) {
+        cli::cli_warn(c(
+          "The resulting survival function is not monotonically non-increasing.",
+          "i" = "Check the function supplied to {.arg fun}."
+        ))
+      }
+      return(data.frame(x = x_vals, y = survival_vals))
+    }
+
+    if (!is.null(cdf_fun)) {
+      cdf_injected   <- function(x) rlang::inject(cdf_fun(x, !!!args))
+      survival_vals  <- 1 - cdf_injected(x_vals)
+      if (length(survival_vals) > 1 && any(diff(survival_vals) > 0)) {
+        cli::cli_warn(c(
+          "The resulting survival function is not monotonically non-increasing.",
+          "i" = "Check the function supplied to {.arg cdf_fun}."
+        ))
+      }
       return(data.frame(x = x_vals, y = survival_vals))
     }
 
@@ -134,8 +168,6 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
       survival_vals <- 1 - cdf_vals
       return(data.frame(x = x_vals, y = survival_vals))
     }
-
-    cli::cli_abort("One of {.arg fun} or {.arg pmf_fun} must be provided.")
   }
 )
 

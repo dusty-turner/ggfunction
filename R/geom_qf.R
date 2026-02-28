@@ -4,15 +4,28 @@
 #' as a line. It computes quantile values for a sequence of probabilities (from 0 to 1)
 #' and connects them with a line.
 #'
+#' Supply exactly one of `fun` (a quantile function), `cdf_fun` (a CDF), or
+#' `pdf_fun` (a PDF). When `cdf_fun` is supplied, the quantile function is
+#' derived by numerical root-finding. When `pdf_fun` is supplied, the CDF is
+#' first derived by numerical integration and then inverted.
+#'
 #' @inheritParams ggplot2::geom_function
 #' @param fun A function to compute the quantile function (e.g. [qnorm]). The function must
 #'   accept a numeric vector of probabilities (values in `[0,1]`) as its first argument.
+#'   Exactly one of `fun`, `cdf_fun`, or `pdf_fun` must be provided.
+#' @param cdf_fun A CDF function (e.g. [pnorm]). The quantile function is derived
+#'   numerically via root-finding. Exactly one of `fun`, `cdf_fun`, or `pdf_fun`
+#'   must be provided.
+#' @param pdf_fun A PDF function (e.g. [dnorm]). The CDF is first derived by
+#'   numerical integration, then the quantile function by root-finding. Exactly
+#'   one of `fun`, `cdf_fun`, or `pdf_fun` must be provided.
 #' @param n Number of probability points at which to evaluate `fun`. Defaults to 101.
 #'   Points are placed at [Chebyshev nodes](https://en.wikipedia.org/wiki/Chebyshev_nodes)
 #'   of the first kind on $(0, 1)$, which cluster
 #'   near 0 and 1 where quantile functions are typically most curved, and never include
 #'   the exact endpoints (avoiding \eqn{\pm\infty} for unbounded distributions).
-#' @param args A named list of additional arguments to pass to `fun`.
+#' @param args A named list of additional arguments to pass to `fun`, `cdf_fun`,
+#'   or `pdf_fun`.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @return A ggplot2 layer.
@@ -35,7 +48,9 @@ geom_qf <- function(mapping = NULL,
                     na.rm = FALSE,
                     show.legend = NA,
                     inherit.aes = TRUE,
-                    fun,
+                    fun = NULL,
+                    cdf_fun = NULL,
+                    pdf_fun = NULL,
                     n = 101,
                     args = list()) {
 
@@ -58,6 +73,8 @@ geom_qf <- function(mapping = NULL,
     inherit.aes = inherit.aes,
     params = list(
       fun = fun,
+      cdf_fun = cdf_fun,
+      pdf_fun = pdf_fun,
       n = n,
       args = args,
       na.rm = na.rm,
@@ -70,13 +87,30 @@ geom_qf <- function(mapping = NULL,
 #' @export
 StatQF <- ggproto("StatQF", Stat,
 
-  compute_group = function(data, scales, fun, n = 101, args = NULL, ...) {
+  compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
+                           pdf_fun = NULL, n = 101, args = NULL, ...) {
+
+    # Validate: exactly one source
+    n_provided <- (!is.null(fun)) + (!is.null(cdf_fun)) + (!is.null(pdf_fun))
+    if (n_provided == 0L) {
+      cli::cli_abort("One of {.arg fun}, {.arg cdf_fun}, or {.arg pdf_fun} must be provided.")
+    }
+    if (n_provided > 1L) {
+      cli::cli_abort("Supply only one of {.arg fun}, {.arg cdf_fun}, or {.arg pdf_fun}.")
+    }
 
     k <- seq_len(n)
     p_vals <- (1 - cos((2 * k - 1) * pi / (2 * n))) / 2
 
-    fun_injected <- function(p) {
-      rlang::inject(fun(p, !!!args))
+    if (!is.null(fun)) {
+      fun_injected <- function(p) rlang::inject(fun(p, !!!args))
+    } else if (!is.null(cdf_fun)) {
+      cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
+      fun_injected <- cdf_to_qf(cdf_injected)
+    } else {
+      pdf_injected <- function(x) rlang::inject(pdf_fun(x, !!!args))
+      cdf_derived <- pdf_to_cdf(pdf_injected)
+      fun_injected <- cdf_to_qf(cdf_derived)
     }
 
     q_vals <- fun_injected(p_vals)

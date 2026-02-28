@@ -88,11 +88,11 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 \item{fun}{A hazard function \eqn{h(x)} (optional). When supplied,
 \code{pdf_fun} and \code{cdf_fun} must not be provided.}
 
-\item{pdf_fun}{A PDF function (e.g. \link{dnorm}). Required when \code{fun} is
-not supplied.}
+\item{pdf_fun}{A PDF function (e.g. \link{dnorm}). When supplied without
+\code{cdf_fun}, the CDF is derived by numerical integration.}
 
-\item{cdf_fun}{A CDF function (e.g. \link{pnorm}). Required when \code{fun} is
-not supplied.}
+\item{cdf_fun}{A CDF function (e.g. \link{pnorm}). When supplied without
+\code{pdf_fun}, the PDF is derived by numerical differentiation.}
 
 \item{xlim}{A numeric vector of length 2 giving the x-range.}
 
@@ -120,12 +120,17 @@ interfaces are supported:
 \itemize{
 \item \strong{PDF + CDF interface}: supply \code{pdf_fun} and \code{cdf_fun}; the hazard is
 computed internally as \eqn{h(x) = f(x) / (1 - F(x))}.
+\item \strong{PDF only}: supply just \code{pdf_fun}; the CDF is derived by numerical
+integration.
+\item \strong{CDF only}: supply just \code{cdf_fun}; the PDF is derived by numerical
+differentiation.
 \item \strong{Direct hazard interface}: supply \code{fun}, a function that returns
 \eqn{h(x)} directly (e.g. a closed-form expression).
 }
 
-Exactly one of these two interfaces must be used. By default only the line
-is drawn (no fill).
+Supply either \code{fun} alone, or one or both of \code{pdf_fun}/\code{cdf_fun} (the
+missing component is derived numerically when only one is given). By default
+only the line is drawn (no fill).
 }
 \examples{
   # PDF + CDF interface

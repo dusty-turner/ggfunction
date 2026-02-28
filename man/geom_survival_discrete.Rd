@@ -22,6 +22,7 @@ geom_survival_discrete(
   show.legend = NA,
   inherit.aes = FALSE,
   fun = NULL,
+  cdf_fun = NULL,
   pmf_fun = NULL,
   xlim = NULL,
   support = NULL,
@@ -95,13 +96,16 @@ them. This is most useful for helper functions that define both data and
 aesthetics and shouldn't inherit behaviour from the default plot
 specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
-\item{fun}{A discrete CDF function (e.g. \link{pbinom}). \eqn{S(x) = 1 - F(x)}
-is computed directly from this function on the integer support. Exactly
-one of \code{fun} or \code{pmf_fun} must be provided.}
+\item{fun}{A discrete survival function evaluated directly on the integer
+support. Exactly one of \code{fun}, \code{cdf_fun}, or \code{pmf_fun} must be provided.}
+
+\item{cdf_fun}{A discrete CDF function (e.g. \link{pbinom}). \eqn{S(x) = 1 - F(x)}
+is computed from this function on the integer support. Exactly one of
+\code{fun}, \code{cdf_fun}, or \code{pmf_fun} must be provided.}
 
 \item{pmf_fun}{A PMF function (e.g. \link{dbinom}). The survival function is
-derived as \eqn{1 - \mathrm{cumsum}(\mathrm{pmf})}. Exactly one of \code{fun}
-or \code{pmf_fun} must be provided.}
+derived as \eqn{1 - \mathrm{cumsum}(\mathrm{pmf})}. Exactly one of
+\code{fun}, \code{cdf_fun}, or \code{pmf_fun} must be provided.}
 
 \item{xlim}{A numeric vector of length 2 specifying the range of integer
 support values.}
@@ -109,8 +113,8 @@ support values.}
 \item{support}{An optional integer or numeric vector giving the exact support
 points to evaluate. When supplied, \code{xlim} is ignored.}
 
-\item{args}{A named list of additional arguments to pass to \code{fun} or
-\code{pmf_fun}.}
+\item{args}{A named list of additional arguments to pass to \code{fun},
+\code{cdf_fun}, or \code{pmf_fun}.}
 
 \item{open_fill}{Fill color for the open (hollow) endpoint circles. Defaults
 to \code{NULL}, which uses the active theme's panel background color.}
@@ -136,18 +140,20 @@ segments, dashed vertical jumps, open circles at the lower limit of each
 jump, and closed circles at the upper limit.
 }
 \details{
-Supply \strong{either} \code{pmf_fun} (a PMF such as \link{dbinom}, from which the CDF is
-computed via cumulative summation) \strong{or} \code{fun} (a CDF such as \link{pbinom},
-from which \eqn{S(x) = 1 - F(x)} is computed directly).
+Supply exactly one of \code{fun} (a discrete survival function evaluated
+directly), \code{cdf_fun} (a discrete CDF such as \link{pbinom}, from which
+\eqn{S(x) = 1 - F(x)} is computed), or \code{pmf_fun} (a PMF such as \link{dbinom},
+from which the CDF is computed via cumulative summation and then
+\eqn{S(x) = 1 - F(x)}).
 }
 \examples{
   # via PMF
   ggplot() +
     geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 
-  # via CDF directly
+  # via CDF
   ggplot() +
-    geom_survival_discrete(fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
+    geom_survival_discrete(cdf_fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 
   ggplot() +
     geom_survival_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))

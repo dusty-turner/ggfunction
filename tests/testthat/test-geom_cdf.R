@@ -59,3 +59,56 @@ test_that("StatCDF warns for invalid CDF", {
     )
   )
 })
+
+# --- Alternate input: pdf_fun ---
+
+test_that("StatCDF computes CDF from pdf_fun (dnorm)", {
+  scales <- list(x = NULL)
+  result <- StatCDF$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    pdf_fun = dnorm,
+    xlim = c(-3, 3),
+    n = 101,
+    args = list()
+  )
+  expect_equal(nrow(result), 101)
+  expected <- pnorm(result$x)
+  expect_equal(result$y, expected, tolerance = 1e-3)
+})
+
+test_that("geom_cdf with pdf_fun builds without error", {
+  p <- ggplot() + geom_cdf(pdf_fun = dnorm, xlim = c(-3, 3))
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("StatCDF errors when both fun and pdf_fun provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatCDF$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      fun = pnorm,
+      pdf_fun = dnorm,
+      xlim = c(-3, 3),
+      n = 101,
+      args = list()
+    ),
+    "fun.*pdf_fun"
+  )
+})
+
+test_that("StatCDF errors when neither fun nor pdf_fun provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatCDF$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      xlim = c(-3, 3),
+      n = 101,
+      args = list()
+    ),
+    "fun.*pdf_fun"
+  )
+})

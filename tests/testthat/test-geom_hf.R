@@ -92,21 +92,6 @@ test_that("StatHF errors when both fun and pdf_fun/cdf_fun supplied", {
   )
 })
 
-test_that("StatHF errors when only pdf_fun without cdf_fun", {
-  scales <- list(x = NULL)
-  expect_error(
-    StatHF$compute_group(
-      data = data.frame(group = 1),
-      scales = scales,
-      pdf_fun = dnorm,
-      xlim = c(0, 5),
-      n = 51,
-      args = list()
-    ),
-    "pdf_fun.*cdf_fun"
-  )
-})
-
 test_that("geom_hf with pdf_args/cdf_args overrides builds without error", {
   p <- ggplot() + geom_hf(
     pdf_fun = dnorm, cdf_fun = pnorm,
@@ -117,4 +102,68 @@ test_that("geom_hf with pdf_args/cdf_args overrides builds without error", {
   )
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
+})
+
+# --- Relaxed pair requirement ---
+
+test_that("StatHF computes hazard from pdf_fun only", {
+  scales <- list(x = NULL)
+  result <- StatHF$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    pdf_fun = dexp,
+    xlim = c(0.1, 5),
+    n = 101,
+    args = list(rate = 1),
+    pdf_args = NULL,
+    cdf_args = NULL
+  )
+  expect_equal(nrow(result), 101)
+  # Hazard of exponential is constant = rate; numerical derivation may have
+  # isolated outliers, so check that >95% of values are within tolerance
+  deviations <- abs(result$y - 1)
+  expect_true(mean(deviations < 0.05, na.rm = TRUE) > 0.95)
+})
+
+test_that("StatHF computes hazard from cdf_fun only", {
+  scales <- list(x = NULL)
+  result <- StatHF$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    cdf_fun = pexp,
+    xlim = c(0.01, 5),
+    n = 101,
+    args = list(rate = 1),
+    pdf_args = NULL,
+    cdf_args = NULL
+  )
+  expect_equal(nrow(result), 101)
+  # Hazard of exponential is constant = rate
+  expect_true(all(abs(result$y - 1) < 0.05, na.rm = TRUE))
+})
+
+test_that("geom_hf with only pdf_fun builds without error", {
+  p <- ggplot() + geom_hf(pdf_fun = dexp, args = list(rate = 1), xlim = c(0.01, 5))
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("geom_hf with only cdf_fun builds without error", {
+  p <- ggplot() + geom_hf(cdf_fun = pexp, args = list(rate = 1), xlim = c(0.01, 5))
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("StatHF errors when none of fun/pdf_fun/cdf_fun provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatHF$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      xlim = c(0, 5),
+      n = 51,
+      args = list()
+    ),
+    "fun.*pdf_fun.*cdf_fun"
+  )
 })

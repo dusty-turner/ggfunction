@@ -1,14 +1,27 @@
 #' Plot a Survival Function S(x) = 1 - F(x)
 #'
-#' `geom_survival()` creates a ggplot2 layer that plots a survival function,
-#' computed as \eqn{S(x) = 1 - F(x)} where \eqn{F(x)} is a CDF.
+#' `geom_survival()` creates a ggplot2 layer that plots a survival function.
 #' By default only the line is drawn (no fill).
 #'
+#' Supply exactly one of `fun` (a survival function), `cdf_fun` (a CDF), or
+#' `pdf_fun` (a PDF). When `cdf_fun` is supplied, \eqn{S(x) = 1 - F(x)}.
+#' When `pdf_fun` is supplied, the CDF is first derived by numerical
+#' integration and then \eqn{S(x) = 1 - F(x)}.
+#'
 #' @inheritParams ggplot2::geom_function
-#' @param fun A CDF function (e.g. [pnorm]). The function must accept a numeric vector
-#'   and return values between 0 and 1. The survival function is computed as `1 - fun(x)`.
-#' @param n Number of points at which to evaluate `fun`. Defaults to 101.
-#' @param args A named list of additional arguments to pass to `fun`.
+#' @param fun A survival function \eqn{S(x)} returning values between 0 and 1
+#'   (e.g. `function(x) 1 - pnorm(x)`). Evaluated directly. Exactly one of
+#'   `fun`, `cdf_fun`, or `pdf_fun` must be provided.
+#' @param cdf_fun A CDF function (e.g. [pnorm]). The survival function is
+#'   computed as `1 - cdf_fun(x)`. Exactly one of `fun`, `cdf_fun`, or
+#'   `pdf_fun` must be provided.
+#' @param pdf_fun A PDF function (e.g. [dnorm]). The CDF is derived by
+#'   numerical integration and the survival function is computed as
+#'   `1 - F(x)`. Exactly one of `fun`, `cdf_fun`, or `pdf_fun` must be
+#'   provided.
+#' @param n Number of points at which to evaluate. Defaults to 101.
+#' @param args A named list of additional arguments to pass to `fun`,
+#'   `cdf_fun`, or `pdf_fun`.
 #' @param xlim A numeric vector of length 2 giving the x-range.
 #' @param color Line color for the survival curve.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
@@ -16,11 +29,16 @@
 #' @return A ggplot2 layer.
 #'
 #' @examples
+#'   # Direct survival function
 #'   ggplot() +
-#'     geom_survival(fun = pnorm, xlim = c(-3, 3))
+#'     geom_survival(fun = function(x) 1 - pnorm(x), xlim = c(-3, 3))
+#'
+#'   # Via CDF
+#'   ggplot() +
+#'     geom_survival(cdf_fun = pnorm, xlim = c(-3, 3))
 #'
 #'   ggplot() +
-#'     geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
+#'     geom_survival(cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 #'
 #' @name geom_survival
 #' @aliases StatSurvival GeomSurvival
@@ -34,7 +52,9 @@ geom_survival <- function(
     na.rm = FALSE,
     show.legend = NA,
     inherit.aes = FALSE,
-    fun,
+    fun = NULL,
+    cdf_fun = NULL,
+    pdf_fun = NULL,
     xlim = NULL,
     n = 101,
     args = list(),
@@ -61,6 +81,8 @@ geom_survival <- function(
     inherit.aes = inherit.aes,
     params = list(
       fun = fun,
+      cdf_fun = cdf_fun,
+      pdf_fun = pdf_fun,
       n = n,
       xlim = xlim,
       args = args,
@@ -76,7 +98,17 @@ geom_survival <- function(
 StatSurvival <- ggproto("StatSurvival", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
-  compute_group = function(data, scales, fun, xlim = NULL, n = 101, args = NULL) {
+  compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
+                           pdf_fun = NULL, xlim = NULL, n = 101, args = NULL) {
+
+    # Validate: exactly one source
+    n_provided <- (!is.null(fun)) + (!is.null(cdf_fun)) + (!is.null(pdf_fun))
+    if (n_provided == 0L) {
+      cli::cli_abort("One of {.arg fun}, {.arg cdf_fun}, or {.arg pdf_fun} must be provided.")
+    }
+    if (n_provided > 1L) {
+      cli::cli_abort("Supply only one of {.arg fun}, {.arg cdf_fun}, or {.arg pdf_fun}.")
+    }
 
     range <- if (is.null(scales$x)) {
       xlim %||% c(0, 1)
@@ -84,13 +116,26 @@ StatSurvival <- ggproto("StatSurvival", Stat,
       xlim %||% scales$x$dimension()
     }
 
-    fun_injected <- function(x) {
-      rlang::inject(fun(x, !!!args))
+    xseq <- seq(range[1], range[2], length.out = n)
+
+    if (!is.null(fun)) {
+      fun_injected <- function(x) rlang::inject(fun(x, !!!args))
+      y_out <- fun_injected(xseq)
+    } else if (!is.null(cdf_fun)) {
+      cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
+      y_out <- 1 - cdf_injected(xseq)
+    } else {
+      pdf_injected <- function(x) rlang::inject(pdf_fun(x, !!!args))
+      cdf_derived <- pdf_to_cdf(pdf_injected)
+      y_out <- 1 - cdf_derived(xseq)
     }
 
-    xseq <- seq(range[1], range[2], length.out = n)
-    cdf_vals <- fun_injected(xseq)
-    y_out <- 1 - cdf_vals
+    if (length(y_out) > 1 && any(diff(y_out) > 0, na.rm = TRUE)) {
+      cli::cli_warn(c(
+        "The resulting survival function is not monotonically non-increasing.",
+        "i" = "Check the function supplied to {.arg fun}, {.arg cdf_fun}, or {.arg pdf_fun}."
+      ))
+    }
 
     data.frame(x = xseq, y = y_out)
   }

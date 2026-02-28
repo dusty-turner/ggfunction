@@ -23,6 +23,7 @@ geom_qf_discrete(
   inherit.aes = FALSE,
   fun = NULL,
   pmf_fun = NULL,
+  cdf_fun = NULL,
   xlim = NULL,
   support = NULL,
   args = list(),
@@ -97,12 +98,16 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 
 \item{fun}{A discrete quantile function (e.g. \link{qbinom}). Evaluated on a
 dense grid of probabilities in \eqn{(0, 1)}. Use \code{xlim} to restrict the
-range of support values shown. Exactly one of \code{fun} or \code{pmf_fun} must be
-provided.}
+range of support values shown. Exactly one of \code{fun}, \code{pmf_fun}, or
+\code{cdf_fun} must be provided.}
 
 \item{pmf_fun}{A PMF function (e.g. \link{dbinom}). The quantile function is
-derived internally by inverting the cumulative sum. Exactly one of \code{fun}
-or \code{pmf_fun} must be provided.}
+derived internally by inverting the cumulative sum. Exactly one of \code{fun},
+\code{pmf_fun}, or \code{cdf_fun} must be provided.}
+
+\item{cdf_fun}{A discrete CDF function (e.g. \link{pbinom}). Evaluated on the
+integer support and inverted to produce the quantile function. Exactly one
+of \code{fun}, \code{pmf_fun}, or \code{cdf_fun} must be provided.}
 
 \item{xlim}{A numeric vector of length 2 specifying the range of support
 values to display (y-axis of the quantile function). For the \code{pmf_fun}
@@ -138,10 +143,11 @@ jumps, closed circles at the lower limit of each jump, and open circles at
 the upper limit.
 }
 \details{
-Supply \strong{either} \code{pmf_fun} (a PMF such as \link{dbinom}, from which the CDF is
-computed via cumulative summation and then inverted) \strong{or} \code{fun} (a
-quantile function such as \link{qbinom}, evaluated directly on a dense
-probability grid).
+Supply exactly one of \code{fun} (a quantile function such as \link{qbinom},
+evaluated directly on a dense probability grid), \code{pmf_fun} (a PMF such as
+\link{dbinom}, from which the CDF is computed via cumulative summation and then
+inverted), or \code{cdf_fun} (a CDF such as \link{pbinom}, evaluated on the integer
+support and inverted).
 }
 \examples{
   # via PMF

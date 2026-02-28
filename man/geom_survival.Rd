@@ -21,7 +21,9 @@ geom_survival(
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = FALSE,
-  fun,
+  fun = NULL,
+  cdf_fun = NULL,
+  pdf_fun = NULL,
   xlim = NULL,
   n = 101,
   args = list(),
@@ -81,14 +83,25 @@ them. This is most useful for helper functions that define both data and
 aesthetics and shouldn't inherit behaviour from the default plot
 specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
-\item{fun}{A CDF function (e.g. \link{pnorm}). The function must accept a numeric vector
-and return values between 0 and 1. The survival function is computed as \code{1 - fun(x)}.}
+\item{fun}{A survival function \eqn{S(x)} returning values between 0 and 1
+(e.g. \code{function(x) 1 - pnorm(x)}). Evaluated directly. Exactly one of
+\code{fun}, \code{cdf_fun}, or \code{pdf_fun} must be provided.}
+
+\item{cdf_fun}{A CDF function (e.g. \link{pnorm}). The survival function is
+computed as \code{1 - cdf_fun(x)}. Exactly one of \code{fun}, \code{cdf_fun}, or
+\code{pdf_fun} must be provided.}
+
+\item{pdf_fun}{A PDF function (e.g. \link{dnorm}). The CDF is derived by
+numerical integration and the survival function is computed as
+\code{1 - F(x)}. Exactly one of \code{fun}, \code{cdf_fun}, or \code{pdf_fun} must be
+provided.}
 
 \item{xlim}{A numeric vector of length 2 giving the x-range.}
 
-\item{n}{Number of points at which to evaluate \code{fun}. Defaults to 101.}
+\item{n}{Number of points at which to evaluate. Defaults to 101.}
 
-\item{args}{A named list of additional arguments to pass to \code{fun}.}
+\item{args}{A named list of additional arguments to pass to \code{fun},
+\code{cdf_fun}, or \code{pdf_fun}.}
 
 \item{color}{Line color for the survival curve.}
 }
@@ -96,16 +109,26 @@ and return values between 0 and 1. The survival function is computed as \code{1 
 A ggplot2 layer.
 }
 \description{
-\code{geom_survival()} creates a ggplot2 layer that plots a survival function,
-computed as \eqn{S(x) = 1 - F(x)} where \eqn{F(x)} is a CDF.
+\code{geom_survival()} creates a ggplot2 layer that plots a survival function.
 By default only the line is drawn (no fill).
 }
+\details{
+Supply exactly one of \code{fun} (a survival function), \code{cdf_fun} (a CDF), or
+\code{pdf_fun} (a PDF). When \code{cdf_fun} is supplied, \eqn{S(x) = 1 - F(x)}.
+When \code{pdf_fun} is supplied, the CDF is first derived by numerical
+integration and then \eqn{S(x) = 1 - F(x)}.
+}
 \examples{
+  # Direct survival function
   ggplot() +
-    geom_survival(fun = pnorm, xlim = c(-3, 3))
+    geom_survival(fun = function(x) 1 - pnorm(x), xlim = c(-3, 3))
+
+  # Via CDF
+  ggplot() +
+    geom_survival(cdf_fun = pnorm, xlim = c(-3, 3))
 
   ggplot() +
-    geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
+    geom_survival(cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 
 }
 \keyword{datasets}

@@ -5,19 +5,24 @@
 #'
 #' * **PDF + CDF interface**: supply `pdf_fun` and `cdf_fun`; the hazard is
 #'   computed internally as \eqn{h(x) = f(x) / (1 - F(x))}.
+#' * **PDF only**: supply just `pdf_fun`; the CDF is derived by numerical
+#'   integration.
+#' * **CDF only**: supply just `cdf_fun`; the PDF is derived by numerical
+#'   differentiation.
 #' * **Direct hazard interface**: supply `fun`, a function that returns
 #'   \eqn{h(x)} directly (e.g. a closed-form expression).
 #'
-#' Exactly one of these two interfaces must be used. By default only the line
-#' is drawn (no fill).
+#' Supply either `fun` alone, or one or both of `pdf_fun`/`cdf_fun` (the
+#' missing component is derived numerically when only one is given). By default
+#' only the line is drawn (no fill).
 #'
 #' @inheritParams ggplot2::geom_function
 #' @param fun A hazard function \eqn{h(x)} (optional). When supplied,
 #'   `pdf_fun` and `cdf_fun` must not be provided.
-#' @param pdf_fun A PDF function (e.g. [dnorm]). Required when `fun` is
-#'   not supplied.
-#' @param cdf_fun A CDF function (e.g. [pnorm]). Required when `fun` is
-#'   not supplied.
+#' @param pdf_fun A PDF function (e.g. [dnorm]). When supplied without
+#'   `cdf_fun`, the CDF is derived by numerical integration.
+#' @param cdf_fun A CDF function (e.g. [pnorm]). When supplied without
+#'   `pdf_fun`, the PDF is derived by numerical differentiation.
 #' @param n Number of points at which to evaluate. Defaults to 101.
 #' @param args A named list of arguments passed to `fun`, or shared by
 #'   both `pdf_fun` and `cdf_fun`.
@@ -121,9 +126,9 @@ StatHF <- ggproto("StatHF", Stat,
         "Supply either {.arg fun} or {.arg pdf_fun}/{.arg cdf_fun}, not both."
       )
     }
-    if (!using_fun && (is.null(pdf_fun) || is.null(cdf_fun))) {
+    if (!using_fun && !using_pdf_cdf) {
       cli::cli_abort(
-        "When {.arg fun} is not supplied, both {.arg pdf_fun} and {.arg cdf_fun} are required."
+        "Supply {.arg fun} or at least one of {.arg pdf_fun}/{.arg cdf_fun}."
       )
     }
 
@@ -143,8 +148,21 @@ StatHF <- ggproto("StatHF", Stat,
       pdf_a <- if (!is.null(pdf_args)) modifyList(args, pdf_args) else args
       cdf_a <- if (!is.null(cdf_args)) modifyList(args, cdf_args) else args
 
-      pdf_injected <- function(x) rlang::inject(pdf_fun(x, !!!pdf_a))
-      cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!cdf_a))
+      # Build injected versions of whichever functions were supplied
+      if (!is.null(pdf_fun)) {
+        pdf_injected <- function(x) rlang::inject(pdf_fun(x, !!!pdf_a))
+      }
+      if (!is.null(cdf_fun)) {
+        cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!cdf_a))
+      }
+
+      # Derive missing component
+      if (is.null(cdf_fun)) {
+        cdf_injected <- pdf_to_cdf(pdf_injected)
+      }
+      if (is.null(pdf_fun)) {
+        pdf_injected <- cdf_to_pdf(cdf_injected)
+      }
 
       f_vals <- pdf_injected(xseq)
       S_vals <- 1 - cdf_injected(xseq)

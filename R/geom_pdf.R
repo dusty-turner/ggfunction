@@ -9,7 +9,10 @@
 #' @importFrom cli cli_alert
 #' @param fun A function to compute the density (e.g. [dnorm]). The function must accept a
 #'   numeric vector as its first argument and return density values that integrate (approximately)
-#'   to 1.
+#'   to 1. Exactly one of `fun` or `cdf_fun` must be provided.
+#' @param cdf_fun A CDF function (e.g. [pnorm]). When supplied, the PDF is derived
+#'   numerically via central finite differences. Exactly one of `fun` or `cdf_fun` must
+#'   be provided.
 #' @param n (defaults to 101)Number of points at which to evaluate `fun`.
 #' @param args A named list of additional arguments to pass to `fun`.
 #' @param xlim A numeric vector of length 2 giving the x-range over which to evaluate the PDF.
@@ -61,7 +64,8 @@ geom_pdf <- function(
     na.rm = FALSE,
     show.legend = NA,
     inherit.aes = FALSE,
-    fun,
+    fun = NULL,
+    cdf_fun = NULL,
     xlim = NULL,
     n = 101,
     args = list(),
@@ -106,6 +110,7 @@ geom_pdf <- function(
     params = c(
       list(
         fun = fun,
+        cdf_fun = cdf_fun,
         n = n,
         xlim = xlim,
         args = args,
@@ -131,7 +136,17 @@ geom_pdf <- function(
 StatPDF <- ggproto("StatPDF", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
-  compute_group = function(data, scales, fun, xlim = NULL, n = 101, args = NULL) {
+  compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
+                           xlim = NULL, n = 101, args = NULL) {
+
+    # Validate: exactly one source
+    n_provided <- (!is.null(fun)) + (!is.null(cdf_fun))
+    if (n_provided == 0L) {
+      cli::cli_abort("One of {.arg fun} or {.arg cdf_fun} must be provided.")
+    }
+    if (n_provided > 1L) {
+      cli::cli_abort("Supply only one of {.arg fun} or {.arg cdf_fun}, not both.")
+    }
 
     range <- if (is.null(scales$x)) {
       xlim %||% c(0, 1)
@@ -139,9 +154,11 @@ StatPDF <- ggproto("StatPDF", Stat,
       xlim %||% scales$x$dimension()
     }
 
-    # Create an injected version of fun that includes the additional arguments.
-    fun_injected <- function(x) {
-      rlang::inject(fun(x, !!!args))
+    if (!is.null(cdf_fun)) {
+      cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
+      fun_injected <- cdf_to_pdf(cdf_injected)
+    } else {
+      fun_injected <- function(x) rlang::inject(fun(x, !!!args))
     }
 
     # Check that the injected function integrates to 1 over the specified range.

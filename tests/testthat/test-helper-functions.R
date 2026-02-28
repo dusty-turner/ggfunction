@@ -96,6 +96,56 @@ test_that("build_step_polygon handles n=1", {
   expect_equal(result$y, 0.5)
 })
 
+# --- Numerical conversion helpers ---
+
+test_that("pdf_to_cdf converts dnorm to pnorm", {
+  cdf_derived <- pdf_to_cdf(dnorm)
+  x <- c(-2, -1, 0, 1, 2)
+  expect_equal(cdf_derived(x), pnorm(x), tolerance = 1e-3)
+})
+
+test_that("pdf_to_cdf converts dexp to pexp", {
+  cdf_derived <- pdf_to_cdf(dexp, lower = 0)
+  x <- c(0.5, 1, 2, 5)
+  expect_equal(cdf_derived(x), pexp(x), tolerance = 1e-3)
+})
+
+test_that("pdf_to_cdf returns NA on integration failure", {
+  bad_pdf <- function(x) stop("broken")
+  cdf_derived <- pdf_to_cdf(bad_pdf)
+  expect_true(is.na(cdf_derived(0)))
+})
+
+test_that("cdf_to_pdf converts pnorm to dnorm", {
+  pdf_derived <- cdf_to_pdf(pnorm)
+  x <- c(-2, -1, 0, 1, 2)
+  expect_equal(pdf_derived(x), dnorm(x), tolerance = 1e-3)
+})
+
+test_that("cdf_to_pdf converts pexp to dexp", {
+  pdf_derived <- cdf_to_pdf(pexp)
+  x <- c(0.5, 1, 2, 5)
+  expect_equal(pdf_derived(x), dexp(x), tolerance = 1e-3)
+})
+
+test_that("cdf_to_qf converts pnorm to qnorm", {
+  qf_derived <- cdf_to_qf(pnorm)
+  p <- c(0.025, 0.1, 0.5, 0.9, 0.975)
+  expect_equal(qf_derived(p), qnorm(p), tolerance = 1e-3)
+})
+
+test_that("cdf_to_qf converts pexp to qexp", {
+  qf_derived <- cdf_to_qf(pexp, search_lower = 0, search_upper = 20)
+  p <- c(0.1, 0.5, 0.9)
+  expect_equal(qf_derived(p), qexp(p), tolerance = 1e-3)
+})
+
+test_that("cdf_to_qf handles boundary probabilities", {
+  qf_derived <- cdf_to_qf(pnorm)
+  expect_equal(qf_derived(0), -Inf)
+  expect_equal(qf_derived(1), Inf)
+})
+
 test_that("times is multiplication", {
   expect_equal(times(3, 4), 12)
 })

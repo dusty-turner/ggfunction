@@ -67,3 +67,70 @@ test_that("geom_survival_discrete with support parameter builds without error", 
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
 })
+
+# --- Alternate inputs ---
+
+test_that("StatSurvivalDiscrete computes S(x) from cdf_fun", {
+  scales <- list(x = NULL)
+  result <- StatSurvivalDiscrete$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    cdf_fun = pbinom,
+    xlim = c(0, 10),
+    args = list(size = 10, prob = 0.5)
+  )
+  expect_equal(nrow(result), 11)
+  expected <- 1 - pbinom(0:10, size = 10, prob = 0.5)
+  expect_equal(result$y, expected, tolerance = 1e-6)
+})
+
+test_that("StatSurvivalDiscrete computes S(x) from direct fun", {
+  s_binom <- function(x, size, prob) 1 - pbinom(x, size = size, prob = prob)
+  scales <- list(x = NULL)
+  result <- StatSurvivalDiscrete$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    fun = s_binom,
+    xlim = c(0, 10),
+    args = list(size = 10, prob = 0.5)
+  )
+  expect_equal(nrow(result), 11)
+  expected <- 1 - pbinom(0:10, size = 10, prob = 0.5)
+  expect_equal(result$y, expected, tolerance = 1e-6)
+})
+
+test_that("geom_survival_discrete with cdf_fun builds without error", {
+  p <- ggplot() + geom_survival_discrete(
+    cdf_fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+  )
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("StatSurvivalDiscrete errors when multiple inputs provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatSurvivalDiscrete$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      cdf_fun = pbinom,
+      pmf_fun = dbinom,
+      xlim = c(0, 10),
+      args = list(size = 10, prob = 0.5)
+    ),
+    "fun.*cdf_fun.*pmf_fun"
+  )
+})
+
+test_that("StatSurvivalDiscrete errors when no input provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatSurvivalDiscrete$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      xlim = c(0, 10),
+      args = list(size = 10, prob = 0.5)
+    ),
+    "fun.*cdf_fun.*pmf_fun"
+  )
+})

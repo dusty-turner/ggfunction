@@ -282,6 +282,8 @@ Users whose primary interest is vector fields will find that \pkg{ggvfields} pro
 
 Statistics education depends heavily on the visual language of probability distributions. Instructors shade tail areas to illustrate $p$-values, draw CDFs to connect probabilities with quantiles, and mark central regions to delineate confidence intervals. \pkg{ggfunction} provides a family of nine geoms that map directly onto the standard functions associated with a probability distribution, each with built-in shading support. Throughout, the user supplies an R function (e.g., `dnorm`, `pnorm`, `qnorm`) and a range; \pkg{ggfunction} handles evaluation, shading, and validation automatically.
 
+Each geom accepts its native function type through the `fun` parameter (e.g., a PDF for `geom_pdf()`, a CDF for `geom_cdf()`), but most also accept alternate function types that are converted internally. For example, `geom_cdf()` accepts a `pdf_fun` argument and derives the CDF by numerical integration; `geom_pdf()` accepts a `cdf_fun` argument and derives the PDF by numerical differentiation; and `geom_qf()` accepts both `cdf_fun` and `pdf_fun`, deriving the quantile function by root-finding. This cross-conversion feature lets users work with whichever characterization of a distribution is most natural--the PDF, CDF, survival function, or quantile function--regardless of which geom they wish to plot. Exactly one function source must be provided; supplying more than one is an error.
+
 ## Density functions: `geom_pdf()`
 
 The probability density function (PDF) of a continuous random variable $X$ satisfies
@@ -291,7 +293,7 @@ f(x) \geq 0 \quad \text{and} \quad \int_{-\infty}^{\infty} f(x)\, dx = 1.
 (\#eq:pdf)
 \end{equation}
 
-`geom_pdf()` evaluates a user-supplied density and renders it as a filled area with an overlaid outline. The underlying `StatPDF` validates the normalization property \@ref(eq:pdf) using `stats::integrate()`, issuing a diagnostic via \CRANpkg{cli} [@cli] if the integral departs from unity by more than a specified tolerance--a guard against accidentally passing an unnormalized function.
+`geom_pdf()` evaluates a user-supplied density and renders it as a filled area with an overlaid outline. Alternatively, a CDF can be supplied via `cdf_fun`, from which the density is derived numerically by central finite differences. The underlying `StatPDF` validates the normalization property \@ref(eq:pdf) using `stats::integrate()`, issuing a diagnostic via \CRANpkg{cli} [@cli] if the integral departs from unity by more than a specified tolerance--a guard against accidentally passing an unnormalized function.
 
 Four shading modes are supported, corresponding to common pedagogical operations.
 
@@ -387,7 +389,7 @@ p1 | p2
 
 The CDF $F(x) = P(X \leq x)$ and survival function $S(x) = 1 - F(x) = P(X > x)$ are complementary summaries of a distribution. \pkg{ggfunction} provides continuous and discrete variants of both.
 
-**Continuous CDF (`geom_cdf()`).** `geom_cdf()` evaluates a user-supplied CDF (e.g., `pnorm`) and renders it as a line. It supports the same `p`, `p_lower`/`p_upper`, and `shade_outside` shading parameters as `geom_pdf()`.
+**Continuous CDF (`geom_cdf()`).** `geom_cdf()` evaluates a user-supplied CDF (e.g., `pnorm`) and renders it as a line. Alternatively, a PDF can be supplied via `pdf_fun`, from which the CDF is derived by numerical integration. It supports the same `p`, `p_lower`/`p_upper`, and `shade_outside` shading parameters as `geom_pdf()`.
 
 ```{r cdf-shaded, echo=TRUE}
 #| fig.cap: "The standard normal CDF."
@@ -395,31 +397,31 @@ ggplot() +
   geom_cdf(fun = pnorm, xlim = c(-3, 3))
 ```
 
-**Discrete CDF (`geom_cdf_discrete()`).** For discrete distributions, the CDF is a right-continuous step function. `geom_cdf_discrete()` takes a PMF, computes cumulative sums, and renders the result with horizontal segments, dashed vertical jumps, open circles at the pre-jump value (the left limit), and closed circles at the achieved value. The `show_points` and `show_vert` parameters independently suppress the endpoint circles or vertical jump segments. The `support` argument accepts an explicit numeric vector of mass points, overriding `xlim` for distributions with non-integer or non-consecutive support.
+**Discrete CDF (`geom_cdf_discrete()`).** For discrete distributions, the CDF is a right-continuous step function. `geom_cdf_discrete()` accepts a CDF directly via `fun` (e.g., `pbinom`) or a PMF via `pmf_fun` (from which the CDF is computed by cumulative summation), and renders the result with horizontal segments, dashed vertical jumps, open circles at the pre-jump value (the left limit), and closed circles at the achieved value. The `show_points` and `show_vert` parameters independently suppress the endpoint circles or vertical jump segments. The `support` argument accepts an explicit numeric vector of mass points, overriding `xlim` for distributions with non-integer or non-consecutive support.
 
 ```{r discrete-cdf, echo=TRUE}
 #| fig.cap: "The discrete CDF of a $\\mathrm{Binomial}(10, 0.5)$ distribution."
 ggplot() +
   geom_cdf_discrete(
-    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+    pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
   )
 ```
 
-**Continuous survival (`geom_survival()`).** In reliability theory and biostatistics, $S(x) = 1 - F(x) = P(X > x)$ gives the probability that the event of interest has not yet occurred by time $x$. `geom_survival()` accepts a CDF and plots its complement.
+**Continuous survival (`geom_survival()`).** In reliability theory and biostatistics, $S(x) = 1 - F(x) = P(X > x)$ gives the probability that the event of interest has not yet occurred by time $x$. `geom_survival()` accepts a survival function directly via `fun`, or derives $S$ from a CDF via `cdf_fun` (computing $1 - F(x)$) or a PDF via `pdf_fun` (integrating to obtain $F$, then computing $1 - F(x)$).
 
 ```{r survival-exp, echo=TRUE}
 #| fig.cap: "The survival function of an $\\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$."
 ggplot() +
-  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
+  geom_survival(cdf_fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
 ```
 
-**Discrete survival (`geom_survival_discrete()`).** For discrete distributions, $S(x) = 1 - F(x)$ is itself a right-continuous step function. `geom_survival_discrete()` computes $S$ from a PMF and renders it with the same visual conventions as `geom_cdf_discrete()`. The `support` argument behaves as in `geom_cdf_discrete()`.
+**Discrete survival (`geom_survival_discrete()`).** For discrete distributions, $S(x) = 1 - F(x)$ is itself a right-continuous step function. `geom_survival_discrete()` accepts a discrete survival function directly via `fun`, or derives $S$ from a CDF via `cdf_fun` or a PMF via `pmf_fun` (computing cumulative sums and then $1 - F$). It renders the result with the same visual conventions as `geom_cdf_discrete()`. The `support` argument behaves as in `geom_cdf_discrete()`.
 
 ```{r discrete-survival, echo=TRUE}
 #| fig.cap: "The discrete survival function of a $\\mathrm{Binomial}(10, 0.5)$ distribution, descending from 1 to 0."
 ggplot() +
   geom_survival_discrete(
-    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+    pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
   )
 ```
 
@@ -427,7 +429,7 @@ ggplot() +
 
 The quantile function $Q(p) = \inf\{x : F(x) \geq p\}$ inverts the CDF. \pkg{ggfunction} provides continuous and discrete variants.
 
-**Continuous (`geom_qf()`).** `geom_qf()` evaluates a user-supplied quantile function (e.g., `qnorm`) over the unit interval $(0, 1)$. Evaluation points are placed at Chebyshev nodes of the first kind, $p_k = (1 - \cos((2k-1)\pi / 2n))/2$ for $k = 1, \ldots, n$, which cluster near 0 and 1 where quantile functions are typically most curved and avoid evaluating at the exact endpoints, preventing $\pm\infty$ for unbounded distributions.
+**Continuous (`geom_qf()`).** `geom_qf()` evaluates a user-supplied quantile function (e.g., `qnorm`) over the unit interval $(0, 1)$. Alternatively, a CDF can be supplied via `cdf_fun` (inverted numerically by root-finding) or a PDF via `pdf_fun` (integrated to obtain the CDF, then inverted). Evaluation points are placed at Chebyshev nodes of the first kind, $p_k = (1 - \cos((2k-1)\pi / 2n))/2$ for $k = 1, \ldots, n$, which cluster near 0 and 1 where quantile functions are typically most curved and avoid evaluating at the exact endpoints, preventing $\pm\infty$ for unbounded distributions.
 
 ```{r qf-normal, echo=TRUE}
 #| fig.cap: "The quantile function of the standard normal distribution."
@@ -435,13 +437,13 @@ ggplot() +
   geom_qf(fun = qnorm)
 ```
 
-**Discrete (`geom_qf_discrete()`).** The quantile function of a discrete distribution is a left-continuous step function on $[0, 1]$. `geom_qf_discrete()` takes a PMF, computes the cumulative sum, and renders the inverse function with horizontal segments on $[0, 1]$, dashed vertical jumps, closed circles at the bottom of each jump (the value is achieved), and open circles at the top (the next value is not yet reached). The `support` argument behaves as in `geom_cdf_discrete()`.
+**Discrete (`geom_qf_discrete()`).** The quantile function of a discrete distribution is a left-continuous step function on $[0, 1]$. `geom_qf_discrete()` accepts a quantile function directly via `fun` (e.g., `qbinom`), or derives it from a PMF via `pmf_fun` (computing cumulative sums and inverting) or a CDF via `cdf_fun` (evaluated on the integer support and inverted). It renders the result with horizontal segments on $[0, 1]$, dashed vertical jumps, closed circles at the bottom of each jump (the value is achieved), and open circles at the top (the next value is not yet reached). The `support` argument behaves as in `geom_cdf_discrete()`.
 
 ```{r discrete-qf, echo=TRUE}
 #| fig.cap: "The discrete quantile function of a $\\mathrm{Binomial}(10, 0.5)$ distribution as a left-continuous step function on $[0, 1]$."
 ggplot() +
   geom_qf_discrete(
-    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+    pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
   )
 ```
 
@@ -454,7 +456,7 @@ h(x) = \frac{f(x)}{S(x)} = \frac{f(x)}{1 - F(x)}
 (\#eq:hazard)
 \end{equation}
 
-represents the instantaneous rate of failure at time $x$, conditional on survival to that point [@casella2002statistical]. `geom_hf()` requires both a PDF and a CDF, supplied via `pdf_fun` and `cdf_fun` respectively. The `args` parameter applies to both; `pdf_args` and `cdf_args` provide overrides where the two functions require different parameterizations.
+represents the instantaneous rate of failure at time $x$, conditional on survival to that point [@casella2002statistical]. `geom_hf()` accepts a hazard function directly via `fun`, or derives $h$ from a PDF and CDF supplied via `pdf_fun` and `cdf_fun`. When only one of `pdf_fun` or `cdf_fun` is provided, the missing component is derived numerically (by integration or differentiation, respectively). The `args` parameter applies to all supplied functions; `pdf_args` and `cdf_args` provide overrides where the PDF and CDF require different parameterizations.
 
 Division by $S(x)$ can cause numerical instability in the tail as $S(x) \to 0$. `StatHF` guards against this by replacing values where $S(x) \leq 0$ with `NaN`, and `GeomHF` filters these before rendering.
 
@@ -693,6 +695,7 @@ This pattern is simple, composable, and avoids the ambiguity of routing function
 Several layers involve numerical integration or accumulation:
 
 - **PDF validation** uses `stats::integrate()` with adaptive quadrature to verify that the supplied function integrates to one over the specified domain.
+- **Cross-conversion** between function types is handled by three internal helpers. `pdf_to_cdf()` obtains a CDF by numerically integrating the PDF via `stats::integrate()` at each evaluation point. `cdf_to_pdf()` obtains a PDF by central finite differences of the CDF, $(F(x+h) - F(x-h)) / 2h$ with $h = 10^{-5}$. `cdf_to_qf()` inverts the CDF by root-finding via `stats::uniroot()`, with adaptive bound widening to accommodate distributions whose support is not known in advance. These conversions are approximate; for distributions where analytic forms are available, supplying the native function type directly will be more accurate.
 - **Shading boundaries** are computed by trapezoidal accumulation \@ref(eq:trapezoid), which is efficient and sufficient for the smooth densities encountered in practice.
 - **Boundary interpolation** in `GeomFunction1d` uses `stats::approxfun()` to compute exact $y$-values at shade endpoints that fall between evaluation points.
 - **Quantile function evaluation** in `geom_qf()` uses Chebyshev nodes of the first kind rather than a uniform grid, concentrating evaluation points near $p = 0$ and $p = 1$ where the function is most curved and avoiding evaluation at the exact endpoints.

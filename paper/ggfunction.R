@@ -190,21 +190,21 @@ ggplot() +
 #| fig.cap: "The discrete CDF of a $\\mathrm{Binomial}(10, 0.5)$ distribution."
 ggplot() +
   geom_cdf_discrete(
-    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+    pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
   )
 
 
 ## ----survival-exp, echo=TRUE--------------------------------------------------
 #| fig.cap: "The survival function of an $\\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$."
 ggplot() +
-  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
+  geom_survival(cdf_fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
 
 
 ## ----discrete-survival, echo=TRUE---------------------------------------------
 #| fig.cap: "The discrete survival function of a $\\mathrm{Binomial}(10, 0.5)$ distribution, descending from 1 to 0."
 ggplot() +
   geom_survival_discrete(
-    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+    pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
   )
 
 
@@ -218,7 +218,7 @@ ggplot() +
 #| fig.cap: "The discrete quantile function of a $\\mathrm{Binomial}(10, 0.5)$ distribution as a left-continuous step function on $[0, 1]$."
 ggplot() +
   geom_qf_discrete(
-    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+    pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
   )
 
 

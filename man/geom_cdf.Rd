@@ -21,7 +21,8 @@ geom_cdf(
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = FALSE,
-  fun,
+  fun = NULL,
+  pdf_fun = NULL,
   xlim = NULL,
   n = 101,
   args = list(),
@@ -87,7 +88,11 @@ aesthetics and shouldn't inherit behaviour from the default plot
 specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()}}.}
 
 \item{fun}{A function to compute the CDF (e.g. \link{pnorm}). The function must accept a numeric
-vector as its first argument and return values between 0 and 1.}
+vector as its first argument and return values between 0 and 1. Exactly one of \code{fun} or
+\code{pdf_fun} must be provided.}
+
+\item{pdf_fun}{A PDF function (e.g. \link{dnorm}). When supplied, the CDF is derived
+numerically via integration. Exactly one of \code{fun} or \code{pdf_fun} must be provided.}
 
 \item{xlim}{A numeric vector of length 2 specifying the x-range over which to evaluate the CDF.}
 

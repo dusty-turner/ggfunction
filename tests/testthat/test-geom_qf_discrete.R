@@ -69,3 +69,57 @@ test_that("StatQFDiscrete uses default xlim when NULL", {
   )
   expect_equal(nrow(result), 11)  # 0:10
 })
+
+# --- Alternate input: cdf_fun ---
+
+test_that("StatQFDiscrete computes QF from cdf_fun (pbinom)", {
+  scales <- list(x = NULL)
+  result <- StatQFDiscrete$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    cdf_fun = pbinom,
+    xlim = c(0, 10),
+    args = list(size = 10, prob = 0.5)
+  )
+  expect_equal(nrow(result), 11)
+  # x values should be CDF values, y values should be support 0:10
+  expect_equal(result$y, 0:10)
+  expected_cdf <- pbinom(0:10, size = 10, prob = 0.5)
+  expect_equal(result$x, expected_cdf, tolerance = 1e-6)
+})
+
+test_that("geom_qf_discrete with cdf_fun builds without error", {
+  p <- ggplot() + geom_qf_discrete(
+    cdf_fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+  )
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("StatQFDiscrete errors when multiple inputs provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatQFDiscrete$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      pmf_fun = dbinom,
+      cdf_fun = pbinom,
+      xlim = c(0, 10),
+      args = list(size = 10, prob = 0.5)
+    ),
+    "fun.*pmf_fun.*cdf_fun"
+  )
+})
+
+test_that("StatQFDiscrete errors when no input provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatQFDiscrete$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      xlim = c(0, 10),
+      args = list(size = 10, prob = 0.5)
+    ),
+    "fun.*pmf_fun.*cdf_fun"
+  )
+})

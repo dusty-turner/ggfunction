@@ -82,3 +82,56 @@ test_that("geom_pdf with custom mapping builds without error", {
   p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3), mapping = aes(linetype = "solid"))
   expect_s3_class(p, "gg")
 })
+
+# --- Alternate input: cdf_fun ---
+
+test_that("StatPDF computes PDF from cdf_fun (pnorm)", {
+  scales <- list(x = NULL)
+  result <- StatPDF$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    cdf_fun = pnorm,
+    xlim = c(-3, 3),
+    n = 101,
+    args = list()
+  )
+  expect_equal(nrow(result), 101)
+  expected <- dnorm(result$x)
+  expect_equal(result$y, expected, tolerance = 1e-3)
+})
+
+test_that("geom_pdf with cdf_fun builds without error", {
+  p <- ggplot() + geom_pdf(cdf_fun = pnorm, xlim = c(-3, 3))
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("StatPDF errors when both fun and cdf_fun provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatPDF$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      fun = dnorm,
+      cdf_fun = pnorm,
+      xlim = c(-3, 3),
+      n = 101,
+      args = list()
+    ),
+    "fun.*cdf_fun"
+  )
+})
+
+test_that("StatPDF errors when neither fun nor cdf_fun provided", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatPDF$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      xlim = c(-3, 3),
+      n = 101,
+      args = list()
+    ),
+    "fun.*cdf_fun"
+  )
+})

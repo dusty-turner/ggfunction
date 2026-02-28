@@ -5,19 +5,23 @@
 #' jumps, closed circles at the lower limit of each jump, and open circles at
 #' the upper limit.
 #'
-#' Supply **either** `pmf_fun` (a PMF such as [dbinom], from which the CDF is
-#' computed via cumulative summation and then inverted) **or** `fun` (a
-#' quantile function such as [qbinom], evaluated directly on a dense
-#' probability grid).
+#' Supply exactly one of `fun` (a quantile function such as [qbinom],
+#' evaluated directly on a dense probability grid), `pmf_fun` (a PMF such as
+#' [dbinom], from which the CDF is computed via cumulative summation and then
+#' inverted), or `cdf_fun` (a CDF such as [pbinom], evaluated on the integer
+#' support and inverted).
 #'
 #' @inheritParams ggplot2::geom_path
 #' @param fun A discrete quantile function (e.g. [qbinom]). Evaluated on a
 #'   dense grid of probabilities in \eqn{(0, 1)}. Use `xlim` to restrict the
-#'   range of support values shown. Exactly one of `fun` or `pmf_fun` must be
-#'   provided.
+#'   range of support values shown. Exactly one of `fun`, `pmf_fun`, or
+#'   `cdf_fun` must be provided.
 #' @param pmf_fun A PMF function (e.g. [dbinom]). The quantile function is
-#'   derived internally by inverting the cumulative sum. Exactly one of `fun`
-#'   or `pmf_fun` must be provided.
+#'   derived internally by inverting the cumulative sum. Exactly one of `fun`,
+#'   `pmf_fun`, or `cdf_fun` must be provided.
+#' @param cdf_fun A discrete CDF function (e.g. [pbinom]). Evaluated on the
+#'   integer support and inverted to produce the quantile function. Exactly one
+#'   of `fun`, `pmf_fun`, or `cdf_fun` must be provided.
 #' @param args A named list of additional arguments to pass to `fun` or
 #'   `pmf_fun`.
 #' @param xlim A numeric vector of length 2 specifying the range of support
@@ -65,6 +69,7 @@ geom_qf_discrete <- function(
     inherit.aes = FALSE,
     fun = NULL,
     pmf_fun = NULL,
+    cdf_fun = NULL,
     xlim = NULL,
     support = NULL,
     args = list(),
@@ -94,6 +99,7 @@ geom_qf_discrete <- function(
     params = list(
       fun = fun,
       pmf_fun = pmf_fun,
+      cdf_fun = cdf_fun,
       args = args,
       xlim = xlim,
       support = support,
@@ -113,7 +119,17 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
   compute_group = function(data, scales, fun = NULL, pmf_fun = NULL,
-                           xlim = NULL, support = NULL, args = NULL) {
+                           cdf_fun = NULL, xlim = NULL, support = NULL,
+                           args = NULL) {
+
+    # Validate: exactly one source
+    n_provided <- (!is.null(fun)) + (!is.null(pmf_fun)) + (!is.null(cdf_fun))
+    if (n_provided == 0L) {
+      cli::cli_abort("One of {.arg fun}, {.arg pmf_fun}, or {.arg cdf_fun} must be provided.")
+    }
+    if (n_provided > 1L) {
+      cli::cli_abort("Supply only one of {.arg fun}, {.arg pmf_fun}, or {.arg cdf_fun}.")
+    }
 
     if (!is.null(fun)) {
       fun_injected <- function(p) rlang::inject(fun(p, !!!args))
@@ -139,6 +155,22 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
       return(data.frame(x = p_right, y = q_unique))
     }
 
+    if (!is.null(cdf_fun)) {
+      if (!is.null(support)) {
+        x_vals <- sort(support)
+      } else if (is.null(xlim)) {
+        x_vals <- 0:10
+      } else {
+        x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))
+      }
+
+      cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
+      cdf_vals <- cdf_injected(x_vals)
+
+      # x = F(x_k) (probability axis), y = x_k (support value axis)
+      return(data.frame(x = cdf_vals, y = x_vals))
+    }
+
     if (!is.null(pmf_fun)) {
       if (!is.null(support)) {
         x_vals <- sort(support)
@@ -156,8 +188,6 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
       # x = F(x_k) (probability axis), y = x_k (support value axis)
       return(data.frame(x = cdf_vals, y = x_vals))
     }
-
-    cli::cli_abort("One of {.arg fun} or {.arg pmf_fun} must be provided.")
   }
 )
 

@@ -93,6 +93,61 @@ build_step_polygon <- function(x, y) {
   data.frame(x = px, y = py)
 }
 
+#' Convert a PDF function to a CDF function via numerical integration
+#' @noRd
+pdf_to_cdf <- function(pdf_fun, lower = -Inf) {
+  function(x) {
+    vapply(x, function(xi) {
+      res <- try(
+        stats::integrate(pdf_fun, lower = lower, upper = xi, stop.on.error = FALSE),
+        silent = TRUE
+      )
+      if (inherits(res, "try-error")) NA_real_ else res$value
+    }, numeric(1))
+  }
+}
+
+#' Convert a CDF function to a PDF function via central finite differences
+#' @noRd
+cdf_to_pdf <- function(cdf_fun, h = 1e-5) {
+  function(x) {
+    (cdf_fun(x + h) - cdf_fun(x - h)) / (2 * h)
+  }
+}
+
+#' Convert a CDF function to a quantile function via root-finding
+#' @noRd
+cdf_to_qf <- function(cdf_fun, search_lower = -10, search_upper = 10) {
+  function(p) {
+    vapply(p, function(pi) {
+      if (pi <= 0) return(-Inf)
+      if (pi >= 1) return(Inf)
+
+      lo <- search_lower
+      hi <- search_upper
+
+      # Adaptively widen bounds until they bracket the target
+      for (i in 1:25) {
+        f_lo <- cdf_fun(lo)
+        if (!is.na(f_lo) && f_lo <= pi) break
+        lo <- lo * 2
+      }
+      for (i in 1:25) {
+        f_hi <- cdf_fun(hi)
+        if (!is.na(f_hi) && f_hi >= pi) break
+        hi <- hi * 2
+      }
+
+      res <- try(
+        stats::uniroot(function(x) cdf_fun(x) - pi, lower = lo, upper = hi,
+                       tol = .Machine$double.eps^0.5),
+        silent = TRUE
+      )
+      if (inherits(res, "try-error")) NA_real_ else res$root
+    }, numeric(1))
+  }
+}
+
 #' @noRd
 utils::globalVariables(c("x", "y", "z", "p", "level", "GeomLine", "pdf_fun", "cdf_fun",
-                         "ymin", "ymax"))
+                         "pmf_fun", "ymin", "ymax"))
