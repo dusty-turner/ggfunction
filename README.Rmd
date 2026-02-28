@@ -184,7 +184,7 @@ ggplot() +
 
 ## Probability Distributions
 
-The probability family provides a geom for each of the standard functions associated with a distribution. Each accepts a plain R function (e.g. `dnorm`, `pnorm`) and `xlim`; distribution parameters are passed via `args`.
+The probability family provides a geom for each of the standard functions associated with a distribution. Each accepts its native function type via `fun` (e.g. `dnorm` for `geom_pdf()`, `pnorm` for `geom_cdf()`), but most also accept alternate function types that are converted internally---for example, `geom_cdf(pdf_fun = dnorm)` derives the CDF by numerical integration. Distribution parameters are passed via `args`.
 
 
 
@@ -316,11 +316,11 @@ ggplot() +
 
 The survival function $S(x) = 1 - F(x) = P(X > x)$ gives the probability of surviving past $x$.
 
-**Continuous (`geom_survival()`).** Accepts a CDF via `fun`. The following example shows the survival function of an $\text{Exponential}(0.5)$ distribution, which decays as $S(x) = e^{-0.5x}$.
+**Continuous (`geom_survival()`).** Accepts a survival function directly via `fun`, or derives $S$ from a CDF via `cdf_fun` or a PDF via `pdf_fun`. The following example shows the survival function of an $\text{Exponential}(0.5)$ distribution, which decays as $S(x) = e^{-0.5x}$.
 
 ```{r survival}
 ggplot() +
-  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
+  geom_survival(cdf_fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
 ```
 
 **Discrete (`geom_survival_discrete()`).** Takes a PMF and renders $S(x) = 1 - F(x)$ as a right-continuous step function using the same visual conventions as `geom_cdf_discrete()`. The following example plots the $\text{Binomial}(10, 0.5)$ survival function.
@@ -399,7 +399,7 @@ ggplot() +
 
 ### Hazard function: `geom_hf()`
 
-`geom_hf()` plots the hazard function $h(x) = f(x) / S(x)$, the instantaneous rate of failure at time $x$ conditional on survival to that point. It requires both a PDF (`pdf_fun`) and a CDF (`cdf_fun`). Shared parameters go in `args`; use `pdf_args` and `cdf_args` for overrides when the two functions have different parameterizations. The exponential distribution's constant hazard confirms the memoryless property.
+`geom_hf()` plots the hazard function $h(x) = f(x) / S(x)$, the instantaneous rate of failure at time $x$ conditional on survival to that point. It accepts a hazard function directly via `fun`, or derives $h$ from `pdf_fun` and/or `cdf_fun` (when only one is provided, the other is derived numerically). Shared parameters go in `args`; use `pdf_args` and `cdf_args` for overrides when the two functions have different parameterizations. The exponential distribution's constant hazard confirms the memoryless property.
 
 ```{r hazard}
 ggplot() +

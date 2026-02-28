@@ -1,3 +1,4 @@
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # ggfunction <img src="man/figures/logo.png" align="right" height="138" alt="ggfunction hex sticker" />
@@ -24,24 +25,24 @@ domain; **ggfunction** handles evaluation, rendering, and shading.
 
 The package is organized around two families of geoms:
 
-| Family          | Geom                       | Maps                            | Description                                        |
-|-----------------|----------------------------|---------------------------------|----------------------------------------------------|
-| **Dimensional** | `geom_function_1d_1d()`    | $\mathbb{R} \to \mathbb{R}$     | Scalar functions with optional interval shading    |
-|                 | `geom_function_1d_2d()`    | $\mathbb{R} \to \mathbb{R}^2$   | Parametric curves                                  |
-|                 | `geom_function_2d_1d()`    | $\mathbb{R}^2 \to \mathbb{R}$   | Scalar fields (raster, contour, filled contour)    |
-|                 | `geom_function_2d_2d()`    | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector field streamlines                           |
-| **Probability** | `geom_pdf()`               |                                 | Probability density function                       |
-|                 | `geom_pmf()`               |                                 | Probability mass function (lollipop)               |
-|                 | `geom_cdf()`               |                                 | Cumulative distribution function                   |
-|                 | `geom_cdf_discrete()`      |                                 | Discrete CDF (step function)                       |
-|                 | `geom_survival()`          |                                 | Survival function $S(x) = 1 - F(x)$                |
-|                 | `geom_survival_discrete()` |                                 | Discrete survival function (step function)         |
-|                 | `geom_qf()`                |                                 | Quantile function                                  |
-|                 | `geom_qf_discrete()`       |                                 | Discrete quantile function (step function)         |
-|                 | `geom_hf()`                |                                 | Hazard function $h(x) = f(x)/S(x)$                 |
-| **Data**        | `geom_ecdf()`              |                                 | Empirical CDF with KS confidence ribbon            |
-|                 | `geom_eqf()`               |                                 | Empirical quantile function with confidence ribbon |
-|                 | `geom_epmf()`              |                                 | Empirical PMF (lollipop)                           |
+| Family | Geom | Maps | Description |
+|----|----|----|----|
+| **Dimensional** | `geom_function_1d_1d()` | $\mathbb{R} \to \mathbb{R}$ | Scalar functions with optional interval shading |
+|  | `geom_function_1d_2d()` | $\mathbb{R} \to \mathbb{R}^2$ | Parametric curves |
+|  | `geom_function_2d_1d()` | $\mathbb{R}^2 \to \mathbb{R}$ | Scalar fields (raster, contour, filled contour) |
+|  | `geom_function_2d_2d()` | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector field streamlines |
+| **Probability** | `geom_pdf()` |  | Probability density function |
+|  | `geom_pmf()` |  | Probability mass function (lollipop) |
+|  | `geom_cdf()` |  | Cumulative distribution function |
+|  | `geom_cdf_discrete()` |  | Discrete CDF (step function) |
+|  | `geom_survival()` |  | Survival function $S(x) = 1 - F(x)$ |
+|  | `geom_survival_discrete()` |  | Discrete survival function (step function) |
+|  | `geom_qf()` |  | Quantile function |
+|  | `geom_qf_discrete()` |  | Discrete quantile function (step function) |
+|  | `geom_hf()` |  | Hazard function $h(x) = f(x)/S(x)$ |
+| **Data** | `geom_ecdf()` |  | Empirical CDF with KS confidence ribbon |
+|  | `geom_eqf()` |  | Empirical quantile function with confidence ribbon |
+|  | `geom_epmf()` |  | Empirical PMF (lollipop) |
 
 ## Dimensional Taxonomy
 
@@ -204,9 +205,12 @@ ggplot() +
 ## Probability Distributions
 
 The probability family provides a geom for each of the standard
-functions associated with a distribution. Each accepts a plain R
-function (e.g. `dnorm`, `pnorm`) and `xlim`; distribution parameters are
-passed via `args`.
+functions associated with a distribution. Each accepts its native
+function type via `fun` (e.g. `dnorm` for `geom_pdf()`, `pnorm` for
+`geom_cdf()`), but most also accept alternate function types that are
+converted internally—for example, `geom_cdf(pdf_fun = dnorm)` derives
+the CDF by numerical integration. Distribution parameters are passed via
+`args`.
 
 ### PDF: `geom_pdf()`
 
@@ -405,14 +409,15 @@ ggplot() +
 The survival function $S(x) = 1 - F(x) = P(X > x)$ gives the probability
 of surviving past $x$.
 
-**Continuous (`geom_survival()`).** Accepts a CDF via `fun`. The
-following example shows the survival function of an
+**Continuous (`geom_survival()`).** Accepts a survival function directly
+via `fun`, or derives $S$ from a CDF via `cdf_fun` or a PDF via
+`pdf_fun`. The following example shows the survival function of an
 $\text{Exponential}(0.5)$ distribution, which decays as
 $S(x) = e^{-0.5x}$.
 
 ``` r
 ggplot() +
-  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
+  geom_survival(cdf_fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
 ```
 
 <img src="man/figures/readme-survival-1.png" alt="" width="60%" />
@@ -528,11 +533,12 @@ ggplot() +
 
 `geom_hf()` plots the hazard function $h(x) = f(x) / S(x)$, the
 instantaneous rate of failure at time $x$ conditional on survival to
-that point. It requires both a PDF (`pdf_fun`) and a CDF (`cdf_fun`).
-Shared parameters go in `args`; use `pdf_args` and `cdf_args` for
-overrides when the two functions have different parameterizations. The
-exponential distribution’s constant hazard confirms the memoryless
-property.
+that point. It accepts a hazard function directly via `fun`, or derives
+$h$ from `pdf_fun` and/or `cdf_fun` (when only one is provided, the
+other is derived numerically). Shared parameters go in `args`; use
+`pdf_args` and `cdf_args` for overrides when the two functions have
+different parameterizations. The exponential distribution’s constant
+hazard confirms the memoryless property.
 
 ``` r
 ggplot() +
