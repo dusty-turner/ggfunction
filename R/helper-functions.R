@@ -162,6 +162,39 @@ qf_to_cdf <- function(qf_fun, n = 10000) {
   stats::approxfun(x_grid, p_grid, rule = 2)
 }
 
+#' Resolve open_fill for discrete step-function geoms
+#'
+#' Returns the fill color for open (hollow) circles. Checks in order:
+#' 1. Explicit user-supplied `open_fill`
+#' 2. Theme-derived `.open_fill` column in data (ggplot2 >= 3.5)
+#' 3. Global theme via `theme_get()` (fallback for older ggplot2)
+#' @noRd
+resolve_open_fill <- function(open_fill, data) {
+  if (!is.null(open_fill)) return(open_fill)
+  if (".open_fill" %in% names(data)) return(data$.open_fill[1])
+  bg <- ggplot2::theme_get()$panel.background
+  if (!inherits(bg, "element_blank") && !is.null(bg$fill) && !is.na(bg$fill)) bg$fill else "white"
+}
+
+#' Inject .open_fill column from the resolved plot theme
+#'
+#' Called from `use_defaults()` overrides in discrete geoms. In ggplot2 >= 3.5,
+#' `use_defaults()` receives the fully resolved plot theme, so we can extract
+#' the actual panel background color. This is a no-op when `theme` is NULL
+#' (ggplot2 < 3.5 or missing theme).
+#' @noRd
+inject_open_fill <- function(data, theme) {
+  if (!is.null(theme)) {
+    bg <- ggplot2::calc_element("panel.background", theme)
+    if (!inherits(bg, "element_blank") && !is.null(bg$fill) && !is.na(bg$fill)) {
+      data$.open_fill <- bg$fill
+    } else {
+      data$.open_fill <- "white"
+    }
+  }
+  data
+}
+
 #' @noRd
 utils::globalVariables(c("x", "y", "z", "p", "level", "GeomLine", "pdf_fun", "cdf_fun",
                          "pmf_fun", "survival_fun", "qf_fun", "ymin", "ymax"))

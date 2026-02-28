@@ -232,13 +232,18 @@ GeomQFDiscrete <- ggproto("GeomQFDiscrete", Geom,
     stroke    = 0.5
   ),
 
+  use_defaults = function(self, data, params = list(), modifiers = aes(),
+                          default_aes = NULL, theme = NULL, ...) {
+    data <- ggproto_parent(Geom, self)$use_defaults(
+      data, params, modifiers, default_aes = default_aes, theme = theme, ...
+    )
+    inject_open_fill(data, theme)
+  },
+
   draw_group = function(data, panel_params, coord,
                         open_fill = NULL, vert_type = "dashed",
                         show_points = NULL, show_vert = NULL) {
-    if (is.null(open_fill)) {
-      bg <- ggplot2::theme_get()$panel.background
-      open_fill <- if (!inherits(bg, "element_blank") && !is.null(bg$fill) && !is.na(bg$fill)) bg$fill else "white"
-    }
+    open_fill <- resolve_open_fill(open_fill, data)
     n <- nrow(data)
     if (is.null(show_points)) show_points <- n <= 50
     if (is.null(show_vert))   show_vert   <- n <= 50

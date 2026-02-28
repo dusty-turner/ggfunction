@@ -9,7 +9,7 @@
 \format{
 An object of class \code{StatQFDiscrete} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{GeomQFDiscrete} (inherits from \code{Geom}, \code{ggproto}, \code{gg}) of length 5.
+An object of class \code{GeomQFDiscrete} (inherits from \code{Geom}, \code{ggproto}, \code{gg}) of length 6.
 }
 \usage{
 geom_qf_discrete(

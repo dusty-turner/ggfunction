@@ -9,7 +9,7 @@
 \format{
 An object of class \code{StatCDFDiscrete} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{GeomCDFDiscrete} (inherits from \code{Geom}, \code{ggproto}, \code{gg}) of length 5.
+An object of class \code{GeomCDFDiscrete} (inherits from \code{Geom}, \code{ggproto}, \code{gg}) of length 6.
 }
 \usage{
 geom_cdf_discrete(
