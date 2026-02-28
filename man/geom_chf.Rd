@@ -29,8 +29,7 @@ geom_chf(
   qf_fun = NULL,
   xlim = NULL,
   n = 101,
-  args = list(),
-  color = "black"
+  args = list()
 )
 
 StatCHF
@@ -122,8 +121,6 @@ must be provided.}
 
 \item{args}{A named list of additional arguments to pass to \code{fun},
 \code{hf_fun}, \code{cdf_fun}, \code{pdf_fun}, \code{survival_fun}, or \code{qf_fun}.}
-
-\item{color}{Line color for the cumulative hazard curve.}
 }
 \value{
 A ggplot2 layer.

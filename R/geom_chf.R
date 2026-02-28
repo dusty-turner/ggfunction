@@ -37,7 +37,6 @@
 #' @param args A named list of additional arguments to pass to `fun`,
 #'   `hf_fun`, `cdf_fun`, `pdf_fun`, `survival_fun`, or `qf_fun`.
 #' @param xlim A numeric vector of length 2 giving the x-range.
-#' @param color Line color for the cumulative hazard curve.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @return A ggplot2 layer.
@@ -75,8 +74,7 @@ geom_chf <- function(
     qf_fun = NULL,
     xlim = NULL,
     n = 101,
-    args = list(),
-    color = "black"
+    args = list()
     ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -108,7 +106,6 @@ geom_chf <- function(
       xlim = xlim,
       args = args,
       na.rm = na.rm,
-      color = color,
       ...
     )
   )
