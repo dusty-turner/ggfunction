@@ -454,6 +454,9 @@ StatEPMF <- ggproto("StatEPMF", Stat,
 #' message is emitted.
 #'
 #' @inheritParams geom_ecdf
+#' @param band_max Maximum value of \eqn{H} for the upper confidence band.
+#'   Defaults to `NULL`, which clips at \eqn{\log(2n)} and emits an
+#'   informational message. Set to `Inf` to disable clipping entirely.
 #'
 #' @return A ggplot2 layer, or a list of two layers when `conf_int = TRUE`.
 #'
@@ -491,7 +494,8 @@ geom_echf <- function(
     show_vert  = NULL,
     conf_int   = TRUE,
     level      = 0.95,
-    conf_alpha = 0.4
+    conf_alpha = 0.4,
+    band_max   = NULL
 ) {
   default_mapping <- aes(y = after_stat(y))
   if (is.null(mapping)) {
@@ -531,6 +535,7 @@ geom_echf <- function(
     params      = list(
       na.rm     = na.rm,
       level     = level,
+      band_max  = band_max,
       fill      = "grey70",
       linewidth = 0,
       alpha     = conf_alpha
@@ -560,25 +565,29 @@ StatECHF <- ggproto("StatECHF", Stat,
 StatECHFBand <- ggproto("StatECHFBand", Stat,
   required_aes = "x",
 
-  compute_group = function(data, scales, na.rm = FALSE, level = 0.95) {
+  compute_group = function(data, scales, na.rm = FALSE, level = 0.95,
+                           band_max = NULL) {
     tab <- .tabulate_empirical(data$x, na.rm = na.rm)
     if (nrow(tab) == 0L) return(data.frame())
     n   <- tab$n[1L]
     eps <- sqrt(log(2 / (1 - level)) / (2 * n))
     cdf_lower <- pmax(0, tab$cdf - eps)
-    # Clip upper CDF bound at 1 - 1/(2n) rather than 1 - 1e-10.
-    # When cdf + eps >= 1, the true H could be infinite; clipping at
-    # 1/(2n) resolution caps the displayed band at log(2n).
-    cdf_cap   <- 1 - 1 / (2 * n)
-    clipped   <- any(tab$cdf + eps > cdf_cap)
-    cdf_upper <- pmin(cdf_cap, tab$cdf + eps)
-    if (clipped) {
-      cli::cli_inform(
-        "Upper confidence band clipped at {.val H} = {round(-log(1 - cdf_cap), 2)} ({.code log(2n)}); true upper bound is infinite where {.code F_n(x) + eps >= 1}."
-      )
-    }
+    cdf_upper <- pmin(1 - 1e-10, tab$cdf + eps)
     h_lower <- -log(1 - cdf_lower)
     h_upper <- -log(1 - cdf_upper)
+    # Clip h_upper on the H scale.  Default: log(2n); Inf disables.
+    if (is.null(band_max)) {
+      h_cap   <- log(2 * n)
+      clipped <- any(h_upper > h_cap)
+      h_upper <- pmin(h_cap, h_upper)
+      if (clipped) {
+        cli::cli_inform(
+          "Upper confidence band clipped at {.val H} = {round(h_cap, 2)} ({.code log(2n)}); true upper bound is infinite where {.code F_n(x) + eps >= 1}. Set {.arg band_max = Inf} to disable."
+        )
+      }
+    } else if (is.finite(band_max)) {
+      h_upper <- pmin(band_max, h_upper)
+    }
     keep <- is.finite(h_lower) & is.finite(h_upper)
     df  <- data.frame(
       x    = tab$x[keep],

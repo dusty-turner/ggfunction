@@ -27,7 +27,8 @@ geom_echf(
   show_vert = NULL,
   conf_int = TRUE,
   level = 0.95,
-  conf_alpha = 0.4
+  conf_alpha = 0.4,
+  band_max = NULL
 )
 
 StatECHF
@@ -139,6 +140,10 @@ confidence band around the ECDF.}
 
 \item{conf_alpha}{Alpha (transparency) of the confidence ribbon. Defaults
 to \code{0.4}.}
+
+\item{band_max}{Maximum value of \eqn{H} for the upper confidence band.
+Defaults to \code{NULL}, which clips at \eqn{\log(2n)} and emits an
+informational message. Set to \code{Inf} to disable clipping entirely.}
 }
 \value{
 A ggplot2 layer, or a list of two layers when \code{conf_int = TRUE}.
