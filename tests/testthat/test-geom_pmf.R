@@ -85,12 +85,12 @@ test_that("StatPMF uses default xlim when not provided", {
 
 test_that("StatPMF uses support when provided", {
   scales <- list(x = NULL)
-  result <- StatPMF$compute_group(
+  result <- suppressMessages(StatPMF$compute_group(
     data = data.frame(group = 1),
     scales = scales,
     fun = dbinom,
     support = c(0, 5, 10),
     args = list(size = 10, prob = 0.5)
-  )
+  ))
   expect_equal(nrow(result), 3)
 })

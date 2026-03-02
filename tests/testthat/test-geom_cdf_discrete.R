@@ -62,13 +62,13 @@ test_that("StatCDFDiscrete uses default xlim when NULL", {
 
 test_that("StatCDFDiscrete uses support when provided", {
   scales <- list(x = NULL)
-  result <- StatCDFDiscrete$compute_group(
+  result <- suppressMessages(StatCDFDiscrete$compute_group(
     data = data.frame(group = 1),
     scales = scales,
     pmf_fun = dbinom,
     support = c(0, 5, 10),
     args = list(size = 10, prob = 0.5)
-  )
+  ))
   expect_equal(nrow(result), 3)
 })
 
