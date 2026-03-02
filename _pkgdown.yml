@@ -69,3 +69,5 @@ reference:
       - geom_eqf
       - geom_epmf
       - geom_echf
+      - geom_ecdf_km
+      - geom_echf_na

@@ -223,3 +223,112 @@ ggplot(df_groups, aes(x = x, colour = group)) +
 The high-risk group's cumulative hazard rises steeply, while the low-risk
 group's rises more gradually. The non-overlapping confidence bands provide
 visual evidence that the two groups have different hazard profiles.
+
+
+## Kaplan-Meier survival curves: `geom_ecdf_km()`
+
+In practice, survival data are often **right-censored**: some subjects leave
+the study before the event is observed, so we only know that their event time
+exceeds the censoring time. The Kaplan-Meier estimator handles this by
+adjusting the risk set at each event time:
+
+$$\hat{S}(t) = \prod_{t_j \le t} \left(1 - \frac{d_j}{n_j}\right),$$
+
+where $d_j$ is the number of events at time $t_j$ and $n_j$ is the number at
+risk just before $t_j$.
+
+`geom_ecdf_km()` requires two aesthetics: `x` (the observed time) and `status`
+(1 = event, 0 = censored). It draws the KM curve as a decreasing step function,
+a simultaneous Greenwood confidence band, and "+" marks at censoring times.
+
+```{r km-basic}
+set.seed(42)
+n <- 60
+true_time <- rexp(n, rate = 0.5)
+cens_time <- rexp(n, rate = 0.2)
+df_cens <- data.frame(
+  time   = pmin(true_time, cens_time),
+  status = as.integer(true_time <= cens_time)
+)
+
+ggplot(df_cens, aes(x = time, status = status)) +
+  geom_ecdf_km() +
+  labs(x = "Time", y = expression(hat(S)(t)),
+       title = "Kaplan-Meier survival curve") +
+  theme_minimal()
+```
+
+**Overlaying a theoretical survival curve.** As with the empirical CHF, you can
+overlay `geom_survival()` to assess goodness of fit.
+
+```{r km-overlay}
+ggplot(df_cens, aes(x = time, status = status)) +
+  geom_ecdf_km(show_points = FALSE, show_vert = FALSE) +
+  geom_survival(cdf_fun = pexp, xlim = c(0, max(df_cens$time)),
+                args = list(rate = 0.5), colour = "red") +
+  labs(x = "Time", y = expression(hat(S)(t)),
+       title = "KM curve vs. Exp(0.5) theory") +
+  theme_minimal()
+```
+
+**Grouped data.** Map `colour` to a grouping variable to compare survival
+across populations.
+
+```{r km-grouped}
+set.seed(7)
+df_km_groups <- data.frame(
+  time   = c(rexp(50, rate = 0.5), rexp(50, rate = 1.5)),
+  status = sample(0:1, 100, replace = TRUE, prob = c(0.2, 0.8)),
+  group  = rep(c("Low risk", "High risk"), each = 50)
+)
+
+ggplot(df_km_groups, aes(x = time, status = status, colour = group)) +
+  geom_ecdf_km(show_points = FALSE, show_vert = FALSE) +
+  labs(x = "Time", y = expression(hat(S)(t)),
+       colour = NULL,
+       title = "Kaplan-Meier curves by group") +
+  theme_minimal()
+```
+
+
+## Nelson-Aalen cumulative hazard: `geom_echf_na()`
+
+The Nelson-Aalen estimator is the censored-data analogue of the empirical
+cumulative hazard:
+
+$$\hat{H}(t) = \sum_{t_j \le t} \frac{d_j}{n_j}.$$
+
+`geom_echf_na()` renders this as an increasing step function with a simultaneous
+confidence band based on the variance estimator
+$\widehat{\mathrm{Var}}[\hat{H}(t)] = \sum_{t_j \le t} d_j / n_j^2$.
+
+```{r na-basic}
+ggplot(df_cens, aes(x = time, status = status)) +
+  geom_echf_na() +
+  labs(x = "Time", y = expression(hat(H)(t)),
+       title = "Nelson-Aalen cumulative hazard") +
+  theme_minimal()
+```
+
+**Overlaying a theoretical cumulative hazard.**
+
+```{r na-overlay}
+ggplot(df_cens, aes(x = time, status = status)) +
+  geom_echf_na(show_points = FALSE, show_vert = FALSE) +
+  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_cens$time)),
+           args = list(rate = 0.5), colour = "red") +
+  labs(x = "Time", y = expression(hat(H)(t)),
+       title = "Nelson-Aalen vs. Exp(0.5) theory") +
+  theme_minimal()
+```
+
+**Grouped data.**
+
+```{r na-grouped}
+ggplot(df_km_groups, aes(x = time, status = status, colour = group)) +
+  geom_echf_na(show_points = FALSE, show_vert = FALSE) +
+  labs(x = "Time", y = expression(hat(H)(t)),
+       colour = NULL,
+       title = "Nelson-Aalen cumulative hazard by group") +
+  theme_minimal()
+```

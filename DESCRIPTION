@@ -41,6 +41,7 @@ Suggests:
     patchwork,
     rmarkdown,
     scales,
+    survival,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Date: 2026-02-20

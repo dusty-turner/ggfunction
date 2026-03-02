@@ -7,7 +7,7 @@
 \maketitle
 
 \abstract{%
-The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions, probability distributions, and empirical data distributions. It is organized around three complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for theoretical probability distributions--density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions--each with built-in support for region shading central to hypothesis testing and interval estimation. The third family provides geoms for empirical distributions computed from samples: the empirical CDF with a simultaneous Kolmogorov--Smirnov confidence band, the empirical quantile function with the inverted KS band, the empirical PMF as a lollipop chart, and the empirical cumulative hazard function with a transformed DKW confidence band. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
+The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions, probability distributions, and empirical data distributions. It is organized around three complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for theoretical probability distributions--density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions--each with built-in support for region shading central to hypothesis testing and interval estimation. The third family provides geoms for empirical distributions computed from samples: the empirical CDF with a simultaneous Kolmogorov--Smirnov confidence band, the empirical quantile function with the inverted KS band, the empirical PMF as a lollipop chart, and the empirical cumulative hazard function with a transformed DKW confidence band. For right-censored survival data, \code{geom\_ecdf\_km()} and \code{geom\_echf\_na()} provide the Kaplan--Meier survival estimator \citep{kaplan1958nonparametric} and Nelson--Aalen cumulative hazard estimator \citep{nelson1972theory, aalen1978nonparametric}, respectively, each with simultaneous equal-precision confidence bands \citep{nair1984confidence}. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
 }
 
 \section{Introduction}\label{introduction}
@@ -26,7 +26,7 @@ Several packages address pieces of this gap. \CRANpkg{ggdist} \citep{kay2024ggdi
 \item
   A \textbf{probability distribution family} providing specialized layers for density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions.
 \item
-  An \textbf{empirical data family} providing layers for the empirical CDF, empirical quantile function, empirical PMF, and empirical cumulative hazard function, each computed directly from a sample and accompanied by simultaneous Kolmogorov--Smirnov confidence bands.
+  An \textbf{empirical data family} providing layers for the empirical CDF, empirical quantile function, empirical PMF, and empirical cumulative hazard function, each computed directly from a sample and accompanied by simultaneous Kolmogorov--Smirnov confidence bands. For right-censored survival data, the family additionally provides the Kaplan--Meier survival estimator \citep{kaplan1958nonparametric} and Nelson--Aalen cumulative hazard estimator \citep{nelson1972theory, aalen1978nonparametric} with simultaneous equal-precision confidence bands \citep{nair1984confidence}.
 \end{enumerate}
 
 Each layer follows the \CRANpkg{ggplot2} extension pattern: a \texttt{Stat} object evaluates the user-supplied function on a grid or sequence (or tabulates a sample), and a corresponding \texttt{Geom} renders the result. Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the full ecosystem of scales, coordinates, themes, and facets.
@@ -852,6 +852,108 @@ p_correct | p_wrong
 The theoretical cumulative hazard (red) threads through the band for the
 correct model (left panel) but departs visibly for the misspecified model (right
 panel), where the true rate is twice the hypothesized value.
+
+\subsection{\texorpdfstring{Kaplan--Meier survival curves: \texttt{geom\_ecdf\_km()}}{Kaplan--Meier survival curves: geom\_ecdf\_km()}}\label{kaplanmeier-survival-curves-geom_ecdf_km}
+
+The empirical geoms above assume complete (uncensored) data. In practice,
+survival data are often right-censored: some subjects leave the study before
+the event is observed. The Kaplan--Meier product-limit estimator
+\citep{kaplan1958nonparametric} handles this by adjusting the risk set at each
+event time:
+
+\begin{equation}
+\hat{S}(t) = \prod_{t_j \le t} \left(1 - \frac{d_j}{n_j}\right),
+\label{eq:km}
+\end{equation}
+
+where \(d_j\) is the number of events at time \(t_j\) and \(n_j\) is the number at
+risk just before \(t_j\). \texttt{geom\_ecdf\_km()} renders this as a decreasing step
+function, with a simultaneous Greenwood confidence band \citep{greenwood1926natural, nair1984confidence} and censoring marks at
+observations where the event was not observed. The data require two aesthetics:
+\texttt{x} (the observed time) and \texttt{status} (1 = event, 0 = censored).
+
+\begin{verbatim}
+set.seed(42)
+n_km <- 60
+true_time <- rexp(n_km, rate = 0.5)
+cens_time <- rexp(n_km, rate = 0.2)
+df_km <- data.frame(
+  time   = pmin(true_time, cens_time),
+  status = as.integer(true_time <= cens_time)
+)
+
+p_km <- ggplot(df_km, aes(x = time, status = status)) +
+  geom_ecdf_km() +
+  labs(x = "Time", y = expression(hat(S)(t))) +
+  ggtitle("Kaplan-Meier estimate") +
+  theme_minimal()
+
+p_km_gof <- ggplot(df_km, aes(x = time, status = status)) +
+  geom_ecdf_km(show_points = FALSE, show_vert = FALSE) +
+  geom_survival(cdf_fun = pexp, xlim = c(0, max(df_km$time)),
+                args = list(rate = 0.5), colour = "red") +
+  labs(x = "Time", y = expression(hat(S)(t))) +
+  ggtitle("KM vs. Exp(0.5) theory") +
+  theme_minimal()
+
+p_km | p_km_gof
+\end{verbatim}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/km-censored-1} 
+
+}
+
+\caption{Kaplan--Meier survival curves for simulated censored data. Event times follow $\text{Exp}(0.5)$ and censoring times follow $\text{Exp}(0.2)$. The left panel shows the KM estimate with Greenwood 95\% simultaneous confidence band and censoring marks; the right panel overlays the true survival curve (red).}\label{fig:km-censored}
+\end{figure}
+
+The theoretical survival curve (red) lies within the Greenwood confidence band,
+confirming consistency with the \(\text{Exp}(0.5)\) model.
+
+\subsection{\texorpdfstring{Nelson--Aalen cumulative hazard: \texttt{geom\_echf\_na()}}{Nelson--Aalen cumulative hazard: geom\_echf\_na()}}\label{nelsonaalen-cumulative-hazard-geom_echf_na}
+
+The Nelson--Aalen estimator \citep{nelson1972theory, aalen1978nonparametric} is the
+censored-data analogue of the empirical cumulative hazard:
+
+\begin{equation}
+\hat{H}(t) = \sum_{t_j \le t} \frac{d_j}{n_j},
+\label{eq:na}
+\end{equation}
+
+with variance estimated by \(\widehat{\mathrm{Var}}[\hat{H}(t)] = \sum_{t_j
+\le t} d_j / n_j^2\). \texttt{geom\_echf\_na()} renders this as an increasing step
+function with a simultaneous confidence band \citep{nair1984confidence}.
+
+\begin{verbatim}
+p_na <- ggplot(df_km, aes(x = time, status = status)) +
+  geom_echf_na() +
+  labs(x = "Time", y = expression(hat(H)(t))) +
+  ggtitle("Nelson-Aalen estimate") +
+  theme_minimal()
+
+p_na_gof <- ggplot(df_km, aes(x = time, status = status)) +
+  geom_echf_na(show_points = FALSE, show_vert = FALSE) +
+  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_km$time)),
+           args = list(rate = 0.5), colour = "red") +
+  labs(x = "Time", y = expression(hat(H)(t))) +
+  ggtitle("NA vs. Exp(0.5) theory") +
+  theme_minimal()
+
+p_na | p_na_gof
+\end{verbatim}
+
+\begin{figure}
+
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/na-censored-1} 
+
+}
+
+\caption{Nelson--Aalen cumulative hazard estimates. The same censored data as in the KM figure. The left panel shows the Nelson--Aalen estimate with 95\% simultaneous confidence band; the right panel overlays the theoretical $H(x) = 0.5x$ (red).}\label{fig:na-censored}
+\end{figure}
+
+The theoretical cumulative hazard (red) threads through the confidence band,
+consistent with the generating model.
 
 \subsection{Validity of the confidence band}\label{validity-of-the-confidence-band}
 

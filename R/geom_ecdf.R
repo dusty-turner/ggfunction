@@ -465,6 +465,7 @@ StatEPMF <- ggproto("StatEPMF", Stat,
 #'
 #' df <- data.frame(x = rexp(20))
 #' ggplot(df, aes(x = x)) + geom_echf()
+#' ggplot(df, aes(x = x)) + geom_echf(band_max = Inf)
 #'
 #' df <- data.frame(x = rexp(100))
 #' ggplot(df, aes(x = x)) + geom_echf()
@@ -553,10 +554,13 @@ StatECHF <- ggproto("StatECHF", Stat,
   compute_group = function(data, scales, na.rm = FALSE) {
     df <- .tabulate_empirical(data$x, na.rm = na.rm)
     if (nrow(df) == 0L) return(data.frame(x = numeric(0), y = numeric(0)))
-    cdf_clamped <- pmin(df$cdf, 1)
-    h <- -log(1 - cdf_clamped)
-    keep <- is.finite(h)
-    data.frame(x = df$x[keep], y = h[keep])
+    # Drop the last row: F_n(x_(n)) = 1, so H = -log(0) = Inf.
+    # Floating-point cumsum may yield 1 - eps instead of exactly 1,
+    # producing a huge but finite H; dropping avoids this artefact.
+    df <- df[-nrow(df), , drop = FALSE]
+    if (nrow(df) == 0L) return(data.frame(x = numeric(0), y = numeric(0)))
+    h <- -log(1 - df$cdf)
+    data.frame(x = df$x, y = h)
   }
 )
 

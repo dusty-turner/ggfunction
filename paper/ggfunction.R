@@ -362,6 +362,53 @@ p_wrong <- ggplot(df_wrong, aes(x = x)) +
 p_correct | p_wrong
 
 
+## ----km-censored, echo=TRUE, fig.width=8, fig.height=4------------------------
+#| fig.cap: "Kaplan--Meier survival curves for simulated censored data. Event times follow $\\text{Exp}(0.5)$ and censoring times follow $\\text{Exp}(0.2)$. The left panel shows the KM estimate with Greenwood 95\\% simultaneous confidence band and censoring marks; the right panel overlays the true survival curve (red)."
+set.seed(42)
+n_km <- 60
+true_time <- rexp(n_km, rate = 0.5)
+cens_time <- rexp(n_km, rate = 0.2)
+df_km <- data.frame(
+  time   = pmin(true_time, cens_time),
+  status = as.integer(true_time <= cens_time)
+)
+
+p_km <- ggplot(df_km, aes(x = time, status = status)) +
+  geom_ecdf_km() +
+  labs(x = "Time", y = expression(hat(S)(t))) +
+  ggtitle("Kaplan-Meier estimate") +
+  theme_minimal()
+
+p_km_gof <- ggplot(df_km, aes(x = time, status = status)) +
+  geom_ecdf_km(show_points = FALSE, show_vert = FALSE) +
+  geom_survival(cdf_fun = pexp, xlim = c(0, max(df_km$time)),
+                args = list(rate = 0.5), colour = "red") +
+  labs(x = "Time", y = expression(hat(S)(t))) +
+  ggtitle("KM vs. Exp(0.5) theory") +
+  theme_minimal()
+
+p_km | p_km_gof
+
+
+## ----na-censored, echo=TRUE, fig.width=8, fig.height=4------------------------
+#| fig.cap: "Nelson--Aalen cumulative hazard estimates. The same censored data as in the KM figure. The left panel shows the Nelson--Aalen estimate with 95\\% simultaneous confidence band; the right panel overlays the theoretical $H(x) = 0.5x$ (red)."
+p_na <- ggplot(df_km, aes(x = time, status = status)) +
+  geom_echf_na() +
+  labs(x = "Time", y = expression(hat(H)(t))) +
+  ggtitle("Nelson-Aalen estimate") +
+  theme_minimal()
+
+p_na_gof <- ggplot(df_km, aes(x = time, status = status)) +
+  geom_echf_na(show_points = FALSE, show_vert = FALSE) +
+  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_km$time)),
+           args = list(rate = 0.5), colour = "red") +
+  labs(x = "Time", y = expression(hat(H)(t))) +
+  ggtitle("NA vs. Exp(0.5) theory") +
+  theme_minimal()
+
+p_na | p_na_gof
+
+
 ## ----sim-coverage, echo=TRUE, fig.width=8, fig.height=3.5, cache=FALSE--------
 #| fig.cap: "Empirical simultaneous coverage of the KS confidence band over 10,000 simulations from $\\mathcal{N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal for all $n$, confirming the finite-sample validity of the DKW bound \\citep{massart1990tight}. The slight conservatism at small $n$ diminishes as $n$ grows because the bound's constant is asymptotically tight."
 set.seed(20240101)

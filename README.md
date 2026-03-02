@@ -45,6 +45,8 @@ The package is organized around two families of geoms:
 |  | `geom_eqf()` |  | Empirical quantile function with confidence ribbon |
 |  | `geom_epmf()` |  | Empirical PMF (lollipop) |
 |  | `geom_echf()` |  | Empirical cumulative hazard with DKW confidence band |
+| **Censored Data** | `geom_ecdf_km()` |  | Kaplan-Meier survival curve with Greenwood band |
+|  | `geom_echf_na()` |  | Nelson-Aalen cumulative hazard with band |
 
 ## Dimensional Taxonomy
 
@@ -736,6 +738,41 @@ ggplot(df_single, aes(x = x)) +
 ```
 
 <img src="man/figures/readme-echf-gof-1.png" alt="" width="60%" />
+
+## Censored Data Functions
+
+When survival data are right-censored (some event times unobserved),
+classical empirical estimators break down. The censored data family
+provides Kaplan-Meier and Nelson-Aalen estimators that correctly account
+for censoring.
+
+### Kaplan-Meier survival curve: `geom_ecdf_km()`
+
+`geom_ecdf_km()` computes the Kaplan-Meier product-limit estimator from
+right-censored data and renders it as a decreasing step function. The
+`status` aesthetic indicates whether each observation is an event (1) or
+censored (0). A simultaneous Greenwood confidence band and censoring
+marks are drawn by default.
+
+``` r
+ggplot(df_cens, aes(x = time, status = status)) +
+  geom_ecdf_km()
+```
+
+<img src="man/figures/readme-km-1.png" alt="" width="60%" />
+
+### Nelson-Aalen cumulative hazard: `geom_echf_na()`
+
+`geom_echf_na()` computes the Nelson-Aalen cumulative hazard estimator
+from right-censored data and renders it as an increasing step function
+with a simultaneous confidence band.
+
+``` r
+ggplot(df_cens, aes(x = time, status = status)) +
+  geom_echf_na()
+```
+
+<img src="man/figures/readme-na-1.png" alt="" width="60%" />
 
 ## Getting help
 

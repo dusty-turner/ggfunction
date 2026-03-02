@@ -1,9 +1,15 @@
-\begin{thebibliography}{12}
+\begin{thebibliography}{17}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Aalen(1978)]{aalen1978nonparametric}
+O.~Aalen.
+\newblock Nonparametric inference for a family of counting processes.
+\newblock \emph{The Annals of Statistics}, 6\penalty0 (4):\penalty0 701--726, 1978.
+\newblock \doi{10.1214/aos/1176344247}.
 
 \bibitem[Campitelli(2024)]{metR}
 E.~Campitelli.
@@ -22,6 +28,17 @@ G.~Cs{\'a}rdi.
 \newblock URL \url{https://CRAN.R-project.org/package=cli}.
 \newblock R package.
 
+\bibitem[Greenwood(1926)]{greenwood1926natural}
+M.~Greenwood.
+\newblock \emph{A Report on the Natural Duration of Cancer}.
+\newblock Number~33 in Reports on Public Health and Medical Subjects. His Majesty's Stationery Office, London, 1926.
+
+\bibitem[Kaplan and Meier(1958)]{kaplan1958nonparametric}
+E.~L. Kaplan and P.~Meier.
+\newblock Nonparametric estimation from incomplete observations.
+\newblock \emph{Journal of the American Statistical Association}, 53\penalty0 (282):\penalty0 457--481, 1958.
+\newblock \doi{10.1080/01621459.1958.10501452}.
+
 \bibitem[Kay(2024)]{kay2024ggdist}
 M.~Kay.
 \newblock {ggdist}: Visualizations of distributions and uncertainty in the grammar of graphics.
@@ -33,6 +50,18 @@ P.~Massart.
 \newblock The tight constant in the {Dvoretzky--Kiefer--Wolfowitz} inequality.
 \newblock \emph{The Annals of Probability}, 18\penalty0 (3):\penalty0 1269--1283, 1990.
 \newblock \doi{10.1214/aop/1176990746}.
+
+\bibitem[Nair(1984)]{nair1984confidence}
+V.~N. Nair.
+\newblock Confidence bands for survival functions with censored data: A comparative study.
+\newblock \emph{Technometrics}, 26\penalty0 (3):\penalty0 265--275, 1984.
+\newblock \doi{10.1080/00401706.1984.10487964}.
+
+\bibitem[Nelson(1972)]{nelson1972theory}
+W.~Nelson.
+\newblock Theory and applications of hazard plotting for censored failure data.
+\newblock \emph{Technometrics}, 14\penalty0 (4):\penalty0 945--966, 1972.
+\newblock \doi{10.1080/00401706.1972.10488991}.
 
 \bibitem[Otto and Kahle(2023)]{otto2023ggdensity}
 J.~Otto and D.~Kahle.

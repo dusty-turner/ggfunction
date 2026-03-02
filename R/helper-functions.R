@@ -233,4 +233,5 @@ inject_open_fill <- function(data, theme) {
 
 #' @noRd
 utils::globalVariables(c("x", "y", "z", "p", "level", "GeomLine", "pdf_fun", "cdf_fun",
-                         "pmf_fun", "survival_fun", "qf_fun", "hf_fun", "ymin", "ymax"))
+                         "pmf_fun", "survival_fun", "qf_fun", "hf_fun", "ymin", "ymax",
+                         "status"))
