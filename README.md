@@ -217,6 +217,39 @@ the CDF by numerical integration, and `geom_pdf(hf_fun = h)` derives the
 density from a hazard function. Distribution parameters are passed via
 `args`.
 
+### Cross-conversion
+
+Each probability geom accepts its native function type via `fun`, but
+most also accept alternate types that are converted internally. This
+lets you work with whichever characterization of a distribution is most
+natural, regardless of which geom you wish to plot.
+
+**CDF from a PDF.** Here we obtain the standard normal CDF from `dnorm`
+alone—no call to `pnorm` required. The CDF is derived by numerical
+integration.
+
+``` r
+ggplot() +
+  geom_cdf(pdf_fun = dnorm, xlim = c(-3, 3))
+```
+
+<img src="man/figures/readme-cross-cdf-from-pdf-1.png" alt="" width="60%" />
+
+**PDF from a hazard function.** Given a Weibull hazard function $h(x)$,
+`geom_pdf()` recovers the density via the identity
+$f(x) = h(x)\exp(-H(x))$.
+
+``` r
+h_weibull <- function(x, shape, scale) {
+  (shape / scale) * (x / scale)^(shape - 1)
+}
+
+ggplot() +
+  geom_pdf(hf_fun = h_weibull, xlim = c(0.01, 5), args = list(shape = 2, scale = 1))
+```
+
+<img src="man/figures/readme-cross-pdf-from-hf-1.png" alt="" width="60%" />
+
 ### PDF: `geom_pdf()`
 
 `geom_pdf()` draws a probability density function as a filled area. It
@@ -284,6 +317,19 @@ ggplot() +
 ```
 
 <img src="man/figures/readme-pdf-hdr-1.png" alt="" width="60%" />
+
+**Composing distributions.** Every **ggfunction** layer is a standard
+**ggplot2** layer, so multiple distributions compose freely. Here we
+overlay two normal densities with different means and spreads.
+
+``` r
+ggplot() +
+  geom_pdf(fun = dnorm, xlim = c(-5, 8), alpha = 0.4) +
+  geom_pdf(fun = dnorm, xlim = c(-5, 8),
+    args = list(mean = 3, sd = 1.5), alpha = 0.4)
+```
+
+<img src="man/figures/readme-pdf-compose-1.png" alt="" width="60%" />
 
 ### PMF: `geom_pmf()`
 
@@ -361,6 +407,18 @@ ggplot() +
 ```
 
 <img src="man/figures/readme-geom-cdf-1.png" alt="" width="60%" />
+
+**Shading.** `geom_cdf()` supports the same shading parameters as
+`geom_pdf()`: `p` for a single threshold, `p_lower`/`p_upper` for a
+two-sided interval, and `lower.tail` for tail direction. Here we shade
+up to the 90th percentile.
+
+``` r
+ggplot() +
+  geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.9)
+```
+
+<img src="man/figures/readme-geom-cdf-p-1.png" alt="" width="60%" />
 
 **Discrete (`geom_cdf_discrete()`).** Takes a PMF, accumulates it into
 the right-continuous step-function CDF, and renders it with horizontal
@@ -551,6 +609,30 @@ ggplot() +
 ```
 
 <img src="man/figures/readme-hazard-1.png" alt="" width="60%" />
+
+**Canonical hazard shapes.** Three canonical shapes arise in reliability
+modeling: decreasing (infant mortality), constant (memoryless), and
+increasing (wear-out). The Weibull distribution with `shape < 1` gives a
+decreasing hazard; the normal distribution’s hazard is eventually
+increasing.
+
+``` r
+library(patchwork)
+
+p_decr <- ggplot() +
+  geom_hf(pdf_fun = dweibull, cdf_fun = pweibull,
+    xlim = c(0.01, 5), args = list(shape = 0.5, scale = 2)) +
+  ggtitle("Decreasing (Weibull)")
+
+p_incr <- ggplot() +
+  geom_hf(pdf_fun = dnorm, cdf_fun = pnorm,
+    xlim = c(-3, 3)) +
+  ggtitle("Increasing (Normal)")
+
+p_decr | p_incr
+```
+
+<img src="man/figures/readme-hazard-shapes-1.png" alt="" width="60%" />
 
 ### Cumulative hazard function: `geom_chf()`
 
@@ -760,6 +842,20 @@ ggplot(df_cens, aes(x = time, status = status)) +
 ```
 
 <img src="man/figures/readme-km-1.png" alt="" width="60%" />
+
+**Goodness-of-fit overlay.** Overlaying the theoretical survival curve
+on the Kaplan-Meier estimate provides a visual check: if the curve lies
+within the Greenwood confidence band, the data are consistent with the
+model. Here we overlay the true $\text{Exp}(0.5)$ survival function.
+
+``` r
+ggplot(df_cens, aes(x = time, status = status)) +
+  geom_ecdf_km(show_points = FALSE, show_vert = FALSE) +
+  geom_survival(cdf_fun = pexp, xlim = c(0, max(df_cens$time)),
+    args = list(rate = 0.5), colour = "red")
+```
+
+<img src="man/figures/readme-km-gof-1.png" alt="" width="60%" />
 
 ### Nelson-Aalen cumulative hazard: `geom_echf_na()`
 
