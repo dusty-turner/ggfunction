@@ -23,14 +23,14 @@ domain; **ggfunction** handles evaluation, rendering, and shading.
 
 ## Overview
 
-The package is organized around two families of geoms:
+The package is organized around four families of geoms:
 
 | Family | Geom | Maps | Description |
 |----|----|----|----|
 | **Dimensional** | `geom_function_1d_1d()` | $\mathbb{R} \to \mathbb{R}$ | Scalar functions with optional interval shading |
 |  | `geom_function_1d_2d()` | $\mathbb{R} \to \mathbb{R}^2$ | Parametric curves |
 |  | `geom_function_2d_1d()` | $\mathbb{R}^2 \to \mathbb{R}$ | Scalar fields (raster, contour, filled contour) |
-|  | `geom_function_2d_2d()` | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector field streamlines |
+|  | `geom_function_2d_2d()` | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector fields (arrows, streamlines) |
 | **Probability** | `geom_pdf()` |  | Probability density function |
 |  | `geom_pmf()` |  | Probability mass function (lollipop) |
 |  | `geom_cdf()` |  | Cumulative distribution function |
@@ -40,7 +40,7 @@ The package is organized around two families of geoms:
 |  | `geom_qf()` |  | Quantile function |
 |  | `geom_qf_discrete()` |  | Discrete quantile function (step function) |
 |  | `geom_hf()` |  | Hazard function $h(x) = f(x)/S(x)$ |
-|  | `geom_chf()` |  | Cumulative hazard function $H(x) = \int_0^x h(t)\,dt$ |
+|  | `geom_chf()` |  | Cumulative hazard function $H(x) = -\log S(x)$ |
 | **Data** | `geom_ecdf()` |  | Empirical CDF with KS confidence ribbon |
 |  | `geom_eqf()` |  | Empirical quantile function with confidence ribbon |
 |  | `geom_epmf()` |  | Empirical PMF (lollipop) |
@@ -69,8 +69,7 @@ ggplot() +
 
 **Shading intervals.** The `shade_from` and `shade_to` parameters fill
 the region between the curve and the $x$-axis over a specified interval.
-Here we shade the standard normal density between $-1$ and $1$,
-corresponding to approximately 68% of the total area.
+Here we shade the sine function between $-1$ and $1$.
 
 ``` r
 ggplot() +
@@ -138,8 +137,8 @@ $f\colon \mathbb{R}^2 \to \mathbb{R}$ on an $n \times n$ grid over
 `xlim` $\times$ `ylim`. The function must accept a numeric vector of
 length 2 and return a scalar; extracting components with
 `x <- v[1]; y <- v[2]` is the recommended pattern. The example below
-shows a Gaussian bump $f(x,y) = \exp\!\bigl(-(x^2+y^2)/2\bigr)$ rendered
-as a raster heatmap (the default `type`).
+renders $f(x,y) = \sin(2\pi x) + \sin(2\pi y)$ as a raster heatmap (the
+default `type`).
 
 ``` r
 f <- function(v) {
@@ -219,10 +218,7 @@ density from a hazard function. Distribution parameters are passed via
 
 ### Cross-conversion
 
-Each probability geom accepts its native function type via `fun`, but
-most also accept alternate types that are converted internally. This
-lets you work with whichever characterization of a distribution is most
-natural, regardless of which geom you wish to plot.
+The following examples demonstrate this cross-conversion feature.
 
 **CDF from a PDF.** Here we obtain the standard normal CDF from `dnorm`
 alone—no call to `pnorm` required. The CDF is derived by numerical
@@ -408,10 +404,10 @@ ggplot() +
 
 <img src="man/figures/readme-geom-cdf-1.png" alt="" width="60%" />
 
-**Shading.** `geom_cdf()` supports the same shading parameters as
-`geom_pdf()`: `p` for a single threshold, `p_lower`/`p_upper` for a
-two-sided interval, and `lower.tail` for tail direction. Here we shade
-up to the 90th percentile.
+**Shading.** Like `geom_pdf()`, `geom_cdf()` accepts `p` for a single
+threshold, `p_lower`/`p_upper` for a two-sided interval, and
+`lower.tail` for tail direction. Here we shade up to the 90th
+percentile.
 
 ``` r
 ggplot() +
@@ -473,10 +469,10 @@ The survival function $S(x) = 1 - F(x) = P(X > x)$ gives the probability
 of surviving past $x$.
 
 **Continuous (`geom_survival()`).** Accepts a survival function directly
-via `fun`, or derives $S$ from a CDF via `cdf_fun` or a PDF via
-`pdf_fun`. The following example shows the survival function of an
-$\text{Exponential}(0.5)$ distribution, which decays as
-$S(x) = e^{-0.5x}$.
+via `fun`, or derives $S$ from a CDF via `cdf_fun`, a PDF via `pdf_fun`,
+or a quantile function via `qf_fun`. The following example shows the
+survival function of an $\text{Exponential}(0.5)$ distribution, which
+decays as $S(x) = e^{-0.5x}$.
 
 ``` r
 ggplot() +
@@ -636,15 +632,14 @@ p_decr | p_incr
 
 ### Cumulative hazard function: `geom_chf()`
 
-`geom_chf()` plots the cumulative hazard function
-$H(x) = \int_0^x h(t)\,dt = -\log S(x)$, which accumulates the
-instantaneous hazard over time. It accepts a cumulative hazard function
-directly via `fun`, or derives $H$ from any other characterization:
-`hf_fun` (integrated numerically), `cdf_fun` ($H = -\log(1 - F)$),
-`survival_fun` ($H = -\log S$), `pdf_fun` (integrated to CDF then
-transformed), or `qf_fun` (interpolated to CDF then transformed). The
-exponential distribution’s cumulative hazard is linear, confirming its
-constant hazard rate.
+`geom_chf()` plots the cumulative hazard function $H(x) = -\log S(x)$,
+which accumulates the instantaneous hazard over time. It accepts a
+cumulative hazard function directly via `fun`, or derives $H$ from any
+other characterization: `hf_fun` (integrated numerically), `cdf_fun`
+($H = -\log(1 - F)$), `survival_fun` ($H = -\log S$), `pdf_fun`
+(integrated to CDF then transformed), or `qf_fun` (interpolated to CDF
+then transformed). The exponential distribution’s cumulative hazard is
+linear, confirming its constant hazard rate.
 
 ``` r
 ggplot() +
@@ -657,7 +652,7 @@ ggplot() +
 
 The data family works with an observed numeric sample rather than a
 function object. Supply a vector of data via `aes(x = ...)` and the geom
-handles the rest. All three geoms use the same visual language as their
+handles the rest. All four geoms use the same visual language as their
 theoretical counterparts in the Probability section.
 
 ### Empirical CDF: `geom_ecdf()`
