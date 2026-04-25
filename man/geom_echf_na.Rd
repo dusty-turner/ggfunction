@@ -132,8 +132,8 @@ points and hidden otherwise.}
 If \code{NULL} (the default), segments are shown when there are 50 or fewer
 points and hidden otherwise.}
 
-\item{conf_int}{Logical. If \code{TRUE} (the default), draws a simultaneous
-EP confidence band around the Nelson-Aalen estimate.}
+\item{conf_int}{Logical. If \code{TRUE} (the default), draws a pointwise normal
+confidence band around the Nelson-Aalen estimate.}
 
 \item{level}{Confidence level for the band. Defaults to \code{0.95}.}
 
@@ -147,8 +147,8 @@ A ggplot2 layer, or a list of two layers when \code{conf_int = TRUE}.
 \code{geom_echf_na()} computes the Nelson-Aalen cumulative hazard estimator from
 right-censored data and renders it as an increasing step function starting
 at 0, using the same visual conventions as \code{\link[=geom_cdf_discrete]{geom_cdf_discrete()}}. An
-optional simultaneous confidence band (defaulting to 95\%) is drawn around
-the curve using the equal-precision (EP) construction of Nair (1984).
+optional pointwise normal confidence band (defaulting to 95\%) is drawn around
+the curve using the Nelson variance estimator.
 }
 \details{
 The Nelson-Aalen estimator at event time \eqn{t_j} is
@@ -156,16 +156,12 @@ The Nelson-Aalen estimator at event time \eqn{t_j} is
 where \eqn{d_j} is the number of events and \eqn{n_j} is the number at risk
 just before \eqn{t_j}.
 
-The simultaneous confidence band uses the Nelson variance estimator
+The pointwise confidence band uses the Nelson variance estimator
 \deqn{\widehat{\mathrm{Var}}[\hat{H}(t)] = \sum_{t_j \le t}
 \frac{d_j}{n_j^2}}
-with the equal-precision (EP) critical value of Nair (1984), giving bounds
-\eqn{\hat{H}(t) \pm c_{\mathrm{EP}}\,\mathrm{se}(t)} with lower bound
-clipped to 0. The EP critical value \eqn{c_{\mathrm{EP}}} is derived from
-the asymptotic distribution of the standardized Nelson-Aalen process and
-depends on the ratio of Nelson variances at the first and last event times.
-The resulting band is simultaneous (valid at all \eqn{t} jointly), not
-merely pointwise, and is asymptotically correct.
+with the normal critical value, giving pointwise bounds
+\eqn{\hat{H}(t) \pm z_{1-\alpha/2}\,\mathrm{se}(t)} with lower bound
+clipped to 0.
 }
 \section{Aesthetics}{
 

@@ -180,10 +180,11 @@ The simultaneous confidence band uses the Greenwood variance estimator
 with the equal-precision (EP) critical value of Nair (1984), giving bounds
 \eqn{\hat{S}(t) \pm c_{\mathrm{EP}}\,\mathrm{se}(t)} clipped to
 \eqn{[0, 1]}. The EP critical value \eqn{c_{\mathrm{EP}}} is derived from
-the asymptotic distribution of the standardized KM process and depends on
-the ratio of Greenwood variances at the first and last event times. The
-resulting band is simultaneous (valid at all \eqn{t} jointly), not merely
-pointwise, and is asymptotically correct.
+the asymptotic distribution of the standardized KM process. It depends on
+endpoints \eqn{a(t) = nG(t)/(1 + nG(t))}, where \eqn{G(t)} is Greenwood's
+cumulative variance term, evaluated at the first and last valid event-time
+values. The resulting band is simultaneous (valid at all \eqn{t} jointly),
+not merely pointwise, and is asymptotically correct.
 }
 \section{Aesthetics}{
 

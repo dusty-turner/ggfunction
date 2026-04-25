@@ -26,6 +26,7 @@ geom_pdf(
   survival_fun = NULL,
   qf_fun = NULL,
   hf_fun = NULL,
+  hf_lower = -Inf,
   xlim = NULL,
   n = 101,
   args = list(),
@@ -140,9 +141,14 @@ one of \code{fun}, \code{cdf_fun}, \code{survival_fun}, \code{qf_fun}, or \code{
 provided.}
 
 \item{hf_fun}{A hazard function (e.g. a Weibull hazard). When supplied, the
-CDF is derived via numerical integration of the cumulative hazard and then
-differentiated to obtain the PDF. Exactly one of \code{fun}, \code{cdf_fun},
-\code{survival_fun}, \code{qf_fun}, or \code{hf_fun} must be provided.}
+PDF is derived via numerical integration of the cumulative hazard. Exactly
+one of \code{fun}, \code{cdf_fun}, \code{survival_fun}, \code{qf_fun}, or \code{hf_fun} must be
+provided.}
+
+\item{hf_lower}{Lower limit for integrating \code{hf_fun}. Defaults to \code{-Inf}.
+For finite-support hazards, set this to the lower support point (for
+example, \code{0} for Weibull or exponential hazards); values below \code{hf_lower}
+return density \code{0}.}
 
 \item{xlim}{A numeric vector of length 2 giving the x-range over which to evaluate the PDF.}
 

@@ -149,7 +149,7 @@ ggplot() +
 ## Comparing theory to data
 
 Generate a sample from $N(0, 1)$ and overlay the empirical CDF with the
-theoretical CDF. The KS confidence band (shown automatically by `geom_ecdf()`)
+theoretical CDF. The DKW confidence band (shown automatically by `geom_ecdf()`)
 helps assess whether the data are consistent with the theoretical model:
 
 ```{r ecdf-vs-cdf}
@@ -162,7 +162,7 @@ ggplot(df, aes(x = x)) +
            color = "firebrick", linewidth = 0.8) +
   labs(
     title = "Empirical vs. Theoretical CDF",
-    subtitle = "Blue = ECDF with 95% KS band, Red = N(0, 1)",
+    subtitle = "Blue = ECDF with 95% DKW band, Red = N(0, 1)",
     x = "x", y = "F(x)"
   ) +
   theme_minimal()
@@ -180,11 +180,11 @@ the shape parameter:
 
 ```{r survival-hazard, fig.width = 8, fig.height = 4}
 p1 <- ggplot() +
-  geom_survival(fun = pexp, xlim = c(0, 6),
+  geom_survival(cdf_fun = pexp, xlim = c(0, 6),
                 args = list(rate = 0.5), color = "steelblue") +
-  geom_survival(fun = pweibull, xlim = c(0, 6),
+  geom_survival(cdf_fun = pweibull, xlim = c(0, 6),
                 args = list(shape = 2, scale = 2), color = "firebrick") +
-  geom_survival(fun = pweibull, xlim = c(0, 6),
+  geom_survival(cdf_fun = pweibull, xlim = c(0, 6),
                 args = list(shape = 0.5, scale = 2), color = "forestgreen") +
   labs(title = "Survival Functions", x = "t", y = "S(t)") +
   theme_minimal()

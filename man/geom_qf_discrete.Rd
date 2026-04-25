@@ -115,11 +115,14 @@ of \code{fun}, \code{pmf_fun}, \code{cdf_fun}, or \code{survival_fun} must be pr
 one of \code{fun}, \code{pmf_fun}, \code{cdf_fun}, or \code{survival_fun} must be provided.}
 
 \item{xlim}{A numeric vector of length 2 specifying the range of support
-values to display (y-axis of the quantile function). For the \code{pmf_fun}
-path this also defines the integer support to evaluate.}
+values to display (y-axis of the quantile function). When \code{support} is not
+supplied for a cumulative input path, this range is also used as the
+computational support.}
 
 \item{support}{An optional integer or numeric vector giving the exact support
-points. When supplied, \code{xlim} is ignored.}
+points used for cumulative computation. When supplied with \code{xlim}, the
+quantile steps are computed on the full \code{support} and then filtered to the
+displayed \code{xlim}.}
 
 \item{args}{A named list of additional arguments to pass to \code{fun} or
 \code{pmf_fun}.}

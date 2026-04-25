@@ -41,12 +41,12 @@ The package is organized around four families of geoms:
 |  | `geom_qf_discrete()` |  | Discrete quantile function (step function) |
 |  | `geom_hf()` |  | Hazard function $h(x) = f(x)/S(x)$ |
 |  | `geom_chf()` |  | Cumulative hazard function $H(x) = -\log S(x)$ |
-| **Data** | `geom_ecdf()` |  | Empirical CDF with KS confidence ribbon |
+| **Data** | `geom_ecdf()` |  | Empirical CDF with DKW confidence ribbon |
 |  | `geom_eqf()` |  | Empirical quantile function with confidence ribbon |
 |  | `geom_epmf()` |  | Empirical PMF (lollipop) |
 |  | `geom_echf()` |  | Empirical cumulative hazard with DKW confidence band |
-| **Censored Data** | `geom_ecdf_km()` |  | Kaplan-Meier survival curve with Greenwood band |
-|  | `geom_echf_na()` |  | Nelson-Aalen cumulative hazard with band |
+| **Censored Data** | `geom_ecdf_km()` |  | Kaplan-Meier survival curve with Greenwood EP band |
+|  | `geom_echf_na()` |  | Nelson-Aalen cumulative hazard with pointwise band |
 
 ## Dimensional Taxonomy
 
@@ -214,7 +214,8 @@ function type via `fun` (e.g. `dnorm` for `geom_pdf()`, `pnorm` for
 converted internally—for example, `geom_cdf(pdf_fun = dnorm)` derives
 the CDF by numerical integration, and `geom_pdf(hf_fun = h)` derives the
 density from a hazard function. Distribution parameters are passed via
-`args`.
+`args`; finite-support hazards should pass their support origin with
+`hf_lower`.
 
 ### Cross-conversion
 
@@ -233,7 +234,9 @@ ggplot() +
 
 **PDF from a hazard function.** Given a Weibull hazard function $h(x)$,
 `geom_pdf()` recovers the density via the identity
-$f(x) = h(x)\exp(-H(x))$.
+$f(x) = h(x)\exp(-H(x))$. Since the Weibull support begins at 0, we pass
+`hf_lower = 0` so the cumulative hazard is integrated from the support
+origin.
 
 ``` r
 h_weibull <- function(x, shape, scale) {
@@ -241,7 +244,7 @@ h_weibull <- function(x, shape, scale) {
 }
 
 ggplot() +
-  geom_pdf(hf_fun = h_weibull, xlim = c(0.01, 5), args = list(shape = 2, scale = 1))
+  geom_pdf(hf_fun = h_weibull, hf_lower = 0, xlim = c(0.01, 5), args = list(shape = 2, scale = 1))
 ```
 
 <img src="man/figures/readme-cross-pdf-from-hf-1.png" alt="" width="60%" />
@@ -419,17 +422,9 @@ ggplot() +
 **Discrete (`geom_cdf_discrete()`).** Takes a PMF, accumulates it into
 the right-continuous step-function CDF, and renders it with horizontal
 segments, dashed vertical jumps, open circles at the lower limit of each
-jump, and closed circles at the achieved value. The following example
-plots the $\text{Binomial}(10, 0.5)$ CDF.
-
-``` r
-ggplot() +
-  geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
-```
-
-<img src="man/figures/readme-discrete-cdf-1.png" alt="" width="60%" />
-
-**Parameterized families.** Here we plot a $\text{Poisson}(5)$ discrete
+jump, and closed circles at the achieved value. For PMF-derived CDFs,
+`support` is the full computational support and `xlim` only filters the
+displayed range. The following example plots the $\text{Poisson}(5)$
 CDF.
 
 ``` r
@@ -437,11 +432,13 @@ ggplot() +
   geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 ```
 
-<img src="man/figures/readme-discrete-cdf-pois-1.png" alt="" width="60%" />
+<img src="man/figures/readme-discrete-cdf-1.png" alt="" width="60%" />
 
 **Hiding points and lines.** `show_points = FALSE` and
 `show_vert = FALSE` remove the endpoint circles and vertical jump
-segments, leaving only the horizontal staircase.
+segments, leaving only the horizontal staircase. By default, points and
+vertical jump segments are shown only when there are 50 or fewer support
+points; for larger supports they are hidden automatically.
 
 ``` r
 ggplot() +
@@ -451,9 +448,9 @@ ggplot() +
 
 <img src="man/figures/readme-discrete-cdf-no-points-lines-1.png" alt="" width="60%" />
 
-**Explicit support.** Pass non-integer support points directly via
-`support`. Here we plot the CDF of the sample mean of 10 iid
-$\text{Bernoulli}(0.3)$ draws.
+**Explicit support.** Pass the full set of non-integer support points
+directly via `support`. Here we plot the CDF of the sample mean of 10
+iid $\text{Bernoulli}(0.3)$ draws.
 
 ``` r
 f_mean <- function(x, prob) dbinom(round(x * 10), size = 10, prob = prob)
@@ -483,8 +480,10 @@ ggplot() +
 
 **Discrete (`geom_survival_discrete()`).** Takes a PMF and renders
 $S(x) = 1 - F(x)$ as a right-continuous step function using the same
-visual conventions as `geom_cdf_discrete()`. The following example plots
-the $\text{Binomial}(10, 0.5)$ survival function.
+visual conventions as `geom_cdf_discrete()`. As with the discrete CDF,
+PMF-derived survival curves require the full computational support. The
+following example plots the $\text{Binomial}(10, 0.5)$ survival
+function.
 
 ``` r
 ggplot() +
@@ -534,8 +533,9 @@ ggplot() +
 quantile function as a left-continuous step function on the unit
 interval, with closed circles at the bottom of each jump (the value is
 achieved) and open circles at the top (the next value is not yet
-reached). The following example plots the $\text{Binomial}(10, 0.5)$
-quantile function.
+reached). PMF-derived quantile functions are inverted after the CDF is
+computed on the full support. The following example plots the
+$\text{Binomial}(10, 0.5)$ quantile function.
 
 ``` r
 ggplot() +
@@ -659,9 +659,9 @@ theoretical counterparts in the Probability section.
 
 `geom_ecdf()` plots the empirical cumulative distribution function of a
 sample as a right-continuous step function, using the same visual
-conventions as `geom_cdf_discrete()`. A 95% simultaneous
-Kolmogorov-Smirnov confidence ribbon is drawn by default; set
-`conf_int = FALSE` to suppress it.
+conventions as `geom_cdf_discrete()`. A 95% simultaneous DKW/Massart
+confidence ribbon is drawn by default; set `conf_int = FALSE` to
+suppress it.
 
 ``` r
 ggplot(df_single, aes(x = x)) +
@@ -696,8 +696,8 @@ ggplot(df_single, aes(x = x)) +
 `geom_eqf()` plots the empirical quantile function
 $Q_n(p) = \inf\{x : \hat{F}_n(x) \ge p\}$ as a left-continuous step
 function on $[0, 1]$, using the same visual conventions as
-`geom_qf_discrete()`. The confidence ribbon inverts the KS ECDF band: at
-probability $p$ the band spans
+`geom_qf_discrete()`. The confidence ribbon inverts the DKW/Massart ECDF
+band: at probability $p$ the band spans
 $[Q_n(p - \varepsilon), Q_n(p + \varepsilon)]$.
 
 ``` r
@@ -716,7 +716,7 @@ ggplot(df_two, aes(x = x, color = group)) +
 
 <img src="man/figures/readme-eqf-grouped-1.png" alt="" width="60%" />
 
-**Informal normality test.** Because the KS confidence band covers the
+**Informal normality test.** Because the DKW confidence band covers the
 true quantile function $Q(p)$ with probability $\ge 1 - \alpha$
 regardless of the null, overlaying a parametric $Q_0(p)$ turns the plot
 into a visual goodness-of-fit test: if $Q_0$ lies entirely within the
@@ -828,8 +828,8 @@ for censoring.
 `geom_ecdf_km()` computes the Kaplan-Meier product-limit estimator from
 right-censored data and renders it as a decreasing step function. The
 `status` aesthetic indicates whether each observation is an event (1) or
-censored (0). A simultaneous Greenwood confidence band and censoring
-marks are drawn by default.
+censored (0). A simultaneous equal-precision Greenwood confidence band
+and censoring marks are drawn by default.
 
 ``` r
 ggplot(df_cens, aes(x = time, status = status)) +
@@ -840,8 +840,8 @@ ggplot(df_cens, aes(x = time, status = status)) +
 
 **Goodness-of-fit overlay.** Overlaying the theoretical survival curve
 on the Kaplan-Meier estimate provides a visual check: if the curve lies
-within the Greenwood confidence band, the data are consistent with the
-model. Here we overlay the true $\text{Exp}(0.5)$ survival function.
+within the Greenwood EP confidence band, the data are consistent with
+the model. Here we overlay the true $\text{Exp}(0.5)$ survival function.
 
 ``` r
 ggplot(df_cens, aes(x = time, status = status)) +
@@ -856,7 +856,7 @@ ggplot(df_cens, aes(x = time, status = status)) +
 
 `geom_echf_na()` computes the Nelson-Aalen cumulative hazard estimator
 from right-censored data and renders it as an increasing step function
-with a simultaneous confidence band.
+with a pointwise normal confidence band.
 
 ``` r
 ggplot(df_cens, aes(x = time, status = status)) +
