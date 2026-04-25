@@ -22,6 +22,13 @@ test_that("geom_cdf_discrete builds without error", {
   expect_silent(ggplot_build(p))
 })
 
+test_that("geom_cdf_discrete uses x and p as default axis labels", {
+  p <- ggplot() + geom_cdf_discrete(
+    pmf_fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10)
+  )
+  expect_equal(plot_axis_titles(p), c(x = "x", y = "p"))
+})
+
 test_that("geom_cdf_discrete with custom open_fill builds without error", {
   p <- ggplot() + geom_cdf_discrete(
     pmf_fun = dpois, args = list(lambda = 5), xlim = c(0, 15), open_fill = "blue"
@@ -60,16 +67,32 @@ test_that("StatCDFDiscrete uses default xlim when NULL", {
   expect_equal(nrow(result), 11)  # 0:10
 })
 
-test_that("StatCDFDiscrete uses support when provided", {
+test_that("StatCDFDiscrete computes over full support before xlim display filtering", {
   scales <- list(x = NULL)
-  result <- suppressMessages(StatCDFDiscrete$compute_group(
+  result <- StatCDFDiscrete$compute_group(
     data = data.frame(group = 1),
     scales = scales,
     pmf_fun = dbinom,
-    support = c(0, 5, 10),
+    support = 0:10,
+    xlim = c(3, 7),
     args = list(size = 10, prob = 0.5)
-  ))
-  expect_equal(nrow(result), 3)
+  )
+  expect_equal(result$x, 3:7)
+  expect_equal(result$y, pbinom(3:7, size = 10, prob = 0.5), tolerance = 1e-10)
+})
+
+test_that("StatCDFDiscrete aborts for truncated PMF support", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatCDFDiscrete$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      pmf_fun = dbinom,
+      xlim = c(3, 7),
+      args = list(size = 10, prob = 0.5)
+    ),
+    "full computational support"
+  )
 })
 
 # --- Alternate input: survival_fun ---

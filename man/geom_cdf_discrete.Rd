@@ -108,11 +108,14 @@ or \code{survival_fun} must be provided.}
 \eqn{F(x) = 1 - S(x)} on the integer support. Exactly one of \code{fun},
 \code{pmf_fun}, or \code{survival_fun} must be provided.}
 
-\item{xlim}{A numeric vector of length 2 specifying the range of integer
-support values.}
+\item{xlim}{A numeric vector of length 2 specifying the range of support
+values to display. When \code{support} is not supplied, this range is also used
+as the computational support.}
 
 \item{support}{An optional integer or numeric vector giving the exact support
-points to evaluate. When supplied, \code{xlim} is ignored.}
+points used for cumulative computation. When supplied with \code{xlim}, the
+cumulative probabilities are computed on the full \code{support} and then
+filtered to the displayed \code{xlim}.}
 
 \item{args}{A named list of additional arguments to pass to \code{fun} or
 \code{pmf_fun}.}

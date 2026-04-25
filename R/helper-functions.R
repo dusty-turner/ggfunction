@@ -30,6 +30,31 @@ empty <- function(df) {
 }
 
 #' @noRd
+probability_axis_anchor <- function() {
+  ggplot2::geom_blank(
+    data = data.frame(x = c(0, 1)),
+    mapping = aes(x = x),
+    inherit.aes = FALSE
+  )
+}
+
+#' @noRd
+default_labs_component <- function(x = NULL, y = NULL) {
+  structure(list(x = x, y = y), class = "ggfunction_default_labs")
+}
+
+#' @exportS3Method ggplot2::ggplot_add
+ggplot_add.ggfunction_default_labs <- function(object, plot, object_name) {
+  if (is.null(plot$labels$x) && !is.null(object$x)) {
+    plot$labels$x <- object$x
+  }
+  if (is.null(plot$labels$y) && !is.null(object$y)) {
+    plot$labels$y <- object$y
+  }
+  plot
+}
+
+#' @noRd
 vectorize <- function(f, drop = TRUE) {
   function(v, ...) {
     stopifnot(is.numeric(v))
@@ -60,17 +85,50 @@ check_pdf_normalization <- function(f, lower, upper, tol = 1e-3) {
 }
 
 #' @noRd
-check_pmf_normalization <- function(f, support, tol = 1e-3) {
+check_pmf_normalization <- function(f, support, tol = 1e-3,
+                                    action = c("warn", "abort")) {
+  action <- match.arg(action)
   vals <- try(f(support), silent = TRUE)
   if (inherits(vals, "try-error")) {
     stop("Error evaluating the PMF over the provided support. Please check your function definition.")
   }
   total <- sum(vals)
   if (abs(total - 1) > tol) {
-    cli::cli_alert(sprintf("The provided function sums to %.4f over the support [%g, %g], which is not equal to 1 within a tolerance of %.3f.",
-                           total, min(support), max(support), tol))
+    msg <- sprintf(
+      "The provided function sums to %.4f over the support [%g, %g], which is not equal to 1 within a tolerance of %.3f.",
+      total, min(support), max(support), tol
+    )
+    if (identical(action, "abort")) {
+      cli::cli_abort(c(
+        msg,
+        "i" = "For PMF-derived cumulative discrete functions, provide the full computational support via {.arg support}; use {.arg xlim} only to limit the displayed range."
+      ))
+    }
+    cli::cli_alert(msg)
   }
   invisible(total)
+}
+
+#' Resolve the computational support for discrete distribution geoms.
+#' @noRd
+discrete_support <- function(xlim = NULL, support = NULL, default = 0:10) {
+  if (!is.null(support)) {
+    return(sort(unique(support)))
+  }
+  if (is.null(xlim)) {
+    return(default)
+  }
+  seq(ceiling(xlim[1]), floor(xlim[2]))
+}
+
+#' Filter already-computed discrete rows to the displayed support range.
+#' @noRd
+filter_discrete_xlim <- function(df, xlim = NULL, x_col = "x") {
+  if (is.null(xlim) || nrow(df) == 0L) {
+    return(df)
+  }
+  keep <- df[[x_col]] >= xlim[1] & df[[x_col]] <= xlim[2]
+  df[keep, , drop = FALSE]
 }
 
 #' @noRd
@@ -162,21 +220,36 @@ qf_to_cdf <- function(qf_fun, n = 10000) {
   stats::approxfun(x_grid, p_grid, rule = 2)
 }
 
+#' Convert a hazard function to a cumulative hazard function via numerical integration
+#'
+#' Computes the cumulative hazard H(x) = integral of h(t) from lower to x,
+#' @noRd
+hf_to_chf <- function(hf_fun, lower = -Inf) {
+  if (!is.numeric(lower) || length(lower) != 1L || is.na(lower) || lower == Inf) {
+    cli::cli_abort("{.arg lower} must be a finite number or {.code -Inf}.")
+  }
+  function(x) {
+    vapply(x, function(xi) {
+      if (is.finite(lower) && xi <= lower) {
+        return(0)
+      }
+      res <- try(
+        stats::integrate(hf_fun, lower = lower, upper = xi, stop.on.error = FALSE),
+        silent = TRUE
+      )
+      if (inherits(res, "try-error")) NA_real_ else res$value
+    }, numeric(1))
+  }
+}
+
 #' Convert a hazard function to a CDF function via numerical integration
 #'
 #' Computes the cumulative hazard H(x) = integral of h(t) from lower to x,
 #' then returns F(x) = 1 - exp(-H(x)).
 #' @noRd
 hf_to_cdf <- function(hf_fun, lower = -Inf) {
-  function(x) {
-    vapply(x, function(xi) {
-      res <- try(
-        stats::integrate(hf_fun, lower = lower, upper = xi, stop.on.error = FALSE),
-        silent = TRUE
-      )
-      if (inherits(res, "try-error")) NA_real_ else 1 - exp(-res$value)
-    }, numeric(1))
-  }
+  chf_fun <- hf_to_chf(hf_fun, lower = lower)
+  function(x) 1 - exp(-chf_fun(x))
 }
 
 #' Convert a hazard function to a PDF function
@@ -186,14 +259,16 @@ hf_to_cdf <- function(hf_fun, lower = -Inf) {
 #' it avoids nested numerical differentiation.
 #' @noRd
 hf_to_pdf <- function(hf_fun, lower = -Inf) {
+  chf_fun <- hf_to_chf(hf_fun, lower = lower)
   function(x) {
     vapply(x, function(xi) {
-      res <- try(
-        stats::integrate(hf_fun, lower = lower, upper = xi, stop.on.error = FALSE),
-        silent = TRUE
-      )
-      if (inherits(res, "try-error")) return(NA_real_)
-      hf_fun(xi) * exp(-res$value)
+      if (is.finite(lower) && xi < lower) {
+        return(0)
+      }
+      h_x <- hf_fun(xi)
+      H_x <- chf_fun(xi)
+      if (is.na(H_x)) return(NA_real_)
+      h_x * exp(-H_x)
     }, numeric(1))
   }
 }

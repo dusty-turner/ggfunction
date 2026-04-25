@@ -132,7 +132,7 @@ points and hidden otherwise.}
 If \code{NULL} (the default), segments are shown when there are 50 or fewer
 points and hidden otherwise.}
 
-\item{conf_int}{Logical. If \code{TRUE} (the default), draws a simultaneous KS
+\item{conf_int}{Logical. If \code{TRUE} (the default), draws a simultaneous DKW
 confidence band around the ECDF.}
 
 \item{level}{Confidence level for the band. Defaults to \code{0.95}.}
@@ -149,7 +149,7 @@ it as a left-continuous step function on \eqn{[0, 1]}, using the same visual
 conventions as \code{\link[=geom_qf_discrete]{geom_qf_discrete()}}: horizontal segments, dashed vertical
 jumps, closed circles at the bottom of each jump (value achieved), and open
 circles at the top (next value not yet reached). An optional simultaneous
-confidence band is drawn using the Kolmogorov-Smirnov construction.
+confidence band is drawn by inverting the DKW/Massart ECDF band.
 }
 \details{
 The empirical quantile function is the left-continuous inverse of the
@@ -157,7 +157,7 @@ empirical CDF: \eqn{Q(p) = \inf\{x : F_n(x) \geq p\}}.
 
 The confidence band at probability level \eqn{p} is
 \eqn{[Q_n(p - \varepsilon),\, Q_n(p + \varepsilon)]}, where
-\eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}} is the KS half-width
+\eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}} is the DKW/Massart half-width
 (\eqn{\alpha = 1 - \texttt{level}}). This follows directly from inverting
 the simultaneous ECDF confidence band.
 }

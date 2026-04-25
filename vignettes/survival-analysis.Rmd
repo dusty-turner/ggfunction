@@ -239,7 +239,8 @@ risk just before $t_j$.
 
 `geom_ecdf_km()` requires two aesthetics: `x` (the observed time) and `status`
 (1 = event, 0 = censored). It draws the KM curve as a decreasing step function,
-a simultaneous Greenwood confidence band, and "+" marks at censoring times.
+a simultaneous equal-precision Greenwood confidence band, and "+" marks at
+censoring times.
 
 ```{r km-basic}
 set.seed(42)
@@ -298,8 +299,8 @@ cumulative hazard:
 
 $$\hat{H}(t) = \sum_{t_j \le t} \frac{d_j}{n_j}.$$
 
-`geom_echf_na()` renders this as an increasing step function with a simultaneous
-confidence band based on the variance estimator
+`geom_echf_na()` renders this as an increasing step function with a pointwise
+normal confidence band based on the variance estimator
 $\widehat{\mathrm{Var}}[\hat{H}(t)] = \sum_{t_j \le t} d_j / n_j^2$.
 
 ```{r na-basic}

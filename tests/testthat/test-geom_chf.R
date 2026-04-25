@@ -47,6 +47,22 @@ test_that("StatCHF computes H(x) from hf_fun (exponential)", {
   expect_equal(result$y, result$x, tolerance = 1e-3)
 })
 
+test_that("StatCHF computes H(x) from finite-support Weibull hazard", {
+  h_weibull <- function(x, shape, scale) (shape / scale) * (x / scale)^(shape - 1)
+  scales <- list(x = NULL)
+  result <- StatCHF$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    hf_fun = h_weibull,
+    hf_lower = 0,
+    xlim = c(0.01, 5),
+    n = 101,
+    args = list(shape = 2, scale = 1)
+  )
+  expected <- -log(pweibull(result$x, shape = 2, scale = 1, lower.tail = FALSE))
+  expect_equal(result$y, expected, tolerance = 1e-3)
+})
+
 test_that("StatCHF computes H(x) from direct fun", {
   H_exp <- function(x, rate = 1) rate * x
   scales <- list(x = NULL)

@@ -17,6 +17,10 @@
 #'   hazard is derived by numerical integration. Exactly one of `fun`,
 #'   `hf_fun`, `cdf_fun`, `pdf_fun`, `survival_fun`, or `qf_fun` must be
 #'   provided.
+#' @param hf_lower Lower limit for integrating `hf_fun`. Defaults to `-Inf`.
+#'   For finite-support hazards, set this to the lower support point (for
+#'   example, `0` for Weibull or exponential hazards); values below `hf_lower`
+#'   return cumulative hazard `0`.
 #' @param cdf_fun A CDF function (e.g. [pnorm]). The cumulative hazard is
 #'   computed as \eqn{H(x) = -\log(1 - F(x))}. Exactly one of `fun`,
 #'   `hf_fun`, `cdf_fun`, `pdf_fun`, `survival_fun`, or `qf_fun` must be
@@ -72,6 +76,7 @@ geom_chf <- function(
     pdf_fun = NULL,
     survival_fun = NULL,
     qf_fun = NULL,
+    hf_lower = -Inf,
     xlim = NULL,
     n = 101,
     args = list()
@@ -102,6 +107,7 @@ geom_chf <- function(
       pdf_fun = pdf_fun,
       survival_fun = survival_fun,
       qf_fun = qf_fun,
+      hf_lower = hf_lower,
       n = n,
       xlim = xlim,
       args = args,
@@ -119,6 +125,7 @@ StatCHF <- ggproto("StatCHF", Stat,
   compute_group = function(data, scales, fun = NULL, hf_fun = NULL,
                            cdf_fun = NULL, pdf_fun = NULL,
                            survival_fun = NULL, qf_fun = NULL,
+                           hf_lower = -Inf,
                            xlim = NULL, n = 101, args = NULL) {
 
     # Validate: exactly one source
@@ -148,15 +155,8 @@ StatCHF <- ggproto("StatCHF", Stat,
       y_out <- fun_injected(xseq)
     } else if (!is.null(hf_fun)) {
       hf_injected <- function(x) rlang::inject(hf_fun(x, !!!args))
-      # Integrate hazard directly for cumulative hazard
-      y_out <- vapply(xseq, function(xi) {
-        res <- try(
-          stats::integrate(hf_injected, lower = -Inf, upper = xi,
-                           stop.on.error = FALSE),
-          silent = TRUE
-        )
-        if (inherits(res, "try-error")) NA_real_ else res$value
-      }, numeric(1))
+      chf_derived <- hf_to_chf(hf_injected, lower = hf_lower)
+      y_out <- chf_derived(xseq)
     } else if (!is.null(survival_fun)) {
       surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
       y_out <- -log(surv_injected(xseq))

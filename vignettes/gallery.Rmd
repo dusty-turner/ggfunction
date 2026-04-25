@@ -195,6 +195,6 @@ ggplot(df, aes(x = x)) +
   geom_qf(fun = qnorm, args = list(mean = 0, sd = 1),
            color = "firebrick", linewidth = 0.8) +
   labs(title = "Empirical vs. theoretical quantile function",
-       subtitle = "Blue = data with KS band, Red = N(0, 1)") +
+       subtitle = "Blue = data with DKW band, Red = N(0, 1)") +
   theme_minimal()
 ```

@@ -8,11 +8,11 @@ test_that("StatQFDiscrete computes correct quantile values", {
     args = list(size = 10, prob = 0.5)
   )
   expect_equal(nrow(result), 11)
-  # x values should be CDF values: monotonically increasing, ending near 1
-  expect_true(all(diff(result$x) >= 0))
-  expect_true(abs(result$x[11] - 1) < 0.01)
-  # y values should be the support: 0 through 10
-  expect_equal(result$y, 0:10)
+  # p values should be CDF values: monotonically increasing, ending near 1
+  expect_true(all(diff(result$p) >= 0))
+  expect_true(abs(result$p[11] - 1) < 0.01)
+  # x values should be the support: 0 through 10
+  expect_equal(result$x, 0:10)
 })
 
 test_that("geom_qf_discrete builds without error", {
@@ -21,6 +21,22 @@ test_that("geom_qf_discrete builds without error", {
   )
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
+})
+
+test_that("geom_qf_discrete uses p and x as default axis labels", {
+  p <- ggplot() + geom_qf_discrete(
+    pmf_fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10)
+  )
+  expect_equal(plot_axis_titles(p), c(x = "p", y = "x"))
+})
+
+test_that("geom_qf_discrete x-axis range includes 0 and 1", {
+  p <- ggplot() + geom_qf_discrete(
+    pmf_fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10)
+  )
+  xrng <- plot_x_range(p)
+  expect_lte(xrng[1], 0)
+  expect_gte(xrng[2], 1)
 })
 
 test_that("geom_qf_discrete with Poisson builds without error", {
@@ -58,6 +74,34 @@ test_that("geom_qf_discrete with support parameter builds without error", {
   expect_silent(ggplot_build(p))
 })
 
+test_that("StatQFDiscrete computes over full support before xlim display filtering", {
+  scales <- list(x = NULL)
+  result <- StatQFDiscrete$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    pmf_fun = dbinom,
+    support = 0:10,
+    xlim = c(3, 7),
+    args = list(size = 10, prob = 0.5)
+  )
+  expect_equal(result$x, 3:7)
+  expect_equal(result$p, pbinom(3:7, size = 10, prob = 0.5), tolerance = 1e-10)
+})
+
+test_that("StatQFDiscrete aborts for truncated PMF support", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatQFDiscrete$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      pmf_fun = dbinom,
+      xlim = c(3, 7),
+      args = list(size = 10, prob = 0.5)
+    ),
+    "full computational support"
+  )
+})
+
 test_that("StatQFDiscrete uses default xlim when NULL", {
   scales <- list(x = NULL)
   result <- StatQFDiscrete$compute_group(
@@ -82,10 +126,10 @@ test_that("StatQFDiscrete computes QF from cdf_fun (pbinom)", {
     args = list(size = 10, prob = 0.5)
   )
   expect_equal(nrow(result), 11)
-  # x values should be CDF values, y values should be support 0:10
-  expect_equal(result$y, 0:10)
+  # x values should be support 0:10
+  expect_equal(result$x, 0:10)
   expected_cdf <- pbinom(0:10, size = 10, prob = 0.5)
-  expect_equal(result$x, expected_cdf, tolerance = 1e-6)
+  expect_equal(result$p, expected_cdf, tolerance = 1e-6)
 })
 
 test_that("geom_qf_discrete with cdf_fun builds without error", {
@@ -137,11 +181,11 @@ test_that("StatQFDiscrete computes QF from survival_fun", {
     args = list()
   )
   expect_equal(nrow(result), 11)
-  # y values should be the support: 0 through 10
-  expect_equal(result$y, 0:10)
-  # x values should be CDF values
+  # x values should be the support: 0 through 10
+  expect_equal(result$x, 0:10)
+  # p values should be CDF values
   expected_cdf <- pbinom(0:10, size = 10, prob = 0.5)
-  expect_equal(result$x, expected_cdf, tolerance = 1e-10)
+  expect_equal(result$p, expected_cdf, tolerance = 1e-10)
 })
 
 test_that("geom_qf_discrete with survival_fun builds without error", {

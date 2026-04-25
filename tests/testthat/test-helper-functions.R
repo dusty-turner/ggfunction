@@ -194,6 +194,18 @@ test_that("hf_to_cdf converts Weibull hazard to pweibull", {
   expect_equal(cdf_derived(x), pweibull(x, shape = 2, scale = 1), tolerance = 1e-3)
 })
 
+test_that("hazard conversions honor finite lower support", {
+  h_weibull <- function(x) 2 * x
+  cdf_derived <- hf_to_cdf(h_weibull, lower = 0)
+  pdf_derived <- hf_to_pdf(h_weibull, lower = 0)
+  chf_derived <- hf_to_chf(h_weibull, lower = 0)
+
+  x <- c(-1, 0, 0.5, 1, 2)
+  expect_equal(cdf_derived(x), c(0, 0, pweibull(x[-(1:2)], shape = 2, scale = 1)), tolerance = 1e-3)
+  expect_equal(pdf_derived(x), c(0, 0, dweibull(x[-(1:2)], shape = 2, scale = 1)), tolerance = 1e-3)
+  expect_equal(chf_derived(x), c(0, 0, x[-(1:2)]^2), tolerance = 1e-3)
+})
+
 test_that("hf_to_cdf returns monotonic values in [0,1]", {
   h_exp <- function(x) ifelse(x >= 0, 0.5, 0)
   cdf_derived <- hf_to_cdf(h_exp)

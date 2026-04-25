@@ -6,8 +6,15 @@ NULL
 # Tabulate a sample into unique values, empirical PMF, and empirical CDF.
 # Returns data.frame(x, pmf, cdf, n) with one row per distinct value.
 .tabulate_empirical <- function(x, na.rm) {
-  if (na.rm) x <- x[!is.na(x)]
-  x <- x[is.finite(x)]
+  keep <- is.finite(x)
+  n_removed <- sum(!keep)
+  if (n_removed > 0L && !na.rm) {
+    cli::cli_warn(c(
+      "Removed {n_removed} non-finite observation{?s}.",
+      "i" = "Set {.arg na.rm = TRUE} to suppress this warning."
+    ))
+  }
+  x <- x[keep]
   x <- sort(x)
   n <- length(x)
   if (n == 0L) return(data.frame(x = numeric(0), pmf = numeric(0), cdf = numeric(0), n = integer(0)))
@@ -37,13 +44,14 @@ NULL
 #' [geom_cdf_discrete()]: horizontal segments, dashed vertical jumps, open
 #' circles at the left limit of each jump, and closed circles at the achieved
 #' value. An optional simultaneous confidence band (defaulting to 95%) is drawn
-#' around the step function using the Kolmogorov-Smirnov construction.
+#' around the step function using the Dvoretzky--Kiefer--Wolfowitz (DKW)
+#' inequality with Massart's sharp constant.
 #'
 #' The empirical distribution places mass \eqn{c_k / n} at each distinct
 #' observed value \eqn{x_k}, where \eqn{c_k} is the count of occurrences and
 #' \eqn{n} is the total sample size. Ties are handled correctly.
 #'
-#' The simultaneous confidence band inverts the Kolmogorov-Smirnov test.
+#' The simultaneous confidence band is the DKW/Massart band.
 #' The half-width is \eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}}, where
 #' \eqn{\alpha = 1 - \texttt{level}}, giving pointwise bounds
 #' \eqn{[\hat{F}_n(x) - \varepsilon,\, \hat{F}_n(x) + \varepsilon]} clipped to
@@ -61,7 +69,7 @@ NULL
 #' @param show_vert Logical. If `FALSE`, suppresses the vertical jump segments.
 #'   If `NULL` (the default), segments are shown when there are 50 or fewer
 #'   points and hidden otherwise.
-#' @param conf_int Logical. If `TRUE` (the default), draws a simultaneous KS
+#' @param conf_int Logical. If `TRUE` (the default), draws a simultaneous DKW
 #'   confidence band around the ECDF.
 #' @param level Confidence level for the band. Defaults to `0.95`.
 #' @param conf_alpha Alpha (transparency) of the confidence ribbon. Defaults
@@ -130,7 +138,7 @@ geom_ecdf <- function(
     )
   )
 
-  if (!conf_int) return(main_layer)
+  if (!conf_int) return(list(main_layer, default_labs_component(y = "p")))
 
   ribbon_layer <- layer(
     data        = data,
@@ -149,7 +157,7 @@ geom_ecdf <- function(
     )
   )
 
-  list(ribbon_layer, main_layer)
+  list(ribbon_layer, main_layer, default_labs_component(y = "p"))
 }
 
 #' @rdname geom_ecdf
@@ -191,14 +199,14 @@ StatECDFBand <- ggproto("StatECDFBand", Stat,
 #' conventions as [geom_qf_discrete()]: horizontal segments, dashed vertical
 #' jumps, closed circles at the bottom of each jump (value achieved), and open
 #' circles at the top (next value not yet reached). An optional simultaneous
-#' confidence band is drawn using the Kolmogorov-Smirnov construction.
+#' confidence band is drawn by inverting the DKW/Massart ECDF band.
 #'
 #' The empirical quantile function is the left-continuous inverse of the
 #' empirical CDF: \eqn{Q(p) = \inf\{x : F_n(x) \geq p\}}.
 #'
 #' The confidence band at probability level \eqn{p} is
 #' \eqn{[Q_n(p - \varepsilon),\, Q_n(p + \varepsilon)]}, where
-#' \eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}} is the KS half-width
+#' \eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}} is the DKW/Massart half-width
 #' (\eqn{\alpha = 1 - \texttt{level}}). This follows directly from inverting
 #' the simultaneous ECDF confidence band.
 #'
@@ -264,7 +272,13 @@ geom_eqf <- function(
     )
   )
 
-  if (!conf_int) return(main_layer)
+  if (!conf_int) {
+    return(list(
+      main_layer,
+      probability_axis_anchor(),
+      default_labs_component(x = "p", y = "x")
+    ))
+  }
 
   ribbon_layer <- layer(
     data        = data,
@@ -283,7 +297,12 @@ geom_eqf <- function(
     )
   )
 
-  list(ribbon_layer, main_layer)
+  list(
+    ribbon_layer,
+    main_layer,
+    probability_axis_anchor(),
+    default_labs_component(x = "p", y = "x")
+  )
 }
 
 #' @rdname geom_eqf

@@ -1,8 +1,8 @@
 ---
-title: "Simulation Verification of KS Confidence Band Coverage"
+title: "Simulation Verification of DKW Confidence Band Coverage"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Simulation Verification of KS Confidence Band Coverage}
+  %\VignetteIndexEntry{Simulation Verification of DKW Confidence Band Coverage}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

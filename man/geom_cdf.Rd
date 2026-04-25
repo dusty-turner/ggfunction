@@ -26,6 +26,7 @@ geom_cdf(
   survival_fun = NULL,
   qf_fun = NULL,
   hf_fun = NULL,
+  hf_lower = -Inf,
   xlim = NULL,
   n = 101,
   args = list(),
@@ -110,6 +111,11 @@ derived via interpolation on a dense grid. Exactly one of \code{fun}, \code{pdf_
 CDF is derived via numerical integration of the cumulative hazard as
 \eqn{F(x) = 1 - \exp(-H(x))}. Exactly one of \code{fun}, \code{pdf_fun},
 \code{survival_fun}, \code{qf_fun}, or \code{hf_fun} must be provided.}
+
+\item{hf_lower}{Lower limit for integrating \code{hf_fun}. Defaults to \code{-Inf}.
+For finite-support hazards, set this to the lower support point (for
+example, \code{0} for Weibull or exponential hazards); values below \code{hf_lower}
+return CDF \code{0}.}
 
 \item{xlim}{A numeric vector of length 2 specifying the x-range over which to evaluate the CDF.}
 

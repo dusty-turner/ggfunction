@@ -70,7 +70,7 @@ ggplot() +
 ## Working with data
 
 `geom_ecdf()` builds an empirical CDF from observed data, with an automatic
-Kolmogorov--Smirnov confidence band:
+DKW/Massart confidence band:
 
 ```{r ecdf}
 set.seed(42)

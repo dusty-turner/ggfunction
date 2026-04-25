@@ -132,7 +132,7 @@ points and hidden otherwise.}
 If \code{NULL} (the default), segments are shown when there are 50 or fewer
 points and hidden otherwise.}
 
-\item{conf_int}{Logical. If \code{TRUE} (the default), draws a simultaneous KS
+\item{conf_int}{Logical. If \code{TRUE} (the default), draws a simultaneous DKW
 confidence band around the ECDF.}
 
 \item{level}{Confidence level for the band. Defaults to \code{0.95}.}
@@ -149,14 +149,15 @@ right-continuous step function, using the same visual conventions as
 \code{\link[=geom_cdf_discrete]{geom_cdf_discrete()}}: horizontal segments, dashed vertical jumps, open
 circles at the left limit of each jump, and closed circles at the achieved
 value. An optional simultaneous confidence band (defaulting to 95\%) is drawn
-around the step function using the Kolmogorov-Smirnov construction.
+around the step function using the Dvoretzky--Kiefer--Wolfowitz (DKW)
+inequality with Massart's sharp constant.
 }
 \details{
 The empirical distribution places mass \eqn{c_k / n} at each distinct
 observed value \eqn{x_k}, where \eqn{c_k} is the count of occurrences and
 \eqn{n} is the total sample size. Ties are handled correctly.
 
-The simultaneous confidence band inverts the Kolmogorov-Smirnov test.
+The simultaneous confidence band is the DKW/Massart band.
 The half-width is \eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}}, where
 \eqn{\alpha = 1 - \texttt{level}}, giving pointwise bounds
 \eqn{[\hat{F}_n(x) - \varepsilon,\, \hat{F}_n(x) + \varepsilon]} clipped to

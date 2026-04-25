@@ -133,7 +133,7 @@ points and hidden otherwise.}
 If \code{NULL} (the default), segments are shown when there are 50 or fewer
 points and hidden otherwise.}
 
-\item{conf_int}{Logical. If \code{TRUE} (the default), draws a simultaneous KS
+\item{conf_int}{Logical. If \code{TRUE} (the default), draws a simultaneous DKW
 confidence band around the ECDF.}
 
 \item{level}{Confidence level for the band. Defaults to \code{0.95}.}

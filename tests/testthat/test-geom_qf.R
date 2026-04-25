@@ -19,6 +19,18 @@ test_that("geom_qf builds a ggplot without error", {
   expect_silent(ggplot_build(p))
 })
 
+test_that("geom_qf uses p and x as default axis labels", {
+  p <- ggplot() + geom_qf(fun = qnorm)
+  expect_equal(plot_axis_titles(p), c(x = "p", y = "x"))
+})
+
+test_that("geom_qf x-axis range includes 0 and 1", {
+  p <- ggplot() + geom_qf(fun = qnorm)
+  xrng <- plot_x_range(p)
+  expect_lte(xrng[1], 0)
+  expect_gte(xrng[2], 1)
+})
+
 test_that("geom_qf with args builds without error", {
   p <- ggplot() + geom_qf(fun = qnorm, args = list(mean = 5, sd = 2))
   expect_s3_class(p, "gg")

@@ -27,6 +27,7 @@ geom_chf(
   pdf_fun = NULL,
   survival_fun = NULL,
   qf_fun = NULL,
+  hf_lower = -Inf,
   xlim = NULL,
   n = 101,
   args = list()
@@ -114,6 +115,11 @@ one of \code{fun}, \code{hf_fun}, \code{cdf_fun}, \code{pdf_fun}, \code{survival
 interpolation and then \eqn{H(x) = -\log(1 - F(x))}. Exactly one of
 \code{fun}, \code{hf_fun}, \code{cdf_fun}, \code{pdf_fun}, \code{survival_fun}, or \code{qf_fun}
 must be provided.}
+
+\item{hf_lower}{Lower limit for integrating \code{hf_fun}. Defaults to \code{-Inf}.
+For finite-support hazards, set this to the lower support point (for
+example, \code{0} for Weibull or exponential hazards); values below \code{hf_lower}
+return cumulative hazard \code{0}.}
 
 \item{xlim}{A numeric vector of length 2 giving the x-range.}
 
