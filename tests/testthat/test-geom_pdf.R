@@ -72,6 +72,15 @@ test_that("geom_pdf with shade_hdr builds without error (bimodal, disconnected H
   expect_silent(ggplot_build(p))
 })
 
+test_that("shade_hdr takes precedence over p shading", {
+  f_bim <- function(x) 0.5 * dnorm(x, -2, 0.3) + 0.5 * dnorm(x, 2, 0.3)
+  p <- ggplot() +
+    geom_pdf(fun = f_bim, xlim = c(-4, 4), n = 501, shade_hdr = 0.5, p = 0.5)
+  grob <- grid::grid.force(ggplotGrob(p))
+  names <- grid::grid.ls(grob, print = FALSE)$name
+  expect_equal(sum(grepl("GRID[.]polygon", names)), 2)
+})
+
 test_that("geom_pdf with lower.tail=FALSE builds without error", {
   p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975, lower.tail = FALSE)
   expect_s3_class(p, "gg")
@@ -200,6 +209,21 @@ test_that("StatPDF computes PDF from hf_fun (exponential hazard)", {
   expect_equal(nrow(result), 101)
   expected <- dexp(result$x)
   expect_equal(result$y, expected, tolerance = 1e-2)
+})
+
+test_that("StatPDF computes PDF from finite-support Weibull hazard", {
+  h_weibull <- function(x, shape, scale) (shape / scale) * (x / scale)^(shape - 1)
+  scales <- list(x = NULL)
+  result <- StatPDF$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    hf_fun = h_weibull,
+    hf_lower = 0,
+    xlim = c(0.01, 5),
+    n = 101,
+    args = list(shape = 2, scale = 1)
+  )
+  expect_equal(result$y, dweibull(result$x, shape = 2, scale = 1), tolerance = 1e-3)
 })
 
 test_that("geom_pdf with hf_fun builds without error", {

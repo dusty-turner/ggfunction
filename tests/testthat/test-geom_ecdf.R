@@ -19,9 +19,18 @@ test_that(".tabulate_empirical returns empty data.frame for empty input", {
   expect_equal(nrow(tab), 0)
 })
 
-test_that(".tabulate_empirical removes non-finite values", {
+test_that(".tabulate_empirical silently removes non-finite values with na.rm = TRUE", {
   tab <- ggfunction:::.tabulate_empirical(c(1, Inf, -Inf, NaN, 2), na.rm = TRUE)
   expect_equal(tab$x, c(1, 2))
+})
+
+test_that(".tabulate_empirical warns before removing non-finite values with na.rm = FALSE", {
+  expect_warning(
+    tab <- ggfunction:::.tabulate_empirical(c(1, Inf, -Inf, NaN, NA, 2), na.rm = FALSE),
+    "non-finite"
+  )
+  expect_equal(tab$x, c(1, 2))
+  expect_equal(tab$n, c(2L, 2L))
 })
 
 # ── .expand_step_ribbon ──────────────────────────────────────────────────────
@@ -52,6 +61,20 @@ test_that("geom_ecdf builds without conf_int", {
   p <- ggplot(df, aes(x = x)) + geom_ecdf(conf_int = FALSE)
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
+})
+
+test_that("geom_ecdf uses p as the default y-axis label", {
+  df <- data.frame(x = c(1, 2, 3, 4, 5))
+  p <- ggplot(df, aes(x = x)) + geom_ecdf(conf_int = FALSE)
+  expect_equal(plot_axis_titles(p), c(x = "x", y = "p"))
+})
+
+test_that("geom_ecdf does not override explicit labels", {
+  df <- data.frame(x = c(1, 2, 3, 4, 5))
+  p <- ggplot(df, aes(x = x)) +
+    labs(x = "value", y = "cdf") +
+    geom_ecdf(conf_int = FALSE)
+  expect_equal(plot_axis_titles(p), c(x = "value", y = "cdf"))
 })
 
 test_that("geom_ecdf builds with custom level and conf_alpha", {
@@ -140,6 +163,28 @@ test_that("geom_eqf builds without conf_int", {
   p <- ggplot(df, aes(x = x)) + geom_eqf(conf_int = FALSE)
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
+})
+
+test_that("geom_eqf uses p and x as default axis labels", {
+  df <- data.frame(x = c(1, 2, 3, 4, 5))
+  p <- ggplot(df, aes(x = x)) + geom_eqf(conf_int = FALSE)
+  expect_equal(plot_axis_titles(p), c(x = "p", y = "x"))
+})
+
+test_that("geom_eqf x-axis range includes 0 and 1", {
+  df <- data.frame(x = c(1, 2, 3, 4, 5))
+  p <- ggplot(df, aes(x = x)) + geom_eqf(conf_int = FALSE)
+  xrng <- plot_x_range(p)
+  expect_lte(xrng[1], 0)
+  expect_gte(xrng[2], 1)
+})
+
+test_that("geom_eqf does not override explicit labels", {
+  df <- data.frame(x = c(1, 2, 3, 4, 5))
+  p <- ggplot(df, aes(x = x)) +
+    labs(x = "probability", y = "value") +
+    geom_eqf(conf_int = FALSE)
+  expect_equal(plot_axis_titles(p), c(x = "probability", y = "value"))
 })
 
 test_that("geom_eqf builds with grouped data", {

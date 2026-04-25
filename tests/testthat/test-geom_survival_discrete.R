@@ -68,6 +68,34 @@ test_that("geom_survival_discrete with support parameter builds without error", 
   expect_silent(ggplot_build(p))
 })
 
+test_that("StatSurvivalDiscrete computes over full support before xlim display filtering", {
+  scales <- list(x = NULL)
+  result <- StatSurvivalDiscrete$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    pmf_fun = dbinom,
+    support = 0:10,
+    xlim = c(3, 7),
+    args = list(size = 10, prob = 0.5)
+  )
+  expect_equal(result$x, 3:7)
+  expect_equal(result$y, 1 - pbinom(3:7, size = 10, prob = 0.5), tolerance = 1e-10)
+})
+
+test_that("StatSurvivalDiscrete aborts for truncated PMF support", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatSurvivalDiscrete$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      pmf_fun = dbinom,
+      xlim = c(3, 7),
+      args = list(size = 10, prob = 0.5)
+    ),
+    "full computational support"
+  )
+})
+
 # --- Alternate inputs ---
 
 test_that("StatSurvivalDiscrete computes S(x) from cdf_fun", {

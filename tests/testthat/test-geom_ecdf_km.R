@@ -86,6 +86,30 @@ test_that(".tabulate_km removes NAs with na.rm = TRUE", {
   expect_equal(tab$n, rep(2L, 2))
 })
 
+test_that(".tabulate_km warns and drops missing values with na.rm = FALSE", {
+  expect_warning(
+    tab <- ggfunction:::.tabulate_km(
+      time   = c(1, NA, 3),
+      status = c(1, 1, NA),
+      na.rm  = FALSE
+    ),
+    "missing or non-finite"
+  )
+  expect_equal(tab$time, 1)
+  expect_equal(tab$n, 1L)
+})
+
+test_that(".tabulate_km validates status values", {
+  expect_error(
+    ggfunction:::.tabulate_km(
+      time   = c(1, 2, 3),
+      status = c(1, 2, 0),
+      na.rm  = FALSE
+    ),
+    "0/1"
+  )
+})
+
 test_that(".tabulate_km returns empty for empty input", {
   tab <- ggfunction:::.tabulate_km(
     time   = numeric(0),
@@ -215,6 +239,14 @@ test_that("StatECDFKMBand computes valid band", {
   expect_true(all(result$ymin <= result$ymax))
 })
 
+test_that("KM EP critical value uses Nair endpoints", {
+  expect_equal(
+    ggfunction:::.ep_critical_value(a_L = 0.1, a_U = 0.8, alpha = 0.05),
+    2.986739,
+    tolerance = 1e-6
+  )
+})
+
 test_that("StatECDFKMBand returns empty for empty data", {
   result <- StatECDFKMBand$compute_group(
     data = data.frame(x = numeric(0), status = integer(0)),
@@ -241,6 +273,28 @@ test_that("StatECHFNABand computes valid band", {
   expect_true(nrow(result) > 0)
   expect_true(all(result$ymin >= 0))
   expect_true(all(result$ymin <= result$ymax))
+})
+
+test_that("StatECHFNABand uses pointwise normal critical values", {
+  data <- data.frame(
+    x = c(1, 2, 3, 4, 5, 6, 7, 8),
+    status = c(1, 1, 0, 1, 1, 0, 1, 1)
+  )
+  result <- StatECHFNABand$compute_group(
+    data = data,
+    scales = list(),
+    na.rm = FALSE,
+    level = 0.95
+  )
+  tab <- ggfunction:::.tabulate_km(data$x, data$status, na.rm = FALSE)
+  z <- qnorm(0.975)
+  expected <- data.frame(
+    x = tab$time,
+    ymin = pmax(0, tab$chf - z * sqrt(tab$var_chf)),
+    ymax = tab$chf + z * sqrt(tab$var_chf)
+  )
+  expected <- ggfunction:::.expand_step_ribbon(expected)
+  expect_equal(result, expected, tolerance = 1e-10)
 })
 
 test_that("StatECHFNABand returns empty for empty data", {
