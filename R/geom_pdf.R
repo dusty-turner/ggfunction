@@ -23,9 +23,13 @@
 #'   one of `fun`, `cdf_fun`, `survival_fun`, `qf_fun`, or `hf_fun` must be
 #'   provided.
 #' @param hf_fun A hazard function (e.g. a Weibull hazard). When supplied, the
-#'   CDF is derived via numerical integration of the cumulative hazard and then
-#'   differentiated to obtain the PDF. Exactly one of `fun`, `cdf_fun`,
-#'   `survival_fun`, `qf_fun`, or `hf_fun` must be provided.
+#'   PDF is derived via numerical integration of the cumulative hazard. Exactly
+#'   one of `fun`, `cdf_fun`, `survival_fun`, `qf_fun`, or `hf_fun` must be
+#'   provided.
+#' @param hf_lower Lower limit for integrating `hf_fun`. Defaults to `-Inf`.
+#'   For finite-support hazards, set this to the lower support point (for
+#'   example, `0` for Weibull or exponential hazards); values below `hf_lower`
+#'   return density `0`.
 #' @param n (defaults to 101)Number of points at which to evaluate `fun`.
 #' @param args A named list of additional arguments to pass to `fun`.
 #' @param xlim A numeric vector of length 2 giving the x-range over which to evaluate the PDF.
@@ -82,6 +86,7 @@ geom_pdf <- function(
     survival_fun = NULL,
     qf_fun = NULL,
     hf_fun = NULL,
+    hf_lower = -Inf,
     xlim = NULL,
     n = 101,
     args = list(),
@@ -130,6 +135,7 @@ geom_pdf <- function(
         survival_fun = survival_fun,
         qf_fun = qf_fun,
         hf_fun = hf_fun,
+        hf_lower = hf_lower,
         n = n,
         xlim = xlim,
         args = args,
@@ -158,6 +164,7 @@ StatPDF <- ggproto("StatPDF", Stat,
   compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
                            survival_fun = NULL, qf_fun = NULL,
                            hf_fun = NULL,
+                           hf_lower = -Inf,
                            xlim = NULL, n = 101, args = NULL) {
 
     # Validate: exactly one source
@@ -189,7 +196,7 @@ StatPDF <- ggproto("StatPDF", Stat,
       fun_injected <- cdf_to_pdf(cdf_derived)
     } else if (!is.null(hf_fun)) {
       hf_injected <- function(x) rlang::inject(hf_fun(x, !!!args))
-      fun_injected <- hf_to_pdf(hf_injected)
+      fun_injected <- hf_to_pdf(hf_injected, lower = hf_lower)
     } else {
       fun_injected <- function(x) rlang::inject(fun(x, !!!args))
     }
@@ -239,8 +246,36 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
 
     area_grobs <- list()
 
-    # Determine the clipping range based on p_lower/p_upper or p (if provided)
-    if (!is.null(p_lower) && !is.null(p_upper)) {
+    # Determine the clipping range based on shade_hdr, p_lower/p_upper, or p.
+    if (!is.null(shade_hdr)) {
+      # Highest density region (HDR) shading, following ggdensity's approach:
+      # normalize f(x) values to sum to 1, sort descending, cumsum until
+      # coverage is reached, shade all connected intervals above the cutoff.
+      fhat_discretized <- y_vals / sum(y_vals)
+      ord <- order(y_vals, decreasing = TRUE)
+      cumprob <- cumsum(fhat_discretized[ord])
+      cutoff_idx <- which(cumprob >= shade_hdr)[1]
+      if (is.na(cutoff_idx)) cutoff_idx <- length(y_vals)
+      cutoff <- y_vals[ord[cutoff_idx]]
+
+      # Identify connected runs of grid points at or above the cutoff
+      above <- y_vals >= cutoff
+      runs <- rle(above)
+      idx_end <- cumsum(runs$lengths)
+      idx_start <- c(1L, head(idx_end, -1L) + 1L)
+
+      for (i in seq_along(runs$values)) {
+        if (runs$values[i]) {
+          clip_data  <- data[idx_start[i]:idx_end[i], , drop = FALSE]
+          clip_range <- c(x_vals[idx_start[i]], x_vals[idx_end[i]])
+          area_grobs <- c(area_grobs, list(
+            ggproto_parent(GeomArea, self)$draw_panel(
+              build_poly(clip_data, clip_range), panel_params, coord, na.rm = na.rm
+            )
+          ))
+        }
+      }
+    } else if (!is.null(p_lower) && !is.null(p_upper)) {
       idx_lower <- which(norm_cum >= p_lower)[1]
       if (is.na(idx_lower)) idx_lower <- length(norm_cum)
       idx_upper <- which(norm_cum >= p_upper)[1]
@@ -297,34 +332,6 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
           build_poly(clip_data, clip_range), panel_params, coord, na.rm = na.rm
         )
       ))
-    } else if (!is.null(shade_hdr)) {
-      # Highest density region (HDR) shading, following ggdensity's approach:
-      # normalize f(x) values to sum to 1, sort descending, cumsum until
-      # coverage is reached, shade all connected intervals above the cutoff.
-      fhat_discretized <- y_vals / sum(y_vals)
-      ord <- order(y_vals, decreasing = TRUE)
-      cumprob <- cumsum(fhat_discretized[ord])
-      cutoff_idx <- which(cumprob >= shade_hdr)[1]
-      if (is.na(cutoff_idx)) cutoff_idx <- length(y_vals)
-      cutoff <- y_vals[ord[cutoff_idx]]
-
-      # Identify connected runs of grid points at or above the cutoff
-      above <- y_vals >= cutoff
-      runs <- rle(above)
-      idx_end <- cumsum(runs$lengths)
-      idx_start <- c(1L, head(idx_end, -1L) + 1L)
-
-      for (i in seq_along(runs$values)) {
-        if (runs$values[i]) {
-          clip_data  <- data[idx_start[i]:idx_end[i], , drop = FALSE]
-          clip_range <- c(x_vals[idx_start[i]], x_vals[idx_end[i]])
-          area_grobs <- c(area_grobs, list(
-            ggproto_parent(GeomArea, self)$draw_panel(
-              build_poly(clip_data, clip_range), panel_params, coord, na.rm = na.rm
-            )
-          ))
-        }
-      }
     } else {
       clip_range <- range(x_vals, na.rm = TRUE)
       clip_data <- data[data$x >= clip_range[1] & data$x <= clip_range[2], , drop = FALSE]

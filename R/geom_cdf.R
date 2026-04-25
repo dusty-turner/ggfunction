@@ -21,6 +21,10 @@
 #'   CDF is derived via numerical integration of the cumulative hazard as
 #'   \eqn{F(x) = 1 - \exp(-H(x))}. Exactly one of `fun`, `pdf_fun`,
 #'   `survival_fun`, `qf_fun`, or `hf_fun` must be provided.
+#' @param hf_lower Lower limit for integrating `hf_fun`. Defaults to `-Inf`.
+#'   For finite-support hazards, set this to the lower support point (for
+#'   example, `0` for Weibull or exponential hazards); values below `hf_lower`
+#'   return CDF `0`.
 #' @param n Number of points at which to evaluate `fun`.
 #' @param args A named list of additional arguments passed on to `fun`.
 #' @param xlim A numeric vector of length 2 specifying the x-range over which to evaluate the CDF.
@@ -61,6 +65,7 @@ geom_cdf <- function(
     survival_fun = NULL,
     qf_fun = NULL,
     hf_fun = NULL,
+    hf_lower = -Inf,
     xlim = NULL,
     n = 101,
     args = list(),
@@ -73,7 +78,7 @@ geom_cdf <- function(
 ) {
   if (is.null(data)) data <- ensure_nonempty_data(data)
 
-  default_mapping <- aes(x = after_stat(x), y = after_stat(y))
+  default_mapping <- aes(x = after_stat(x), y = after_stat(p))
   if (is.null(mapping)) {
     mapping <- default_mapping
   } else {
@@ -94,6 +99,7 @@ geom_cdf <- function(
       survival_fun = survival_fun,
       qf_fun = qf_fun,
       hf_fun = hf_fun,
+      hf_lower = hf_lower,
       n = n,
       xlim = xlim,
       args = args,
@@ -113,11 +119,12 @@ geom_cdf <- function(
 #' @export
 StatCDF <- ggproto("StatCDF", Stat,
 
-  default_aes = aes(x = NULL, y = after_stat(y)),
+  default_aes = aes(x = NULL, y = after_stat(p)),
 
   compute_group = function(data, scales, fun = NULL, pdf_fun = NULL,
                            survival_fun = NULL, qf_fun = NULL,
                            hf_fun = NULL,
+                           hf_lower = -Inf,
                            xlim = NULL, n = 101, args = NULL) {
 
     # Validate: exactly one source
@@ -147,7 +154,7 @@ StatCDF <- ggproto("StatCDF", Stat,
       fun_injected <- qf_to_cdf(qf_injected)
     } else if (!is.null(hf_fun)) {
       hf_injected <- function(x) rlang::inject(hf_fun(x, !!!args))
-      fun_injected <- hf_to_cdf(hf_injected)
+      fun_injected <- hf_to_cdf(hf_injected, lower = hf_lower)
     } else {
       fun_injected <- function(x) rlang::inject(fun(x, !!!args))
     }
@@ -165,7 +172,7 @@ StatCDF <- ggproto("StatCDF", Stat,
     xseq <- seq(range[1], range[2], length.out = n)
     y_out <- fun_injected(xseq)
 
-    data.frame(x = xseq, y = y_out)
+    data.frame(x = xseq, y = y_out, p = y_out)
   }
 )
 

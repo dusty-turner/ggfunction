@@ -16,12 +16,18 @@ NULL
 #'   `n_censor`, `surv`, `chf`, `var_surv`, `var_chf`, `n`.
 #' @noRd
 .tabulate_km <- function(time, status, na.rm) {
-  if (na.rm) {
-    keep <- !is.na(time) & !is.na(status)
-    time   <- time[keep]
-    status <- status[keep]
+  if (length(time) != length(status)) {
+    cli::cli_abort("{.arg time} and {.arg status} must have the same length.")
   }
-  keep <- is.finite(time)
+
+  keep <- is.finite(time) & !is.na(status)
+  n_removed <- sum(!keep)
+  if (n_removed > 0L && !na.rm) {
+    cli::cli_warn(c(
+      "Removed {n_removed} observation{?s} with missing or non-finite time/status values.",
+      "i" = "Set {.arg na.rm = TRUE} to suppress this warning."
+    ))
+  }
   time   <- time[keep]
   status <- status[keep]
 
@@ -33,6 +39,11 @@ NULL
       var_surv = numeric(0), var_chf = numeric(0), n = integer(0)
     ))
   }
+
+  if (any(!(status %in% c(0, 1)))) {
+    cli::cli_abort("{.arg status} must contain only 0/1 or FALSE/TRUE values.")
+  }
+  status <- as.integer(status)
 
   # Sort by time
 
@@ -105,63 +116,42 @@ NULL
 
 #' Equal-precision (EP) critical value for simultaneous confidence bands.
 #'
-#' Computes the critical value for the Nair (1984) EP band by interpolation
-#' from a precomputed table.  The table was computed by Monte Carlo simulation
-#' (200 000 replications of a stationary Ornstein-Uhlenbeck process, which is
-#' the time-changed representation of the standardized KM process).
+#' Computes the Nair (1984) EP critical value using the Miller-Siegmund
+#' approximation documented for SAS LIFETEST. The endpoints are
+#' `a(t) = n * G(t) / (1 + n * G(t))`, where `G(t)` is Greenwood's cumulative
+#' variance term.
 #'
-#' @param a_L Ratio of Greenwood variance at the first event time to the last
-#'   event time, clamped to `[0.001, 1]`.  When `a_L = 1`, the EP critical
-#'   value reduces to the normal quantile (pointwise band).
+#' @param a_L Lower endpoint of the EP time scale.
+#' @param a_U Upper endpoint of the EP time scale.
 #' @param alpha Significance level (1 - confidence level).
 #' @return Scalar critical value.
 #' @noRd
-.ep_critical_value <- function(a_L, alpha) {
-  # Precomputed EP table: rows = a values, columns = alpha values.
-  # Critical value = (1 - alpha)-quantile of sup_{a <= u <= 1} |W(u)/sqrt(u)|.
-  ep_a     <- c(0.001, 0.005, 0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.25,
-                0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 0.95, 0.99, 1.00)
-  ep_alpha <- c(0.01, 0.05, 0.10, 0.20)
-  ep_table <- matrix(c(
-    # alpha = 0.01
-    3.6861, 3.5967, 3.5599, 3.5240, 3.4626, 3.3832, 3.3287, 3.2943,
-    3.2646, 3.2278, 3.1686, 3.1092, 3.0380, 2.9697, 2.9014, 2.8086,
-    2.7448, 2.6453, 2.5758,
-    # alpha = 0.05
-    3.1639, 3.0795, 3.0373, 2.9853, 2.9106, 2.8256, 2.7687, 2.7267,
-    2.6925, 2.6512, 2.5846, 2.5156, 2.4512, 2.3816, 2.2915, 2.2022,
-    2.1354, 2.0343, 1.9600,
-    # alpha = 0.10
-    2.9046, 2.8177, 2.7687, 2.7126, 2.6309, 2.5455, 2.4833, 2.4351,
-    2.3979, 2.3516, 2.2764, 2.2135, 2.1437, 2.0681, 1.9818, 1.8838,
-    1.8187, 1.7211, 1.6449,
-    # alpha = 0.20
-    2.6113, 2.5138, 2.4642, 2.4042, 2.3091, 2.2228, 2.1510, 2.0994,
-    2.0556, 2.0124, 1.9325, 1.8635, 1.7899, 1.7118, 1.6274, 1.5258,
-    1.4547, 1.3571, 1.2816
-  ), nrow = length(ep_a), ncol = length(ep_alpha))
-
-  # Clamp a_L
-  a_L <- max(0.001, min(1.0, a_L))
-
-  # Interpolate over alpha (log scale) then over a_L
-  # For each bracketing alpha column, interpolate over a_L
-  if (alpha <= ep_alpha[1L]) {
-    c_vals <- ep_table[, 1L]
-  } else if (alpha >= ep_alpha[length(ep_alpha)]) {
-    c_vals <- ep_table[, length(ep_alpha)]
-  } else {
-    j <- findInterval(alpha, ep_alpha)
-    w <- (alpha - ep_alpha[j]) / (ep_alpha[j + 1L] - ep_alpha[j])
-    c_vals <- (1 - w) * ep_table[, j] + w * ep_table[, j + 1L]
+.ep_critical_value <- function(a_L, a_U, alpha) {
+  if (!is.finite(a_L) || !is.finite(a_U) || a_L <= 0 || a_U <= 0 ||
+      a_L >= 1 || a_U >= 1 || a_U <= a_L) {
+    return(stats::qnorm(1 - alpha / 2))
   }
 
-  # Interpolate over a_L
-  if (a_L <= ep_a[1L]) return(c_vals[1L])
-  if (a_L >= ep_a[length(ep_a)]) return(c_vals[length(ep_a)])
-  i <- findInterval(a_L, ep_a)
-  w <- (a_L - ep_a[i]) / (ep_a[i + 1L] - ep_a[i])
-  (1 - w) * c_vals[i] + w * c_vals[i + 1L]
+  log_term <- log((a_U * (1 - a_L)) / (a_L * (1 - a_U)))
+  if (!is.finite(log_term) || log_term <= 0) {
+    return(stats::qnorm(1 - alpha / 2))
+  }
+
+  ms_tail <- function(x) {
+    phi <- stats::dnorm(x)
+    4 * phi / x + phi * (x - 1 / x) * log_term
+  }
+
+  f <- function(x) ms_tail(x) - alpha
+  lower <- stats::qnorm(1 - alpha / 2)
+  upper <- max(lower * 2, 4)
+  while (f(upper) > 0 && upper < 50) {
+    upper <- upper * 2
+  }
+  if (f(upper) > 0) {
+    return(upper)
+  }
+  stats::uniroot(f, lower = lower, upper = upper)$root
 }
 
 
@@ -173,11 +163,24 @@ NULL
 #' @return Sorted numeric vector of times where `status == 0`.
 #' @noRd
 .censoring_times <- function(time, status, na.rm) {
-  if (na.rm) {
-    keep <- !is.na(time) & !is.na(status)
-    time   <- time[keep]
-    status <- status[keep]
+  if (length(time) != length(status)) {
+    cli::cli_abort("{.arg time} and {.arg status} must have the same length.")
   }
+
+  keep <- is.finite(time) & !is.na(status)
+  n_removed <- sum(!keep)
+  if (n_removed > 0L && !na.rm) {
+    cli::cli_warn(c(
+      "Removed {n_removed} observation{?s} with missing or non-finite time/status values.",
+      "i" = "Set {.arg na.rm = TRUE} to suppress this warning."
+    ))
+  }
+  time   <- time[keep]
+  status <- status[keep]
+  if (any(!(status %in% c(0, 1)))) {
+    cli::cli_abort("{.arg status} must contain only 0/1 or FALSE/TRUE values.")
+  }
+  status <- as.integer(status)
   sort(time[status == 0L])
 }
 
@@ -205,10 +208,11 @@ NULL
 #' with the equal-precision (EP) critical value of Nair (1984), giving bounds
 #' \eqn{\hat{S}(t) \pm c_{\mathrm{EP}}\,\mathrm{se}(t)} clipped to
 #' \eqn{[0, 1]}. The EP critical value \eqn{c_{\mathrm{EP}}} is derived from
-#' the asymptotic distribution of the standardized KM process and depends on
-#' the ratio of Greenwood variances at the first and last event times. The
-#' resulting band is simultaneous (valid at all \eqn{t} jointly), not merely
-#' pointwise, and is asymptotically correct.
+#' the asymptotic distribution of the standardized KM process. It depends on
+#' endpoints \eqn{a(t) = nG(t)/(1 + nG(t))}, where \eqn{G(t)} is Greenwood's
+#' cumulative variance term, evaluated at the first and last valid event-time
+#' values. The resulting band is simultaneous (valid at all \eqn{t} jointly),
+#' not merely pointwise, and is asymptotically correct.
 #'
 #' @inheritParams ggplot2::geom_path
 #' @param na.rm If `TRUE`, silently remove missing values. Defaults to `FALSE`.
@@ -390,12 +394,18 @@ StatECDFKMBand <- ggproto("StatECDFKMBand", Stat,
   compute_group = function(data, scales, na.rm = FALSE, level = 0.95) {
     tab <- .tabulate_km(data$x, data$status, na.rm = na.rm)
     if (nrow(tab) == 0L) return(data.frame())
+    G <- ifelse(tab$surv > 0, tab$var_surv / tab$surv^2, NA_real_)
     se <- sqrt(tab$var_surv)
-    # EP simultaneous critical value (Nair 1984)
-    G  <- cumsum(ifelse(tab$n_risk == tab$n_event, 0,
-                        tab$n_event / (tab$n_risk * (tab$n_risk - tab$n_event))))
-    a_L <- if (length(G) >= 2L) G[1L] / G[length(G)] else 1
-    c_ep <- .ep_critical_value(a_L, alpha = 1 - level)
+    a <- tab$n[1L] * G / (1 + tab$n[1L] * G)
+    valid_a <- is.finite(a) & a > 0 & a < 1
+    if (any(valid_a)) {
+      a_vals <- a[valid_a]
+      a_L <- a_vals[1L]
+      a_U <- a_vals[length(a_vals)]
+    } else {
+      a_L <- a_U <- NA_real_
+    }
+    c_ep <- .ep_critical_value(a_L, a_U, alpha = 1 - level)
     df <- data.frame(
       x    = tab$time,
       ymin = pmax(0, tab$surv - c_ep * se),
@@ -442,24 +452,20 @@ StatCensorMarks <- ggproto("StatCensorMarks", Stat,
 #' `geom_echf_na()` computes the Nelson-Aalen cumulative hazard estimator from
 #' right-censored data and renders it as an increasing step function starting
 #' at 0, using the same visual conventions as [geom_cdf_discrete()]. An
-#' optional simultaneous confidence band (defaulting to 95%) is drawn around
-#' the curve using the equal-precision (EP) construction of Nair (1984).
+#' optional pointwise normal confidence band (defaulting to 95%) is drawn around
+#' the curve using the Nelson variance estimator.
 #'
 #' The Nelson-Aalen estimator at event time \eqn{t_j} is
 #' \deqn{\hat{H}(t) = \sum_{t_j \le t} \frac{d_j}{n_j},}
 #' where \eqn{d_j} is the number of events and \eqn{n_j} is the number at risk
 #' just before \eqn{t_j}.
 #'
-#' The simultaneous confidence band uses the Nelson variance estimator
+#' The pointwise confidence band uses the Nelson variance estimator
 #' \deqn{\widehat{\mathrm{Var}}[\hat{H}(t)] = \sum_{t_j \le t}
 #' \frac{d_j}{n_j^2}}
-#' with the equal-precision (EP) critical value of Nair (1984), giving bounds
-#' \eqn{\hat{H}(t) \pm c_{\mathrm{EP}}\,\mathrm{se}(t)} with lower bound
-#' clipped to 0. The EP critical value \eqn{c_{\mathrm{EP}}} is derived from
-#' the asymptotic distribution of the standardized Nelson-Aalen process and
-#' depends on the ratio of Nelson variances at the first and last event times.
-#' The resulting band is simultaneous (valid at all \eqn{t} jointly), not
-#' merely pointwise, and is asymptotically correct.
+#' with the normal critical value, giving pointwise bounds
+#' \eqn{\hat{H}(t) \pm z_{1-\alpha/2}\,\mathrm{se}(t)} with lower bound
+#' clipped to 0.
 #'
 #' @inheritParams ggplot2::geom_path
 #' @param na.rm If `TRUE`, silently remove missing values. Defaults to `FALSE`.
@@ -473,8 +479,8 @@ StatCensorMarks <- ggproto("StatCensorMarks", Stat,
 #' @param show_vert Logical. If `FALSE`, suppresses the vertical jump segments.
 #'   If `NULL` (the default), segments are shown when there are 50 or fewer
 #'   points and hidden otherwise.
-#' @param conf_int Logical. If `TRUE` (the default), draws a simultaneous
-#'   EP confidence band around the Nelson-Aalen estimate.
+#' @param conf_int Logical. If `TRUE` (the default), draws a pointwise normal
+#'   confidence band around the Nelson-Aalen estimate.
 #' @param level Confidence level for the band. Defaults to `0.95`.
 #' @param conf_alpha Alpha (transparency) of the confidence ribbon. Defaults
 #'   to `0.4`.
@@ -611,17 +617,11 @@ StatECHFNABand <- ggproto("StatECHFNABand", Stat,
     tab <- .tabulate_km(data$x, data$status, na.rm = na.rm)
     if (nrow(tab) == 0L) return(data.frame())
     se <- sqrt(tab$var_chf)
-    # EP simultaneous critical value (Nair 1984)
-    a_L <- if (length(tab$var_chf) >= 2L) {
-      tab$var_chf[1L] / tab$var_chf[length(tab$var_chf)]
-    } else {
-      1
-    }
-    c_ep <- .ep_critical_value(a_L, alpha = 1 - level)
+    z <- stats::qnorm(1 - (1 - level) / 2)
     df <- data.frame(
       x    = tab$time,
-      ymin = pmax(0, tab$chf - c_ep * se),
-      ymax = tab$chf + c_ep * se
+      ymin = pmax(0, tab$chf - z * se),
+      ymax = tab$chf + z * se
     )
     .expand_step_ribbon(df)
   }

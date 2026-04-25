@@ -63,14 +63,14 @@ geom_qf <- function(mapping = NULL,
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
 
-  default_mapping <- aes(x = after_stat(p), y = after_stat(q))
+  default_mapping <- aes(x = after_stat(p), y = after_stat(x))
   if (is.null(mapping)) {
     mapping <- default_mapping
   } else {
     mapping <- modifyList(default_mapping, mapping)
   }
 
-  layer(
+  main_layer <- layer(
     data = data,
     mapping = mapping,
     stat = stat,
@@ -89,6 +89,8 @@ geom_qf <- function(mapping = NULL,
       ...
     )
   )
+
+  list(main_layer, probability_axis_anchor())
 }
 
 #' @rdname geom_qf
@@ -129,7 +131,7 @@ StatQF <- ggproto("StatQF", Stat,
 
     q_vals <- fun_injected(p_vals)
 
-    data.frame(p = p_vals, q = q_vals)
+    data.frame(p = p_vals, q = q_vals, x = q_vals)
 
   }
 )

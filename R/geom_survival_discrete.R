@@ -20,10 +20,13 @@
 #' @param pmf_fun A PMF function (e.g. [dbinom]). The survival function is
 #'   derived as \eqn{1 - \mathrm{cumsum}(\mathrm{pmf})}. Exactly one of
 #'   `fun`, `cdf_fun`, or `pmf_fun` must be provided.
-#' @param xlim A numeric vector of length 2 specifying the range of integer
-#'   support values.
+#' @param xlim A numeric vector of length 2 specifying the range of support
+#'   values to display. When `support` is not supplied, this range is also used
+#'   as the computational support.
 #' @param support An optional integer or numeric vector giving the exact support
-#'   points to evaluate. When supplied, `xlim` is ignored.
+#'   points used for cumulative computation. When supplied with `xlim`, the
+#'   survival probabilities are computed on the full `support` and then filtered
+#'   to the displayed `xlim`.
 #' @param args A named list of additional arguments to pass to `fun`,
 #'   `cdf_fun`, or `pmf_fun`.
 #' @param open_fill Fill color for the open (hollow) endpoint circles. Defaults
@@ -128,13 +131,7 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
       cli::cli_abort("Supply only one of {.arg fun}, {.arg cdf_fun}, or {.arg pmf_fun}.")
     }
 
-    if (!is.null(support)) {
-      x_vals <- sort(support)
-    } else if (is.null(xlim)) {
-      x_vals <- 0:10
-    } else {
-      x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))
-    }
+    x_vals <- discrete_support(xlim = xlim, support = support)
 
     if (!is.null(fun)) {
       fun_injected   <- function(x) rlang::inject(fun(x, !!!args))
@@ -145,7 +142,8 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
           "i" = "Check the function supplied to {.arg fun}."
         ))
       }
-      return(data.frame(x = x_vals, y = survival_vals))
+      out <- data.frame(x = x_vals, y = survival_vals)
+      return(filter_discrete_xlim(out, xlim = xlim))
     }
 
     if (!is.null(cdf_fun)) {
@@ -157,16 +155,20 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
           "i" = "Check the function supplied to {.arg cdf_fun}."
         ))
       }
-      return(data.frame(x = x_vals, y = survival_vals))
+      out <- data.frame(x = x_vals, y = survival_vals)
+      return(filter_discrete_xlim(out, xlim = xlim))
     }
 
     if (!is.null(pmf_fun)) {
       fun_injected  <- function(x) rlang::inject(pmf_fun(x, !!!args))
-      invisible(check_pmf_normalization(fun_injected, support = x_vals, tol = 1e-2))
+      invisible(check_pmf_normalization(
+        fun_injected, support = x_vals, tol = 1e-2, action = "abort"
+      ))
       pmf_vals      <- fun_injected(x_vals)
       cdf_vals      <- cumsum(pmf_vals)
       survival_vals <- 1 - cdf_vals
-      return(data.frame(x = x_vals, y = survival_vals))
+      out <- data.frame(x = x_vals, y = survival_vals)
+      return(filter_discrete_xlim(out, xlim = xlim))
     }
   }
 )

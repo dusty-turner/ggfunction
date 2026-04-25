@@ -29,10 +29,13 @@
 #' @param args A named list of additional arguments to pass to `fun` or
 #'   `pmf_fun`.
 #' @param xlim A numeric vector of length 2 specifying the range of support
-#'   values to display (y-axis of the quantile function). For the `pmf_fun`
-#'   path this also defines the integer support to evaluate.
+#'   values to display (y-axis of the quantile function). When `support` is not
+#'   supplied for a cumulative input path, this range is also used as the
+#'   computational support.
 #' @param support An optional integer or numeric vector giving the exact support
-#'   points. When supplied, `xlim` is ignored.
+#'   points used for cumulative computation. When supplied with `xlim`, the
+#'   quantile steps are computed on the full `support` and then filtered to the
+#'   displayed `xlim`.
 #' @param open_fill Fill color for the open (hollow) endpoint circles. Defaults
 #'   to `NULL`, which uses the active theme's panel background color.
 #' @param vert_type Line type for the vertical jump segments. Defaults to
@@ -86,14 +89,14 @@ geom_qf_discrete <- function(
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
 
-  default_mapping <- aes(x = after_stat(x), y = after_stat(y))
+  default_mapping <- aes(x = after_stat(p), y = after_stat(x))
   if (is.null(mapping)) {
     mapping <- default_mapping
   } else {
     mapping <- modifyList(default_mapping, mapping)
   }
 
-  layer(
+  main_layer <- layer(
     data = data,
     mapping = mapping,
     stat = stat,
@@ -117,12 +120,14 @@ geom_qf_discrete <- function(
       ...
     )
   )
+
+  list(main_layer, probability_axis_anchor())
 }
 
 #' @rdname geom_qf_discrete
 #' @export
 StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
-  default_aes = aes(x = NULL, y = after_stat(y)),
+  default_aes = aes(x = NULL, y = after_stat(x)),
 
   compute_group = function(data, scales, fun = NULL, pmf_fun = NULL,
                            cdf_fun = NULL, survival_fun = NULL,
@@ -147,7 +152,8 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
         keep   <- q_vals %in% support
         p_grid <- p_grid[keep]
         q_vals <- q_vals[keep]
-      } else if (!is.null(xlim)) {
+      }
+      if (!is.null(xlim)) {
         keep   <- q_vals >= xlim[1] & q_vals <= xlim[2]
         p_grid <- p_grid[keep]
         q_vals <- q_vals[keep]
@@ -159,58 +165,42 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
       p_right  <- vapply(q_unique,
                          function(xk) max(p_grid[q_vals == xk]),
                          numeric(1))
-      return(data.frame(x = p_right, y = q_unique))
+      return(data.frame(p = p_right, x = q_unique))
     }
 
     if (!is.null(cdf_fun)) {
-      if (!is.null(support)) {
-        x_vals <- sort(support)
-      } else if (is.null(xlim)) {
-        x_vals <- 0:10
-      } else {
-        x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))
-      }
+      x_vals <- discrete_support(xlim = xlim, support = support)
 
       cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
       cdf_vals <- cdf_injected(x_vals)
 
-      # x = F(x_k) (probability axis), y = x_k (support value axis)
-      return(data.frame(x = cdf_vals, y = x_vals))
+      out <- data.frame(p = cdf_vals, x = x_vals)
+      return(filter_discrete_xlim(out, xlim = xlim))
     }
 
     if (!is.null(pmf_fun)) {
-      if (!is.null(support)) {
-        x_vals <- sort(support)
-      } else if (is.null(xlim)) {
-        x_vals <- 0:10
-      } else {
-        x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))
-      }
+      x_vals <- discrete_support(xlim = xlim, support = support)
 
       fun_injected <- function(x) rlang::inject(pmf_fun(x, !!!args))
-      invisible(check_pmf_normalization(fun_injected, support = x_vals, tol = 1e-2))
+      invisible(check_pmf_normalization(
+        fun_injected, support = x_vals, tol = 1e-2, action = "abort"
+      ))
       pmf_vals <- fun_injected(x_vals)
       cdf_vals <- cumsum(pmf_vals)
 
-      # x = F(x_k) (probability axis), y = x_k (support value axis)
-      return(data.frame(x = cdf_vals, y = x_vals))
+      out <- data.frame(p = cdf_vals, x = x_vals)
+      return(filter_discrete_xlim(out, xlim = xlim))
     }
 
     if (!is.null(survival_fun)) {
-      if (!is.null(support)) {
-        x_vals <- sort(support)
-      } else if (is.null(xlim)) {
-        x_vals <- 0:10
-      } else {
-        x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))
-      }
+      x_vals <- discrete_support(xlim = xlim, support = support)
 
       surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
       surv_vals <- surv_injected(x_vals)
       cdf_vals <- 1 - surv_vals
 
-      # x = F(x_k) (probability axis), y = x_k (support value axis)
-      return(data.frame(x = cdf_vals, y = x_vals))
+      out <- data.frame(p = cdf_vals, x = x_vals)
+      return(filter_discrete_xlim(out, xlim = xlim))
     }
   }
 )
