@@ -349,10 +349,21 @@ StatEQFBand <- ggproto("StatEQFBand", Stat,
       }, numeric(1L))
     }
 
+    p_breaks <- sort(unique(c(
+      0, 1,
+      p_vals,
+      pmax(0, p_vals - eps),
+      pmin(1, p_vals + eps)
+    )))
+    p_eval <- c(
+      head(p_breaks, -1L) + diff(p_breaks) / 2,
+      1
+    )
+
     df <- data.frame(
-      x    = p_vals,
-      ymin = qn(p_vals - eps),
-      ymax = qn(p_vals + eps)
+      x    = p_breaks,
+      ymin = qn(p_eval - eps),
+      ymax = qn(p_eval + eps)
     )
     .expand_step_ribbon(df)
   }

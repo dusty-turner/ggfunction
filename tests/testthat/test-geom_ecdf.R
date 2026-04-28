@@ -250,6 +250,22 @@ test_that("StatEQFBand computes band correctly", {
   expect_true(all(result$ymin <= result$ymax))
 })
 
+test_that("StatEQFBand covers the full probability axis", {
+  result <- StatEQFBand$compute_group(
+    data = data.frame(x = c(1, 2, 3, 4, 5)),
+    scales = list(),
+    na.rm = FALSE,
+    level = 0.95
+  )
+  eps <- sqrt(log(2 / (1 - 0.95)) / (2 * 5))
+
+  expect_equal(result$x[1], 0)
+  expect_equal(result$x[nrow(result)], 1)
+  expect_equal(result$ymin[1], 1)
+  expect_equal(result$ymax[1], 4)
+  expect_true(any(abs(result$x - (0.8 - eps)) < 1e-12))
+})
+
 test_that("StatEQFBand returns empty for empty data", {
   result <- StatEQFBand$compute_group(
     data = data.frame(x = numeric(0)),
