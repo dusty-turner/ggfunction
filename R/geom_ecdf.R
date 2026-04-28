@@ -214,10 +214,12 @@ StatECDFBand <- ggproto("StatECDFBand", Stat,
 #' The empirical quantile function is the left-continuous inverse of the
 #' empirical CDF: \eqn{Q(p) = \inf\{x : F_n(x) \geq p\}}.
 #'
-#' The confidence band at probability level \eqn{p} is
+#' The two-sided confidence band at probability level \eqn{p} is
 #' \eqn{[Q_n(p - \varepsilon),\, Q_n(p + \varepsilon)]}, where
 #' \eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}} is the DKW/Massart half-width
-#' (\eqn{\alpha = 1 - \texttt{level}}). This follows directly from inverting
+#' (\eqn{\alpha = 1 - \texttt{level}}). In the extreme tails, DKW gives only
+#' one-sided bounds unless known support bounds are supplied; the ribbon displays
+#' these as open-ended, panel-clipped tails. This follows directly from inverting
 #' the simultaneous ECDF confidence band.
 #'
 #' @inheritParams geom_ecdf
@@ -360,10 +362,13 @@ StatEQFBand <- ggproto("StatEQFBand", Stat,
       1
     )
 
+    lower_query <- p_eval - eps
+    upper_query <- p_eval + eps
+
     df <- data.frame(
       x    = p_breaks,
-      ymin = qn(p_eval - eps),
-      ymax = qn(p_eval + eps)
+      ymin = ifelse(lower_query <= 0, -Inf, qn(lower_query)),
+      ymax = ifelse(upper_query >= 1, Inf, qn(upper_query))
     )
     .expand_step_ribbon(df)
   }
