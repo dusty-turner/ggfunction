@@ -34,7 +34,9 @@ geom_cdf(
   p = NULL,
   lower.tail = TRUE,
   p_lower = NULL,
-  p_upper = NULL
+  p_upper = NULL,
+  check = TRUE,
+  check_tol = 0.01
 )
 
 StatCDF
@@ -133,6 +135,12 @@ for two-sided shading. Used with \code{p_upper}.}
 
 \item{p_upper}{(Optional) A numeric value between 0 and 1 specifying the upper CDF threshold
 for two-sided shading. Used with \code{p_lower}.}
+
+\item{check}{Logical; if \code{TRUE}, issue a diagnostic when the CDF is not near
+0 and 1 at the lower and upper ends of the drawn x-range. Use \code{FALSE} to
+suppress this check.}
+
+\item{check_tol}{Numeric tolerance used by the CDF endpoint check.}
 }
 \value{
 A ggplot2 layer.

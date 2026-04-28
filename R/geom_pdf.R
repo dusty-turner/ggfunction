@@ -53,6 +53,9 @@
 #'   values are evaluated on the grid, normalized to sum to 1, sorted in descending order, and
 #'   cumulated until the target coverage is reached; the density at that threshold determines
 #'   which regions are shaded. Takes precedence over `p`, `p_lower`, and `p_upper` if specified.
+#' @param check Logical; if `TRUE`, issue a diagnostic when the density does not
+#'   integrate to 1 over the drawn x-range. Use `FALSE` to suppress this check.
+#' @param check_tol Numeric tolerance used by the normalization check.
 #'
 #' @return A ggplot2 layer.
 #'
@@ -94,7 +97,9 @@ geom_pdf <- function(
     p_lower = NULL,
     p_upper = NULL,
     shade_outside = FALSE,
-    shade_hdr = NULL
+    shade_hdr = NULL,
+    check = TRUE,
+    check_tol = 1e-2
     ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -142,12 +147,106 @@ geom_pdf <- function(
         p_lower = p_lower,
         p_upper = p_upper,
         shade_outside = shade_outside,
-        shade_hdr = shade_hdr
+        shade_hdr = shade_hdr,
+        check = check,
+        check_tol = check_tol
       ),
       linewidth_params,
       list(...)
     )
   )
+}
+
+#' @noRd
+check_pdf_sources <- function(fun, cdf_fun, survival_fun, qf_fun, hf_fun) {
+  n_provided <- (!is.null(fun)) + (!is.null(cdf_fun)) +
+    (!is.null(survival_fun)) + (!is.null(qf_fun)) + (!is.null(hf_fun))
+  if (n_provided == 0L) {
+    cli::cli_abort("One of {.arg fun}, {.arg cdf_fun}, {.arg survival_fun}, {.arg qf_fun}, or {.arg hf_fun} must be provided.")
+  }
+  if (n_provided > 1L) {
+    cli::cli_abort("Supply only one of {.arg fun}, {.arg cdf_fun}, {.arg survival_fun}, {.arg qf_fun}, or {.arg hf_fun}.")
+  }
+}
+
+#' @noRd
+make_pdf_function <- function(fun = NULL, cdf_fun = NULL, survival_fun = NULL,
+                              qf_fun = NULL, hf_fun = NULL, args = NULL) {
+  args <- args %||% list()
+
+  if (!is.null(cdf_fun)) {
+    cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
+    cdf_to_pdf(cdf_injected)
+  } else if (!is.null(survival_fun)) {
+    surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
+    cdf_derived <- survival_to_cdf(surv_injected)
+    cdf_to_pdf(cdf_derived)
+  } else if (!is.null(qf_fun)) {
+    qf_injected <- function(p) rlang::inject(qf_fun(p, !!!args))
+    cdf_derived <- qf_to_cdf(qf_injected)
+    cdf_to_pdf(cdf_derived)
+  } else if (!is.null(hf_fun)) {
+    hf_injected <- function(x) rlang::inject(hf_fun(x, !!!args))
+    hf_to_pdf(hf_injected)
+  } else {
+    function(x) rlang::inject(fun(x, !!!args))
+  }
+}
+
+#' @noRd
+pdf_scale_inverse <- function(x_scale, x) {
+  if (is.null(x_scale) || x_scale$is_discrete()) return(x)
+  x_scale$get_transformation()$inverse(x)
+}
+
+#' @noRd
+pdf_scale_transform <- function(y_scale, y) {
+  if (is.null(y_scale) || y_scale$is_discrete()) return(y)
+  y_scale$get_transformation()$transform(y)
+}
+
+#' @noRd
+pdf_stat_range <- function(scales, xlim = NULL, n = 101) {
+  if (is.null(scales$x)) {
+    x_range <- xlim %||% c(0, 1)
+    xseq <- seq(x_range[1], x_range[2], length.out = n)
+    x_eval <- xseq
+  } else {
+    x_range <- xlim %||% scales$x$dimension()
+    xseq <- seq(x_range[1], x_range[2], length.out = n)
+    x_eval <- pdf_scale_inverse(scales$x, xseq)
+  }
+
+  list(x = xseq, x_eval = x_eval)
+}
+
+#' @noRd
+pdf_eval_range <- function(x, x_scale = NULL) {
+  x_range <- range(x, na.rm = TRUE)
+  pdf_scale_inverse(x_scale, x_range)
+}
+
+#' @noRd
+pdf_panel_data <- function(data, panel_params, fun, n = 101) {
+  panel_range <- panel_params$x$limits %||% panel_params$x.range
+  if (length(panel_range) != 2L || any(!is.finite(panel_range))) {
+    return(data)
+  }
+  data_range <- range(data$x, na.rm = TRUE)
+  if (isTRUE(all.equal(data_range, panel_range, tolerance = sqrt(.Machine$double.eps)))) {
+    return(data)
+  }
+
+  xseq <- seq(panel_range[1], panel_range[2], length.out = n)
+  y_out <- fun(pdf_scale_inverse(panel_params$x, xseq))
+  y_out <- pdf_scale_transform(panel_params$y, y_out)
+
+  out <- data[rep(1L, n), , drop = FALSE]
+  out$x <- xseq
+  out$y <- y_out
+  if ("ymin" %in% names(out)) out$ymin <- 0
+  if ("ymax" %in% names(out)) out$ymax <- y_out
+  out
 }
 
 #' @rdname geom_pdf
@@ -158,50 +257,18 @@ StatPDF <- ggproto("StatPDF", Stat,
   compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
                            survival_fun = NULL, qf_fun = NULL,
                            hf_fun = NULL,
-                           xlim = NULL, n = 101, args = NULL) {
+                           xlim = NULL, n = 101, args = NULL,
+                           check = TRUE, check_tol = 1e-2) {
 
     # Validate: exactly one source
-    n_provided <- (!is.null(fun)) + (!is.null(cdf_fun)) +
-      (!is.null(survival_fun)) + (!is.null(qf_fun)) + (!is.null(hf_fun))
-    if (n_provided == 0L) {
-      cli::cli_abort("One of {.arg fun}, {.arg cdf_fun}, {.arg survival_fun}, {.arg qf_fun}, or {.arg hf_fun} must be provided.")
-    }
-    if (n_provided > 1L) {
-      cli::cli_abort("Supply only one of {.arg fun}, {.arg cdf_fun}, {.arg survival_fun}, {.arg qf_fun}, or {.arg hf_fun}.")
-    }
+    check_pdf_sources(fun, cdf_fun, survival_fun, qf_fun, hf_fun)
 
-    range <- if (is.null(scales$x)) {
-      xlim %||% c(0, 1)
-    } else {
-      xlim %||% scales$x$dimension()
-    }
+    range <- pdf_stat_range(scales, xlim, n)
+    fun_injected <- make_pdf_function(fun, cdf_fun, survival_fun, qf_fun, hf_fun, args)
 
-    if (!is.null(cdf_fun)) {
-      cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
-      fun_injected <- cdf_to_pdf(cdf_injected)
-    } else if (!is.null(survival_fun)) {
-      surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
-      cdf_derived <- survival_to_cdf(surv_injected)
-      fun_injected <- cdf_to_pdf(cdf_derived)
-    } else if (!is.null(qf_fun)) {
-      qf_injected <- function(p) rlang::inject(qf_fun(p, !!!args))
-      cdf_derived <- qf_to_cdf(qf_injected)
-      fun_injected <- cdf_to_pdf(cdf_derived)
-    } else if (!is.null(hf_fun)) {
-      hf_injected <- function(x) rlang::inject(hf_fun(x, !!!args))
-      fun_injected <- hf_to_pdf(hf_injected)
-    } else {
-      fun_injected <- function(x) rlang::inject(fun(x, !!!args))
-    }
+    y_out <- fun_injected(range$x_eval)
 
-    # Check that the injected function integrates to 1 over the specified range.
-    check_lower <- if (is.finite(range[1])) range[1] else -Inf
-    invisible(check_pdf_normalization(fun_injected, lower = check_lower, upper = range[2], tol = 1e-2))
-
-    xseq <- seq(range[1], range[2], length.out = n)
-    y_out <- fun_injected(xseq)
-
-    data.frame(x = xseq, y = y_out)
+    data.frame(x = range$x, y = y_out)
   }
 )
 
@@ -212,8 +279,28 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
                         lineend = "butt", linejoin = "round", linemitre = 10,
                         na.rm = FALSE, p = NULL, lower.tail = TRUE,
                         p_lower = NULL, p_upper = NULL, shade_outside = FALSE,
-                        shade_hdr = NULL
+                        shade_hdr = NULL, fun = NULL, cdf_fun = NULL,
+                        survival_fun = NULL, qf_fun = NULL, hf_fun = NULL,
+                        xlim = NULL, n = 101, args = NULL, check = TRUE,
+                        check_tol = 1e-2
                         ) {
+
+    if (is.null(xlim)) {
+      fun_injected <- make_pdf_function(fun, cdf_fun, survival_fun, qf_fun, hf_fun, args)
+      data <- pdf_panel_data(data, panel_params, fun_injected, n)
+    }
+    if (ggfunction_check_enabled(check)) {
+      check_range <- pdf_eval_range(data$x, panel_params$x)
+      check_lower <- if (is.finite(check_range[1])) check_range[1] else -Inf
+      check_upper <- if (is.finite(check_range[2])) check_range[2] else Inf
+      fun_injected <- make_pdf_function(fun, cdf_fun, survival_fun, qf_fun, hf_fun, args)
+      invisible(check_pdf_normalization(
+        fun_injected,
+        lower = check_lower,
+        upper = check_upper,
+        tol = check_tol
+      ))
+    }
 
     x_vals <- data$x
     y_vals <- data$y
