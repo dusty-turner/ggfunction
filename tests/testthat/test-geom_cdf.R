@@ -50,19 +50,32 @@ test_that("geom_cdf with args builds without error", {
   expect_silent(ggplot_build(p))
 })
 
-test_that("StatCDF warns for invalid CDF", {
+test_that("geom_cdf warns for invalid CDF", {
   bad_cdf <- function(x) x / 10  # not a real CDF
-  scales <- list(x = NULL)
-  expect_message(
-    StatCDF$compute_group(
-      data = data.frame(group = 1),
-      scales = scales,
-      fun = bad_cdf,
-      xlim = c(0, 5),
-      n = 101,
-      args = list()
-    )
-  )
+  p <- ggplot() + geom_cdf(fun = bad_cdf, xlim = c(0, 5))
+  expect_message(ggplotGrob(p), "valid CDF")
+})
+
+test_that("geom_cdf can suppress endpoint diagnostics", {
+  bad_cdf <- function(x) x / 10
+  p <- ggplot() + geom_cdf(fun = bad_cdf, xlim = c(0, 5), check = FALSE)
+  expect_silent(ggplotGrob(p))
+})
+
+test_that("geom_cdf aligns inherited range with ECDF panel range", {
+  set.seed(1234)
+  df <- data.frame(x = rnorm(50))
+  p <- ggplot(df, aes(x)) +
+    geom_rug() +
+    geom_ecdf(conf_int = FALSE) +
+    geom_cdf(fun = pnorm, color = "purple")
+
+  expect_silent(ggplotGrob(p))
+
+  build <- ggplot_build(p)
+  f <- make_cdf_function(fun = pnorm)
+  panel_data <- cdf_panel_data(build$data[[3]], build$layout$panel_params[[1]], f, 101)
+  expect_equal(range(panel_data$x), build$layout$panel_params[[1]]$x.range, tolerance = 1e-12)
 })
 
 # --- Alternate input: pdf_fun ---

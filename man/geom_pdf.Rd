@@ -39,7 +39,9 @@ geom_pdf(
   p_lower = NULL,
   p_upper = NULL,
   shade_outside = FALSE,
-  shade_hdr = NULL
+  shade_hdr = NULL,
+  check = TRUE,
+  check_tol = 0.01
 )
 
 StatPDF
@@ -189,6 +191,11 @@ shaded intervals. Computed following the approach of \doi{10.32614/RJ-2023-048}:
 values are evaluated on the grid, normalized to sum to 1, sorted in descending order, and
 cumulated until the target coverage is reached; the density at that threshold determines
 which regions are shaded. Takes precedence over \code{p}, \code{p_lower}, and \code{p_upper} if specified.}
+
+\item{check}{Logical; if \code{TRUE}, issue a diagnostic when the density does not
+integrate to 1 over the drawn x-range. Use \code{FALSE} to suppress this check.}
+
+\item{check_tol}{Numeric tolerance used by the normalization check.}
 }
 \value{
 A ggplot2 layer.

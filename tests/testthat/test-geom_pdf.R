@@ -52,6 +52,36 @@ test_that("geom_pdf with args builds without error", {
   expect_silent(ggplot_build(p))
 })
 
+test_that("geom_pdf can suppress normalization diagnostics", {
+  bad_fun <- function(x) rep(0.5, length(x))
+  p_check <- ggplot() + geom_pdf(fun = bad_fun, xlim = c(0, 1))
+  expect_message(ggplotGrob(p_check), "integrates to")
+
+  p <- ggplot() + geom_pdf(fun = bad_fun, xlim = c(0, 1), check = FALSE)
+  expect_silent(ggplotGrob(p))
+})
+
+test_that("geom_pdf checks normalization over final inherited x limits", {
+  set.seed(1234)
+  n <- 50
+  df <- data.frame(x = rnorm(n))
+  p <- ggplot(df, aes(x)) +
+    geom_histogram(aes(y = after_stat(density)), bins = nclass.scott(df$x)) +
+    geom_pdf(
+      fun = dnorm,
+      args = list(mean = mean(df$x), sd = sd(df$x)),
+      fill = "firebrick"
+    )
+
+  expect_silent(ggplotGrob(p))
+
+  build <- ggplot_build(p)
+  f <- make_pdf_function(fun = dnorm, args = list(mean = mean(df$x), sd = sd(df$x)))
+  panel_data <- pdf_panel_data(build$data[[2]], build$layout$panel_params[[1]], f, 101)
+  hist_range <- range(build$data[[1]]$xmin, build$data[[1]]$xmax)
+  expect_equal(range(panel_data$x), hist_range, tolerance = 1e-12)
+})
+
 test_that("geom_pdf with shade_outside builds without error", {
   p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3),
     p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE)

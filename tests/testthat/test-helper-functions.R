@@ -25,6 +25,15 @@ test_that("check_pmf_normalization passes for valid PMF", {
   expect_silent(check_pmf_normalization(pmf, support = 0:10, tol = 1e-2))
 })
 
+test_that("normalization checks honor ggfunction.check option", {
+  old_options <- options(ggfunction.check = FALSE)
+  on.exit(options(old_options), add = TRUE)
+
+  expect_silent(check_pdf_normalization(function(x) rep(0.5, length(x)), 0, 1))
+  expect_silent(check_cdf_normalization(function(x) x / 10, 0, 5))
+  expect_silent(check_pmf_normalization(function(x) rep(0.5, length(x)), support = 0:5))
+})
+
 test_that("build_step_polygon creates correct step vertices", {
   result <- build_step_polygon(c(0, 1, 2), c(0.2, 0.5, 1.0))
   expect_s3_class(result, "data.frame")

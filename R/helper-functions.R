@@ -72,7 +72,13 @@ vectorize <- function(f, drop = TRUE) {
 `%||%` <- function(a, b) if (!is.null(a)) a else b
 
 #' @noRd
+ggfunction_check_enabled <- function(check = TRUE) {
+  isTRUE(check) && !identical(getOption("ggfunction.check", TRUE), FALSE)
+}
+
+#' @noRd
 check_pdf_normalization <- function(f, lower, upper, tol = 1e-3) {
+  if (!ggfunction_check_enabled()) return(invisible(NA_real_))
   res <- try(integrate(f, lower, upper), silent = TRUE)
   if (inherits(res, "try-error")) {
     stop(sprintf("Error integrating the function over the range [%g, %g]. Please check your function definition.", lower, upper))
@@ -85,9 +91,26 @@ check_pdf_normalization <- function(f, lower, upper, tol = 1e-3) {
 }
 
 #' @noRd
+check_cdf_normalization <- function(f, lower, upper, tol = 1e-2) {
+  if (!ggfunction_check_enabled()) return(invisible(c(lower = NA_real_, upper = NA_real_)))
+
+  vals <- try(c(lower = f(lower), upper = f(upper)), silent = TRUE)
+  if (inherits(vals, "try-error")) {
+    stop(sprintf("Error evaluating the function over the range [%g, %g]. Please check your function definition.", lower, upper))
+  }
+
+  if (abs(vals[["lower"]]) > tol || abs(vals[["upper"]] - 1) > tol) {
+    cli::cli_alert(sprintf("The provided function appears not to be a valid CDF over the range [%g, %g]: it returns %g at the lower bound and %g at the upper bound.",
+                           lower, upper, vals[["lower"]], vals[["upper"]]))
+  }
+  invisible(vals)
+}
+
+#' @noRd
 check_pmf_normalization <- function(f, support, tol = 1e-3,
                                     action = c("warn", "abort")) {
   action <- match.arg(action)
+  if (!ggfunction_check_enabled()) return(invisible(NA_real_))
   vals <- try(f(support), silent = TRUE)
   if (inherits(vals, "try-error")) {
     stop("Error evaluating the PMF over the provided support. Please check your function definition.")
