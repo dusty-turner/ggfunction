@@ -181,12 +181,22 @@ StatECDFBand <- ggproto("StatECDFBand", Stat,
     if (nrow(tab) == 0L) return(data.frame())
     n   <- tab$n[1L]
     eps <- sqrt(log(2 / (1 - level)) / (2 * n))
+
+    cdf <- c(0, tab$cdf)
     df  <- data.frame(
-      x    = tab$x,
-      ymin = pmax(0, tab$cdf - eps),
-      ymax = pmin(1, tab$cdf + eps)
+      x    = c(-Inf, tab$x),
+      ymin = pmax(0, cdf - eps),
+      ymax = pmin(1, cdf + eps)
     )
-    .expand_step_ribbon(df)
+    band <- .expand_step_ribbon(df)
+    rbind(
+      band,
+      data.frame(
+        x = Inf,
+        ymin = df$ymin[nrow(df)],
+        ymax = df$ymax[nrow(df)]
+      )
+    )
   }
 )
 
