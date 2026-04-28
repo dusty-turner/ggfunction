@@ -116,6 +116,23 @@ test_that("StatECDFBand computes band correctly", {
   expect_true(all(result$ymin <= result$ymax))
 })
 
+test_that("StatECDFBand extends to panel edges", {
+  result <- StatECDFBand$compute_group(
+    data = data.frame(x = c(1, 2, 3, 4, 5)),
+    scales = list(),
+    na.rm = FALSE,
+    level = 0.95
+  )
+  eps <- sqrt(log(2 / (1 - 0.95)) / (2 * 5))
+
+  expect_equal(result$x[1], -Inf)
+  expect_equal(result$ymin[1], 0)
+  expect_equal(result$ymax[1], eps)
+  expect_equal(result$x[nrow(result)], Inf)
+  expect_equal(result$ymin[nrow(result)], 1 - eps)
+  expect_equal(result$ymax[nrow(result)], 1)
+})
+
 test_that("StatECDFBand returns empty for empty data", {
   result <- StatECDFBand$compute_group(
     data = data.frame(x = numeric(0)),
