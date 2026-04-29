@@ -291,7 +291,7 @@ p1 | p2 | p3
 
 
 ## ----ecdf-basic, echo=TRUE----------------------------------------------------
-#| fig.cap: "Empirical CDFs for two groups from populations $\\mathcal{N}(0,1)$ and $\\mathcal{N}(2,1)$, with simultaneous 95\\% KS confidence bands. The bands are narrower for larger samples."
+#| fig.cap: "Empirical CDFs for two groups from populations $\\mathcal{N}(0,1)$ and $\\mathcal{N}(2,1)$, with simultaneous 95\\% DKW confidence bands. The bands are narrower for larger samples."
 set.seed(1)
 df_ecdf <- data.frame(
   x     = c(rnorm(60), rnorm(40, mean = 2)),
@@ -303,25 +303,34 @@ ggplot(df_ecdf, aes(x = x, colour = group)) +
   labs(x = "x", y = expression(hat(F)[n](x)), colour = NULL)
 
 
-## ----eqf-gof, echo=TRUE, fig.width=10, fig.height=4---------------------------
-#| fig.cap: "Goodness-of-fit test for normality using \\texttt{geom\\_eqf()} with a 95\\% KS band. The fitted normal quantile function (red) threads through the band for the normal sample (left) but departs at both tails for the exponential sample (right), where asymmetry is most pronounced. Note that estimating parameters from the data makes the band slightly conservative (analogous to the Lilliefors correction)."
+## ----ppqq-gof, echo=TRUE, fig.width=10, fig.height=6--------------------------
+#| fig.cap: "PP and QQ diagnostics for samples compared with a fully specified $\\mathcal{N}(0,1)$ null. The normal sample (top row) follows the identity line and remains within the DKW bands, whereas the shifted exponential sample (bottom row) shows the curvature and tail departures expected from skewness."
 set.seed(3)
 
-normal_qf <- function(p, x) qnorm(p, mean = mean(x), sd = sd(x))
-
 df_normal <- data.frame("x" = rnorm(50))
-p_norm <- ggplot(df_normal, aes(x = x)) +
-  geom_eqf(show_points = FALSE, show_vert = FALSE) +
-  geom_qf(fun  = normal_qf, args = list(x = df_normal$x), colour = "red") +
-  ggtitle("Normal data")
-
 df_exp <- data.frame("x" = rexp(50) - 1)
-p_exp <- ggplot(df_exp, aes(x = x)) +
-  geom_eqf(show_points = FALSE, show_vert = FALSE) +
-  geom_qf(fun  = normal_qf, args = list(x = df_exp$x), colour = "red") +
-  ggtitle("Exponential data")
 
-p_norm | p_exp
+p_norm_pp <- ggplot(df_normal, aes(x = x)) +
+  geom_ppplot(fun = pnorm, fill = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Normal data: PP")
+
+p_norm_qq <- ggplot(df_normal, aes(x = x)) +
+  geom_qqplot(fun = qnorm, fill = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Normal data: QQ")
+
+p_exp_pp <- ggplot(df_exp, aes(x = x)) +
+  geom_ppplot(fun = pnorm, fill = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Exponential data: PP")
+
+p_exp_qq <- ggplot(df_exp, aes(x = x)) +
+  geom_qqplot(fun = qnorm, fill = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Exponential data: QQ")
+
+(p_norm_pp | p_norm_qq) / (p_exp_pp | p_exp_qq)
 
 
 ## ----epmf-grouped, echo=TRUE--------------------------------------------------
@@ -363,7 +372,7 @@ p_correct | p_wrong
 
 
 ## ----km-censored, echo=TRUE, fig.width=8, fig.height=4------------------------
-#| fig.cap: "Kaplan--Meier survival curves for simulated censored data. Event times follow $\\text{Exp}(0.5)$ and censoring times follow $\\text{Exp}(0.2)$. The left panel shows the KM estimate with Greenwood 95\\% simultaneous confidence band and censoring marks; the right panel overlays the true survival curve (red)."
+#| fig.cap: "Kaplan--Meier survival curves for simulated censored data. Event times follow $\\text{Exp}(0.5)$ and censoring times follow $\\text{Exp}(0.2)$. The left panel shows the KM estimate with a Greenwood 95\\% simultaneous equal-precision band and censoring marks; the right panel overlays the true survival curve (red)."
 set.seed(42)
 n_km <- 60
 true_time <- rexp(n_km, rate = 0.5)
@@ -391,7 +400,7 @@ p_km | p_km_gof
 
 
 ## ----na-censored, echo=TRUE, fig.width=8, fig.height=4------------------------
-#| fig.cap: "Nelson--Aalen cumulative hazard estimates. The same censored data as in the KM figure. The left panel shows the Nelson--Aalen estimate with 95\\% simultaneous confidence band; the right panel overlays the theoretical $H(x) = 0.5x$ (red)."
+#| fig.cap: "Nelson--Aalen cumulative hazard estimates. The same censored data as in the KM figure. The left panel shows the Nelson--Aalen estimate with a 95\\% pointwise normal confidence band; the right panel overlays the theoretical $H(x) = 0.5x$ (red)."
 p_na <- ggplot(df_km, aes(x = time, status = status)) +
   geom_echf_na() +
   labs(x = "Time", y = expression(hat(H)(t))) +
