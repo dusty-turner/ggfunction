@@ -39,8 +39,8 @@ probability_axis_anchor <- function() {
 }
 
 #' @noRd
-default_labs_component <- function(x = NULL, y = NULL) {
-  structure(list(x = x, y = y), class = "ggfunction_default_labs")
+default_labs_component <- function(x = NULL, y = NULL, fill = NULL) {
+  structure(list(x = x, y = y, fill = fill), class = "ggfunction_default_labs")
 }
 
 #' @exportS3Method ggplot2::ggplot_add
@@ -50,6 +50,9 @@ ggplot_add.ggfunction_default_labs <- function(object, plot, object_name) {
   }
   if (is.null(plot$labels$y) && !is.null(object$y)) {
     plot$labels$y <- object$y
+  }
+  if (is.null(plot$labels$fill) && !is.null(object$fill)) {
+    plot$labels$fill <- object$fill
   }
   plot
 }
@@ -241,6 +244,67 @@ qf_to_cdf <- function(qf_fun, n = 10000) {
   p_grid <- seq(1 / (n + 1), n / (n + 1), length.out = n)
   x_grid <- qf_fun(p_grid)
   stats::approxfun(x_grid, p_grid, rule = 2)
+}
+
+#' @noRd
+check_qf_sources <- function(fun, cdf_fun, pdf_fun, survival_fun,
+                             hf_fun = NULL) {
+  n_provided <- (!is.null(fun)) + (!is.null(cdf_fun)) +
+    (!is.null(pdf_fun)) + (!is.null(survival_fun)) + (!is.null(hf_fun))
+  if (n_provided == 0L) {
+    cli::cli_abort("One of {.arg fun}, {.arg cdf_fun}, {.arg pdf_fun}, {.arg survival_fun}, or {.arg hf_fun} must be provided.")
+  }
+  if (n_provided > 1L) {
+    cli::cli_abort("Supply only one of {.arg fun}, {.arg cdf_fun}, {.arg pdf_fun}, {.arg survival_fun}, or {.arg hf_fun}.")
+  }
+}
+
+#' @noRd
+make_qf_function <- function(fun = NULL, cdf_fun = NULL, pdf_fun = NULL,
+                             survival_fun = NULL, hf_fun = NULL,
+                             hf_lower = -Inf, args = NULL) {
+  args <- args %||% list()
+  check_qf_sources(fun, cdf_fun, pdf_fun, survival_fun, hf_fun)
+
+  if (!is.null(cdf_fun)) {
+    cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
+    cdf_to_qf(cdf_injected)
+  } else if (!is.null(pdf_fun)) {
+    pdf_injected <- function(x) rlang::inject(pdf_fun(x, !!!args))
+    cdf_to_qf(pdf_to_cdf(pdf_injected))
+  } else if (!is.null(survival_fun)) {
+    surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
+    cdf_to_qf(survival_to_cdf(surv_injected))
+  } else if (!is.null(hf_fun)) {
+    hf_injected <- function(x) rlang::inject(hf_fun(x, !!!args))
+    cdf_to_qf(hf_to_cdf(hf_injected, lower = hf_lower))
+  } else {
+    function(p) rlang::inject(fun(p, !!!args))
+  }
+}
+
+#' @noRd
+order_stat_sample <- function(x, na.rm = FALSE, a = 1 / 2) {
+  if (!is.numeric(a) || length(a) != 1L || !is.finite(a)) {
+    cli::cli_abort("{.arg a} must be a single finite number.")
+  }
+
+  keep <- is.finite(x)
+  n_removed <- sum(!keep)
+  if (n_removed > 0L && !na.rm) {
+    cli::cli_warn(c(
+      "Removed {n_removed} non-finite observation{?s}.",
+      "i" = "Set {.arg na.rm = TRUE} to suppress this warning."
+    ))
+  }
+
+  x <- sort(x[keep])
+  n <- length(x)
+  if (n == 0L) {
+    return(data.frame(sample = numeric(0), p = numeric(0), n = integer(0)))
+  }
+
+  data.frame(sample = x, p = stats::ppoints(n, a = a), n = n)
 }
 
 #' Convert a hazard function to a cumulative hazard function via numerical integration
