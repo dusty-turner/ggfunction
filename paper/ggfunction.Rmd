@@ -681,6 +681,13 @@ set.seed(3)
 df_normal <- data.frame("x" = rnorm(50))
 df_exp <- data.frame("x" = rexp(50) - 1)
 
+ppqq_theme <- theme_gray(base_size = 8) +
+  theme(
+    plot.title = element_text(size = 8),
+    axis.title = element_text(size = 8),
+    axis.text = element_text(size = 7)
+  )
+
 p_norm_pp <- ggplot(df_normal, aes(x = x)) +
   geom_ppplot(fun = pnorm, fill = "black", size = 1.2) +
   coord_equal() +
@@ -701,7 +708,7 @@ p_exp_qq <- ggplot(df_exp, aes(x = x)) +
   coord_equal() +
   ggtitle("Exponential data: QQ")
 
-(p_norm_pp | p_norm_qq) / (p_exp_pp | p_exp_qq)
+(p_norm_pp | p_norm_qq) / (p_exp_pp | p_exp_qq) & ppqq_theme
 ```
 
 ## Empirical PMF: `geom_epmf()`
