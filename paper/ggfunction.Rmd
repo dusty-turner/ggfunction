@@ -16,8 +16,10 @@ abstract: >
   region shading central to hypothesis testing and interval estimation. The third family
   provides geoms for empirical distributions computed from samples: the empirical CDF
   with a simultaneous Kolmogorov--Smirnov confidence band, the empirical quantile
-  function with the inverted KS band, the empirical PMF as a lollipop chart, and the
-  empirical cumulative hazard function with a transformed DKW confidence band.
+  function with the inverted KS band, one-sample PP and QQ diagnostic plots with
+  DKW bands under a fully specified null distribution, the empirical PMF as a
+  lollipop chart, and the empirical cumulative hazard function with a transformed
+  DKW confidence band.
   For right-censored survival data, \code{geom\_ecdf\_km()} and \code{geom\_echf\_na()}
   provide the Kaplan--Meier survival estimator [@kaplan1958nonparametric] and
   Nelson--Aalen cumulative hazard estimator [@nelson1972theory; @aalen1978nonparametric],
@@ -109,7 +111,7 @@ Several packages address pieces of this gap. \CRANpkg{ggdist} [@kay2024ggdist] p
 
 1. A **dimensional taxonomy** covering four function types: $\mathbb{R} \to \mathbb{R}$, $\mathbb{R} \to \mathbb{R}^2$, $\mathbb{R}^2 \to \mathbb{R}$, and $\mathbb{R}^2 \to \mathbb{R}^2$.
 2. A **probability distribution family** providing specialized layers for density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions.
-3. An **empirical data family** providing layers for the empirical CDF, empirical quantile function, empirical PMF, and empirical cumulative hazard function, each computed directly from a sample and accompanied by simultaneous DKW/Massart confidence bands. For right-censored survival data, the family additionally provides the Kaplan--Meier survival estimator [@kaplan1958nonparametric] with a simultaneous equal-precision Greenwood band [@greenwood1926natural; @nair1984confidence] and the Nelson--Aalen cumulative hazard estimator [@nelson1972theory; @aalen1978nonparametric] with pointwise normal bands.
+3. An **empirical data family** providing layers for the empirical CDF, empirical quantile function, one-sample PP and QQ diagnostic plots, empirical PMF, and empirical cumulative hazard function, each computed directly from a sample and accompanied by simultaneous DKW/Massart confidence bands where appropriate. For right-censored survival data, the family additionally provides the Kaplan--Meier survival estimator [@kaplan1958nonparametric] with a simultaneous equal-precision Greenwood band [@greenwood1926natural; @nair1984confidence] and the Nelson--Aalen cumulative hazard estimator [@nelson1972theory; @aalen1978nonparametric] with pointwise normal bands.
 
 Each layer follows the \CRANpkg{ggplot2} extension pattern: a `Stat` object evaluates the user-supplied function on a grid or sequence (or tabulates a sample), and a corresponding `Geom` renders the result. Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the full ecosystem of scales, coordinates, themes, and facets.
 
@@ -552,12 +554,14 @@ p1 | p2 | p3
 
 Data analysis frequently requires visualizing not a theoretical distribution but the
 distribution of an observed sample. \pkg{ggfunction}'s empirical data family applies
-the same visual language as the probability distribution family to sample data. All
-four geoms tabulate the empirical distribution via a shared helper that places mass
-$c_k / n$ at each distinct observed value $x_k$, where $c_k$ is the count of
-occurrences and $n$ is the total sample size; ties are handled correctly. Because the
-geoms are standard \CRANpkg{ggplot2} layers, multiple groups can be overlaid by
-mapping the `colour` aesthetic in the enclosing `ggplot()` call.
+the same visual language as the probability distribution family to sample data. The
+empirical CDF, quantile function, PMF, and cumulative hazard geoms tabulate the
+empirical distribution via a shared helper that places mass $c_k / n$ at each
+distinct observed value $x_k$, where $c_k$ is the count of occurrences and $n$ is
+the total sample size; ties are handled correctly. The PP and QQ diagnostic geoms
+use the related order-statistic representation of the same sample. Because the geoms
+are standard \CRANpkg{ggplot2} layers, multiple groups can be overlaid by mapping the
+`colour` aesthetic in the enclosing `ggplot()` call.
 
 ## Empirical CDF: `geom_ecdf()`
 
@@ -623,34 +627,80 @@ The confidence band for the quantile function follows directly from inverting
 \varepsilon$ simultaneously, applying $Q$ to all three sides yields
 $Q_n(p - \varepsilon) \leq Q(p) \leq Q_n(p + \varepsilon)$.
 
-**Goodness-of-fit testing.** Because the confidence band covers the true quantile
-function $Q$ with probability at least $1 - \alpha$ regardless of the underlying
-distribution, overlaying a parametric quantile function $Q_0$ turns the plot into an
-informal visual test: if $Q_0$ lies entirely within the band the data are consistent
-with the hypothesized model; if $Q_0$ exits the band there is evidence against it. The
-following example fits a normal distribution by maximum likelihood to two samples of
-size $n = 100$--one genuinely normal, one exponential--and overlays the fitted normal
-quantile function as a red curve.
+This same probability-scale band is the basis for the PP and QQ diagnostic layers.
 
-```{r eqf-gof, echo=TRUE, fig.width=10, fig.height=4}
-#| fig.cap: "Goodness-of-fit test for normality using \\texttt{geom\\_eqf()} with a 95\\% DKW band. The fitted normal quantile function (red) threads through the band for the normal sample (left) but departs at both tails for the exponential sample (right), where asymmetry is most pronounced. Note that estimating parameters from the data makes the band slightly conservative (analogous to the Lilliefors correction)."
+## PP and QQ diagnostic plots: `geom_ppplot()` and `geom_qqplot()`
+
+Suppose $X_1,\ldots,X_n$ are to be compared with a fully specified null
+distribution $F_0$, with quantile function $Q_0 = F_0^{\leftarrow}$. Let
+$x_{(1)} \leq \cdots \leq x_{(n)}$ denote the order statistics and define plotting
+positions
+
+\begin{equation}
+p_i = \frac{i - 1/2}{n},\quad i = 1,\ldots,n.
+(\#eq:ppoints)
+\end{equation}
+
+A probability-probability (PP) plot displays the null probabilities
+$F_0(x_{(i)})$ against $p_i$. A quantile-quantile (QQ) plot displays the observed
+quantiles $x_{(i)}$ against the null quantiles $Q_0(p_i)$. In both cases, agreement
+with the null distribution corresponds to points falling close to the identity line.
+The PP layer expects a CDF by default, while the QQ layer expects a quantile
+function; alternate function sources are converted internally using the same
+CDF/QF helpers used by the theoretical distribution geoms.
+
+Under $H_0: F = F_0$, the probability integral transform gives
+$F_0(X_i) \stackrel{\mathrm{iid}}{\sim} \mathrm{Unif}(0,1)$. Therefore
+\@ref(eq:ks-band) gives a simultaneous DKW band on the probability scale. For PP
+plots, the ribbon is simply
+
+\begin{equation}
+\max(0, p_i - \varepsilon) \leq F_0(x_{(i)}) \leq \min(1, p_i + \varepsilon).
+(\#eq:pp-band)
+\end{equation}
+
+For QQ plots, the same probability limits are transformed back to the data scale:
+
+\begin{equation}
+Q_0\{\max(0, p_i - \varepsilon)\} \leq x_{(i)}
+\leq Q_0\{\min(1, p_i + \varepsilon)\}.
+(\#eq:qq-band)
+\end{equation}
+
+Thus the two diagnostics show the same comparison on different scales: PP bands
+are parallel probability bands, while QQ bands widen or narrow according to the
+shape of $Q_0$. The bands are finite-sample and distribution-free for a fully
+specified null. When parameters are estimated from the data, the plots remain useful
+visual diagnostics, but the DKW bands are conservative rather than Lilliefors-adjusted.
+
+```{r ppqq-gof, echo=TRUE, fig.width=10, fig.height=6}
+#| fig.cap: "PP and QQ diagnostics for samples compared with a fully specified $\\mathcal{N}(0,1)$ null. The normal sample (top row) follows the identity line and remains within the DKW bands, whereas the shifted exponential sample (bottom row) shows the curvature and tail departures expected from skewness."
 set.seed(3)
 
-normal_qf <- function(p, x) qnorm(p, mean = mean(x), sd = sd(x))
-
 df_normal <- data.frame("x" = rnorm(50))
-p_norm <- ggplot(df_normal, aes(x = x)) +
-  geom_eqf(show_points = FALSE, show_vert = FALSE) +
-  geom_qf(fun  = normal_qf, args = list(x = df_normal$x), colour = "red") +
-  ggtitle("Normal data")
-
 df_exp <- data.frame("x" = rexp(50) - 1)
-p_exp <- ggplot(df_exp, aes(x = x)) +
-  geom_eqf(show_points = FALSE, show_vert = FALSE) +
-  geom_qf(fun  = normal_qf, args = list(x = df_exp$x), colour = "red") +
-  ggtitle("Exponential data")
 
-p_norm | p_exp
+p_norm_pp <- ggplot(df_normal, aes(x = x)) +
+  geom_ppplot(fun = pnorm, fill = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Normal data: PP")
+
+p_norm_qq <- ggplot(df_normal, aes(x = x)) +
+  geom_qqplot(fun = qnorm, fill = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Normal data: QQ")
+
+p_exp_pp <- ggplot(df_exp, aes(x = x)) +
+  geom_ppplot(fun = pnorm, fill = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Exponential data: PP")
+
+p_exp_qq <- ggplot(df_exp, aes(x = x)) +
+  geom_qqplot(fun = qnorm, fill = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Exponential data: QQ")
+
+(p_norm_pp | p_norm_qq) / (p_exp_pp | p_exp_qq)
 ```
 
 ## Empirical PMF: `geom_epmf()`
@@ -899,6 +949,7 @@ Several layers involve numerical integration or accumulation:
 - **Shading boundaries** are computed by trapezoidal accumulation \@ref(eq:trapezoid), which is efficient and sufficient for the smooth densities encountered in practice.
 - **Boundary interpolation** in `GeomFunction1d` uses `stats::approxfun()` to compute exact $y$-values at shade endpoints that fall between evaluation points.
 - **Quantile function evaluation** in `geom_qf()` uses Chebyshev nodes of the first kind rather than a uniform grid, concentrating evaluation points near $p = 0$ and $p = 1$ where the function is most curved and avoiding evaluation at the exact endpoints.
+- **PP and QQ diagnostics** sort finite observations, compute plotting positions with `stats::ppoints(n, a = 1/2)`, and derive their DKW bands from the same half-width as `geom_ecdf()`. The QQ ribbon transforms the probability-scale band through the supplied or derived quantile function.
 - **Vector field integration** (via \pkg{ggvfields}) uses a fourth-order Runge--Kutta method with configurable step size and maximum iterations.
 
 The default resolution of $n = 101$ for one-dimensional functions and $n = 50$ for two-dimensional grids (yielding 2500 evaluation points) balances visual fidelity against computational cost. Users may increase $n$ for functions with fine-scale structure.
@@ -948,7 +999,7 @@ Taken together, these packages reflect the breadth of interest in function visua
 
 # Summary
 
-\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions, theoretical probability distributions, and empirical data distributions. Its organizing taxonomy--classifying functions by the dimensions of their domain and codomain--yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family covers ten geoms spanning continuous and discrete distributions: density, CDF, PMF, quantile, discrete CDF, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions. Each supports the shading operations central to statistical pedagogy---marking quantiles, delineating confidence regions, highlighting rejection areas, and shading highest density regions. The empirical data family complements these theoretical geoms by computing the empirical CDF, quantile function, PMF, and cumulative hazard function directly from samples, each paired with a simultaneous DKW/Massart confidence band.
+\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions, theoretical probability distributions, and empirical data distributions. Its organizing taxonomy--classifying functions by the dimensions of their domain and codomain--yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family covers ten geoms spanning continuous and discrete distributions: density, CDF, PMF, quantile, discrete CDF, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions. Each supports the shading operations central to statistical pedagogy---marking quantiles, delineating confidence regions, highlighting rejection areas, and shading highest density regions. The empirical data family complements these theoretical geoms by computing the empirical CDF, quantile function, PP and QQ diagnostic plots, PMF, and cumulative hazard function directly from samples, each paired with a simultaneous DKW/Massart confidence band where appropriate.
 
 By implementing each layer as a `ggproto` stat--geom pair, the package inherits the full composability of the grammar of graphics. Functions and empirical summaries can be overlaid, themed, faceted, and annotated using the same tools that \CRANpkg{ggplot2} users already know. The `args` injection pattern provides a clean interface for parameterized function families, and built-in validation catches common errors--such as unnormalized densities--before they produce misleading graphics.
 

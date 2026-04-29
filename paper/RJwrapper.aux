@@ -11,8 +11,8 @@
 \citation{pruim2017mosaic}
 \citation{lattice}
 \citation{kaplan1958nonparametric}
+\citation{greenwood1926natural,nair1984confidence}
 \citation{nelson1972theory,aalen1978nonparametric}
-\citation{nair1984confidence}
 \@writefile{toc}{\contentsline {chapter}{\numberline {1}ggfunction: A Grammar of Graphics for Mathematical Functions and Probability Distributions}{1}{section*.1}\protected@file@percent }
 \@writefile{brf}{\backcite{kaplan1958nonparametric}{{1}{2}{chapter.2}}}
 \@writefile{brf}{\backcite{nelson1972theory}{{1}{2}{chapter.2}}}
@@ -26,9 +26,10 @@
 \@writefile{brf}{\backcite{pruim2017mosaic}{{1}{2.1}{section.2.1}}}
 \@writefile{brf}{\backcite{lattice}{{1}{2.1}{section.2.1}}}
 \@writefile{brf}{\backcite{kaplan1958nonparametric}{{1}{3}{Item.3}}}
+\@writefile{brf}{\backcite{greenwood1926natural}{{1}{3}{Item.3}}}
+\@writefile{brf}{\backcite{nair1984confidence}{{1}{3}{Item.3}}}
 \@writefile{brf}{\backcite{nelson1972theory}{{1}{3}{Item.3}}}
 \@writefile{brf}{\backcite{aalen1978nonparametric}{{1}{3}{Item.3}}}
-\@writefile{brf}{\backcite{nair1984confidence}{{1}{3}{Item.3}}}
 \citation{wilkinson2005grammar}
 \@writefile{toc}{\contentsline {section}{\numberline {2.2}Design principles}{2}{section.2.2}\protected@file@percent }
 \newlabel{design-principles}{{2.2}{2}{Design principles}{section.2.2}{}}
@@ -132,58 +133,61 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.5.2}Empirical quantile function: \texttt  {geom\_eqf()}}{16}{subsection.2.5.2}\protected@file@percent }
 \newlabel{empirical-quantile-function-geom_eqf}{{2.5.2}{16}{\texorpdfstring {Empirical quantile function: \texttt {geom\_eqf()}}{Empirical quantile function: geom\_eqf()}}{subsection.2.5.2}{}}
 \newlabel{eq:eqf}{{8}{16}{\texorpdfstring {Empirical quantile function: \texttt {geom\_eqf()}}{Empirical quantile function: geom\_eqf()}}{equation.2.8}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {22}{\ignorespaces Empirical CDFs for two groups from populations $\mathcal  {N}(0,1)$ and $\mathcal  {N}(2,1)$, with simultaneous 95\% KS confidence bands. The bands are narrower for larger samples.}}{17}{figure.caption.24}\protected@file@percent }
-\newlabel{fig:ecdf-basic}{{22}{17}{Empirical CDFs for two groups from populations $\mathcal {N}(0,1)$ and $\mathcal {N}(2,1)$, with simultaneous 95\% KS confidence bands. The bands are narrower for larger samples}{figure.caption.24}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.3}Empirical PMF: \texttt  {geom\_epmf()}}{17}{subsection.2.5.3}\protected@file@percent }
-\newlabel{empirical-pmf-geom_epmf}{{2.5.3}{17}{\texorpdfstring {Empirical PMF: \texttt {geom\_epmf()}}{Empirical PMF: geom\_epmf()}}{subsection.2.5.3}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {23}{\ignorespaces Goodness-of-fit test for normality using \texttt  {geom\_eqf()} with a 95\% KS band. The fitted normal quantile function (red) threads through the band for the normal sample (left) but departs at both tails for the exponential sample (right), where asymmetry is most pronounced. Note that estimating parameters from the data makes the band slightly conservative (analogous to the Lilliefors correction).}}{18}{figure.caption.25}\protected@file@percent }
-\newlabel{fig:eqf-gof}{{23}{18}{Goodness-of-fit test for normality using \texttt {geom\_eqf()} with a 95\% KS band. The fitted normal quantile function (red) threads through the band for the normal sample (left) but departs at both tails for the exponential sample (right), where asymmetry is most pronounced. Note that estimating parameters from the data makes the band slightly conservative (analogous to the Lilliefors correction)}{figure.caption.25}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {24}{\ignorespaces Empirical PMFs for two groups of 40 observations each from $\mathcal  {N}(0,1)$ and $\mathcal  {N}(2,1)$, colored by group.}}{18}{figure.caption.26}\protected@file@percent }
-\newlabel{fig:epmf-grouped}{{24}{18}{Empirical PMFs for two groups of 40 observations each from $\mathcal {N}(0,1)$ and $\mathcal {N}(2,1)$, colored by group}{figure.caption.26}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.4}Empirical cumulative hazard: \texttt  {geom\_echf()}}{18}{subsection.2.5.4}\protected@file@percent }
-\newlabel{empirical-cumulative-hazard-geom_echf}{{2.5.4}{18}{\texorpdfstring {Empirical cumulative hazard: \texttt {geom\_echf()}}{Empirical cumulative hazard: geom\_echf()}}{subsection.2.5.4}{}}
-\newlabel{eq:echf}{{9}{18}{\texorpdfstring {Empirical cumulative hazard: \texttt {geom\_echf()}}{Empirical cumulative hazard: geom\_echf()}}{equation.2.9}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {22}{\ignorespaces Empirical CDFs for two groups from populations $\mathcal  {N}(0,1)$ and $\mathcal  {N}(2,1)$, with simultaneous 95\% DKW confidence bands. The bands are narrower for larger samples.}}{17}{figure.caption.24}\protected@file@percent }
+\newlabel{fig:ecdf-basic}{{22}{17}{Empirical CDFs for two groups from populations $\mathcal {N}(0,1)$ and $\mathcal {N}(2,1)$, with simultaneous 95\% DKW confidence bands. The bands are narrower for larger samples}{figure.caption.24}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.3}PP and QQ diagnostic plots: \texttt  {geom\_ppplot()} and \texttt  {geom\_qqplot()}}{17}{subsection.2.5.3}\protected@file@percent }
+\newlabel{pp-and-qq-diagnostic-plots-geom_ppplot-and-geom_qqplot}{{2.5.3}{17}{\texorpdfstring {PP and QQ diagnostic plots: \texttt {geom\_ppplot()} and \texttt {geom\_qqplot()}}{PP and QQ diagnostic plots: geom\_ppplot() and geom\_qqplot()}}{subsection.2.5.3}{}}
+\newlabel{eq:ppoints}{{9}{17}{\texorpdfstring {PP and QQ diagnostic plots: \texttt {geom\_ppplot()} and \texttt {geom\_qqplot()}}{PP and QQ diagnostic plots: geom\_ppplot() and geom\_qqplot()}}{equation.2.9}{}}
+\newlabel{eq:pp-band}{{10}{17}{\texorpdfstring {PP and QQ diagnostic plots: \texttt {geom\_ppplot()} and \texttt {geom\_qqplot()}}{PP and QQ diagnostic plots: geom\_ppplot() and geom\_qqplot()}}{equation.2.10}{}}
+\newlabel{eq:qq-band}{{11}{17}{\texorpdfstring {PP and QQ diagnostic plots: \texttt {geom\_ppplot()} and \texttt {geom\_qqplot()}}{PP and QQ diagnostic plots: geom\_ppplot() and geom\_qqplot()}}{equation.2.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {23}{\ignorespaces PP and QQ diagnostics for samples compared with a fully specified $\mathcal  {N}(0,1)$ null. The normal sample (top row) follows the identity line and remains within the DKW bands, whereas the shifted exponential sample (bottom row) shows the curvature and tail departures expected from skewness.}}{18}{figure.caption.25}\protected@file@percent }
+\newlabel{fig:ppqq-gof}{{23}{18}{PP and QQ diagnostics for samples compared with a fully specified $\mathcal {N}(0,1)$ null. The normal sample (top row) follows the identity line and remains within the DKW bands, whereas the shifted exponential sample (bottom row) shows the curvature and tail departures expected from skewness}{figure.caption.25}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {24}{\ignorespaces Empirical PMFs for two groups of 40 observations each from $\mathcal  {N}(0,1)$ and $\mathcal  {N}(2,1)$, colored by group.}}{19}{figure.caption.26}\protected@file@percent }
+\newlabel{fig:epmf-grouped}{{24}{19}{Empirical PMFs for two groups of 40 observations each from $\mathcal {N}(0,1)$ and $\mathcal {N}(2,1)$, colored by group}{figure.caption.26}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.4}Empirical PMF: \texttt  {geom\_epmf()}}{19}{subsection.2.5.4}\protected@file@percent }
+\newlabel{empirical-pmf-geom_epmf}{{2.5.4}{19}{\texorpdfstring {Empirical PMF: \texttt {geom\_epmf()}}{Empirical PMF: geom\_epmf()}}{subsection.2.5.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.5}Empirical cumulative hazard: \texttt  {geom\_echf()}}{19}{subsection.2.5.5}\protected@file@percent }
+\newlabel{empirical-cumulative-hazard-geom_echf}{{2.5.5}{19}{\texorpdfstring {Empirical cumulative hazard: \texttt {geom\_echf()}}{Empirical cumulative hazard: geom\_echf()}}{subsection.2.5.5}{}}
+\newlabel{eq:echf}{{12}{19}{\texorpdfstring {Empirical cumulative hazard: \texttt {geom\_echf()}}{Empirical cumulative hazard: geom\_echf()}}{equation.2.12}{}}
 \citation{kaplan1958nonparametric}
 \citation{greenwood1926natural,nair1984confidence}
-\@writefile{lof}{\contentsline {figure}{\numberline {25}{\ignorespaces Empirical cumulative hazard functions for simulated exponential data. An $\text  {Exp}(0.5)$ sample (left) is overlaid with the theoretical $H(x) = 0.5x$ (red line), which lies within the 95\% confidence band. An $\text  {Exp}(1)$ sample (right) is tested against the wrong model $H(x) = 0.5x$, which departs from the band.}}{19}{figure.caption.27}\protected@file@percent }
-\newlabel{fig:echf-gof}{{25}{19}{Empirical cumulative hazard functions for simulated exponential data. An $\text {Exp}(0.5)$ sample (left) is overlaid with the theoretical $H(x) = 0.5x$ (red line), which lies within the 95\% confidence band. An $\text {Exp}(1)$ sample (right) is tested against the wrong model $H(x) = 0.5x$, which departs from the band}{figure.caption.27}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.5}Kaplan--Meier survival curves: \texttt  {geom\_ecdf\_km()}}{19}{subsection.2.5.5}\protected@file@percent }
-\newlabel{kaplanmeier-survival-curves-geom_ecdf_km}{{2.5.5}{19}{\texorpdfstring {Kaplan--Meier survival curves: \texttt {geom\_ecdf\_km()}}{Kaplan--Meier survival curves: geom\_ecdf\_km()}}{subsection.2.5.5}{}}
-\@writefile{brf}{\backcite{kaplan1958nonparametric}{{19}{2.5.5}{subsection.2.5.5}}}
-\newlabel{eq:km}{{10}{19}{\texorpdfstring {Kaplan--Meier survival curves: \texttt {geom\_ecdf\_km()}}{Kaplan--Meier survival curves: geom\_ecdf\_km()}}{equation.2.10}{}}
-\@writefile{brf}{\backcite{greenwood1926natural}{{19}{2.5.5}{equation.2.10}}}
-\@writefile{brf}{\backcite{nair1984confidence}{{19}{2.5.5}{equation.2.10}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {25}{\ignorespaces Empirical cumulative hazard functions for simulated exponential data. An $\text  {Exp}(0.5)$ sample (left) is overlaid with the theoretical $H(x) = 0.5x$ (red line), which lies within the 95\% confidence band. An $\text  {Exp}(1)$ sample (right) is tested against the wrong model $H(x) = 0.5x$, which departs from the band.}}{20}{figure.caption.27}\protected@file@percent }
+\newlabel{fig:echf-gof}{{25}{20}{Empirical cumulative hazard functions for simulated exponential data. An $\text {Exp}(0.5)$ sample (left) is overlaid with the theoretical $H(x) = 0.5x$ (red line), which lies within the 95\% confidence band. An $\text {Exp}(1)$ sample (right) is tested against the wrong model $H(x) = 0.5x$, which departs from the band}{figure.caption.27}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.6}Kaplan--Meier survival curves: \texttt  {geom\_ecdf\_km()}}{20}{subsection.2.5.6}\protected@file@percent }
+\newlabel{kaplanmeier-survival-curves-geom_ecdf_km}{{2.5.6}{20}{\texorpdfstring {Kaplan--Meier survival curves: \texttt {geom\_ecdf\_km()}}{Kaplan--Meier survival curves: geom\_ecdf\_km()}}{subsection.2.5.6}{}}
+\@writefile{brf}{\backcite{kaplan1958nonparametric}{{20}{2.5.6}{subsection.2.5.6}}}
+\newlabel{eq:km}{{13}{20}{\texorpdfstring {Kaplan--Meier survival curves: \texttt {geom\_ecdf\_km()}}{Kaplan--Meier survival curves: geom\_ecdf\_km()}}{equation.2.13}{}}
+\@writefile{brf}{\backcite{greenwood1926natural}{{20}{2.5.6}{equation.2.13}}}
+\@writefile{brf}{\backcite{nair1984confidence}{{20}{2.5.6}{equation.2.13}}}
 \citation{nelson1972theory,aalen1978nonparametric}
-\citation{nair1984confidence}
-\@writefile{lof}{\contentsline {figure}{\numberline {26}{\ignorespaces Kaplan--Meier survival curves for simulated censored data. Event times follow $\text  {Exp}(0.5)$ and censoring times follow $\text  {Exp}(0.2)$. The left panel shows the KM estimate with Greenwood 95\% simultaneous confidence band and censoring marks; the right panel overlays the true survival curve (red).}}{20}{figure.caption.28}\protected@file@percent }
-\newlabel{fig:km-censored}{{26}{20}{Kaplan--Meier survival curves for simulated censored data. Event times follow $\text {Exp}(0.5)$ and censoring times follow $\text {Exp}(0.2)$. The left panel shows the KM estimate with Greenwood 95\% simultaneous confidence band and censoring marks; the right panel overlays the true survival curve (red)}{figure.caption.28}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.6}Nelson--Aalen cumulative hazard: \texttt  {geom\_echf\_na()}}{20}{subsection.2.5.6}\protected@file@percent }
-\newlabel{nelsonaalen-cumulative-hazard-geom_echf_na}{{2.5.6}{20}{\texorpdfstring {Nelson--Aalen cumulative hazard: \texttt {geom\_echf\_na()}}{Nelson--Aalen cumulative hazard: geom\_echf\_na()}}{subsection.2.5.6}{}}
-\@writefile{brf}{\backcite{nelson1972theory}{{20}{2.5.6}{subsection.2.5.6}}}
-\@writefile{brf}{\backcite{aalen1978nonparametric}{{20}{2.5.6}{subsection.2.5.6}}}
-\newlabel{eq:na}{{11}{20}{\texorpdfstring {Nelson--Aalen cumulative hazard: \texttt {geom\_echf\_na()}}{Nelson--Aalen cumulative hazard: geom\_echf\_na()}}{equation.2.11}{}}
-\@writefile{brf}{\backcite{nair1984confidence}{{20}{2.5.6}{equation.2.11}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {27}{\ignorespaces Nelson--Aalen cumulative hazard estimates. The same censored data as in the KM figure. The left panel shows the Nelson--Aalen estimate with 95\% simultaneous confidence band; the right panel overlays the theoretical $H(x) = 0.5x$ (red).}}{21}{figure.caption.29}\protected@file@percent }
-\newlabel{fig:na-censored}{{27}{21}{Nelson--Aalen cumulative hazard estimates. The same censored data as in the KM figure. The left panel shows the Nelson--Aalen estimate with 95\% simultaneous confidence band; the right panel overlays the theoretical $H(x) = 0.5x$ (red)}{figure.caption.29}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.7}Validity of the confidence band}{21}{subsection.2.5.7}\protected@file@percent }
-\newlabel{validity-of-the-confidence-band}{{2.5.7}{21}{Validity of the confidence band}{subsection.2.5.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {26}{\ignorespaces Kaplan--Meier survival curves for simulated censored data. Event times follow $\text  {Exp}(0.5)$ and censoring times follow $\text  {Exp}(0.2)$. The left panel shows the KM estimate with a Greenwood 95\% simultaneous equal-precision band and censoring marks; the right panel overlays the true survival curve (red).}}{21}{figure.caption.28}\protected@file@percent }
+\newlabel{fig:km-censored}{{26}{21}{Kaplan--Meier survival curves for simulated censored data. Event times follow $\text {Exp}(0.5)$ and censoring times follow $\text {Exp}(0.2)$. The left panel shows the KM estimate with a Greenwood 95\% simultaneous equal-precision band and censoring marks; the right panel overlays the true survival curve (red)}{figure.caption.28}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.7}Nelson--Aalen cumulative hazard: \texttt  {geom\_echf\_na()}}{21}{subsection.2.5.7}\protected@file@percent }
+\newlabel{nelsonaalen-cumulative-hazard-geom_echf_na}{{2.5.7}{21}{\texorpdfstring {Nelson--Aalen cumulative hazard: \texttt {geom\_echf\_na()}}{Nelson--Aalen cumulative hazard: geom\_echf\_na()}}{subsection.2.5.7}{}}
+\@writefile{brf}{\backcite{nelson1972theory}{{21}{2.5.7}{subsection.2.5.7}}}
+\@writefile{brf}{\backcite{aalen1978nonparametric}{{21}{2.5.7}{subsection.2.5.7}}}
+\newlabel{eq:na}{{14}{21}{\texorpdfstring {Nelson--Aalen cumulative hazard: \texttt {geom\_echf\_na()}}{Nelson--Aalen cumulative hazard: geom\_echf\_na()}}{equation.2.14}{}}
 \citation{massart1990tight}
 \citation{massart1990tight}
+\@writefile{lof}{\contentsline {figure}{\numberline {27}{\ignorespaces Nelson--Aalen cumulative hazard estimates. The same censored data as in the KM figure. The left panel shows the Nelson--Aalen estimate with a 95\% pointwise normal confidence band; the right panel overlays the theoretical $H(x) = 0.5x$ (red).}}{22}{figure.caption.29}\protected@file@percent }
+\newlabel{fig:na-censored}{{27}{22}{Nelson--Aalen cumulative hazard estimates. The same censored data as in the KM figure. The left panel shows the Nelson--Aalen estimate with a 95\% pointwise normal confidence band; the right panel overlays the theoretical $H(x) = 0.5x$ (red)}{figure.caption.29}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5.8}Validity of the confidence band}{22}{subsection.2.5.8}\protected@file@percent }
+\newlabel{validity-of-the-confidence-band}{{2.5.8}{22}{Validity of the confidence band}{subsection.2.5.8}{}}
 \citation{massart1990tight}
-\@writefile{lof}{\contentsline {figure}{\numberline {28}{\ignorespaces Empirical simultaneous coverage of the KS confidence band over 10,000 simulations from $\mathcal  {N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal for all $n$, confirming the finite-sample validity of the DKW bound \citep  {massart1990tight}. The slight conservatism at small $n$ diminishes as $n$ grows because the bound's constant is asymptotically tight.}}{22}{figure.caption.30}\protected@file@percent }
-\@writefile{brf}{\backcite{massart1990tight}{{22}{28}{figure.caption.30}}}
-\newlabel{fig:sim-coverage}{{28}{22}{Empirical simultaneous coverage of the KS confidence band over 10,000 simulations from $\mathcal {N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal for all $n$, confirming the finite-sample validity of the DKW bound \citep {massart1990tight}. The slight conservatism at small $n$ diminishes as $n$ grows because the bound's constant is asymptotically tight}{figure.caption.30}{}}
-\@writefile{brf}{\backcite{massart1990tight}{{22}{2.5.7}{figure.caption.30}}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.6}Implementation}{22}{section.2.6}\protected@file@percent }
-\newlabel{implementation}{{2.6}{22}{Implementation}{section.2.6}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.6.1}Architecture}{22}{subsection.2.6.1}\protected@file@percent }
-\newlabel{architecture}{{2.6.1}{22}{Architecture}{subsection.2.6.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.6.2}Function injection}{22}{subsection.2.6.2}\protected@file@percent }
-\newlabel{function-injection}{{2.6.2}{22}{Function injection}{subsection.2.6.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {28}{\ignorespaces Empirical simultaneous coverage of the KS confidence band over 10,000 simulations from $\mathcal  {N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal for all $n$, confirming the finite-sample validity of the DKW bound \citep  {massart1990tight}. The slight conservatism at small $n$ diminishes as $n$ grows because the bound's constant is asymptotically tight.}}{23}{figure.caption.30}\protected@file@percent }
+\@writefile{brf}{\backcite{massart1990tight}{{23}{28}{figure.caption.30}}}
+\newlabel{fig:sim-coverage}{{28}{23}{Empirical simultaneous coverage of the KS confidence band over 10,000 simulations from $\mathcal {N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal for all $n$, confirming the finite-sample validity of the DKW bound \citep {massart1990tight}. The slight conservatism at small $n$ diminishes as $n$ grows because the bound's constant is asymptotically tight}{figure.caption.30}{}}
+\@writefile{brf}{\backcite{massart1990tight}{{23}{2.5.8}{figure.caption.30}}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.6}Implementation}{23}{section.2.6}\protected@file@percent }
+\newlabel{implementation}{{2.6}{23}{Implementation}{section.2.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6.1}Architecture}{23}{subsection.2.6.1}\protected@file@percent }
+\newlabel{architecture}{{2.6.1}{23}{Architecture}{subsection.2.6.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6.2}Function injection}{23}{subsection.2.6.2}\protected@file@percent }
+\newlabel{function-injection}{{2.6.2}{23}{Function injection}{subsection.2.6.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.6.3}Numerical considerations}{23}{subsection.2.6.3}\protected@file@percent }
 \newlabel{numerical-considerations}{{2.6.3}{23}{Numerical considerations}{subsection.2.6.3}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.7}Composability and the grammar and limitations}{23}{section.2.7}\protected@file@percent }
-\newlabel{composability-and-the-grammar-and-limitations}{{2.7}{23}{Composability and the grammar and limitations}{section.2.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.7}Composability and the grammar and limitations}{24}{section.2.7}\protected@file@percent }
+\newlabel{composability-and-the-grammar-and-limitations}{{2.7}{24}{Composability and the grammar and limitations}{section.2.7}{}}
 \citation{wickham2016ggplot2}
 \citation{kay2024ggdist}
 \citation{otto2023ggdensity}
@@ -191,17 +195,19 @@
 \citation{lattice}
 \citation{metR}
 \citation{ggvfields}
-\@writefile{lof}{\contentsline {figure}{\numberline {29}{\ignorespaces Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics.}}{24}{figure.caption.31}\protected@file@percent }
-\newlabel{fig:composability}{{29}{24}{Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics}{figure.caption.31}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.8}Related packages}{24}{section.2.8}\protected@file@percent }
-\newlabel{sec:related}{{2.8}{24}{Related packages}{section.2.8}{}}
-\@writefile{brf}{\backcite{wickham2016ggplot2}{{24}{1}{Item.4}}}
-\@writefile{brf}{\backcite{kay2024ggdist}{{24}{2}{Item.5}}}
-\@writefile{brf}{\backcite{otto2023ggdensity}{{24}{3}{Item.6}}}
-\@writefile{brf}{\backcite{pruim2017mosaic}{{24}{4}{Item.7}}}
-\@writefile{brf}{\backcite{lattice}{{24}{4}{Item.7}}}
-\@writefile{brf}{\backcite{metR}{{24}{5}{Item.8}}}
-\@writefile{brf}{\backcite{ggvfields}{{24}{6}{Item.9}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {29}{\ignorespaces Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics.}}{25}{figure.caption.31}\protected@file@percent }
+\newlabel{fig:composability}{{29}{25}{Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics}{figure.caption.31}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.8}Related packages}{25}{section.2.8}\protected@file@percent }
+\newlabel{sec:related}{{2.8}{25}{Related packages}{section.2.8}{}}
+\@writefile{brf}{\backcite{wickham2016ggplot2}{{25}{1}{Item.4}}}
+\@writefile{brf}{\backcite{kay2024ggdist}{{25}{2}{Item.5}}}
+\@writefile{brf}{\backcite{otto2023ggdensity}{{25}{3}{Item.6}}}
+\@writefile{brf}{\backcite{pruim2017mosaic}{{25}{4}{Item.7}}}
+\@writefile{brf}{\backcite{lattice}{{25}{4}{Item.7}}}
+\@writefile{brf}{\backcite{metR}{{25}{5}{Item.8}}}
+\@writefile{brf}{\backcite{ggvfields}{{25}{6}{Item.9}}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.9}Summary}{25}{section.2.9}\protected@file@percent }
+\newlabel{summary}{{2.9}{25}{Summary}{section.2.9}{}}
 \bibdata{RJreferences.bib}
 \bibcite{aalen1978nonparametric}{{1}{1978}{{Aalen}}{{}}}
 \bibcite{metR}{{2}{2024}{{Campitelli}}{{}}}
@@ -216,13 +222,11 @@
 \bibcite{otto2023ggdensity}{{11}{2023}{{Otto and Kahle}}{{}}}
 \bibcite{pruim2017mosaic}{{12}{2017}{{Pruim et~al.}}{{Pruim, Kaplan, and Horton}}}
 \bibcite{lattice}{{13}{2008}{{Sarkar}}{{}}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.9}Summary}{25}{section.2.9}\protected@file@percent }
-\newlabel{summary}{{2.9}{25}{Summary}{section.2.9}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.10}Acknowledgments}{25}{section.2.10}\protected@file@percent }
-\newlabel{acknowledgments}{{2.10}{25}{Acknowledgments}{section.2.10}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.10}Acknowledgments}{26}{section.2.10}\protected@file@percent }
+\newlabel{acknowledgments}{{2.10}{26}{Acknowledgments}{section.2.10}{}}
 \bibcite{ggvfields}{{14}{2026}{{Turner et~al.}}{{Turner, Kahle, and Sturdivant}}}
 \bibcite{wickham2010layered}{{15}{2010}{{Wickham}}{{}}}
 \bibcite{wickham2016ggplot2}{{16}{2016}{{Wickham}}{{}}}
 \bibcite{wilkinson2005grammar}{{17}{2005}{{Wilkinson}}{{}}}
 \ttl@finishall
-\gdef \@abspage@last{26}
+\gdef \@abspage@last{27}

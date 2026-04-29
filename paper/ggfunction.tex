@@ -7,7 +7,7 @@
 \maketitle
 
 \abstract{%
-The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions, probability distributions, and empirical data distributions. It is organized around three complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for theoretical probability distributions--density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions--each with built-in support for region shading central to hypothesis testing and interval estimation. The third family provides geoms for empirical distributions computed from samples: the empirical CDF with a simultaneous Kolmogorov--Smirnov confidence band, the empirical quantile function with the inverted KS band, the empirical PMF as a lollipop chart, and the empirical cumulative hazard function with a transformed DKW confidence band. For right-censored survival data, \code{geom\_ecdf\_km()} and \code{geom\_echf\_na()} provide the Kaplan--Meier survival estimator \citep{kaplan1958nonparametric} and Nelson--Aalen cumulative hazard estimator \citep{nelson1972theory, aalen1978nonparametric}, respectively, each with simultaneous equal-precision confidence bands \citep{nair1984confidence}. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
+The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions, probability distributions, and empirical data distributions. It is organized around three complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for theoretical probability distributions--density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions--each with built-in support for region shading central to hypothesis testing and interval estimation. The third family provides geoms for empirical distributions computed from samples: the empirical CDF with a simultaneous Kolmogorov--Smirnov confidence band, the empirical quantile function with the inverted KS band, one-sample PP and QQ diagnostic plots with DKW bands under a fully specified null distribution, the empirical PMF as a lollipop chart, and the empirical cumulative hazard function with a transformed DKW confidence band. For right-censored survival data, \code{geom\_ecdf\_km()} and \code{geom\_echf\_na()} provide the Kaplan--Meier survival estimator \citep{kaplan1958nonparametric} and Nelson--Aalen cumulative hazard estimator \citep{nelson1972theory, aalen1978nonparametric}, respectively, each with simultaneous equal-precision confidence bands \citep{nair1984confidence}. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
 }
 
 \section{Introduction}\label{introduction}
@@ -26,7 +26,7 @@ Several packages address pieces of this gap. \CRANpkg{ggdist} \citep{kay2024ggdi
 \item
   A \textbf{probability distribution family} providing specialized layers for density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions.
 \item
-  An \textbf{empirical data family} providing layers for the empirical CDF, empirical quantile function, empirical PMF, and empirical cumulative hazard function, each computed directly from a sample and accompanied by simultaneous Kolmogorov--Smirnov confidence bands. For right-censored survival data, the family additionally provides the Kaplan--Meier survival estimator \citep{kaplan1958nonparametric} and Nelson--Aalen cumulative hazard estimator \citep{nelson1972theory, aalen1978nonparametric} with simultaneous equal-precision confidence bands \citep{nair1984confidence}.
+  An \textbf{empirical data family} providing layers for the empirical CDF, empirical quantile function, one-sample PP and QQ diagnostic plots, empirical PMF, and empirical cumulative hazard function, each computed directly from a sample and accompanied by simultaneous DKW/Massart confidence bands where appropriate. For right-censored survival data, the family additionally provides the Kaplan--Meier survival estimator \citep{kaplan1958nonparametric} with a simultaneous equal-precision Greenwood band \citep{greenwood1926natural, nair1984confidence} and the Nelson--Aalen cumulative hazard estimator \citep{nelson1972theory, aalen1978nonparametric} with pointwise normal bands.
 \end{enumerate}
 
 Each layer follows the \CRANpkg{ggplot2} extension pattern: a \texttt{Stat} object evaluates the user-supplied function on a grid or sequence (or tabulates a sample), and a corresponding \texttt{Geom} renders the result. Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the full ecosystem of scales, coordinates, themes, and facets.
@@ -282,7 +282,7 @@ Users whose primary interest is vector fields will find that \pkg{ggvfields} pro
 
 Statistics education depends heavily on the visual language of probability distributions. Instructors shade tail areas to illustrate \(p\)-values, draw CDFs to connect probabilities with quantiles, and mark central regions to delineate confidence intervals. \pkg{ggfunction} provides a family of ten geoms that map directly onto the standard functions associated with a probability distribution, each with built-in shading support. Throughout, the user supplies an R function (e.g., \texttt{dnorm}, \texttt{pnorm}, \texttt{qnorm}) and a range; \pkg{ggfunction} handles evaluation, shading, and validation automatically.
 
-Each geom accepts its native function type through the \texttt{fun} parameter (e.g., a PDF for \texttt{geom\_pdf()}, a CDF for \texttt{geom\_cdf()}), but most also accept alternate function types that are converted internally. In each case the missing characterization is derived numerically: PDFs are obtained by differentiation, CDFs by integration or interpolation, survival functions by the identity \(S = 1 - F\), and quantile functions by root-finding. This cross-conversion feature lets users work with whichever characterization of a distribution is most natural--the PDF, CDF, survival function, quantile function, or hazard function--regardless of which geom they wish to plot. Exactly one function source must be provided; supplying more than one is an error. Table \ref{tab:cross-conversion} summarizes the available routes; the \texttt{cross-conversion} vignette documents the numerical methods and expected accuracy in detail.
+Each geom accepts its native function type through the \texttt{fun} parameter (e.g., a PDF for \texttt{geom\_pdf()}, a CDF for \texttt{geom\_cdf()}), but most also accept alternate function types that are converted internally. In each case the missing characterization is derived numerically: PDFs are obtained by differentiation or hazard integration, CDFs by integration or interpolation, survival functions by the identity \(S = 1 - F\), and quantile functions by root-finding. Finite-support hazards can specify their integration origin with \texttt{hf\_lower}. This cross-conversion feature lets users work with whichever characterization of a distribution is most natural--the PDF, CDF, survival function, quantile function, or hazard function--regardless of which geom they wish to plot. Exactly one function source must be provided; supplying more than one is an error. Table \ref{tab:cross-conversion} summarizes the available routes; the \texttt{cross-conversion} vignette documents the numerical methods and expected accuracy in detail.
 
 \begin{table}
 
@@ -322,7 +322,7 @@ f(x) \geq 0 \quad \text{and} \quad \int_{-\infty}^{\infty} f(x)\, dx = 1.
 \label{eq:pdf}
 \end{equation}
 
-\texttt{geom\_pdf()} evaluates a user-supplied density and renders it as a filled area with an overlaid outline. Alternatively, a CDF can be supplied via \texttt{cdf\_fun} (differentiated numerically), a survival function via \texttt{survival\_fun} (converted to a CDF via \(F = 1 - S\) and then differentiated), a quantile function via \texttt{qf\_fun} (inverted via interpolation to obtain a CDF, then differentiated), or a hazard function via \texttt{hf\_fun} (converted directly using the identity \(f(x) = h(x) \cdot e^{-H(x)}\)). The underlying \texttt{StatPDF} validates the normalization property \eqref{eq:pdf} using \texttt{stats::integrate()}, issuing a diagnostic via \CRANpkg{cli} \citep{cli} if the integral departs from unity by more than a specified tolerance--a guard against accidentally passing an unnormalized function.
+\texttt{geom\_pdf()} evaluates a user-supplied density and renders it as a filled area with an overlaid outline. Alternatively, a CDF can be supplied via \texttt{cdf\_fun} (differentiated numerically), a survival function via \texttt{survival\_fun} (converted to a CDF via \(F = 1 - S\) and then differentiated), a quantile function via \texttt{qf\_fun} (inverted via interpolation to obtain a CDF, then differentiated), or a hazard function via \texttt{hf\_fun} (converted directly using the identity \(f(x) = h(x) \cdot e^{-H(x)}\)). For finite-support hazards, \texttt{hf\_lower} sets the lower integration limit for \(H\). The underlying \texttt{StatPDF} validates the normalization property \eqref{eq:pdf} using \texttt{stats::integrate()}, issuing a diagnostic via \CRANpkg{cli} \citep{cli} if the integral departs from unity by more than a specified tolerance--a guard against accidentally passing an unnormalized function.
 
 Four shading modes are supported, corresponding to common pedagogical operations.
 
@@ -458,7 +458,7 @@ p1 | p2
 
 The CDF \(F(x) = P(X \leq x)\) and survival function \(S(x) = 1 - F(x) = P(X > x)\) are complementary summaries of a distribution. \pkg{ggfunction} provides continuous and discrete variants of both.
 
-\textbf{Continuous CDF (\texttt{geom\_cdf()}).} \texttt{geom\_cdf()} evaluates a user-supplied CDF (e.g., \texttt{pnorm}) and renders it as a line. Alternatively, a PDF can be supplied via \texttt{pdf\_fun} (integrated numerically), a survival function via \texttt{survival\_fun} (converted via \(F = 1 - S\)), a quantile function via \texttt{qf\_fun} (inverted via interpolation), or a hazard function via \texttt{hf\_fun} (the cumulative hazard is integrated and then \(F = 1 - e^{-H}\)). It supports the same \texttt{p}, \texttt{p\_lower}/\texttt{p\_upper}, and \texttt{shade\_outside} shading parameters as \texttt{geom\_pdf()}.
+\textbf{Continuous CDF (\texttt{geom\_cdf()}).} \texttt{geom\_cdf()} evaluates a user-supplied CDF (e.g., \texttt{pnorm}) and renders it as a line. Alternatively, a PDF can be supplied via \texttt{pdf\_fun} (integrated numerically), a survival function via \texttt{survival\_fun} (converted via \(F = 1 - S\)), a quantile function via \texttt{qf\_fun} (inverted via interpolation), or a hazard function via \texttt{hf\_fun} (the cumulative hazard is integrated from \texttt{hf\_lower} and then \(F = 1 - e^{-H}\)). It supports the same \texttt{p}, \texttt{p\_lower}/\texttt{p\_upper}, and \texttt{shade\_outside} shading parameters as \texttt{geom\_pdf()}.
 
 \begin{verbatim}
 ggplot() +
@@ -474,7 +474,7 @@ ggplot() +
 \caption{The standard normal CDF.}\label{fig:cdf-shaded}
 \end{figure}
 
-\textbf{Discrete CDF (\texttt{geom\_cdf\_discrete()}).} For discrete distributions, the CDF is a right-continuous step function. \texttt{geom\_cdf\_discrete()} accepts a CDF directly via \texttt{fun} (e.g., \texttt{pbinom}), a PMF via \texttt{pmf\_fun} (from which the CDF is computed by cumulative summation), or a discrete survival function via \texttt{survival\_fun} (converted via \(F = 1 - S\)), and renders the result with horizontal segments, dashed vertical jumps, open circles at the pre-jump value (the left limit), and closed circles at the achieved value. The \texttt{show\_points} and \texttt{show\_vert} parameters independently suppress the endpoint circles or vertical jump segments. The \texttt{support} argument accepts an explicit numeric vector of mass points, overriding \texttt{xlim} for distributions with non-integer or non-consecutive support.
+\textbf{Discrete CDF (\texttt{geom\_cdf\_discrete()}).} For discrete distributions, the CDF is a right-continuous step function. \texttt{geom\_cdf\_discrete()} accepts a CDF directly via \texttt{fun} (e.g., \texttt{pbinom}), a PMF via \texttt{pmf\_fun} (from which the CDF is computed by cumulative summation), or a discrete survival function via \texttt{survival\_fun} (converted via \(F = 1 - S\)), and renders the result with horizontal segments, dashed vertical jumps, open circles at the pre-jump value (the left limit), and closed circles at the achieved value. The \texttt{show\_points} and \texttt{show\_vert} parameters independently suppress the endpoint circles or vertical jump segments. The \texttt{support} argument accepts the full vector of mass points for distributions with non-integer or non-consecutive support; \texttt{xlim} filters the displayed range after cumulative quantities are computed.
 
 \begin{verbatim}
 ggplot() +
@@ -508,7 +508,7 @@ ggplot() +
 \caption{The survival function of an $\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$.}\label{fig:survival-exp}
 \end{figure}
 
-\textbf{Discrete survival (\texttt{geom\_survival\_discrete()}).} For discrete distributions, \(S(x) = 1 - F(x)\) is itself a right-continuous step function. \texttt{geom\_survival\_discrete()} accepts a discrete survival function directly via \texttt{fun}, or derives \(S\) from a CDF via \texttt{cdf\_fun} or a PMF via \texttt{pmf\_fun} (computing cumulative sums and then \(1 - F\)). It renders the result with the same visual conventions as \texttt{geom\_cdf\_discrete()}. The \texttt{support} argument behaves as in \texttt{geom\_cdf\_discrete()}.
+\textbf{Discrete survival (\texttt{geom\_survival\_discrete()}).} For discrete distributions, \(S(x) = 1 - F(x)\) is itself a right-continuous step function. \texttt{geom\_survival\_discrete()} accepts a discrete survival function directly via \texttt{fun}, or derives \(S\) from a CDF via \texttt{cdf\_fun} or a PMF via \texttt{pmf\_fun} (computing cumulative sums and then \(1 - F\)). It renders the result with the same visual conventions as \texttt{geom\_cdf\_discrete()}. PMF-derived survival curves use \texttt{support} as the full computational support and \texttt{xlim} as a display filter.
 
 \begin{verbatim}
 ggplot() +
@@ -546,7 +546,7 @@ ggplot() +
 \caption{The quantile function of the standard normal distribution.}\label{fig:qf-normal}
 \end{figure}
 
-\textbf{Discrete (\texttt{geom\_qf\_discrete()}).} The quantile function of a discrete distribution is a left-continuous step function on \([0, 1]\). \texttt{geom\_qf\_discrete()} accepts a quantile function directly via \texttt{fun} (e.g., \texttt{qbinom}), or derives it from a PMF via \texttt{pmf\_fun} (computing cumulative sums and inverting), a CDF via \texttt{cdf\_fun} (evaluated on the integer support and inverted), or a discrete survival function via \texttt{survival\_fun} (converted to a CDF via \(F = 1 - S\) and then inverted). It renders the result with horizontal segments on \([0, 1]\), dashed vertical jumps, closed circles at the bottom of each jump (the value is achieved), and open circles at the top (the next value is not yet reached). The \texttt{support} argument behaves as in \texttt{geom\_cdf\_discrete()}.
+\textbf{Discrete (\texttt{geom\_qf\_discrete()}).} The quantile function of a discrete distribution is a left-continuous step function on \([0, 1]\). \texttt{geom\_qf\_discrete()} accepts a quantile function directly via \texttt{fun} (e.g., \texttt{qbinom}), or derives it from a PMF via \texttt{pmf\_fun} (computing cumulative sums over the full support and inverting), a CDF via \texttt{cdf\_fun} (evaluated on the integer support and inverted), or a discrete survival function via \texttt{survival\_fun} (converted to a CDF via \(F = 1 - S\) and then inverted). It renders the result with horizontal segments on \([0, 1]\), dashed vertical jumps, closed circles at the bottom of each jump (the value is achieved), and open circles at the top (the next value is not yet reached). The \texttt{support} argument behaves as in \texttt{geom\_cdf\_discrete()}.
 
 \begin{verbatim}
 ggplot() +
@@ -615,13 +615,13 @@ p_decr | p_flat | p_incr
 The cumulative hazard function
 
 \begin{equation}
-H(x) = \int_{-\infty}^{x} h(t)\, dt = -\log S(x)
+H(x) = \int_{\ell}^{x} h(t)\, dt = -\log S(x)
 \label{eq:chf}
 \end{equation}
 
 accumulates the instantaneous hazard over time. It is a monotonically non-decreasing function starting at zero that rises without bound for distributions with unbounded support. In reliability analysis, \(H(x)\) is often more convenient than \(h(x)\) because it is monotone and avoids the division by \(S(x)\) that can cause numerical instability in the hazard function's tail.
 
-\texttt{geom\_chf()} renders \(H(x)\) as a curve. It accepts a cumulative hazard function directly via \texttt{fun}, or derives \(H\) from any other standard characterization: a hazard function via \texttt{hf\_fun} (integrated numerically), a CDF via \texttt{cdf\_fun} (\(H = -\log(1 - F)\)), a survival function via \texttt{survival\_fun} (\(H = -\log S\)), a PDF via \texttt{pdf\_fun} (integrated to obtain \(F\), then transformed), or a quantile function via \texttt{qf\_fun} (interpolated to obtain \(F\), then transformed).
+\texttt{geom\_chf()} renders \(H(x)\) as a curve. It accepts a cumulative hazard function directly via \texttt{fun}, or derives \(H\) from any other standard characterization: a hazard function via \texttt{hf\_fun} (integrated numerically from \texttt{hf\_lower}), a CDF via \texttt{cdf\_fun} (\(H = -\log(1 - F)\)), a survival function via \texttt{survival\_fun} (\(H = -\log S\)), a PDF via \texttt{pdf\_fun} (integrated to obtain \(F\), then transformed), or a quantile function via \texttt{qf\_fun} (interpolated to obtain \(F\), then transformed).
 
 \begin{verbatim}
 p1 <- ggplot() +
@@ -652,12 +652,14 @@ p1 | p2 | p3
 
 Data analysis frequently requires visualizing not a theoretical distribution but the
 distribution of an observed sample. \pkg{ggfunction}'s empirical data family applies
-the same visual language as the probability distribution family to sample data. All
-four geoms tabulate the empirical distribution via a shared helper that places mass
-\(c_k / n\) at each distinct observed value \(x_k\), where \(c_k\) is the count of
-occurrences and \(n\) is the total sample size; ties are handled correctly. Because the
-geoms are standard \CRANpkg{ggplot2} layers, multiple groups can be overlaid by
-mapping the \texttt{colour} aesthetic in the enclosing \texttt{ggplot()} call.
+the same visual language as the probability distribution family to sample data. The
+empirical CDF, quantile function, PMF, and cumulative hazard geoms tabulate the
+empirical distribution via a shared helper that places mass \(c_k / n\) at each
+distinct observed value \(x_k\), where \(c_k\) is the count of occurrences and \(n\) is
+the total sample size; ties are handled correctly. The PP and QQ diagnostic geoms
+use the related order-statistic representation of the same sample. Because the geoms
+are standard \CRANpkg{ggplot2} layers, multiple groups can be overlaid by mapping the
+\texttt{colour} aesthetic in the enclosing \texttt{ggplot()} call.
 
 \subsection{\texorpdfstring{Empirical CDF: \texttt{geom\_ecdf()}}{Empirical CDF: geom\_ecdf()}}\label{empirical-cdf-geom_ecdf}
 
@@ -676,7 +678,7 @@ vertical jump segments and endpoint circles are suppressed automatically to avoi
 visual clutter; this threshold can be overridden by setting \texttt{show\_vert} and
 \texttt{show\_points} explicitly.
 
-An optional simultaneous Kolmogorov--Smirnov confidence band is drawn around
+An optional simultaneous DKW/Massart confidence band is drawn around
 the step function by default. The DKW inequality \citep{massart1990tight} is a
 finite-sample result that implies
 
@@ -709,7 +711,7 @@ ggplot(df_ecdf, aes(x = x, colour = group)) +
 
 }
 
-\caption{Empirical CDFs for two groups from populations $\mathcal{N}(0,1)$ and $\mathcal{N}(2,1)$, with simultaneous 95\% KS confidence bands. The bands are narrower for larger samples.}\label{fig:ecdf-basic}
+\caption{Empirical CDFs for two groups from populations $\mathcal{N}(0,1)$ and $\mathcal{N}(2,1)$, with simultaneous 95\% DKW confidence bands. The bands are narrower for larger samples.}\label{fig:ecdf-basic}
 \end{figure}
 
 \subsection{\texorpdfstring{Empirical quantile function: \texttt{geom\_eqf()}}{Empirical quantile function: geom\_eqf()}}\label{empirical-quantile-function-geom_eqf}
@@ -731,42 +733,88 @@ The confidence band for the quantile function follows directly from inverting
 \varepsilon\) simultaneously, applying \(Q\) to all three sides yields
 \(Q_n(p - \varepsilon) \leq Q(p) \leq Q_n(p + \varepsilon)\).
 
-\textbf{Goodness-of-fit testing.} Because the confidence band covers the true quantile
-function \(Q\) with probability at least \(1 - \alpha\) regardless of the underlying
-distribution, overlaying a parametric quantile function \(Q_0\) turns the plot into an
-informal visual test: if \(Q_0\) lies entirely within the band the data are consistent
-with the hypothesized model; if \(Q_0\) exits the band there is evidence against it. The
-following example fits a normal distribution by maximum likelihood to two samples of
-size \(n = 100\)--one genuinely normal, one exponential--and overlays the fitted normal
-quantile function as a red curve.
+This same probability-scale band is the basis for the PP and QQ diagnostic layers.
+
+\subsection{\texorpdfstring{PP and QQ diagnostic plots: \texttt{geom\_ppplot()} and \texttt{geom\_qqplot()}}{PP and QQ diagnostic plots: geom\_ppplot() and geom\_qqplot()}}\label{pp-and-qq-diagnostic-plots-geom_ppplot-and-geom_qqplot}
+
+Suppose \(X_1,\ldots,X_n\) are to be compared with a fully specified null
+distribution \(F_0\), with quantile function \(Q_0 = F_0^{\leftarrow}\). Let
+\(x_{(1)} \leq \cdots \leq x_{(n)}\) denote the order statistics and define plotting
+positions
+
+\begin{equation}
+p_i = \frac{i - 1/2}{n},\quad i = 1,\ldots,n.
+\label{eq:ppoints}
+\end{equation}
+
+A probability-probability (PP) plot displays the null probabilities
+\(F_0(x_{(i)})\) against \(p_i\). A quantile-quantile (QQ) plot displays the observed
+quantiles \(x_{(i)}\) against the null quantiles \(Q_0(p_i)\). In both cases, agreement
+with the null distribution corresponds to points falling close to the identity line.
+The PP layer expects a CDF by default, while the QQ layer expects a quantile
+function; alternate function sources are converted internally using the same
+CDF/QF helpers used by the theoretical distribution geoms.
+
+Under \(H_0: F = F_0\), the probability integral transform gives
+\(F_0(X_i) \stackrel{\mathrm{iid}}{\sim} \mathrm{Unif}(0,1)\). Therefore
+\eqref{eq:ks-band} gives a simultaneous DKW band on the probability scale. For PP
+plots, the ribbon is simply
+
+\begin{equation}
+\max(0, p_i - \varepsilon) \leq F_0(x_{(i)}) \leq \min(1, p_i + \varepsilon).
+\label{eq:pp-band}
+\end{equation}
+
+For QQ plots, the same probability limits are transformed back to the data scale:
+
+\begin{equation}
+Q_0\{\max(0, p_i - \varepsilon)\} \leq x_{(i)}
+\leq Q_0\{\min(1, p_i + \varepsilon)\}.
+\label{eq:qq-band}
+\end{equation}
+
+Thus the two diagnostics show the same comparison on different scales: PP bands
+are parallel probability bands, while QQ bands widen or narrow according to the
+shape of \(Q_0\). The bands are finite-sample and distribution-free for a fully
+specified null. When parameters are estimated from the data, the plots remain useful
+visual diagnostics, but the DKW bands are conservative rather than Lilliefors-adjusted.
 
 \begin{verbatim}
 set.seed(3)
 
-normal_qf <- function(p, x) qnorm(p, mean = mean(x), sd = sd(x))
-
 df_normal <- data.frame("x" = rnorm(50))
-p_norm <- ggplot(df_normal, aes(x = x)) +
-  geom_eqf(show_points = FALSE, show_vert = FALSE) +
-  geom_qf(fun  = normal_qf, args = list(x = df_normal$x), colour = "red") +
-  ggtitle("Normal data")
-
 df_exp <- data.frame("x" = rexp(50) - 1)
-p_exp <- ggplot(df_exp, aes(x = x)) +
-  geom_eqf(show_points = FALSE, show_vert = FALSE) +
-  geom_qf(fun  = normal_qf, args = list(x = df_exp$x), colour = "red") +
-  ggtitle("Exponential data")
 
-p_norm | p_exp
+p_norm_pp <- ggplot(df_normal, aes(x = x)) +
+  geom_ppplot(fun = pnorm, fill = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Normal data: PP")
+
+p_norm_qq <- ggplot(df_normal, aes(x = x)) +
+  geom_qqplot(fun = qnorm, fill = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Normal data: QQ")
+
+p_exp_pp <- ggplot(df_exp, aes(x = x)) +
+  geom_ppplot(fun = pnorm, fill = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Exponential data: PP")
+
+p_exp_qq <- ggplot(df_exp, aes(x = x)) +
+  geom_qqplot(fun = qnorm, fill = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Exponential data: QQ")
+
+(p_norm_pp | p_norm_qq) / (p_exp_pp | p_exp_qq)
 \end{verbatim}
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/eqf-gof-1} 
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/ppqq-gof-1}
 
 }
 
-\caption{Goodness-of-fit test for normality using \texttt{geom\_eqf()} with a 95\% KS band. The fitted normal quantile function (red) threads through the band for the normal sample (left) but departs at both tails for the exponential sample (right), where asymmetry is most pronounced. Note that estimating parameters from the data makes the band slightly conservative (analogous to the Lilliefors correction).}\label{fig:eqf-gof}
+\caption{PP and QQ diagnostics for samples compared with a fully specified $\mathcal{N}(0,1)$ null. The normal sample (top row) follows the identity line and remains within the DKW bands, whereas the shifted exponential sample (bottom row) shows the curvature and tail departures expected from skewness.}\label{fig:ppqq-gof}
 \end{figure}
 
 \subsection{\texorpdfstring{Empirical PMF: \texttt{geom\_epmf()}}{Empirical PMF: geom\_epmf()}}\label{empirical-pmf-geom_epmf}
@@ -868,7 +916,7 @@ event time:
 
 where \(d_j\) is the number of events at time \(t_j\) and \(n_j\) is the number at
 risk just before \(t_j\). \texttt{geom\_ecdf\_km()} renders this as a decreasing step
-function, with a simultaneous Greenwood confidence band \citep{greenwood1926natural, nair1984confidence} and censoring marks at
+function, with a simultaneous equal-precision Greenwood confidence band \citep{greenwood1926natural, nair1984confidence} and censoring marks at
 observations where the event was not observed. The data require two aesthetics:
 \texttt{x} (the observed time) and \texttt{status} (1 = event, 0 = censored).
 
@@ -905,10 +953,10 @@ p_km | p_km_gof
 
 }
 
-\caption{Kaplan--Meier survival curves for simulated censored data. Event times follow $\text{Exp}(0.5)$ and censoring times follow $\text{Exp}(0.2)$. The left panel shows the KM estimate with Greenwood 95\% simultaneous confidence band and censoring marks; the right panel overlays the true survival curve (red).}\label{fig:km-censored}
+\caption{Kaplan--Meier survival curves for simulated censored data. Event times follow $\text{Exp}(0.5)$ and censoring times follow $\text{Exp}(0.2)$. The left panel shows the KM estimate with a Greenwood 95\% simultaneous equal-precision band and censoring marks; the right panel overlays the true survival curve (red).}\label{fig:km-censored}
 \end{figure}
 
-The theoretical survival curve (red) lies within the Greenwood confidence band,
+The theoretical survival curve (red) lies within the Greenwood EP confidence band,
 confirming consistency with the \(\text{Exp}(0.5)\) model.
 
 \subsection{\texorpdfstring{Nelson--Aalen cumulative hazard: \texttt{geom\_echf\_na()}}{Nelson--Aalen cumulative hazard: geom\_echf\_na()}}\label{nelsonaalen-cumulative-hazard-geom_echf_na}
@@ -923,7 +971,7 @@ censored-data analogue of the empirical cumulative hazard:
 
 with variance estimated by \(\widehat{\mathrm{Var}}[\hat{H}(t)] = \sum_{t_j
 \le t} d_j / n_j^2\). \texttt{geom\_echf\_na()} renders this as an increasing step
-function with a simultaneous confidence band \citep{nair1984confidence}.
+function with a pointwise normal confidence band.
 
 \begin{verbatim}
 p_na <- ggplot(df_km, aes(x = time, status = status)) +
@@ -949,7 +997,7 @@ p_na | p_na_gof
 
 }
 
-\caption{Nelson--Aalen cumulative hazard estimates. The same censored data as in the KM figure. The left panel shows the Nelson--Aalen estimate with 95\% simultaneous confidence band; the right panel overlays the theoretical $H(x) = 0.5x$ (red).}\label{fig:na-censored}
+\caption{Nelson--Aalen cumulative hazard estimates. The same censored data as in the KM figure. The left panel shows the Nelson--Aalen estimate with a 95\% pointwise normal confidence band; the right panel overlays the theoretical $H(x) = 0.5x$ (red).}\label{fig:na-censored}
 \end{figure}
 
 The theoretical cumulative hazard (red) threads through the confidence band,
@@ -1053,13 +1101,15 @@ Several layers involve numerical integration or accumulation:
 \item
   \textbf{PDF validation} uses \texttt{stats::integrate()} with adaptive quadrature to verify that the supplied function integrates to one over the specified domain.
 \item
-  \textbf{Cross-conversion} between function types is handled by internal helpers. \texttt{pdf\_to\_cdf()} obtains a CDF by numerically integrating the PDF via \texttt{stats::integrate()} at each evaluation point. \texttt{cdf\_to\_pdf()} obtains a PDF by central finite differences of the CDF, \((F(x+h) - F(x-h)) / 2h\) with \(h = 10^{-5}\). \texttt{cdf\_to\_qf()} inverts the CDF by root-finding via \texttt{stats::uniroot()}, with adaptive bound widening to accommodate distributions whose support is not known in advance. \texttt{hf\_to\_cdf()} integrates a hazard function to obtain the cumulative hazard \(H(x)\) and returns \(F(x) = 1 - e^{-H(x)}\). \texttt{hf\_to\_pdf()} uses the identity \(f(x) = h(x) \cdot e^{-H(x)}\) directly, avoiding the numerical instability that would arise from chaining \texttt{hf\_to\_cdf} with \texttt{cdf\_to\_pdf}. These conversions are approximate; for distributions where analytic forms are available, supplying the native function type directly will be more accurate.
+  \textbf{Cross-conversion} between function types is handled by internal helpers. \texttt{pdf\_to\_cdf()} obtains a CDF by numerically integrating the PDF via \texttt{stats::integrate()} at each evaluation point. \texttt{cdf\_to\_pdf()} obtains a PDF by central finite differences of the CDF, \((F(x+h) - F(x-h)) / 2h\) with \(h = 10^{-5}\). \texttt{cdf\_to\_qf()} inverts the CDF by root-finding via \texttt{stats::uniroot()}, with adaptive bound widening to accommodate distributions whose support is not known in advance. \texttt{hf\_to\_cdf()} integrates a hazard function from \texttt{hf\_lower} to obtain the cumulative hazard \(H(x)\) and returns \(F(x) = 1 - e^{-H(x)}\). \texttt{hf\_to\_pdf()} uses the identity \(f(x) = h(x) \cdot e^{-H(x)}\) directly, avoiding the numerical instability that would arise from chaining \texttt{hf\_to\_cdf} with \texttt{cdf\_to\_pdf}. These conversions are approximate; for distributions where analytic forms are available, supplying the native function type directly will be more accurate.
 \item
   \textbf{Shading boundaries} are computed by trapezoidal accumulation \eqref{eq:trapezoid}, which is efficient and sufficient for the smooth densities encountered in practice.
 \item
   \textbf{Boundary interpolation} in \texttt{GeomFunction1d} uses \texttt{stats::approxfun()} to compute exact \(y\)-values at shade endpoints that fall between evaluation points.
 \item
   \textbf{Quantile function evaluation} in \texttt{geom\_qf()} uses Chebyshev nodes of the first kind rather than a uniform grid, concentrating evaluation points near \(p = 0\) and \(p = 1\) where the function is most curved and avoiding evaluation at the exact endpoints.
+\item
+  \textbf{PP and QQ diagnostics} sort finite observations, compute plotting positions with \texttt{stats::ppoints(n,\ a\ =\ 1/2)}, and derive their DKW bands from the same half-width as \texttt{geom\_ecdf()}. The QQ ribbon transforms the probability-scale band through the supplied or derived quantile function.
 \item
   \textbf{Vector field integration} (via \pkg{ggvfields}) uses a fourth-order Runge--Kutta method with configurable step size and maximum iterations.
 \end{itemize}
@@ -1123,7 +1173,7 @@ Taken together, these packages reflect the breadth of interest in function visua
 
 \section{Summary}\label{summary}
 
-\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions, theoretical probability distributions, and empirical data distributions. Its organizing taxonomy--classifying functions by the dimensions of their domain and codomain--yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family covers ten geoms spanning continuous and discrete distributions: density, CDF, PMF, quantile, discrete CDF, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions. Each supports the shading operations central to statistical pedagogy---marking quantiles, delineating confidence regions, highlighting rejection areas, and shading highest density regions. The empirical data family complements these theoretical geoms by computing the empirical CDF, quantile function, PMF, and cumulative hazard function directly from samples, each paired with a simultaneous Kolmogorov--Smirnov confidence band derived from the DKW inequality.
+\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions, theoretical probability distributions, and empirical data distributions. Its organizing taxonomy--classifying functions by the dimensions of their domain and codomain--yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family covers ten geoms spanning continuous and discrete distributions: density, CDF, PMF, quantile, discrete CDF, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions. Each supports the shading operations central to statistical pedagogy---marking quantiles, delineating confidence regions, highlighting rejection areas, and shading highest density regions. The empirical data family complements these theoretical geoms by computing the empirical CDF, quantile function, PP and QQ diagnostic plots, PMF, and cumulative hazard function directly from samples, each paired with a simultaneous DKW/Massart confidence band where appropriate.
 
 By implementing each layer as a \texttt{ggproto} stat--geom pair, the package inherits the full composability of the grammar of graphics. Functions and empirical summaries can be overlaid, themed, faceted, and annotated using the same tools that \CRANpkg{ggplot2} users already know. The \texttt{args} injection pattern provides a clean interface for parameterized function families, and built-in validation catches common errors--such as unnormalized densities--before they produce misleading graphics.
 
