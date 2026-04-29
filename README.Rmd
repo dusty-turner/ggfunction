@@ -55,6 +55,8 @@ The package is organized around four families of geoms:
 | | `geom_chf()` | | Cumulative hazard function $H(x) = -\log S(x)$ |
 | **Data** | `geom_ecdf()` | | Empirical CDF with DKW confidence ribbon |
 | | `geom_eqf()` | | Empirical quantile function with confidence ribbon |
+| | `geom_ppplot()` | | PP diagnostic plot with DKW confidence ribbon |
+| | `geom_qqplot()` | | QQ diagnostic plot with DKW confidence ribbon |
 | | `geom_epmf()` | | Empirical PMF (lollipop) |
 | | `geom_echf()` | | Empirical cumulative hazard with DKW confidence band |
 | **Censored Data** | `geom_ecdf_km()` | | Kaplan-Meier survival curve with Greenwood EP band |
@@ -526,30 +528,43 @@ ggplot(df_two, aes(x = x, color = group)) +
   geom_eqf()
 ```
 
-**Informal normality test.** Because the DKW confidence band covers the true quantile function $Q(p)$ with probability $\ge 1 - \alpha$ regardless of the null, overlaying a parametric $Q_0(p)$ turns the plot into a visual goodness-of-fit test: if $Q_0$ lies entirely within the band the data are consistent with the hypothesized model; if it exits the band there is evidence against it. The comparison below fits a normal distribution by maximum likelihood (sample mean and SD) to two samples of size $n = 100$---one actually normal, one exponential---and overlays the fitted $Q_0$ as a smooth line.
 
-```{r eqf-gof}
-library(patchwork)
-set.seed(3)
+### PP and QQ diagnostic plots: `geom_ppplot()` and `geom_qqplot()`
 
-normal_qf <- function(p, x) qnorm(p, mean = mean(x), sd = sd(x))
+`geom_ppplot()` and `geom_qqplot()` compare sample order statistics to a fully specified null distribution. Both draw 95% DKW/Massart confidence bands by default, add a dashed identity line, and map point fill to the sample value (PP) or plotting position (QQ). They use ggplot2's default continuous fill scale unless you add your own.
 
-df_normal <- data.frame(x = rnorm(100))
-p_norm <- ggplot(df_normal, aes(x = x)) +
-  geom_eqf() +
-  geom_qf(fun = normal_qf, args = list(x = df_normal$x), colour = "red") +
-  ggtitle("Normal data")
-
-df_exp <- data.frame(x = rexp(100) - 1)
-p_exp <- ggplot(df_exp, aes(x = x)) +
-  geom_eqf() +
-  geom_qf(fun = normal_qf, args = list(x = df_exp$x), colour = "red") +
-  ggtitle("Exponential data")
-
-p_norm | p_exp
+```{r ppplot}
+ggplot(df_single, aes(x = x)) +
+  geom_ppplot(fun = pnorm) +
+  coord_equal()
 ```
 
-The fitted normal line threads through the center of the band for the normal sample; for the exponential sample it departs visibly at the tails, where the asymmetry of the exponential distribution is most pronounced. Note that estimating parameters from the data makes the band slightly conservative (analogous to the Lilliefors correction), so this is an informal rather than exact test.
+```{r qqplot}
+ggplot(df_single, aes(x = x)) +
+  geom_qqplot(fun = qnorm) +
+  coord_equal()
+```
+
+**Black points.** Set a fixed fill when you want an uncolored diagnostic plot.
+
+```{r qqplot-black}
+ggplot(df_single, aes(x = x)) +
+  geom_qqplot(fun = qnorm, fill = "black") +
+  coord_equal()
+```
+
+**Spectral scale.** For sight-typical users, the rainbow palette can be an effective tool to better visualize the variables not shown ($x$ or $p$ in PP or QQ plots, respectively).
+
+```{r qqplot-spectral}
+ggplot(df_single, aes(x = x)) +
+  geom_qqplot(fun = qnorm) +
+  scale_fill_gradientn(
+    colors = rainbow(10),
+    labels = scales::percent_format(),
+    limits = c(0, 1)
+  ) +
+  coord_equal()
+```
 
 
 ### Empirical PMF: `geom_epmf()`

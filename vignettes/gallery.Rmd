@@ -198,3 +198,40 @@ ggplot(df, aes(x = x)) +
        subtitle = "Blue = data with DKW band, Red = N(0, 1)") +
   theme_minimal()
 ```
+
+The same comparison can be made directly with PP and QQ diagnostic plots:
+
+```{r pp-qq-diagnostics, fig.height = 4}
+pp <- ggplot(df, aes(x = x)) +
+  geom_ppplot(fun = pnorm) +
+  coord_equal() +
+  labs(title = "PP plot")
+
+qq <- ggplot(df, aes(x = x)) +
+  geom_qqplot(fun = qnorm) +
+  coord_equal() +
+  labs(title = "QQ plot")
+
+pp + qq
+```
+
+Use a fixed fill for black points, or add a spectral scale explicitly:
+
+```{r qq-diagnostics-styling, fig.height = 4}
+qq_black <- ggplot(df, aes(x = x)) +
+  geom_qqplot(fun = qnorm, fill = "black") +
+  coord_equal() +
+  labs(title = "Black points")
+
+qq_spectral <- ggplot(df, aes(x = x)) +
+  geom_qqplot(fun = qnorm) +
+  scale_fill_gradientn(
+    colors = grDevices::rainbow(10),
+    limits = c(0, 1),
+    labels = function(x) paste0(round(100 * x), "%")
+  ) +
+  coord_equal() +
+  labs(title = "Spectral scale")
+
+qq_black + qq_spectral
+```
