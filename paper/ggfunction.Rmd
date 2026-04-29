@@ -645,9 +645,10 @@ A probability-probability (PP) plot displays the null probabilities
 $F_0(x_{(i)})$ against $p_i$. A quantile-quantile (QQ) plot displays the observed
 quantiles $x_{(i)}$ against the null quantiles $Q_0(p_i)$. In both cases, agreement
 with the null distribution corresponds to points falling close to the identity line.
-The PP layer expects a CDF by default, while the QQ layer expects a quantile
-function; alternate function sources are converted internally using the same
-CDF/QF helpers used by the theoretical distribution geoms.
+Michael [-@michael1983stabilized] discusses acceptance regions for PP, QQ, and
+stabilized probability plots. The PP layer expects a CDF by default, while the QQ
+layer expects a quantile function; alternate function sources are converted
+internally using the same CDF/QF helpers used by the theoretical distribution geoms.
 
 Under $H_0: F = F_0$, the probability integral transform gives
 $F_0(X_i) \stackrel{\mathrm{iid}}{\sim} \mathrm{Unif}(0,1)$. Therefore

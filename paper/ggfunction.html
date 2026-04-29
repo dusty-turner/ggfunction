@@ -3241,9 +3241,10 @@ p_i = \frac{i - 1/2}{n},\quad i = 1,\ldots,n.
 <span class="math inline">\(F_0(x_{(i)})\)</span> against <span class="math inline">\(p_i\)</span>. A quantile-quantile (QQ) plot displays the observed
 quantiles <span class="math inline">\(x_{(i)}\)</span> against the null quantiles <span class="math inline">\(Q_0(p_i)\)</span>. In both cases, agreement
 with the null distribution corresponds to points falling close to the identity line.
-The PP layer expects a CDF by default, while the QQ layer expects a quantile
-function; alternate function sources are converted internally using the same
-CDF/QF helpers used by the theoretical distribution geoms.</p>
+Michael <span class="citation" data-cites="michael1983stabilized">(<a href="#ref-michael1983stabilized" role="doc-biblioref">1983</a>)</span> discusses acceptance regions for PP, QQ, and
+stabilized probability plots. The PP layer expects a CDF by default, while the QQ
+layer expects a quantile function; alternate function sources are converted
+internally using the same CDF/QF helpers used by the theoretical distribution geoms.</p>
 <p>Under <span class="math inline">\(H_0: F = F_0\)</span>, the probability integral transform gives
 <span class="math inline">\(F_0(X_i) \stackrel{\mathrm{iid}}{\sim} \mathrm{Unif}(0,1)\)</span>. Therefore
 <a href="#eq:ks-band">(7)</a> gives a simultaneous DKW band on the probability scale. For PP
@@ -3623,6 +3624,9 @@ M. Kay. <span class="nocase">ggdist</span>: Visualizations of distributions and 
 </div>
 <div id="ref-massart1990tight" class="csl-entry" role="listitem">
 P. Massart. The tight constant in the <span>Dvoretzky–Kiefer–Wolfowitz</span> inequality. <em>The Annals of Probability</em>, 18(3): 1269–1283, 1990. DOI <a href="https://doi.org/10.1214/aop/1176990746">10.1214/aop/1176990746</a>.
+</div>
+<div id="ref-michael1983stabilized" class="csl-entry" role="listitem">
+J. R. Michael. The stabilized probability plot. <em>Biometrika</em>, 70(1): 11–17, 1983. URL <a href="https://www.jstor.org/stable/2335939">https://www.jstor.org/stable/2335939</a>.
 </div>
 <div id="ref-nair1984confidence" class="csl-entry" role="listitem">
 V. N. Nair. Confidence bands for survival functions with censored data: A comparative study. <em>Technometrics</em>, 26(3): 265–275, 1984. DOI <a href="https://doi.org/10.1080/00401706.1984.10487964">10.1080/00401706.1984.10487964</a>.
