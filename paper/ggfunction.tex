@@ -751,9 +751,10 @@ A probability-probability (PP) plot displays the null probabilities
 \(F_0(x_{(i)})\) against \(p_i\). A quantile-quantile (QQ) plot displays the observed
 quantiles \(x_{(i)}\) against the null quantiles \(Q_0(p_i)\). In both cases, agreement
 with the null distribution corresponds to points falling close to the identity line.
-The PP layer expects a CDF by default, while the QQ layer expects a quantile
-function; alternate function sources are converted internally using the same
-CDF/QF helpers used by the theoretical distribution geoms.
+Michael \citeyearpar{michael1983stabilized} discusses acceptance regions for PP, QQ, and
+stabilized probability plots. The PP layer expects a CDF by default, while the QQ
+layer expects a quantile function; alternate function sources are converted
+internally using the same CDF/QF helpers used by the theoretical distribution geoms.
 
 Under \(H_0: F = F_0\), the probability integral transform gives
 \(F_0(X_i) \stackrel{\mathrm{iid}}{\sim} \mathrm{Unif}(0,1)\). Therefore
@@ -785,6 +786,13 @@ set.seed(3)
 df_normal <- data.frame("x" = rnorm(50))
 df_exp <- data.frame("x" = rexp(50) - 1)
 
+ppqq_theme <- theme_gray(base_size = 8) +
+  theme(
+    plot.title = element_text(size = 8),
+    axis.title = element_text(size = 8),
+    axis.text = element_text(size = 7)
+  )
+
 p_norm_pp <- ggplot(df_normal, aes(x = x)) +
   geom_ppplot(fun = pnorm, fill = "black", size = 1.2) +
   coord_equal() +
@@ -805,7 +813,7 @@ p_exp_qq <- ggplot(df_exp, aes(x = x)) +
   coord_equal() +
   ggtitle("Exponential data: QQ")
 
-(p_norm_pp | p_norm_qq) / (p_exp_pp | p_exp_qq)
+(p_norm_pp | p_norm_qq) / (p_exp_pp | p_exp_qq) & ppqq_theme
 \end{verbatim}
 
 \begin{figure}

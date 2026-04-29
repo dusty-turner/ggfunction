@@ -16,7 +16,8 @@
 #' A probability-probability (PP) plot displays
 #' \eqn{F_0(x_{(i)})} against \eqn{p_i}. A quantile-quantile (QQ) plot displays
 #' \eqn{x_{(i)}} against \eqn{Q_0(p_i)}. In both cases, agreement with the null
-#' model is represented by the identity line \eqn{y = x}.
+#' model is represented by the identity line \eqn{y = x}. Michael (1983)
+#' discusses acceptance regions for PP, QQ, and stabilized probability plots.
 #'
 #' The confidence band is based on the probability integral transform: under
 #' \eqn{H_0: F_X = F_0}, the transformed observations
@@ -77,6 +78,11 @@
 #'   colour is mapped.
 #'
 #' @return A list of ggplot2 layers.
+#'
+#' @references
+#' Michael, J. R. (1983). The stabilized probability plot. *Biometrika*,
+#' 70(1), 11--17. \doi{10.1093/biomet/70.1.11};
+#' \url{https://www.jstor.org/stable/2335939}.
 #'
 #' @examples
 #' set.seed(1)

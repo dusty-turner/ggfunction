@@ -1,4 +1,4 @@
-\begin{thebibliography}{17}
+\begin{thebibliography}{18}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -50,6 +50,13 @@ P.~Massart.
 \newblock The tight constant in the {Dvoretzky--Kiefer--Wolfowitz} inequality.
 \newblock \emph{The Annals of Probability}, 18\penalty0 (3):\penalty0 1269--1283, 1990.
 \newblock \doi{10.1214/aop/1176990746}.
+
+\bibitem[Michael(1983)]{michael1983stabilized}
+J.~R. Michael.
+\newblock The stabilized probability plot.
+\newblock \emph{Biometrika}, 70\penalty0 (1):\penalty0 11--17, 1983.
+\newblock \doi{10.1093/biomet/70.1.11}.
+\newblock URL \url{https://www.jstor.org/stable/2335939}.
 
 \bibitem[Nair(1984)]{nair1984confidence}
 V.~N. Nair.
