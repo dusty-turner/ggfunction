@@ -672,12 +672,12 @@ ggplot(df_single, aes(x = x)) +
 
 <img src="man/figures/readme-ecdf-1.png" alt="" width="60%" />
 
-**Multiple groups.** Map `colour` to a grouping variable to overlay
-ECDFs for several groups. Each group gets its own confidence ribbon,
-computed from that group’s sample size.
+**Multiple groups.** Map `color` to a grouping variable to overlay ECDFs
+for several groups. Each group gets its own confidence ribbon, computed
+from that group’s sample size.
 
 ``` r
-ggplot(df_two, aes(x = x, colour = group)) +
+ggplot(df_two, aes(x = x, color = group)) +
   geom_ecdf()
 ```
 
@@ -722,9 +722,9 @@ ggplot(df_two, aes(x = x, color = group)) +
 
 `geom_ppplot()` and `geom_qqplot()` compare sample order statistics to a
 fully specified null distribution. Both draw 95% DKW/Massart confidence
-bands by default, add a dashed identity line, and map point colour to
-the sample value (PP) or plotting position (QQ). They use ggplot2’s
-default continuous colour scale unless you add your own.
+bands by default, add a dashed identity line, and map point color to the
+sample value (PP) or plotting position (QQ). They use ggplot2’s default
+continuous color scale unless you add your own.
 
 ``` r
 ggplot(df_single, aes(x = x)) +
@@ -742,12 +742,12 @@ ggplot(df_single, aes(x = x)) +
 
 <img src="man/figures/readme-qqplot-1.png" alt="" width="60%" />
 
-**Black points.** Set a fixed colour when you want an uncolored
+**Black points.** Set a fixed color when you want an uncolored
 diagnostic plot.
 
 ``` r
 ggplot(df_single, aes(x = x)) +
-  geom_qqplot(fun = qnorm, colour = "black") +
+  geom_qqplot(fun = qnorm, color = "black") +
   coord_equal()
 ```
 
@@ -759,13 +759,8 @@ $p$ in PP or QQ plots, respectively).
 
 ``` r
 ggplot(df_single, aes(x = x)) +
-  geom_qqplot(fun = qnorm) +
-  scale_colour_gradientn(
-    colors = rainbow(10),
-    labels = scales::percent_format(),
-    limits = c(0, 1)
-  ) +
-  coord_equal()
+  geom_qqplot(fun = qnorm, shape = 21, color = "black", aes(fill = after_stat(p))) +
+  scale_fill_gradientn(colors = rainbow(10), limits = c(0, 1))
 ```
 
 <img src="man/figures/readme-qqplot-spectral-1.png" alt="" width="60%" />
@@ -786,7 +781,7 @@ ggplot(df_single, aes(x = x)) +
 **Multiple groups.**
 
 ``` r
-ggplot(df_two, aes(x = x, colour = group)) +
+ggplot(df_two, aes(x = x, color = group)) +
   geom_epmf()
 ```
 
@@ -810,7 +805,7 @@ ggplot(df_single, aes(x = x)) +
 **Multiple groups.**
 
 ``` r
-ggplot(df_two, aes(x = x, colour = group)) +
+ggplot(df_two, aes(x = x, color = group)) +
   geom_echf()
 ```
 
@@ -825,7 +820,7 @@ ggplot(df_single, aes(x = x)) +
   geom_echf(show_points = FALSE, show_vert = FALSE) +
   geom_chf(cdf_fun = pnorm, xlim = range(df_single$x),
            args = list(mean = mean(df_single$x), sd = sd(df_single$x)),
-           colour = "red")
+           color = "red")
 ```
 
 <img src="man/figures/readme-echf-gof-1.png" alt="" width="60%" />
@@ -836,6 +831,17 @@ When survival data are right-censored (some event times unobserved),
 classical empirical estimators break down. The censored data family
 provides Kaplan-Meier and Nelson-Aalen estimators that correctly account
 for censoring.
+
+``` r
+set.seed(42)
+n_cens <- 60
+true_time <- rexp(n_cens, rate = 0.5)
+cens_time <- rexp(n_cens, rate = 0.2)
+df_cens <- data.frame(
+  time   = pmin(true_time, cens_time),
+  status = as.integer(true_time <= cens_time)
+)
+```
 
 ### Kaplan-Meier survival curve: `geom_ecdf_km()`
 
@@ -861,7 +867,7 @@ the model. Here we overlay the true $\text{Exp}(0.5)$ survival function.
 ggplot(df_cens, aes(x = time, status = status)) +
   geom_ecdf_km(show_points = FALSE, show_vert = FALSE) +
   geom_survival(cdf_fun = pexp, xlim = c(0, max(df_cens$time)),
-    args = list(rate = 0.5), colour = "red")
+    args = list(rate = 0.5), color = "red")
 ```
 
 <img src="man/figures/readme-km-gof-1.png" alt="" width="60%" />
