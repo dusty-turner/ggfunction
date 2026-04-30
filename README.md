@@ -657,6 +657,15 @@ function object. Supply a vector of data via `aes(x = ...)` and the geom
 handles the rest. All four geoms use the same visual language as their
 theoretical counterparts in the Probability section.
 
+``` r
+set.seed(1)
+df_single <- data.frame(x = rnorm(80))
+df_two <- data.frame(
+  x     = c(rnorm(60), rnorm(60, mean = 2)),
+  group = rep(c("A", "B"), each = 60)
+)
+```
+
 ### Empirical CDF: `geom_ecdf()`
 
 `geom_ecdf()` plots the empirical cumulative distribution function of a
@@ -728,16 +737,14 @@ continuous color scale unless you add your own.
 
 ``` r
 ggplot(df_single, aes(x = x)) +
-  geom_ppplot(fun = pnorm) +
-  coord_equal()
+  geom_ppplot(fun = pnorm)
 ```
 
 <img src="man/figures/readme-ppplot-1.png" alt="" width="60%" />
 
 ``` r
 ggplot(df_single, aes(x = x)) +
-  geom_qqplot(fun = qnorm) +
-  coord_equal()
+  geom_qqplot(fun = qnorm)
 ```
 
 <img src="man/figures/readme-qqplot-1.png" alt="" width="60%" />
@@ -747,8 +754,7 @@ diagnostic plot.
 
 ``` r
 ggplot(df_single, aes(x = x)) +
-  geom_qqplot(fun = qnorm, color = "black") +
-  coord_equal()
+  geom_qqplot(fun = qnorm, color = "black")
 ```
 
 <img src="man/figures/readme-qqplot-black-1.png" alt="" width="60%" />

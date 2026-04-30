@@ -92,15 +92,46 @@ test_that("QQ DKW band computes on a finite probability grid", {
     a = 1 / 2,
     args = list()
   )
-  p_grid <- seq(min(stats::ppoints(5, a = 1 / 2)),
-                max(stats::ppoints(5, a = 1 / 2)),
-                length.out = 5)
+  observed_p <- stats::ppoints(5, a = 1 / 2)
+  p_grid <- seq(
+    min(observed_p) / 2,
+    1 - (1 - max(observed_p)) / 2,
+    length.out = 5
+  )
   eps <- sqrt(log(2 / (1 - 0.95)) / (2 * 5))
 
   expect_equal(result$p, p_grid)
   expect_equal(result$x, qnorm(p_grid))
   expect_equal(result$ymin, qnorm(pmax(0, p_grid - eps)))
   expect_equal(result$ymax, qnorm(pmin(1, p_grid + eps)))
+})
+
+test_that("geom_qqplot ribbon extends past points without training scales", {
+  set.seed(1)
+  df <- data.frame(x = rnorm(100))
+
+  with_band <- ggplot_build(
+    ggplot(df, aes(x = x)) +
+      geom_qqplot(fun = qnorm, identity_line = FALSE)
+  )
+  without_band <- ggplot_build(
+    ggplot(df, aes(x = x)) +
+      geom_qqplot(fun = qnorm, conf_int = FALSE, identity_line = FALSE)
+  )
+
+  band <- with_band$data[[1]]
+  points <- with_band$data[[2]]
+
+  expect_equal(
+    with_band$layout$panel_params[[1]]$y.range,
+    without_band$layout$panel_params[[1]]$y.range
+  )
+  expect_equal(
+    with_band$layout$panel_params[[1]]$x.range,
+    without_band$layout$panel_params[[1]]$x.range
+  )
+  expect_lt(min(band$qq_x), min(points$x))
+  expect_gt(max(band$qq_x), max(points$x))
 })
 
 test_that("geom_ppplot and geom_qqplot build without error", {

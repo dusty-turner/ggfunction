@@ -261,6 +261,13 @@ the data scale:
   \le x_{(i)} \le
   Q_0\{\min(1, p + \varepsilon_{n,\alpha})\}.
 }
+QQ ribbons are evaluated on a finite probability grid that reaches halfway
+from the extreme plotting positions toward 0 and 1, so the ribbon extends
+slightly beyond the observed points on the theoretical-quantile axis. In
+\code{geom_qqplot()}, the ribbon coordinates are drawn after scale training, so
+the default x and y scales are determined by the QQ points rather than by the
+ribbon tails.
+
 Points far from the identity line, and especially points outside the band,
 are visual evidence against the specified null distribution. The band is
 finite-sample and distribution-free for a fully specified \eqn{F_0}; if

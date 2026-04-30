@@ -41,6 +41,13 @@
 #'   \le x_{(i)} \le
 #'   Q_0\{\min(1, p + \varepsilon_{n,\alpha})\}.
 #' }
+#' QQ ribbons are evaluated on a finite probability grid that reaches halfway
+#' from the extreme plotting positions toward 0 and 1, so the ribbon extends
+#' slightly beyond the observed points on the theoretical-quantile axis. In
+#' `geom_qqplot()`, the ribbon coordinates are drawn after scale training, so
+#' the default x and y scales are determined by the QQ points rather than by the
+#' ribbon tails.
+#'
 #' Points far from the identity line, and especially points outside the band,
 #' are visual evidence against the specified null distribution. The band is
 #' finite-sample and distribution-free for a fully specified \eqn{F_0}; if
@@ -349,9 +356,13 @@ geom_qqplot <- function(
   if (conf_int) {
     layers <- c(layers, list(layer(
       data = data,
-      mapping = aes(ymin = after_stat(ymin), ymax = after_stat(ymax)),
-      stat = StatQQPlotBand,
-      geom = GeomRibbon,
+      mapping = aes(
+        qq_x = after_stat(qq_x),
+        qq_ymin = after_stat(qq_ymin),
+        qq_ymax = after_stat(qq_ymax)
+      ),
+      stat = StatQQPlotBandUnscaled,
+      geom = GeomQQPlotRibbon,
       position = position,
       show.legend = FALSE,
       inherit.aes = inherit.aes,
@@ -513,19 +524,102 @@ StatQQPlotBand <- ggproto("StatQQPlotBand", Stat,
     ord <- order_stat_sample(data$x, na.rm = na.rm, a = a)
     if (nrow(ord) == 0L) return(data.frame())
 
-    n <- ord$n[1L]
-    eps <- sqrt(log(2 / (1 - level)) / (2 * n))
-    p_grid <- seq(min(ord$p), max(ord$p), length.out = validate_ppqq_band_n(band_n))
+    band <- compute_qqplot_band(ord, qf_fun, level = level, band_n = band_n)
 
     data.frame(
-      x = qf_fun(p_grid),
-      p = p_grid,
-      ymin = qf_fun(pmax(0, p_grid - eps)),
-      ymax = qf_fun(pmin(1, p_grid + eps)),
-      n = n
+      x = band$qq_x,
+      p = band$p,
+      ymin = band$qq_ymin,
+      ymax = band$qq_ymax,
+      n = band$n
     )
   }
 )
+
+#' @noRd
+StatQQPlotBandUnscaled <- ggproto("StatQQPlotBandUnscaled", Stat,
+  required_aes = "x",
+  dropped_aes = "x",
+
+  compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
+                           pdf_fun = NULL, survival_fun = NULL, hf_fun = NULL,
+                           hf_lower = -Inf, args = NULL, na.rm = FALSE,
+                           level = 0.95, band_n = 501, a = 1 / 2) {
+    qf_fun <- make_qf_function(
+      fun = fun,
+      cdf_fun = cdf_fun,
+      pdf_fun = pdf_fun,
+      survival_fun = survival_fun,
+      hf_fun = hf_fun,
+      hf_lower = hf_lower,
+      args = args
+    )
+
+    ord <- order_stat_sample(data$x, na.rm = na.rm, a = a)
+    if (nrow(ord) == 0L) return(data.frame())
+
+    compute_qqplot_band(ord, qf_fun, level = level, band_n = band_n)
+  }
+)
+
+#' @noRd
+GeomQQPlotRibbon <- ggproto("GeomQQPlotRibbon", Geom,
+  required_aes = c("qq_x", "qq_ymin", "qq_ymax"),
+
+  default_aes = aes(
+    colour = NA,
+    fill = "grey70",
+    linewidth = 0,
+    linetype = 1,
+    alpha = NA
+  ),
+
+  draw_key = ggplot2::draw_key_polygon,
+
+  draw_group = function(data, panel_params, coord, lineend = "butt",
+                        linejoin = "round", linemitre = 10, na.rm = FALSE,
+                        outline.type = "both") {
+    data$x <- data$qq_x
+    data$ymin <- data$qq_ymin
+    data$ymax <- data$qq_ymax
+    data$y <- data$qq_ymin
+    data$qq_x <- NULL
+    data$qq_ymin <- NULL
+    data$qq_ymax <- NULL
+
+    GeomRibbon$draw_group(
+      data,
+      panel_params,
+      coord,
+      lineend = lineend,
+      linejoin = linejoin,
+      linemitre = linemitre,
+      na.rm = na.rm,
+      flipped_aes = FALSE,
+      outline.type = outline.type
+    )
+  }
+)
+
+#' @noRd
+compute_qqplot_band <- function(ord, qf_fun, level = 0.95, band_n = 501) {
+  n <- ord$n[1L]
+  eps <- sqrt(log(2 / (1 - level)) / (2 * n))
+  band_n <- validate_ppqq_band_n(band_n)
+  p_grid <- seq(
+    min(ord$p) / 2,
+    1 - (1 - max(ord$p)) / 2,
+    length.out = band_n
+  )
+
+  data.frame(
+    qq_x = qf_fun(p_grid),
+    p = p_grid,
+    qq_ymin = qf_fun(pmax(0, p_grid - eps)),
+    qq_ymax = qf_fun(pmin(1, p_grid + eps)),
+    n = n
+  )
+}
 
 #' @noRd
 validate_ppqq_band_n <- function(band_n) {
