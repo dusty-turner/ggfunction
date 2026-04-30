@@ -79,6 +79,33 @@
 #'   `colour` to the sorted sample value and QQ plots map `colour` to the
 #'   plotting position.
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Theoretical probabilities for PP plots or
+#'   theoretical quantiles for QQ plots.}
+#'   \item{`after_stat(y)`}{Observed probabilities for PP plots or observed
+#'   sample quantiles for QQ plots.}
+#'   \item{`after_stat(p)`}{Plotting positions returned by [stats::ppoints()].}
+#'   \item{`after_stat(theoretical)`}{Theoretical probabilities or quantiles.}
+#'   \item{`after_stat(observed)`}{Observed probabilities or sample quantiles.}
+#'   \item{`after_stat(sample)`}{Sorted sample values.}
+#'   \item{`after_stat(n)`}{Sample size after removing non-finite values.}
+#'   \item{`after_stat(ymin)` and `after_stat(ymax)`}{Lower and upper confidence
+#'   band limits when `conf_int = TRUE`.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_ppplot()` and `geom_qqplot()` require the following aesthetic:
+#' \describe{
+#'   \item{`x`}{Observed sample values.}
+#' }
+#' They also understand point aesthetics such as `alpha`, `colour`/`color`,
+#' `fill`, `group`, `shape`, `size`, and `stroke`; confidence-band aesthetics
+#' such as `fill` and `alpha`; and identity-line parameters supplied through
+#' `line_color`, `line_linetype`, and `line_linewidth`.
+#'
 #' @return A list of ggplot2 layers.
 #'
 #' @references

@@ -156,10 +156,39 @@ A ggplot2 layer.
 as a line. You can optionally shade a region by specifying a cumulative probability
 threshold via \code{p}, or a two-sided interval via \code{p_lower} and \code{p_upper}.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Points at which the CDF is evaluated.}
+\item{\code{after_stat(y)}}{CDF values.}
+\item{\code{after_stat(p)}}{CDF values; the default y aesthetic maps to this
+variable.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_cdf()} does not require any input aesthetics when a function source is
+supplied. It understands the following aesthetics:
+\describe{
+\item{Computed position aesthetics}{\code{x} and \code{y}, mapped by default to
+\code{after_stat(x)} and \code{after_stat(p)}.}
+\item{Drawing aesthetics}{\code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group},
+\code{linetype}, and \code{linewidth} for the area and outline.}
+}
+}
+
 \examples{
   # Plot the standard normal CDF, shading up to the 97.5th percentile.
   ggplot() +
     geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, lower.tail = TRUE)
 
+}
+\seealso{
+\code{\link[=geom_pdf]{geom_pdf()}}, \code{\link[=geom_qf]{geom_qf()}}, \code{\link[=geom_survival]{geom_survival()}}, \code{\link[=geom_hf]{geom_hf()}},
+\code{\link[=geom_chf]{geom_chf()}}, and \code{\link[=geom_cdf_discrete]{geom_cdf_discrete()}} for related distribution-function
+layers.
 }
 \keyword{datasets}

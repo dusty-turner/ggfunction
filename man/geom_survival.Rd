@@ -125,6 +125,28 @@ first derived by numerical integration and then \eqn{S(x) = 1 - F(x)}.
 When \code{qf_fun} is supplied, the CDF is derived via interpolation and then
 \eqn{S(x) = 1 - F(x)}.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Points at which the survival function is evaluated.}
+\item{\code{after_stat(y)}}{Survival probabilities.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_survival()} does not require any input aesthetics when a function
+source is supplied. It understands the following aesthetics:
+\describe{
+\item{Computed position aesthetics}{\code{x} and \code{y}, mapped by default to
+\code{after_stat(x)} and \code{after_stat(y)}.}
+\item{Drawing aesthetics}{\code{alpha}, \code{colour}/\code{color}, \code{group},
+\code{linetype}, and \code{linewidth} for the line.}
+}
+}
+
 \examples{
   # Direct survival function
   ggplot() +
@@ -137,5 +159,10 @@ When \code{qf_fun} is supplied, the CDF is derived via interpolation and then
   ggplot() +
     geom_survival(cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 
+}
+\seealso{
+\code{\link[=geom_cdf]{geom_cdf()}}, \code{\link[=geom_chf]{geom_chf()}}, \code{\link[=geom_hf]{geom_hf()}},
+\code{\link[=geom_survival_discrete]{geom_survival_discrete()}}, and \code{\link[=geom_ecdf_km]{geom_ecdf_km()}} for related survival and
+distribution-function layers.
 }
 \keyword{datasets}

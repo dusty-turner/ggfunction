@@ -160,6 +160,23 @@ field (integral curves). It wraps \code{\link[ggvfields:geom_vector_field]{ggvfi
 \code{type = "vector"} and \code{\link[ggvfields:geom_stream_field]{ggvfields::geom_stream_field()}} for
 \code{type = "stream"}.
 }
+\section{Computed variables}{
+
+\code{geom_function_2d_2d()} delegates vector-field and stream-field computation
+to \pkg{ggvfields}. The local function interface evaluates \code{fun} on seed
+points from \code{grid} or from the regular grid determined by \code{xlim}, \code{ylim}, and
+\code{n}; downstream computed variables are those supplied by the corresponding
+\pkg{ggvfields} stat.
+}
+
+\section{Aesthetics}{
+
+\code{geom_function_2d_2d()} does not require input aesthetics when \code{fun} is
+supplied. Aesthetics for vectors, streamlines, arrowheads, seed points, and
+tail points are delegated to \code{\link[ggvfields:geom_vector_field]{ggvfields::geom_vector_field()}} or
+\code{\link[ggvfields:geom_stream_field]{ggvfields::geom_stream_field()}} depending on \code{type}.
+}
+
 \examples{
 library(ggfunction)
 f <- function(u) c(-u[2], u[1])

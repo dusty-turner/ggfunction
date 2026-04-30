@@ -144,7 +144,7 @@ outside the \code{p_lower}/\code{p_upper} interval rather than inside. Defaults 
 \code{FALSE}.}
 
 \item{shade_hdr}{(Optional) A numeric value between 0 and 1 specifying the
-target coverage of the highest density region (HDR) to shade -- the
+target coverage of the highest density region (HDR) to shade: the
 smallest set of support points containing at least the specified probability
 mass. Because a discrete distribution may not achieve the exact coverage,
 the smallest HDR with coverage >= \code{shade_hdr} is used and a message is
@@ -163,6 +163,29 @@ threshold (\code{p}), a two-sided interval (\code{p_lower}/\code{p_upper}), or a
 density region (\code{shade_hdr}). Non-shaded lollipops are rendered in grey with
 dashed segments.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Support points at which the PMF is evaluated.}
+\item{\code{after_stat(y)}}{Probability mass at each support point.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_pmf()} does not require any input aesthetics when \code{fun} is supplied.
+It understands the following aesthetics:
+\describe{
+\item{Computed position aesthetics}{\code{x} and \code{y}, mapped by default to
+\code{after_stat(x)} and \code{after_stat(y)}.}
+\item{Drawing aesthetics}{\code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group},
+\code{linetype}, \code{linewidth}, \code{shape}, \code{size}, and \code{stroke} for the lollipop
+display.}
+}
+}
+
 \examples{
 # Basic PMF
 ggplot() +
@@ -178,5 +201,10 @@ ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
     shade_hdr = 0.8)
 
+}
+\seealso{
+\code{\link[=geom_pdf]{geom_pdf()}}, \code{\link[=geom_cdf_discrete]{geom_cdf_discrete()}}, \code{\link[=geom_qf_discrete]{geom_qf_discrete()}}, and
+\code{\link[=geom_survival_discrete]{geom_survival_discrete()}} for related discrete distribution-function
+layers.
 }
 \keyword{datasets}

@@ -42,7 +42,28 @@
 #' @param color Line color for the hazard curve.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Points at which the hazard function is evaluated.}
+#'   \item{`after_stat(y)`}{Hazard values.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_hf()` does not require any input aesthetics when a function source is
+#' supplied. It understands the following aesthetics:
+#' \describe{
+#'   \item{Computed position aesthetics}{`x` and `y`, mapped by default to
+#'   `after_stat(x)` and `after_stat(y)`.}
+#'   \item{Drawing aesthetics}{`alpha`, `colour`/`color`, `group`,
+#'   `linetype`, and `linewidth` for the line.}
+#' }
+#'
 #' @return A ggplot2 layer.
+#'
+#' @seealso [geom_chf()], [geom_survival()], [geom_pdf()], and [geom_cdf()] for
+#'   related distribution-function layers.
 #'
 #' @examples
 #'   # PDF + CDF interface

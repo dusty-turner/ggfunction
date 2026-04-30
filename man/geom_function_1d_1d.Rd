@@ -107,6 +107,28 @@ A ggplot2 layer.
 \code{geom_function_1d_1d()} computes a function \eqn{f: \mathbb{R} \to \mathbb{R}} and plots it
 as a line (like \code{\link[ggplot2:geom_function]{ggplot2::geom_function()}}) with an optional shaded region between two x-values.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Points at which \code{fun} is evaluated.}
+\item{\code{after_stat(y)}}{Function values.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_function_1d_1d()} does not require any input aesthetics when \code{fun} is
+supplied. It understands the following aesthetics:
+\describe{
+\item{Computed position aesthetics}{\code{x} and \code{y}, mapped by default to
+\code{after_stat(x)} and \code{after_stat(y)}.}
+\item{Drawing aesthetics}{\code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group},
+\code{linetype}, and \code{linewidth} for the line and optional shaded region.}
+}
+}
+
 \examples{
   ggplot() +
     geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi))
@@ -115,5 +137,9 @@ as a line (like \code{\link[ggplot2:geom_function]{ggplot2::geom_function()}}) w
     geom_function_1d_1d(fun = dnorm, xlim = c(-3, 3),
       shade_from = -1, shade_to = 1)
 
+}
+\seealso{
+\code{\link[ggplot2:geom_function]{ggplot2::geom_function()}} for ggplot2's built-in one-dimensional
+function layer.
 }
 \keyword{datasets}

@@ -163,6 +163,24 @@ with the normal critical value, giving pointwise bounds
 \eqn{\hat{H}(t) \pm z_{1-\alpha/2}\,\mathrm{se}(t)} with lower bound
 clipped to 0.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Event times.}
+\item{\code{after_stat(y)}}{Nelson-Aalen cumulative hazard estimates.}
+\item{\code{after_stat(ymin)} and \code{after_stat(ymax)}}{Lower and upper confidence
+band limits when \code{conf_int = TRUE}.}
+}
+}
+
+\section{Dropped variables}{
+
+\code{status} is used to compute event times and risk sets, but is not available
+after statistical transformation.
+}
+
 \section{Aesthetics}{
 
 \code{geom_echf_na()} requires the following aesthetics:
@@ -170,7 +188,8 @@ clipped to 0.
 \item{\code{x}}{Observed time (event or censoring time).}
 \item{\code{status}}{Event indicator: 1 = event occurred, 0 = censored.}
 }
-It also understands \code{colour}, \code{alpha}, \code{linewidth}, and \code{linetype}.
+It also understands \code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group}, \code{linetype},
+\code{linewidth}, \code{shape}, \code{size}, and \code{stroke}.
 }
 
 \examples{

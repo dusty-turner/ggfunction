@@ -40,12 +40,33 @@
 #'   `fun`.
 #' @param tail_point Logical. If `TRUE`, a point is drawn at the tail (starting
 #'   position) of the stream.
+#' @param type Character. Rendering type passed to [ggvfields::GeomStream].
+#'   Defaults to `"stream"`.
 #' @param arrow A [grid::arrow()] specification to add arrowheads to the stream.
 #'   Defaults to `NULL` (no arrowhead). Pass `grid::arrow()` to add one.
 #' @param ... Other arguments passed on to [ggplot2::layer()].
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(t)`}{Parameter values, typically time.}
+#'   \item{`after_stat(x)`}{First coordinate returned by `fun`.}
+#'   \item{`after_stat(y)`}{Second coordinate returned by `fun`.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_function_1d_2d()` does not require input aesthetics when `fun` is
+#' supplied. The default mapping sets `colour = after_stat(t)`. Additional path
+#' and stream aesthetics such as `alpha`, `colour`/`color`, `group`,
+#' `linetype`, and `linewidth` are passed to [ggvfields::GeomStream].
+#'
 #' @return A ggplot2 layer that computes and plots a stream by evaluating a
 #'   one-dimensional function over a time sequence.
+#'
+#' @seealso [geom_function_2d_2d()] for vector fields generated from
+#'   two-dimensional inputs, and \pkg{ggvfields} for the delegated stream
+#'   drawing machinery.
 #'
 #' @examples
 #' f <- function(t) {

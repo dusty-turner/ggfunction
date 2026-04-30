@@ -40,7 +40,7 @@
 #'   outside the `p_lower`/`p_upper` interval rather than inside. Defaults to
 #'   `FALSE`.
 #' @param shade_hdr (Optional) A numeric value between 0 and 1 specifying the
-#'   target coverage of the highest density region (HDR) to shade -- the
+#'   target coverage of the highest density region (HDR) to shade: the
 #'   smallest set of support points containing at least the specified probability
 #'   mass. Because a discrete distribution may not achieve the exact coverage,
 #'   the smallest HDR with coverage >= `shade_hdr` is used and a message is
@@ -48,7 +48,30 @@
 #'   coverage whenever they differ.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Support points at which the PMF is evaluated.}
+#'   \item{`after_stat(y)`}{Probability mass at each support point.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_pmf()` does not require any input aesthetics when `fun` is supplied.
+#' It understands the following aesthetics:
+#' \describe{
+#'   \item{Computed position aesthetics}{`x` and `y`, mapped by default to
+#'   `after_stat(x)` and `after_stat(y)`.}
+#'   \item{Drawing aesthetics}{`alpha`, `colour`/`color`, `fill`, `group`,
+#'   `linetype`, `linewidth`, `shape`, `size`, and `stroke` for the lollipop
+#'   display.}
+#' }
+#'
 #' @return A ggplot2 layer.
+#'
+#' @seealso [geom_pdf()], [geom_cdf_discrete()], [geom_qf_discrete()], and
+#'   [geom_survival_discrete()] for related discrete distribution-function
+#'   layers.
 #'
 #' @examples
 #' # Basic PMF

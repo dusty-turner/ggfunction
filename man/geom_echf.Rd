@@ -173,6 +173,29 @@ resolution \eqn{1/n} and CDF values closer to 1 than \eqn{1/(2n)} are
 below the estimator's resolution. When clipping occurs, an informational
 message is emitted.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Distinct observed sample values except the final
+value when the empirical cumulative hazard would be infinite.}
+\item{\code{after_stat(y)}}{Empirical cumulative hazard values.}
+\item{\code{after_stat(ymin)} and \code{after_stat(ymax)}}{Lower and upper confidence
+band limits when \code{conf_int = TRUE}.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_echf()} requires the following aesthetic:
+\describe{
+\item{\code{x}}{Observed sample values.}
+}
+It also understands \code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group}, \code{linetype},
+\code{linewidth}, \code{shape}, \code{size}, and \code{stroke}.
+}
+
 \examples{
 set.seed(1)
 
@@ -190,5 +213,9 @@ df2 <- data.frame(
 )
 ggplot(df2, aes(x = x, colour = group)) + geom_echf()
 
+}
+\seealso{
+\code{\link[=geom_chf]{geom_chf()}} for theoretical cumulative hazard functions,
+\code{\link[=geom_ecdf]{geom_ecdf()}} for empirical CDFs, and \code{\link[=geom_echf_na]{geom_echf_na()}} for censored data.
 }
 \keyword{datasets}

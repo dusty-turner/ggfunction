@@ -268,6 +268,37 @@ parameters are estimated from the same data, the display is best interpreted
 as an informal diagnostic. The DKW bands are known to be conservative, so
 power can be expected to be low.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Theoretical probabilities for PP plots or
+theoretical quantiles for QQ plots.}
+\item{\code{after_stat(y)}}{Observed probabilities for PP plots or observed
+sample quantiles for QQ plots.}
+\item{\code{after_stat(p)}}{Plotting positions returned by \code{\link[stats:ppoints]{stats::ppoints()}}.}
+\item{\code{after_stat(theoretical)}}{Theoretical probabilities or quantiles.}
+\item{\code{after_stat(observed)}}{Observed probabilities or sample quantiles.}
+\item{\code{after_stat(sample)}}{Sorted sample values.}
+\item{\code{after_stat(n)}}{Sample size after removing non-finite values.}
+\item{\code{after_stat(ymin)} and \code{after_stat(ymax)}}{Lower and upper confidence
+band limits when \code{conf_int = TRUE}.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_ppplot()} and \code{geom_qqplot()} require the following aesthetic:
+\describe{
+\item{\code{x}}{Observed sample values.}
+}
+They also understand point aesthetics such as \code{alpha}, \code{colour}/\code{color},
+\code{fill}, \code{group}, \code{shape}, \code{size}, and \code{stroke}; confidence-band aesthetics
+such as \code{fill} and \code{alpha}; and identity-line parameters supplied through
+\code{line_color}, \code{line_linetype}, and \code{line_linewidth}.
+}
+
 \examples{
 set.seed(1)
 df <- data.frame(x = rnorm(50))

@@ -186,6 +186,26 @@ cumulative variance term, evaluated at the first and last valid event-time
 values. The resulting band is simultaneous (valid at all \eqn{t} jointly),
 not merely pointwise, and is asymptotically correct.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Event or censoring times used by the displayed
+layer.}
+\item{\code{after_stat(y)}}{Kaplan-Meier survival estimates for the main curve,
+or survival estimates at censoring times for censor marks.}
+\item{\code{after_stat(ymin)} and \code{after_stat(ymax)}}{Lower and upper simultaneous
+confidence-band limits when \code{conf_int = TRUE}.}
+}
+}
+
+\section{Dropped variables}{
+
+\code{status} is used to compute event times, censoring times, and risk sets, but
+is not available after statistical transformation.
+}
+
 \section{Aesthetics}{
 
 \code{geom_ecdf_km()} requires the following aesthetics:
@@ -193,7 +213,8 @@ not merely pointwise, and is asymptotically correct.
 \item{\code{x}}{Observed time (event or censoring time).}
 \item{\code{status}}{Event indicator: 1 = event occurred, 0 = censored.}
 }
-It also understands \code{colour}, \code{alpha}, \code{linewidth}, and \code{linetype}.
+It also understands \code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group}, \code{linetype},
+\code{linewidth}, \code{shape}, \code{size}, and \code{stroke}.
 }
 
 \examples{

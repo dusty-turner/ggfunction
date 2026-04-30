@@ -20,7 +20,37 @@
 #' @param show.legend Logical. Should this layer be included in the legends? `NA` includes if aesthetics are mapped.
 #' @param inherit.aes If `FALSE`, overrides default aesthetics rather than combining them.
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Grid x coordinates.}
+#'   \item{`after_stat(y)`}{Grid y coordinates.}
+#'   \item{`after_stat(z)`}{Function values on the grid for raster and contour
+#'   inputs. The raster display maps `fill = after_stat(z)` by default.}
+#'   \item{`after_stat(level)`}{Contour level for `type = "contour"` or
+#'   `type = "contour_filled"`.}
+#'   \item{`after_stat(nlevel)`}{Contour level scaled to a maximum of 1.}
+#'   \item{`after_stat(piece)`}{Contour piece identifier.}
+#'   \item{`after_stat(level_low)`}{Lower boundary of each filled-contour band.}
+#'   \item{`after_stat(level_high)`}{Upper boundary of each filled-contour band.}
+#'   \item{`after_stat(level_mid)`}{Midpoint of each filled-contour band.}
+#' }
+#'
+#' @section Dropped variables:
+#' `z` is used to compute contour lines or filled contour bands and is not
+#' available after contouring.
+#'
+#' @section Aesthetics:
+#' `geom_function_2d_1d()` does not require input aesthetics when `fun` is
+#' supplied. Raster layers understand `x`, `y`, `fill`, `alpha`, and `group`;
+#' contour layers use ggplot2's contour aesthetics, including `colour`,
+#' `linetype`, `linewidth`, `fill`, and `group` depending on `type`.
+#'
 #' @return A `ggplot2` layer.
+#'
+#' @seealso [ggplot2::geom_raster()] and [ggplot2::geom_contour()] for the
+#'   underlying raster and contour drawing conventions.
 #' @export
 #'
 #' @examples

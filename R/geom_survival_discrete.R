@@ -41,7 +41,30 @@
 #'   points and hidden otherwise.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Support points at which the discrete survival
+#'   function is evaluated.}
+#'   \item{`after_stat(y)`}{Survival probabilities.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_survival_discrete()` does not require any input aesthetics when a
+#' function source is supplied. It understands the following aesthetics:
+#' \describe{
+#'   \item{Computed position aesthetics}{`x` and `y`, mapped by default to
+#'   `after_stat(x)` and `after_stat(y)`.}
+#'   \item{Drawing aesthetics}{`alpha`, `colour`/`color`, `fill`, `group`,
+#'   `linetype`, `linewidth`, `shape`, `size`, and `stroke` for steps,
+#'   jump segments, and endpoints.}
+#' }
+#'
 #' @return A ggplot2 layer.
+#'
+#' @seealso [geom_survival()], [geom_cdf_discrete()], [geom_qf_discrete()], and
+#'   [geom_pmf()] for related discrete distribution-function layers.
 #'
 #' @examples
 #'   # via PMF

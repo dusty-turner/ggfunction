@@ -158,6 +158,31 @@ inverted), \code{cdf_fun} (a CDF such as \link{pbinom}, evaluated on the integer
 support and inverted), or \code{survival_fun} (a discrete survival function,
 from which the CDF is computed as \eqn{F(x) = 1 - S(x)} and then inverted).
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(p)}}{Cumulative probabilities that define the quantile
+step boundaries.}
+\item{\code{after_stat(x)}}{Support values; the default y aesthetic maps to
+this variable.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_qf_discrete()} does not require any input aesthetics when a function
+source is supplied. It understands the following aesthetics:
+\describe{
+\item{Computed position aesthetics}{\code{x} and \code{y}, mapped by default to
+\code{after_stat(p)} and \code{after_stat(x)}.}
+\item{Drawing aesthetics}{\code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group},
+\code{linetype}, \code{linewidth}, \code{shape}, \code{size}, and \code{stroke} for steps,
+jump segments, and endpoints.}
+}
+}
+
 \examples{
   # via PMF
   ggplot() +
@@ -170,5 +195,9 @@ from which the CDF is computed as \eqn{F(x) = 1 - S(x)} and then inverted).
   ggplot() +
     geom_qf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 
+}
+\seealso{
+\code{\link[=geom_qf]{geom_qf()}}, \code{\link[=geom_cdf_discrete]{geom_cdf_discrete()}}, \code{\link[=geom_survival_discrete]{geom_survival_discrete()}}, and
+\code{\link[=geom_pmf]{geom_pmf()}} for related discrete distribution-function layers.
 }
 \keyword{datasets}

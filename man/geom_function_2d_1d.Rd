@@ -102,6 +102,39 @@ A \code{ggplot2} layer.
 \description{
 \code{geom_function_2d_1d} adds a layer to visualize 2D functions or vector fields in a \code{ggplot2} plot.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Grid x coordinates.}
+\item{\code{after_stat(y)}}{Grid y coordinates.}
+\item{\code{after_stat(z)}}{Function values on the grid for raster and contour
+inputs. The raster display maps \code{fill = after_stat(z)} by default.}
+\item{\code{after_stat(level)}}{Contour level for \code{type = "contour"} or
+\code{type = "contour_filled"}.}
+\item{\code{after_stat(nlevel)}}{Contour level scaled to a maximum of 1.}
+\item{\code{after_stat(piece)}}{Contour piece identifier.}
+\item{\code{after_stat(level_low)}}{Lower boundary of each filled-contour band.}
+\item{\code{after_stat(level_high)}}{Upper boundary of each filled-contour band.}
+\item{\code{after_stat(level_mid)}}{Midpoint of each filled-contour band.}
+}
+}
+
+\section{Dropped variables}{
+
+\code{z} is used to compute contour lines or filled contour bands and is not
+available after contouring.
+}
+
+\section{Aesthetics}{
+
+\code{geom_function_2d_1d()} does not require input aesthetics when \code{fun} is
+supplied. Raster layers understand \code{x}, \code{y}, \code{fill}, \code{alpha}, and \code{group};
+contour layers use ggplot2's contour aesthetics, including \code{colour},
+\code{linetype}, \code{linewidth}, \code{fill}, and \code{group} depending on \code{type}.
+}
+
 \examples{
 # Function that calculates the norm
 f <- function(v) {
@@ -168,5 +201,9 @@ f_spiral <- function(v) {
 
 ggplot() +
   geom_function_2d_1d(fun = f_spiral, xlim = c(-50, 50), ylim = c(-50, 50), n = 500)
+}
+\seealso{
+\code{\link[ggplot2:geom_tile]{ggplot2::geom_raster()}} and \code{\link[ggplot2:geom_contour]{ggplot2::geom_contour()}} for the
+underlying raster and contour drawing conventions.
 }
 \keyword{datasets}

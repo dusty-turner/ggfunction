@@ -44,6 +44,9 @@ given as \code{c(t_start, t_end)}. Defaults to \code{c(0, 10)}.}
 \item{tail_point}{Logical. If \code{TRUE}, a point is drawn at the tail (starting
 position) of the stream.}
 
+\item{type}{Character. Rendering type passed to \link[ggvfields:geom_stream]{ggvfields::GeomStream}.
+Defaults to \code{"stream"}.}
+
 \item{arrow}{A \code{\link[grid:arrow]{grid::arrow()}} specification to add arrowheads to the stream.
 Defaults to \code{NULL} (no arrowhead). Pass \code{grid::arrow()} to add one.}
 
@@ -68,6 +71,25 @@ In many cases these layers are useful for visualizing dynamic systems or
 flows where a one-dimensional parameter (often time) drives movement in
 two-dimensional space.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(t)}}{Parameter values, typically time.}
+\item{\code{after_stat(x)}}{First coordinate returned by \code{fun}.}
+\item{\code{after_stat(y)}}{Second coordinate returned by \code{fun}.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_function_1d_2d()} does not require input aesthetics when \code{fun} is
+supplied. The default mapping sets \code{colour = after_stat(t)}. Additional path
+and stream aesthetics such as \code{alpha}, \code{colour}/\code{color}, \code{group},
+\code{linetype}, and \code{linewidth} are passed to \link[ggvfields:geom_stream]{ggvfields::GeomStream}.
+}
+
 \examples{
 f <- function(t) {
   c(sin(t), cos(t))
@@ -145,5 +167,10 @@ f <- function(t,
 
 ggplot() + geom_function_1d_2d(fun = f, tlim = c(0, 5))
 
+}
+\seealso{
+\code{\link[=geom_function_2d_2d]{geom_function_2d_2d()}} for vector fields generated from
+two-dimensional inputs, and \pkg{ggvfields} for the delegated stream
+drawing machinery.
 }
 \keyword{datasets}

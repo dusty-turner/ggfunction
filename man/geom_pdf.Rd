@@ -154,7 +154,7 @@ return density \code{0}.}
 
 \item{xlim}{A numeric vector of length 2 giving the x-range over which to evaluate the PDF.}
 
-\item{n}{(defaults to 101)Number of points at which to evaluate \code{fun}.}
+\item{n}{Number of points at which to evaluate the density. Defaults to 101.}
 
 \item{args}{A named list of additional arguments to pass to \code{fun}.}
 
@@ -205,6 +205,28 @@ A ggplot2 layer.
 This function is similar to \code{\link[ggplot2:geom_function]{ggplot2::geom_function()}}, but it shades the area corresponding to
 a given proportion of the total density.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Points at which the density is evaluated.}
+\item{\code{after_stat(y)}}{Density values.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_pdf()} does not require any input aesthetics when a function source is
+supplied. It understands the following aesthetics:
+\describe{
+\item{Computed position aesthetics}{\code{x} and \code{y}, mapped by default to
+\code{after_stat(x)} and \code{after_stat(y)}.}
+\item{Drawing aesthetics}{\code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group},
+\code{linetype}, and \code{linewidth} for the area and outline.}
+}
+}
+
 \examples{
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3), p = .975, lower.tail = TRUE)
@@ -214,5 +236,9 @@ f_bim <- function(x) 0.5 * dnorm(x, -2, 0.5) + 0.5 * dnorm(x, 2, 0.5)
 ggplot() +
   geom_pdf(fun = f_bim, xlim = c(-4, 4), shade_hdr = 0.9)
 
+}
+\seealso{
+\code{\link[=geom_cdf]{geom_cdf()}}, \code{\link[=geom_qf]{geom_qf()}}, \code{\link[=geom_survival]{geom_survival()}}, \code{\link[=geom_hf]{geom_hf()}},
+\code{\link[=geom_chf]{geom_chf()}}, and \code{\link[=geom_pmf]{geom_pmf()}} for related distribution-function layers.
 }
 \keyword{datasets}

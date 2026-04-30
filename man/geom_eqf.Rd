@@ -163,6 +163,28 @@ one-sided bounds unless known support bounds are supplied; the ribbon displays
 these as open-ended, panel-clipped tails. This follows directly from inverting
 the simultaneous ECDF confidence band.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Empirical cumulative probabilities.}
+\item{\code{after_stat(y)}}{Observed sample values.}
+\item{\code{after_stat(ymin)} and \code{after_stat(ymax)}}{Lower and upper confidence
+band limits when \code{conf_int = TRUE}.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_eqf()} requires the following aesthetic:
+\describe{
+\item{\code{x}}{Observed sample values.}
+}
+It also understands \code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group}, \code{linetype},
+\code{linewidth}, \code{shape}, \code{size}, and \code{stroke}.
+}
+
 \examples{
 set.seed(1)
 df <- data.frame(x = rnorm(50))
@@ -176,5 +198,9 @@ df2 <- data.frame(
 )
 ggplot(df2, aes(x = x, colour = group)) + geom_eqf()
 
+}
+\seealso{
+\code{\link[=geom_qf]{geom_qf()}} and \code{\link[=geom_qf_discrete]{geom_qf_discrete()}} for theoretical quantile
+functions, and \code{\link[=geom_ecdf]{geom_ecdf()}} for empirical CDFs.
 }
 \keyword{datasets}

@@ -236,13 +236,30 @@ NULL
 #' @param censor_shape Shape for censoring marks. Defaults to `3` ("+").
 #' @param censor_size Size for censoring marks. Defaults to `2`.
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Event or censoring times used by the displayed
+#'   layer.}
+#'   \item{`after_stat(y)`}{Kaplan-Meier survival estimates for the main curve,
+#'   or survival estimates at censoring times for censor marks.}
+#'   \item{`after_stat(ymin)` and `after_stat(ymax)`}{Lower and upper simultaneous
+#'   confidence-band limits when `conf_int = TRUE`.}
+#' }
+#'
+#' @section Dropped variables:
+#' `status` is used to compute event times, censoring times, and risk sets, but
+#' is not available after statistical transformation.
+#'
 #' @section Aesthetics:
 #' `geom_ecdf_km()` requires the following aesthetics:
 #' \describe{
 #'   \item{`x`}{Observed time (event or censoring time).}
 #'   \item{`status`}{Event indicator: 1 = event occurred, 0 = censored.}
 #' }
-#' It also understands `colour`, `alpha`, `linewidth`, and `linetype`.
+#' It also understands `alpha`, `colour`/`color`, `fill`, `group`, `linetype`,
+#' `linewidth`, `shape`, `size`, and `stroke`.
 #'
 #' @return A ggplot2 layer, or a list of layers when `conf_int = TRUE` or
 #'   `censor_marks = TRUE`.
@@ -485,13 +502,28 @@ StatCensorMarks <- ggproto("StatCensorMarks", Stat,
 #' @param conf_alpha Alpha (transparency) of the confidence ribbon. Defaults
 #'   to `0.4`.
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Event times.}
+#'   \item{`after_stat(y)`}{Nelson-Aalen cumulative hazard estimates.}
+#'   \item{`after_stat(ymin)` and `after_stat(ymax)`}{Lower and upper confidence
+#'   band limits when `conf_int = TRUE`.}
+#' }
+#'
+#' @section Dropped variables:
+#' `status` is used to compute event times and risk sets, but is not available
+#' after statistical transformation.
+#'
 #' @section Aesthetics:
 #' `geom_echf_na()` requires the following aesthetics:
 #' \describe{
 #'   \item{`x`}{Observed time (event or censoring time).}
 #'   \item{`status`}{Event indicator: 1 = event occurred, 0 = censored.}
 #' }
-#' It also understands `colour`, `alpha`, `linewidth`, and `linetype`.
+#' It also understands `alpha`, `colour`/`color`, `fill`, `group`, `linetype`,
+#' `linewidth`, `shape`, `size`, and `stroke`.
 #'
 #' @return A ggplot2 layer, or a list of two layers when `conf_int = TRUE`.
 #'

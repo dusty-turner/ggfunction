@@ -132,6 +132,26 @@ The empirical distribution places mass \eqn{c_k / n} at each distinct
 observed value \eqn{x_k}, where \eqn{c_k} is the count of occurrences and
 \eqn{n} is the total sample size. Ties are handled correctly.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Distinct observed sample values.}
+\item{\code{after_stat(y)}}{Empirical probability mass at each value.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_epmf()} requires the following aesthetic:
+\describe{
+\item{\code{x}}{Observed sample values.}
+}
+It also understands \code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group}, \code{linetype},
+\code{linewidth}, \code{shape}, \code{size}, and \code{stroke}.
+}
+
 \examples{
 set.seed(1)
 df <- data.frame(x = rnorm(50))
@@ -145,5 +165,9 @@ df2 <- data.frame(
 )
 ggplot(df2, aes(x = x, colour = group)) + geom_epmf()
 
+}
+\seealso{
+\code{\link[=geom_pmf]{geom_pmf()}} for theoretical PMFs, \code{\link[=geom_ecdf]{geom_ecdf()}} for empirical CDFs,
+and \code{\link[=geom_eqf]{geom_eqf()}} for empirical quantile functions.
 }
 \keyword{datasets}

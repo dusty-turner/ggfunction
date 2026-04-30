@@ -75,7 +75,29 @@ NULL
 #' @param conf_alpha Alpha (transparency) of the confidence ribbon. Defaults
 #'   to `0.4`.
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Distinct observed sample values.}
+#'   \item{`after_stat(y)`}{Empirical cumulative probabilities.}
+#'   \item{`after_stat(ymin)` and `after_stat(ymax)`}{Lower and upper confidence
+#'   band limits when `conf_int = TRUE`.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_ecdf()` requires the following aesthetic:
+#' \describe{
+#'   \item{`x`}{Observed sample values.}
+#' }
+#' It also understands `alpha`, `colour`/`color`, `fill`, `group`, `linetype`,
+#' `linewidth`, `shape`, `size`, and `stroke`.
+#'
 #' @return A ggplot2 layer, or a list of two layers when `conf_int = TRUE`.
+#'
+#' @seealso [geom_cdf()] for theoretical CDFs, [geom_eqf()] for empirical
+#'   quantile functions, [geom_epmf()] for empirical probability masses, and
+#'   [geom_ecdf_km()] for right-censored data.
 #'
 #' @examples
 #' set.seed(1)
@@ -224,7 +246,28 @@ StatECDFBand <- ggproto("StatECDFBand", Stat,
 #'
 #' @inheritParams geom_ecdf
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Empirical cumulative probabilities.}
+#'   \item{`after_stat(y)`}{Observed sample values.}
+#'   \item{`after_stat(ymin)` and `after_stat(ymax)`}{Lower and upper confidence
+#'   band limits when `conf_int = TRUE`.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_eqf()` requires the following aesthetic:
+#' \describe{
+#'   \item{`x`}{Observed sample values.}
+#' }
+#' It also understands `alpha`, `colour`/`color`, `fill`, `group`, `linetype`,
+#' `linewidth`, `shape`, `size`, and `stroke`.
+#'
 #' @return A ggplot2 layer, or a list of two layers when `conf_int = TRUE`.
+#'
+#' @seealso [geom_qf()] and [geom_qf_discrete()] for theoretical quantile
+#'   functions, and [geom_ecdf()] for empirical CDFs.
 #'
 #' @examples
 #' set.seed(1)
@@ -394,8 +437,27 @@ StatEQFBand <- ggproto("StatEQFBand", Stat,
 #' @param stick_linetype Linetype of the vertical segments. Defaults to
 #'   `"dashed"`.
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Distinct observed sample values.}
+#'   \item{`after_stat(y)`}{Empirical probability mass at each value.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_epmf()` requires the following aesthetic:
+#' \describe{
+#'   \item{`x`}{Observed sample values.}
+#' }
+#' It also understands `alpha`, `colour`/`color`, `fill`, `group`, `linetype`,
+#' `linewidth`, `shape`, `size`, and `stroke`.
+#'
 #' @return A list of two ggplot2 layers: a blank layer that anchors the y-axis
 #'   at 0 and the main lollipop layer.
+#'
+#' @seealso [geom_pmf()] for theoretical PMFs, [geom_ecdf()] for empirical CDFs,
+#'   and [geom_eqf()] for empirical quantile functions.
 #'
 #' @examples
 #' set.seed(1)
@@ -503,7 +565,29 @@ StatEPMF <- ggproto("StatEPMF", Stat,
 #'   Defaults to `NULL`, which clips at \eqn{\log(2n)} and emits an
 #'   informational message. Set to `Inf` to disable clipping entirely.
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Distinct observed sample values except the final
+#'   value when the empirical cumulative hazard would be infinite.}
+#'   \item{`after_stat(y)`}{Empirical cumulative hazard values.}
+#'   \item{`after_stat(ymin)` and `after_stat(ymax)`}{Lower and upper confidence
+#'   band limits when `conf_int = TRUE`.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_echf()` requires the following aesthetic:
+#' \describe{
+#'   \item{`x`}{Observed sample values.}
+#' }
+#' It also understands `alpha`, `colour`/`color`, `fill`, `group`, `linetype`,
+#' `linewidth`, `shape`, `size`, and `stroke`.
+#'
 #' @return A ggplot2 layer, or a list of two layers when `conf_int = TRUE`.
+#'
+#' @seealso [geom_chf()] for theoretical cumulative hazard functions,
+#'   [geom_ecdf()] for empirical CDFs, and [geom_echf_na()] for censored data.
 #'
 #' @examples
 #' set.seed(1)

@@ -119,6 +119,31 @@ When \code{pdf_fun} is supplied, the CDF is first derived by numerical
 integration and then inverted. When \code{survival_fun} is supplied, the CDF is
 computed as \eqn{F(x) = 1 - S(x)} and then inverted.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(p)}}{Probability values at which the quantile function
+is evaluated.}
+\item{\code{after_stat(x)}}{Quantile values; the default y aesthetic maps to
+this variable.}
+\item{\code{after_stat(q)}}{Quantile values.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_qf()} does not require any input aesthetics when a function source is
+supplied. It understands the following aesthetics:
+\describe{
+\item{Computed position aesthetics}{\code{x} and \code{y}, mapped by default to
+\code{after_stat(p)} and \code{after_stat(x)}.}
+\item{Drawing aesthetics}{\code{alpha}, \code{colour}/\code{color}, \code{group},
+\code{linetype}, and \code{linewidth} for the line.}
+}
+}
+
 \examples{
   ggplot() +
     geom_qf(fun = qnorm, args = list(mean = 3, sd = 2))
@@ -126,5 +151,9 @@ computed as \eqn{F(x) = 1 - S(x)} and then inverted.
   ggplot() +
     geom_qf(fun = qbeta, args = list(shape1 = 3, shape2 = 4))
 
+}
+\seealso{
+\code{\link[=geom_cdf]{geom_cdf()}}, \code{\link[=geom_pdf]{geom_pdf()}}, and \code{\link[=geom_qf_discrete]{geom_qf_discrete()}} for related
+quantile and distribution-function layers.
 }
 \keyword{datasets}

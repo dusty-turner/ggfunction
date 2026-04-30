@@ -141,6 +141,28 @@ directly), \code{hf_fun} (a hazard function, integrated numerically),
 \code{cdf_fun} (a CDF), \code{pdf_fun} (a PDF), \code{survival_fun} (a survival
 function), or \code{qf_fun} (a quantile function).
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Points at which the cumulative hazard is evaluated.}
+\item{\code{after_stat(y)}}{Cumulative hazard values.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_chf()} does not require any input aesthetics when a function source is
+supplied. It understands the following aesthetics:
+\describe{
+\item{Computed position aesthetics}{\code{x} and \code{y}, mapped by default to
+\code{after_stat(x)} and \code{after_stat(y)}.}
+\item{Drawing aesthetics}{\code{alpha}, \code{colour}/\code{color}, \code{group},
+\code{linetype}, and \code{linewidth} for the line.}
+}
+}
+
 \examples{
   # Via CDF
   ggplot() +
@@ -154,5 +176,9 @@ function), or \code{qf_fun} (a quantile function).
   ggplot() +
     geom_chf(survival_fun = function(x) 1 - pnorm(x), xlim = c(-3, 3))
 
+}
+\seealso{
+\code{\link[=geom_hf]{geom_hf()}}, \code{\link[=geom_survival]{geom_survival()}}, \code{\link[=geom_cdf]{geom_cdf()}}, and \code{\link[=geom_echf]{geom_echf()}} for
+related hazard and survival-function layers.
 }
 \keyword{datasets}

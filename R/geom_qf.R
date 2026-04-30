@@ -34,7 +34,31 @@
 #'   or `pdf_fun`.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(p)`}{Probability values at which the quantile function
+#'   is evaluated.}
+#'   \item{`after_stat(x)`}{Quantile values; the default y aesthetic maps to
+#'   this variable.}
+#'   \item{`after_stat(q)`}{Quantile values.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_qf()` does not require any input aesthetics when a function source is
+#' supplied. It understands the following aesthetics:
+#' \describe{
+#'   \item{Computed position aesthetics}{`x` and `y`, mapped by default to
+#'   `after_stat(p)` and `after_stat(x)`.}
+#'   \item{Drawing aesthetics}{`alpha`, `colour`/`color`, `group`,
+#'   `linetype`, and `linewidth` for the line.}
+#' }
+#'
 #' @return A ggplot2 layer.
+#'
+#' @seealso [geom_cdf()], [geom_pdf()], and [geom_qf_discrete()] for related
+#'   quantile and distribution-function layers.
 #'
 #' @examples
 #'   ggplot() +

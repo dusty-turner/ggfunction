@@ -43,7 +43,28 @@
 #' @param xlim A numeric vector of length 2 giving the x-range.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Points at which the cumulative hazard is evaluated.}
+#'   \item{`after_stat(y)`}{Cumulative hazard values.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_chf()` does not require any input aesthetics when a function source is
+#' supplied. It understands the following aesthetics:
+#' \describe{
+#'   \item{Computed position aesthetics}{`x` and `y`, mapped by default to
+#'   `after_stat(x)` and `after_stat(y)`.}
+#'   \item{Drawing aesthetics}{`alpha`, `colour`/`color`, `group`,
+#'   `linetype`, and `linewidth` for the line.}
+#' }
+#'
 #' @return A ggplot2 layer.
+#'
+#' @seealso [geom_hf()], [geom_survival()], [geom_cdf()], and [geom_echf()] for
+#'   related hazard and survival-function layers.
 #'
 #' @examples
 #'   # Via CDF

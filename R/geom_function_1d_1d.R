@@ -15,7 +15,28 @@
 #' @param shade_to (Optional) Numeric. Right boundary of the x-interval to shade.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Points at which `fun` is evaluated.}
+#'   \item{`after_stat(y)`}{Function values.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_function_1d_1d()` does not require any input aesthetics when `fun` is
+#' supplied. It understands the following aesthetics:
+#' \describe{
+#'   \item{Computed position aesthetics}{`x` and `y`, mapped by default to
+#'   `after_stat(x)` and `after_stat(y)`.}
+#'   \item{Drawing aesthetics}{`alpha`, `colour`/`color`, `fill`, `group`,
+#'   `linetype`, and `linewidth` for the line and optional shaded region.}
+#' }
+#'
 #' @return A ggplot2 layer.
+#'
+#' @seealso [ggplot2::geom_function()] for ggplot2's built-in one-dimensional
+#'   function layer.
 #'
 #' @examples
 #'   ggplot() +

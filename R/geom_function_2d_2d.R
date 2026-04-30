@@ -40,6 +40,19 @@
 #'   [ggvfields::GeomStream].
 #' @param ... Other arguments passed to [ggplot2::layer()].
 #'
+#' @section Computed variables:
+#' `geom_function_2d_2d()` delegates vector-field and stream-field computation
+#' to \pkg{ggvfields}. The local function interface evaluates `fun` on seed
+#' points from `grid` or from the regular grid determined by `xlim`, `ylim`, and
+#' `n`; downstream computed variables are those supplied by the corresponding
+#' \pkg{ggvfields} stat.
+#'
+#' @section Aesthetics:
+#' `geom_function_2d_2d()` does not require input aesthetics when `fun` is
+#' supplied. Aesthetics for vectors, streamlines, arrowheads, seed points, and
+#' tail points are delegated to [ggvfields::geom_vector_field()] or
+#' [ggvfields::geom_stream_field()] depending on `type`.
+#'
 #' @return A ggplot2 layer.
 #'
 #' @seealso \pkg{ggvfields} (Turner, Kahle, and Sturdivant) for a richer

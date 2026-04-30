@@ -163,6 +163,28 @@ The half-width is \eqn{\varepsilon = \sqrt{\log(2/\alpha) / (2n)}}, where
 \eqn{[\hat{F}_n(x) - \varepsilon,\, \hat{F}_n(x) + \varepsilon]} clipped to
 \eqn{[0, 1]}.
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Distinct observed sample values.}
+\item{\code{after_stat(y)}}{Empirical cumulative probabilities.}
+\item{\code{after_stat(ymin)} and \code{after_stat(ymax)}}{Lower and upper confidence
+band limits when \code{conf_int = TRUE}.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_ecdf()} requires the following aesthetic:
+\describe{
+\item{\code{x}}{Observed sample values.}
+}
+It also understands \code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group}, \code{linetype},
+\code{linewidth}, \code{shape}, \code{size}, and \code{stroke}.
+}
+
 \examples{
 set.seed(1)
 
@@ -179,5 +201,10 @@ df2 <- data.frame(
 )
 ggplot(df2, aes(x = x, colour = group)) + geom_ecdf()
 
+}
+\seealso{
+\code{\link[=geom_cdf]{geom_cdf()}} for theoretical CDFs, \code{\link[=geom_eqf]{geom_eqf()}} for empirical
+quantile functions, \code{\link[=geom_epmf]{geom_epmf()}} for empirical probability masses, and
+\code{\link[=geom_ecdf_km]{geom_ecdf_km()}} for right-censored data.
 }
 \keyword{datasets}

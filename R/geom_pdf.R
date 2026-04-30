@@ -30,7 +30,7 @@
 #'   For finite-support hazards, set this to the lower support point (for
 #'   example, `0` for Weibull or exponential hazards); values below `hf_lower`
 #'   return density `0`.
-#' @param n (defaults to 101)Number of points at which to evaluate `fun`.
+#' @param n Number of points at which to evaluate the density. Defaults to 101.
 #' @param args A named list of additional arguments to pass to `fun`.
 #' @param xlim A numeric vector of length 2 giving the x-range over which to evaluate the PDF.
 #' @param fill Fill color for the shaded area.
@@ -61,7 +61,28 @@
 #'   integrate to 1 over the drawn x-range. Use `FALSE` to suppress this check.
 #' @param check_tol Numeric tolerance used by the normalization check.
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Points at which the density is evaluated.}
+#'   \item{`after_stat(y)`}{Density values.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_pdf()` does not require any input aesthetics when a function source is
+#' supplied. It understands the following aesthetics:
+#' \describe{
+#'   \item{Computed position aesthetics}{`x` and `y`, mapped by default to
+#'   `after_stat(x)` and `after_stat(y)`.}
+#'   \item{Drawing aesthetics}{`alpha`, `colour`/`color`, `fill`, `group`,
+#'   `linetype`, and `linewidth` for the area and outline.}
+#' }
+#'
 #' @return A ggplot2 layer.
+#'
+#' @seealso [geom_cdf()], [geom_qf()], [geom_survival()], [geom_hf()],
+#'   [geom_chf()], and [geom_pmf()] for related distribution-function layers.
 #'
 #' @examples
 #' ggplot() +

@@ -45,7 +45,31 @@
 #' @param check_tol Numeric tolerance used by the CDF endpoint check.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
+#' @section Computed variables:
+#' These are calculated by the `stat` part of the layer and can be accessed
+#' with [ggplot2::after_stat()].
+#' \describe{
+#'   \item{`after_stat(x)`}{Points at which the CDF is evaluated.}
+#'   \item{`after_stat(y)`}{CDF values.}
+#'   \item{`after_stat(p)`}{CDF values; the default y aesthetic maps to this
+#'   variable.}
+#' }
+#'
+#' @section Aesthetics:
+#' `geom_cdf()` does not require any input aesthetics when a function source is
+#' supplied. It understands the following aesthetics:
+#' \describe{
+#'   \item{Computed position aesthetics}{`x` and `y`, mapped by default to
+#'   `after_stat(x)` and `after_stat(p)`.}
+#'   \item{Drawing aesthetics}{`alpha`, `colour`/`color`, `fill`, `group`,
+#'   `linetype`, and `linewidth` for the area and outline.}
+#' }
+#'
 #' @return A ggplot2 layer.
+#'
+#' @seealso [geom_pdf()], [geom_qf()], [geom_survival()], [geom_hf()],
+#'   [geom_chf()], and [geom_cdf_discrete()] for related distribution-function
+#'   layers.
 #'
 #' @examples
 #'   # Plot the standard normal CDF, shading up to the 97.5th percentile.

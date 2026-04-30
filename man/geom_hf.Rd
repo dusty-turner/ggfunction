@@ -144,6 +144,28 @@ interpolation and the PDF by differentiation.
 Supply either \code{fun} alone, one or both of \code{pdf_fun}/\code{cdf_fun},
 \code{survival_fun}, or \code{qf_fun}. By default only the line is drawn (no fill).
 }
+\section{Computed variables}{
+
+These are calculated by the \code{stat} part of the layer and can be accessed
+with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
+\describe{
+\item{\code{after_stat(x)}}{Points at which the hazard function is evaluated.}
+\item{\code{after_stat(y)}}{Hazard values.}
+}
+}
+
+\section{Aesthetics}{
+
+\code{geom_hf()} does not require any input aesthetics when a function source is
+supplied. It understands the following aesthetics:
+\describe{
+\item{Computed position aesthetics}{\code{x} and \code{y}, mapped by default to
+\code{after_stat(x)} and \code{after_stat(y)}.}
+\item{Drawing aesthetics}{\code{alpha}, \code{colour}/\code{color}, \code{group},
+\code{linetype}, and \code{linewidth} for the line.}
+}
+}
+
 \examples{
   # PDF + CDF interface
   ggplot() +
@@ -159,5 +181,9 @@ Supply either \code{fun} alone, one or both of \code{pdf_fun}/\code{cdf_fun},
     geom_hf(fun = h_weibull, xlim = c(0.01, 5),
       args = list(shape = 0.5, scale = 2))
 
+}
+\seealso{
+\code{\link[=geom_chf]{geom_chf()}}, \code{\link[=geom_survival]{geom_survival()}}, \code{\link[=geom_pdf]{geom_pdf()}}, and \code{\link[=geom_cdf]{geom_cdf()}} for
+related distribution-function layers.
 }
 \keyword{datasets}
