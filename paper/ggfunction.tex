@@ -794,22 +794,22 @@ ppqq_theme <- theme_gray(base_size = 8) +
   )
 
 p_norm_pp <- ggplot(df_normal, aes(x = x)) +
-  geom_ppplot(fun = pnorm, fill = "black", size = 1.2) +
+  geom_ppplot(fun = pnorm, colour = "black", size = 1.2) +
   coord_equal() +
   ggtitle("Normal data: PP")
 
 p_norm_qq <- ggplot(df_normal, aes(x = x)) +
-  geom_qqplot(fun = qnorm, fill = "black", size = 1.2) +
+  geom_qqplot(fun = qnorm, colour = "black", size = 1.2) +
   coord_equal() +
   ggtitle("Normal data: QQ")
 
 p_exp_pp <- ggplot(df_exp, aes(x = x)) +
-  geom_ppplot(fun = pnorm, fill = "black", size = 1.2) +
+  geom_ppplot(fun = pnorm, colour = "black", size = 1.2) +
   coord_equal() +
   ggtitle("Exponential data: PP")
 
 p_exp_qq <- ggplot(df_exp, aes(x = x)) +
-  geom_qqplot(fun = qnorm, fill = "black", size = 1.2) +
+  geom_qqplot(fun = qnorm, colour = "black", size = 1.2) +
   coord_equal() +
   ggtitle("Exponential data: QQ")
 
@@ -818,7 +818,7 @@ p_exp_qq <- ggplot(df_exp, aes(x = x)) +
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/ppqq-gof-1}
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/ppqq-gof-1} 
 
 }
 

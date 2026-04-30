@@ -44,9 +44,9 @@ geom_ppplot(
   line_color = "red",
   line_linetype = "dashed",
   line_linewidth = 0.5,
-  shape = 21,
-  size = 1.5,
-  stroke = 0.5,
+  shape = NULL,
+  size = NULL,
+  stroke = NULL,
   color = NULL
 )
 
@@ -75,9 +75,9 @@ geom_qqplot(
   line_color = "red",
   line_linetype = "dashed",
   line_linewidth = 0.5,
-  shape = 21,
-  size = 1.5,
-  stroke = 0.5,
+  shape = NULL,
+  size = NULL,
+  stroke = NULL,
   color = NULL
 )
 
@@ -209,9 +209,12 @@ line \eqn{y = x}.}
 \item{line_color, line_linetype, line_linewidth}{Appearance of the identity
 line.}
 
-\item{shape, size, stroke, color}{Default point appearance. When
-\code{color = NULL}, ggplot2's default black point outline is used unless
-colour is mapped.}
+\item{shape, size, stroke}{Optional fixed point appearance. Defaults to \code{NULL}
+so the corresponding \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}} defaults are used.}
+
+\item{color}{Optional fixed point colour. When \code{NULL}, PP plots map
+\code{colour} to the sorted sample value and QQ plots map \code{colour} to the
+plotting position.}
 }
 \value{
 A list of ggplot2 layers.
@@ -265,11 +268,6 @@ parameters are estimated from the same data, the display is best interpreted
 as an informal diagnostic. The DKW bands are known to be conservative, so
 power can be expected to be low.
 }
-\references{
-Michael, J. R. (1983). The stabilized probability plot. \emph{Biometrika},
-70(1), 11--17. \doi{10.1093/biomet/70.1.11};
-\url{https://www.jstor.org/stable/2335939}.
-}
 \examples{
 set.seed(1)
 df <- data.frame(x = rnorm(50))
@@ -282,17 +280,22 @@ ggplot(df, aes(x = x)) +
   geom_qqplot(fun = qnorm) +
   coord_equal()
 
-# Use fixed black points by setting a fixed fill.
+# Use fixed black points by setting a fixed colour.
 ggplot(df, aes(x = x)) +
-  geom_qqplot(fun = qnorm, fill = "black") +
+  geom_qqplot(fun = qnorm, colour = "black") +
   coord_equal()
 
-# Or add a spectral/rainbow fill scale explicitly.
+# Or add a spectral/rainbow colour scale explicitly.
 ggplot(df, aes(x = x)) +
   geom_qqplot(fun = qnorm) +
-  scale_fill_gradientn(colors = grDevices::rainbow(10)) +
+  scale_colour_gradientn(colors = grDevices::rainbow(10)) +
   coord_equal()
 
 
+}
+\references{
+Michael, J. R. (1983). The stabilized probability plot. \emph{Biometrika},
+70(1), 11--17. \doi{10.1093/biomet/70.1.11};
+\url{https://www.jstor.org/stable/2335939}.
 }
 \keyword{datasets}

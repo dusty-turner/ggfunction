@@ -127,34 +127,40 @@ test_that("geom_ppplot and geom_qqplot build without confidence bands", {
   expect_silent(ggplot_build(p_qq))
 })
 
-test_that("geom_ppplot and geom_qqplot use ggplot2 default fill scale", {
+test_that("geom_ppplot and geom_qqplot use ggplot2 default colour scale", {
   df <- data.frame(x = rnorm(30))
 
   p_pp <- ggplot(df, aes(x = x)) + geom_ppplot(fun = pnorm)
   p_qq <- ggplot(df, aes(x = x)) + geom_qqplot(fun = qnorm)
+  built_pp <- ggplot_build(p_pp)
+  built_qq <- ggplot_build(p_qq)
 
-  expect_s3_class(ggplot_build(p_pp)$plot$scales$get_scales("fill"), "ScaleContinuous")
-  expect_s3_class(ggplot_build(p_qq)$plot$scales$get_scales("fill"), "ScaleContinuous")
+  expect_s3_class(built_pp$plot$scales$get_scales("colour"), "ScaleContinuous")
+  expect_s3_class(built_qq$plot$scales$get_scales("colour"), "ScaleContinuous")
+  expect_true(all(built_pp$data[[3]]$shape == 19))
+  expect_true(all(built_qq$data[[3]]$shape == 19))
 })
 
-test_that("geom_ppplot and geom_qqplot support fixed black fill and explicit spectral scales", {
+test_that("geom_ppplot and geom_qqplot support fixed black colour and explicit spectral scales", {
   df <- data.frame(x = rnorm(30))
 
-  expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_ppplot(fun = pnorm, fill = "black")
-  ))
-  expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_qqplot(fun = qnorm, fill = "black")
-  ))
+  fixed_pp <- ggplot_build(
+    ggplot(df, aes(x = x)) + geom_ppplot(fun = pnorm, colour = "black")
+  )
+  fixed_qq <- ggplot_build(
+    ggplot(df, aes(x = x)) + geom_qqplot(fun = qnorm, colour = "black")
+  )
+  expect_null(fixed_pp$plot$scales$get_scales("colour"))
+  expect_null(fixed_qq$plot$scales$get_scales("colour"))
   expect_silent(ggplot_build(
     ggplot(df, aes(x = x)) +
       geom_ppplot(fun = pnorm) +
-      scale_fill_gradientn(colors = grDevices::rainbow(10))
+      scale_colour_gradientn(colors = grDevices::rainbow(10))
   ))
   expect_silent(ggplot_build(
     ggplot(df, aes(x = x)) +
       geom_qqplot(fun = qnorm) +
-      scale_fill_gradientn(colors = grDevices::rainbow(10))
+      scale_colour_gradientn(colors = grDevices::rainbow(10))
   ))
 })
 
@@ -298,14 +304,14 @@ test_that("geom_ppplot and geom_qqplot do not override explicit labels", {
   df <- data.frame(x = rnorm(20))
 
   p_pp <- ggplot(df, aes(x = x)) +
-    labs(x = "prob", y = "cdf", fill = "value") +
+    labs(x = "prob", y = "cdf", colour = "value") +
     geom_ppplot(fun = pnorm, conf_int = FALSE)
   p_qq <- ggplot(df, aes(x = x)) +
-    labs(x = "theory", y = "sample", fill = "probability") +
+    labs(x = "theory", y = "sample", colour = "probability") +
     geom_qqplot(fun = qnorm, conf_int = FALSE)
 
   expect_equal(plot_axis_titles(p_pp), c(x = "prob", y = "cdf"))
   expect_equal(plot_axis_titles(p_qq), c(x = "theory", y = "sample"))
-  expect_equal(ggplot_build(p_pp)$plot$labels$fill, "value")
-  expect_equal(ggplot_build(p_qq)$plot$labels$fill, "probability")
+  expect_equal(ggplot_build(p_pp)$plot$labels$colour, "value")
+  expect_equal(ggplot_build(p_qq)$plot$labels$colour, "probability")
 })

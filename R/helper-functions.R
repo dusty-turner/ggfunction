@@ -39,8 +39,21 @@ probability_axis_anchor <- function() {
 }
 
 #' @noRd
-default_labs_component <- function(x = NULL, y = NULL, fill = NULL) {
-  structure(list(x = x, y = y, fill = fill), class = "ggfunction_default_labs")
+default_labs_component <- function(x = NULL, y = NULL, fill = NULL, colour = NULL) {
+  structure(
+    list(x = x, y = y, fill = fill, colour = colour),
+    class = "ggfunction_default_labs"
+  )
+}
+
+#' @noRd
+normalise_colour_params <- function(params) {
+  if ("color" %in% names(params)) {
+    color <- params$color
+    params$color <- NULL
+    if (!("colour" %in% names(params))) params$colour <- color
+  }
+  params
 }
 
 #' @exportS3Method ggplot2::ggplot_add
@@ -53,6 +66,9 @@ ggplot_add.ggfunction_default_labs <- function(object, plot, object_name) {
   }
   if (is.null(plot$labels$fill) && !is.null(object$fill)) {
     plot$labels$fill <- object$fill
+  }
+  if (is.null(plot$labels$colour) && !is.null(object$colour)) {
+    plot$labels$colour <- object$colour
   }
   plot
 }

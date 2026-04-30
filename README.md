@@ -722,9 +722,9 @@ ggplot(df_two, aes(x = x, color = group)) +
 
 `geom_ppplot()` and `geom_qqplot()` compare sample order statistics to a
 fully specified null distribution. Both draw 95% DKW/Massart confidence
-bands by default, add a dashed identity line, and map point fill to the
-sample value (PP) or plotting position (QQ). They use ggplot2’s default
-continuous fill scale unless you add your own.
+bands by default, add a dashed identity line, and map point colour to
+the sample value (PP) or plotting position (QQ). They use ggplot2’s
+default continuous colour scale unless you add your own.
 
 ``` r
 ggplot(df_single, aes(x = x)) +
@@ -742,12 +742,12 @@ ggplot(df_single, aes(x = x)) +
 
 <img src="man/figures/readme-qqplot-1.png" alt="" width="60%" />
 
-**Black points.** Set a fixed fill when you want an uncolored diagnostic
-plot.
+**Black points.** Set a fixed colour when you want an uncolored
+diagnostic plot.
 
 ``` r
 ggplot(df_single, aes(x = x)) +
-  geom_qqplot(fun = qnorm, fill = "black") +
+  geom_qqplot(fun = qnorm, colour = "black") +
   coord_equal()
 ```
 
@@ -760,7 +760,7 @@ $p$ in PP or QQ plots, respectively).
 ``` r
 ggplot(df_single, aes(x = x)) +
   geom_qqplot(fun = qnorm) +
-  scale_fill_gradientn(
+  scale_colour_gradientn(
     colors = rainbow(10),
     labels = scales::percent_format(),
     limits = c(0, 1)

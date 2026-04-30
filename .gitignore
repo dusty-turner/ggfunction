@@ -5,8 +5,10 @@
 /doc/
 /Meta/
 README.html
-vignettes/ggfunction.html
+vignettes/*.html
+pkgdown/
 .claude/
 Rplots.pdf
 .DS_Store
 paper/articles/
+.positai

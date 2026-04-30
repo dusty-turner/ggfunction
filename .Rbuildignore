@@ -15,9 +15,11 @@ dusty_files*
 ^\.claude$
 ^doc$
 ^Meta$
+^vignettes/.*\.html$
 ^\.Rprofile$
 ^paper$
 ^README_files$
 ^README\.html$
 ^Rplots\.pdf$
 ^data-raw$
+^\.positai$

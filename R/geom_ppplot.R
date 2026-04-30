@@ -73,9 +73,11 @@
 #'   line \eqn{y = x}.
 #' @param line_color,line_linetype,line_linewidth Appearance of the identity
 #'   line.
-#' @param shape,size,stroke,color Default point appearance. When
-#'   `color = NULL`, ggplot2's default black point outline is used unless
-#'   colour is mapped.
+#' @param shape,size,stroke Optional fixed point appearance. Defaults to `NULL`
+#'   so the corresponding [ggplot2::geom_point()] defaults are used.
+#' @param color Optional fixed point colour. When `NULL`, PP plots map
+#'   `colour` to the sorted sample value and QQ plots map `colour` to the
+#'   plotting position.
 #'
 #' @return A list of ggplot2 layers.
 #'
@@ -96,15 +98,15 @@
 #'   geom_qqplot(fun = qnorm) +
 #'   coord_equal()
 #'
-#' # Use fixed black points by setting a fixed fill.
+#' # Use fixed black points by setting a fixed colour.
 #' ggplot(df, aes(x = x)) +
-#'   geom_qqplot(fun = qnorm, fill = "black") +
+#'   geom_qqplot(fun = qnorm, colour = "black") +
 #'   coord_equal()
 #'
-#' # Or add a spectral/rainbow fill scale explicitly.
+#' # Or add a spectral/rainbow colour scale explicitly.
 #' ggplot(df, aes(x = x)) +
 #'   geom_qqplot(fun = qnorm) +
-#'   scale_fill_gradientn(colors = grDevices::rainbow(10)) +
+#'   scale_colour_gradientn(colors = grDevices::rainbow(10)) +
 #'   coord_equal()
 #'
 #'
@@ -137,18 +139,25 @@ geom_ppplot <- function(
     line_color = "red",
     line_linetype = "dashed",
     line_linewidth = 0.5,
-    shape = 21,
-    size = 1.5,
-    stroke = 0.5,
+    shape = NULL,
+    size = NULL,
+    stroke = NULL,
     color = NULL
 ) {
-  point_aes_params <- list(...)
-  has_fixed_fill <- "fill" %in% names(point_aes_params)
+  point_aes_params <- normalise_colour_params(list(...))
+  has_fixed_colour <- "colour" %in% names(point_aes_params) || !is.null(color)
 
-  default_mapping <- if (has_fixed_fill) {
-    aes(y = after_stat(y))
-  } else {
-    aes(y = after_stat(y), fill = after_stat(sample))
+  default_mapping <- aes(y = after_stat(y))
+  point_stat <- stat
+  if (!has_fixed_colour) {
+    if (inherits(stat, "ggproto")) {
+      point_stat <- ggplot2::ggproto(
+        NULL, stat,
+        default_aes = aes(colour = after_stat(sample))
+      )
+    } else {
+      default_mapping <- modifyList(default_mapping, aes(colour = after_stat(sample)))
+    }
   }
   if (is.null(mapping)) {
     mapping <- default_mapping
@@ -165,18 +174,18 @@ geom_ppplot <- function(
     hf_lower = hf_lower,
     args = args,
     a = a,
-    na.rm = na.rm,
-    shape = shape,
-    size = size,
-    stroke = stroke
+    na.rm = na.rm
   )
+  if (!is.null(shape)) point_params$shape <- shape
+  if (!is.null(size)) point_params$size <- size
+  if (!is.null(stroke)) point_params$stroke <- stroke
   point_params <- c(point_params, point_aes_params)
   if (!is.null(color)) point_params$colour <- color
 
   main_layer <- layer(
     data = data,
     mapping = mapping,
-    stat = stat,
+    stat = point_stat,
     geom = GeomPoint,
     position = position,
     show.legend = show.legend,
@@ -223,7 +232,7 @@ geom_ppplot <- function(
   c(layers, list(default_labs_component(
     x = "Theoretical probabilities",
     y = "Observed probabilities",
-    fill = if (has_fixed_fill) NULL else "x"
+    colour = if (has_fixed_colour) NULL else "x"
   )))
 }
 
@@ -254,18 +263,25 @@ geom_qqplot <- function(
     line_color = "red",
     line_linetype = "dashed",
     line_linewidth = 0.5,
-    shape = 21,
-    size = 1.5,
-    stroke = 0.5,
+    shape = NULL,
+    size = NULL,
+    stroke = NULL,
     color = NULL
 ) {
-  point_aes_params <- list(...)
-  has_fixed_fill <- "fill" %in% names(point_aes_params)
+  point_aes_params <- normalise_colour_params(list(...))
+  has_fixed_colour <- "colour" %in% names(point_aes_params) || !is.null(color)
 
-  default_mapping <- if (has_fixed_fill) {
-    aes(y = after_stat(y))
-  } else {
-    aes(y = after_stat(y), fill = after_stat(p))
+  default_mapping <- aes(y = after_stat(y))
+  point_stat <- stat
+  if (!has_fixed_colour) {
+    if (inherits(stat, "ggproto")) {
+      point_stat <- ggplot2::ggproto(
+        NULL, stat,
+        default_aes = aes(colour = after_stat(p))
+      )
+    } else {
+      default_mapping <- modifyList(default_mapping, aes(colour = after_stat(p)))
+    }
   }
   if (is.null(mapping)) {
     mapping <- default_mapping
@@ -282,18 +298,18 @@ geom_qqplot <- function(
     hf_lower = hf_lower,
     args = args,
     a = a,
-    na.rm = na.rm,
-    shape = shape,
-    size = size,
-    stroke = stroke
+    na.rm = na.rm
   )
+  if (!is.null(shape)) point_params$shape <- shape
+  if (!is.null(size)) point_params$size <- size
+  if (!is.null(stroke)) point_params$stroke <- stroke
   point_params <- c(point_params, point_aes_params)
   if (!is.null(color)) point_params$colour <- color
 
   main_layer <- layer(
     data = data,
     mapping = mapping,
-    stat = stat,
+    stat = point_stat,
     geom = GeomPoint,
     position = position,
     show.legend = show.legend,
@@ -347,7 +363,7 @@ geom_qqplot <- function(
   c(layers, list(default_labs_component(
     x = "Theoretical quantiles",
     y = "Observed quantiles",
-    fill = if (has_fixed_fill) NULL else "p"
+    colour = if (has_fixed_colour) NULL else "p"
   )))
 }
 
