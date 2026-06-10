@@ -58,3 +58,64 @@ test_that("geom_function_2d_1d with contour and custom mapping", {
   expect_s3_class(p, "gg")
   expect_no_error(ggplot_build(p))
 })
+
+test_that("StatFunction2d passes args to fun", {
+  f <- function(v, a = 1, b = 1) a * v[1] + b * v[2]
+  result <- StatFunction2d$compute_group(
+    data = data.frame(x = NA_real_, y = NA_real_),
+    scales = list(x = NULL, y = NULL),
+    fun = f,
+    xlim = c(0, 1),
+    ylim = c(0, 1),
+    n = 2,
+    args = list(a = 2, b = 3)
+  )
+  expect_equal(result$z, c(0, 2, 3, 5))
+})
+
+test_that("geom_function_2d_1d accepts args without unknown-parameter warning", {
+  f <- function(v, a = 1, b = 1) a * v[1] + b * v[2]
+  expect_no_warning(
+    p <- ggplot() +
+      geom_function_2d_1d(
+        fun = f, xlim = c(0, 1), ylim = c(0, 1), n = 5,
+        args = list(a = 2, b = 3)
+      )
+  )
+  expect_silent(ggplot_build(p))
+})
+
+test_that("stat_function_2d_1d accepts args without warnings", {
+  f <- function(v, a = 1, b = 1) a * v[1] + b * v[2]
+  expect_no_warning(
+    p <- ggplot() +
+      stat_function_2d_1d(
+        fun = f, xlim = c(0, 1), ylim = c(0, 1), n = 5,
+        args = list(a = 2, b = 3)
+      )
+  )
+  expect_silent(ggplot_build(p))
+})
+
+test_that("raster, contour, and contour_filled all use args", {
+  f_args <- function(v, a = 1, b = 1) a * sin(v[1]) + b * cos(v[2])
+  f_fixed <- function(v) 2 * sin(v[1]) + 0.5 * cos(v[2])
+
+  for (type in c("raster", "contour", "contour_filled")) {
+    built_args <- ggplot_build(
+      ggplot() +
+        geom_function_2d_1d(
+          fun = f_args, xlim = c(-3, 3), ylim = c(-3, 3), n = 20,
+          args = list(a = 2, b = 0.5), type = type
+        )
+    )
+    built_fixed <- ggplot_build(
+      ggplot() +
+        geom_function_2d_1d(
+          fun = f_fixed, xlim = c(-3, 3), ylim = c(-3, 3), n = 20,
+          type = type
+        )
+    )
+    expect_equal(built_args$data[[1]], built_fixed$data[[1]], label = type)
+  }
+})

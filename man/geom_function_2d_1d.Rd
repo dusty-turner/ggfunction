@@ -20,6 +20,7 @@ geom_function_2d_1d(
   xlim = NULL,
   ylim = NULL,
   n = NULL,
+  args = list(),
   type = "raster",
   bins = NULL,
   binwidth = NULL,
@@ -40,7 +41,8 @@ stat_function_2d_1d(
   fun = NULL,
   xlim = c(-1, 1),
   ylim = c(-1, 1),
-  n = 50
+  n = 50,
+  args = list()
 )
 
 StatFunction2d
@@ -71,6 +73,8 @@ StatFunction2dContourFilled
 \item{ylim}{Numeric vector of length 2 specifying the y-range of the grid. Required if \code{fun} is provided.}
 
 \item{n}{Number of points in the grid along each axis. Defaults to \code{50} in \code{stat_function_2d_1d}.}
+
+\item{args}{A named list of additional arguments passed to \code{fun}.}
 
 \item{type}{Character. Type of visualization: \code{"raster"} (default), \code{"contour"}, or \code{"contour_filled"}.}
 
@@ -191,6 +195,19 @@ f_spiral <- function(v) {
 
 ggplot() +
   geom_function_2d_1d(fun = f_spiral, xlim = c(-50, 50), ylim = c(-50, 50), n = 500)
+
+# Parameterized scalar field via `args`
+f <- function(v, a = 1, b = 1) {
+  a * sin(v[1]) + b * cos(v[2])
+}
+
+ggplot() +
+  geom_function_2d_1d(
+    fun = f,
+    xlim = c(-5, 5),
+    ylim = c(-5, 5),
+    args = list(a = 2, b = 0.5)
+  )
 }
 \seealso{
 \code{\link[ggplot2:geom_raster]{ggplot2::geom_raster()}} and \code{\link[ggplot2:geom_contour]{ggplot2::geom_contour()}} for the

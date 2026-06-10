@@ -12,6 +12,7 @@
 #' @param xlim Numeric vector of length 2 specifying the x-range of the grid. Required if `fun` is provided.
 #' @param ylim Numeric vector of length 2 specifying the y-range of the grid. Required if `fun` is provided.
 #' @param n Number of points in the grid along each axis. Defaults to `50` in `stat_function_2d_1d`.
+#' @param args A named list of additional arguments passed to `fun`.
 #' @param type Character. Type of visualization: `"raster"` (default), `"contour"`, or `"contour_filled"`.
 #' @param bins Number of contour bins. Only used when `type` is `"contour"` or `"contour_filled"`.
 #' @param binwidth Width of contour bins. Only used when `type` is `"contour"` or `"contour_filled"`.
@@ -119,6 +120,19 @@
 #'
 #' ggplot() +
 #'   geom_function_2d_1d(fun = f_spiral, xlim = c(-50, 50), ylim = c(-50, 50), n = 500)
+#'
+#' # Parameterized scalar field via `args`
+#' f <- function(v, a = 1, b = 1) {
+#'   a * sin(v[1]) + b * cos(v[2])
+#' }
+#'
+#' ggplot() +
+#'   geom_function_2d_1d(
+#'     fun = f,
+#'     xlim = c(-5, 5),
+#'     ylim = c(-5, 5),
+#'     args = list(a = 2, b = 0.5)
+#'   )
 
 #' @rdname geom_function_2d_1d
 #' @export
@@ -130,6 +144,7 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
                                 xlim = NULL,
                                 ylim = NULL,
                                 n = NULL,
+                                args = list(),
                                 type = "raster",
                                 bins = NULL,
                                 binwidth = NULL,
@@ -178,6 +193,7 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
     xlim = xlim,
     ylim = ylim,
     n = n,
+    args = args,
     ...
   )
 
@@ -209,7 +225,8 @@ stat_function_2d_1d <- function(mapping = NULL, data = NULL,
                               fun = NULL,
                               xlim = c(-1, 1),
                               ylim = c(-1, 1),
-                              n = 50) {
+                              n = 50,
+                              args = list()) {
 
   if (is.null(xlim)) {
     xlim <- c(-1, 1)
@@ -239,6 +256,7 @@ stat_function_2d_1d <- function(mapping = NULL, data = NULL,
       xlim = xlim,
       ylim = ylim,
       n = n,
+      args = args,
       ...
     )
   )
@@ -253,7 +271,8 @@ StatFunction2d <- ggproto(
   # required_aes = character(0), # No required aesthetics to allow flexibility
   default_aes = aes(x = NA, y = NA, fill = "black", alpha = 1),
 
-  compute_group = function(data, scales, fun, xlim = NULL, ylim = NULL, n = NULL, ...) {
+  compute_group = function(data, scales, fun, xlim = NULL, ylim = NULL, n = NULL,
+                           args = NULL, ...) {
 
     # Scenario: Using a function to generate the vector field
     if (!is.null(fun)) {
@@ -275,7 +294,9 @@ StatFunction2d <- ggproto(
         y = seq(ylim[1], ylim[2], length.out = n)
       )
 
-      data$z <- vectorize(fun)(as.matrix(data))
+      args <- args %||% list()
+      fun_injected <- function(v) rlang::inject(fun(v, !!!args))
+      data$z <- vectorize(fun_injected)(as.matrix(data[, c("x", "y")]))
 
     } else {
       # fun is NULL, expecting user-provided data with x,y and dx,dy or angle/distance
@@ -311,7 +332,7 @@ StatFunction2dContour <- ggproto(
   ggplot2::StatContour,
 
   required_aes = character(0),
-  extra_params = c("na.rm", "fun", "xlim", "ylim", "n"),
+  extra_params = c("na.rm", "fun", "xlim", "ylim", "n", "args"),
 
   setup_params = function(data, params) {
     # Generate grid early so z.range is available for contour break computation
@@ -319,12 +340,14 @@ StatFunction2dContour <- ggproto(
     xlim <- params$xlim %||% c(-1, 1)
     ylim <- params$ylim %||% c(-1, 1)
     n <- params$n %||% 50
+    args <- params$args %||% list()
+    fun_injected <- function(v) rlang::inject(fun(v, !!!args))
 
     grid_data <- expand.grid(
       x = seq(xlim[1], xlim[2], length.out = n),
       y = seq(ylim[1], ylim[2], length.out = n)
     )
-    grid_data$z <- vectorize(fun)(as.matrix(grid_data[, c("x", "y")]))
+    grid_data$z <- vectorize(fun_injected)(as.matrix(grid_data[, c("x", "y")]))
     params$z.range <- range(grid_data$z, na.rm = TRUE, finite = TRUE)
     params$.grid_data <- grid_data
     params
@@ -345,19 +368,21 @@ StatFunction2dContourFilled <- ggproto(
   ggplot2::StatContourFilled,
 
   required_aes = character(0),
-  extra_params = c("na.rm", "fun", "xlim", "ylim", "n"),
+  extra_params = c("na.rm", "fun", "xlim", "ylim", "n", "args"),
 
   setup_params = function(data, params) {
     fun <- params$fun
     xlim <- params$xlim %||% c(-1, 1)
     ylim <- params$ylim %||% c(-1, 1)
     n <- params$n %||% 50
+    args <- params$args %||% list()
+    fun_injected <- function(v) rlang::inject(fun(v, !!!args))
 
     grid_data <- expand.grid(
       x = seq(xlim[1], xlim[2], length.out = n),
       y = seq(ylim[1], ylim[2], length.out = n)
     )
-    grid_data$z <- vectorize(fun)(as.matrix(grid_data[, c("x", "y")]))
+    grid_data$z <- vectorize(fun_injected)(as.matrix(grid_data[, c("x", "y")]))
     params$z.range <- range(grid_data$z, na.rm = TRUE, finite = TRUE)
     params$.grid_data <- grid_data
     params
