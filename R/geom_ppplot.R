@@ -150,6 +150,12 @@
 #'   geom_qqplot(fun = qnorm) +
 #'   coord_equal()
 #'
+#' # Parameterized null distribution via `args`
+#' df2 <- data.frame(x = rnorm(50, mean = 2, sd = 2))
+#' ggplot(df2, aes(x = x)) +
+#'   geom_ppplot(fun = pnorm, args = list(mean = 2, sd = 2)) +
+#'   coord_equal()
+#'
 #' # Use fixed black points by setting a fixed colour.
 #' ggplot(df, aes(x = x)) +
 #'   geom_qqplot(fun = qnorm, colour = "black") +
@@ -163,8 +169,7 @@
 #'
 #'
 #' @name geom_ppplot
-#' @aliases geom_spplot geom_qqplot StatPPPlot StatPPPlotBand StatSPPlot
-#'   StatSPPlotBand StatQQPlot StatQQPlotBand
+#' @aliases geom_spplot geom_qqplot StatPPPlot StatPPPlotBand StatSPPlot StatSPPlotBand StatQQPlot StatQQPlotBand
 #' @importFrom ggplot2 GeomPoint GeomRibbon
 #' @export
 geom_ppplot <- function(

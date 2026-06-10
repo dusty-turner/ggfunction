@@ -182,6 +182,10 @@ supplied. It understands the following aesthetics:
   ggplot() +
     geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, lower.tail = TRUE)
 
+  # Parameterized via `args`
+  ggplot() +
+    geom_cdf(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
+
 }
 \seealso{
 \code{\link[=geom_pdf]{geom_pdf()}}, \code{\link[=geom_qf]{geom_qf()}}, \code{\link[=geom_survival]{geom_survival()}}, \code{\link[=geom_hf]{geom_hf()}},

@@ -155,6 +155,15 @@ ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "contour_filled")
 ```
 
+**Parameterized fields.** As with the other function geoms, extra parameters for `fun` are passed via `args`.
+
+```{r 2d-1d-args}
+g <- function(v, a = 1, b = 1) a * sin(v[1]) + b * cos(v[2])
+
+ggplot() +
+  geom_function_2d_1d(fun = g, xlim = c(-5, 5), ylim = c(-5, 5), args = list(a = 2, b = 0.5))
+```
+
 
 
 

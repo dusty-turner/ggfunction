@@ -173,6 +173,18 @@ ggplot() +
 
 <img src="man/figures/readme-2d-1d-filled-1.png" alt="" width="60%" />
 
+**Parameterized fields.** As with the other function geoms, extra
+parameters for `fun` are passed via `args`.
+
+``` r
+g <- function(v, a = 1, b = 1) a * sin(v[1]) + b * cos(v[2])
+
+ggplot() +
+  geom_function_2d_1d(fun = g, xlim = c(-5, 5), ylim = c(-5, 5), args = list(a = 2, b = 0.5))
+```
+
+<img src="man/figures/readme-2d-1d-args-1.png" alt="" width="60%" />
+
 ### Vector fields: `geom_function_2d_2d()`
 
 `geom_function_2d_2d()` visualizes a vector field

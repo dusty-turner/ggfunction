@@ -194,6 +194,11 @@ ggplot() + geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
 ggplot() + geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1),
   type = "stream")
 
+# Parameterized field via `args`
+g <- function(u, k = 1) k * c(-u[2], u[1])
+ggplot() + geom_function_2d_2d(fun = g, xlim = c(-1, 1), ylim = c(-1, 1),
+  args = list(k = 3))
+
 }
 \seealso{
 \pkg{ggvfields} (Turner, Kahle, and Sturdivant) for a richer

@@ -72,8 +72,9 @@
 #'     geom_chf(cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 #'
 #'   # Via hazard function (constant hazard = exponential)
+#'   h_const <- function(x, rate) ifelse(x >= 0, rate, 0)
 #'   ggplot() +
-#'     geom_chf(hf_fun = function(x) ifelse(x >= 0, 0.5, 0), xlim = c(0, 10))
+#'     geom_chf(hf_fun = h_const, args = list(rate = 0.5), xlim = c(0, 10))
 #'
 #'   # Via survival function
 #'   ggplot() +

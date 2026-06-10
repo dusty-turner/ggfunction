@@ -44,20 +44,18 @@ ggplot() +
 Lissajous figures with different frequency ratios:
 
 ```{r lissajous, fig.width = 9, fig.height = 3}
-make_lissajous <- function(a, b) {
-  function(t) c(sin(a * t), cos(b * t))
-}
+lissajous <- function(t, a, b) c(sin(a * t), cos(b * t))
 
 p1 <- ggplot() +
-  geom_function_1d_2d(fun = make_lissajous(3, 2), tlim = c(0, 2 * pi)) +
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 2 * pi), args = list(a = 3, b = 2)) +
   coord_equal() + ggtitle("3:2") + theme_void()
 
 p2 <- ggplot() +
-  geom_function_1d_2d(fun = make_lissajous(5, 4), tlim = c(0, 2 * pi)) +
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 2 * pi), args = list(a = 5, b = 4)) +
   coord_equal() + ggtitle("5:4") + theme_void()
 
 p3 <- ggplot() +
-  geom_function_1d_2d(fun = make_lissajous(7, 6), tlim = c(0, 2 * pi)) +
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 2 * pi), args = list(a = 7, b = 6)) +
   coord_equal() + ggtitle("7:6") + theme_void()
 
 p1 + p2 + p3

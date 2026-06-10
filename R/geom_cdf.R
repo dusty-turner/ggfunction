@@ -76,6 +76,10 @@
 #'   ggplot() +
 #'     geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, lower.tail = TRUE)
 #'
+#'   # Parameterized via `args`
+#'   ggplot() +
+#'     geom_cdf(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
+#'
 #' @name geom_cdf
 #' @aliases StatCDF GeomCDF
 #' @export

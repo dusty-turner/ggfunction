@@ -134,6 +134,11 @@ supplied. It understands the following aesthetics:
     geom_function_1d_1d(fun = dnorm, xlim = c(-3, 3),
       shade_from = -1, shade_to = 1)
 
+  # Parameterized via `args`
+  ggplot() +
+    geom_function_1d_1d(fun = dnorm, xlim = c(-3, 9),
+      args = list(mean = 3, sd = 2))
+
 }
 \seealso{
 \code{\link[ggplot2:geom_function]{ggplot2::geom_function()}} for ggplot2's built-in one-dimensional
