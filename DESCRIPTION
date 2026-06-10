@@ -32,7 +32,9 @@ Depends:
     ggplot2 (>= 3.3.0)
 Imports:
     ggvfields,
-    cli
+    ggdensity,
+    cli,
+    rlang
 URL: https://github.com/dusty-turner/ggfunction
 BugReports: https://github.com/dusty-turner/ggfunction/issues
 Suggests:

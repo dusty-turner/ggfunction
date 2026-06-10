@@ -1,0 +1,139 @@
+dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
+  x <- matrix(v - mu, ncol = 1)
+  Sinv <- solve(Sigma)
+  1 / (2 * pi * sqrt(det(Sigma))) *
+    exp(-0.5 * as.numeric(t(x) %*% Sinv %*% x))
+}
+
+dbvn_xy <- function(x, y) dnorm(x) * dnorm(y)
+
+test_that("geom_pdf_2d builds filled HDRs without error", {
+  p <- ggplot() +
+    geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), n = 50) +
+    coord_equal()
+  expect_s3_class(p, "gg")
+  expect_no_error(ggplot_build(p))
+})
+
+test_that("geom_pdf_2d builds HDR lines without error", {
+  p <- ggplot() +
+    geom_pdf_2d(
+      fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), n = 50,
+      type = "hdr_lines"
+    )
+  expect_no_error(ggplot_build(p))
+})
+
+test_that("geom_pdf_2d defaults to filled HDRs", {
+  l_default <- geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3))
+  l_lines <- geom_pdf_2d(
+    fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3),
+    type = "hdr_lines"
+  )
+  expect_s3_class(l_default$stat, "StatHdrFun")
+  expect_s3_class(l_lines$stat, "StatHdrLinesFun")
+})
+
+test_that("pdf2d_vector_fun_to_xy_fun adapts and vectorizes fun", {
+  fun_xy <- ggfunction:::pdf2d_vector_fun_to_xy_fun(dbvn)
+  x <- c(-1, 0, 1)
+  y <- c(0.5, 0, -0.5)
+  expect_equal(fun_xy(x, y), dnorm(x) * dnorm(y))
+  # Recycles the shorter argument
+  expect_equal(fun_xy(0, y), dnorm(0) * dnorm(y))
+})
+
+test_that("args are passed through the adapter", {
+  Sigma <- matrix(c(1, 0.6, 0.6, 1), 2, 2)
+  fun_xy <- ggfunction:::pdf2d_vector_fun_to_xy_fun(
+    dbvn, args = list(Sigma = Sigma)
+  )
+  expect_equal(fun_xy(1, 1), dbvn(c(1, 1), Sigma = Sigma))
+
+  dbvn_fixed <- function(v) dbvn(v, Sigma = Sigma)
+  b_args <- ggplot_build(
+    ggplot() +
+      geom_pdf_2d(
+        fun = dbvn, args = list(Sigma = Sigma),
+        xlim = c(-3, 3), ylim = c(-3, 3), n = 40
+      )
+  )
+  b_fixed <- ggplot_build(
+    ggplot() +
+      geom_pdf_2d(
+        fun = dbvn_fixed,
+        xlim = c(-3, 3), ylim = c(-3, 3), n = 40
+      )
+  )
+  expect_equal(b_args$data[[1]], b_fixed$data[[1]])
+})
+
+test_that("invalid type errors via match.arg", {
+  expect_error(
+    geom_pdf_2d(fun = dbvn, type = "contour"),
+    "should be one of"
+  )
+})
+
+test_that("non-scalar fun return aborts with a clear message", {
+  fun_xy <- ggfunction:::pdf2d_vector_fun_to_xy_fun(function(v) c(1, 2))
+  expect_error(fun_xy(0, 0), "must return one numeric density value")
+
+  fun_xy_chr <- ggfunction:::pdf2d_vector_fun_to_xy_fun(function(v) "a")
+  expect_error(fun_xy_chr(0, 0), "must return one numeric density value")
+})
+
+test_that("wrapper matches a direct ggdensity call", {
+  p_wrapped <- ggplot() +
+    geom_pdf_2d(
+      fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3),
+      probs = c(0.5, 0.8), n = 50
+    )
+  p_direct <- ggplot() +
+    ggdensity::geom_hdr_fun(
+      fun = dbvn_xy, xlim = c(-3, 3), ylim = c(-3, 3),
+      probs = c(0.5, 0.8), n = 50
+    )
+
+  b_wrapped <- ggplot_build(p_wrapped)
+  b_direct <- ggplot_build(p_direct)
+  expect_equal(
+    levels(b_wrapped$data[[1]]$probs),
+    levels(b_direct$data[[1]]$probs)
+  )
+})
+
+test_that("static aesthetics pass through to ggdensity", {
+  expect_no_error(ggplot_build(
+    ggplot() +
+      geom_pdf_2d(
+        fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), n = 30,
+        fill = "steelblue"
+      )
+  ))
+  expect_no_error(ggplot_build(
+    ggplot() +
+      geom_pdf_2d(
+        fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), n = 30,
+        type = "hdr_lines", colour = "black", linewidth = 1
+      )
+  ))
+})
+
+test_that("bimodal mixture HDR lines produce multiple pieces", {
+  mix <- function(v) {
+    0.55 * dbvn(v, mu = c(-1.5, 0), Sigma = diag(c(0.35, 0.6))) +
+      0.45 * dbvn(v, mu = c(1.4, 0.3), Sigma = diag(c(0.5, 0.4)))
+  }
+  built <- ggplot_build(
+    ggplot() +
+      geom_pdf_2d(
+        fun = mix, xlim = c(-4, 4), ylim = c(-3, 3),
+        probs = c(0.5, 0.8), n = 50, type = "hdr_lines"
+      )
+  )
+  pieces <- unique(interaction(
+    built$data[[1]]$probs, built$data[[1]]$group, drop = TRUE
+  ))
+  expect_gt(length(pieces), 2)
+})

@@ -44,6 +44,7 @@ The package is organized around four families of geoms:
 | | `geom_function_2d_1d()` | $\mathbb{R}^2 \to \mathbb{R}$ | Scalar fields (raster, contour, filled contour) |
 | | `geom_function_2d_2d()` | $\mathbb{R}^2 \to \mathbb{R}^2$ | Vector fields (arrows, streamlines) |
 | **Probability** | `geom_pdf()` | | Probability density function |
+| | `geom_pdf_2d()` | | Bivariate PDF highest density regions (via ggdensity) |
 | | `geom_pmf()` | | Probability mass function (lollipop) |
 | | `geom_cdf()` | | Cumulative distribution function |
 | | `geom_cdf_discrete()` | | Discrete CDF (step function) |
@@ -278,6 +279,39 @@ ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-5, 8),
     args = list(mean = 3, sd = 1.5), alpha = 0.4)
 ```
+
+
+### Bivariate PDF: `geom_pdf_2d()`
+
+`geom_pdf_2d()` visualizes a theoretical bivariate density through its highest density regions. It is a thin wrapper around [**ggdensity**](https://jamesotto852.github.io/ggdensity/): the function is supplied in **ggfunction**'s `fun(c(x, y))` convention and adapted internally, while HDR computation, probability labels, and default aesthetics are delegated to `ggdensity::geom_hdr_fun()` (filled regions, the default `type = "hdr"`) or `ggdensity::geom_hdr_lines_fun()` (`type = "hdr_lines"`). Parameters pass via `args` as usual.
+
+```{r pdf-2d}
+dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
+  x <- matrix(v - mu, ncol = 1)
+  Sinv <- solve(Sigma)
+  1 / (2 * pi * sqrt(det(Sigma))) * exp(-0.5 * as.numeric(t(x) %*% Sinv %*% x))
+}
+
+ggplot() +
+  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), probs = c(0.5, 0.8, 0.95)) +
+  coord_equal()
+```
+
+**HDR contour lines.** `type = "hdr_lines"` draws only the region boundaries. Here a correlated covariance matrix is passed via `args`.
+
+```{r pdf-2d-lines}
+Sigma <- matrix(c(1, 0.6, 0.6, 1), 2, 2)
+
+ggplot() +
+  geom_pdf_2d(
+    fun = dbvn, args = list(Sigma = Sigma),
+    xlim = c(-3, 3), ylim = c(-3, 3),
+    probs = c(0.5, 0.8, 0.95), type = "hdr_lines"
+  ) +
+  coord_equal()
+```
+
+For raw density heatmaps or arbitrary iso-density contours not calibrated to probability content, use `geom_function_2d_1d()` with `type = "raster"`, `"contour"`, or `"contour_filled"`.
 
 
 ### PMF: `geom_pmf()`
