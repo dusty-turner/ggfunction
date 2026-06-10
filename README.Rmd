@@ -550,12 +550,18 @@ ggplot(df_single, aes(x = x)) +
   geom_qqplot(fun = qnorm, color = "black")
 ```
 
-**Spectral scale.** For sight-typical users, the rainbow palette can be an effective tool to better visualize the variables not shown ($x$ or $p$ in PP or QQ plots, respectively).
+**Spectral scale.** A rainbow palette can help viewers with typical color vision distinguish variation in the computed variable (`x` in PP plots or `p` in QQ plots) across the points.
 
 ```{r qqplot-spectral}
-ggplot(df_single, aes(x = x)) +
+pp <- ggplot(df_single, aes(x = x)) +
+  geom_ppplot(fun = pnorm, shape = 21, color = "black", aes(fill = after_stat(sample))) +
+  scale_fill_gradientn(colors = rainbow(10))
+  
+qq <- ggplot(df_single, aes(x = x)) +
   geom_qqplot(fun = qnorm, shape = 21, color = "black", aes(fill = after_stat(p))) +
   scale_fill_gradientn(colors = rainbow(10), limits = c(0, 1))
+
+pp + qq
 ```
 
 

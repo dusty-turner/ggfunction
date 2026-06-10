@@ -1,9 +1,10 @@
-#' PP and QQ Diagnostic Plots
+#' PP, QQ, and Stabilized Probability Diagnostic Plots
 #'
-#' `geom_ppplot()` and `geom_qqplot()` create one-sample probability-probability
-#' and quantile-quantile diagnostic layers for comparing a sample to a fully
-#' specified null distribution. Both draw the order-statistic points, an optional
-#' identity line, and a simultaneous 95% DKW/Massart confidence band by default.
+#' `geom_ppplot()`, `geom_qqplot()`, and `geom_spplot()` create one-sample
+#' probability-probability, quantile-quantile, and stabilized probability
+#' diagnostic layers for comparing a sample to a fully specified null
+#' distribution. Each draws the order-statistic points, an optional identity
+#' line, and a simultaneous 95% DKW/Massart confidence band by default.
 #'
 #' @details
 #' Suppose \eqn{X_1, \ldots, X_n} are compared against a fully specified null
@@ -15,9 +16,15 @@
 #'
 #' A probability-probability (PP) plot displays
 #' \eqn{F_0(x_{(i)})} against \eqn{p_i}. A quantile-quantile (QQ) plot displays
-#' \eqn{x_{(i)}} against \eqn{Q_0(p_i)}. In both cases, agreement with the null
-#' model is represented by the identity line \eqn{y = x}. Michael (1983)
-#' discusses acceptance regions for PP, QQ, and stabilized probability plots.
+#' \eqn{x_{(i)}} against \eqn{Q_0(p_i)}. A stabilized probability (SP) plot
+#' applies Michael's arcsine-square-root variance-stabilizing transform
+#' \deqn{
+#'   g(p) = \frac{2}{\pi}\sin^{-1}\sqrt{p}
+#' }
+#' to both PP coordinates, displaying \eqn{g\{F_0(x_{(i)})\}} against
+#' \eqn{g(p_i)}. In each case, agreement with the null model is represented by
+#' the identity line \eqn{y = x}. Michael (1983) discusses acceptance regions for
+#' PP, QQ, and stabilized probability plots.
 #'
 #' The confidence band is based on the probability integral transform: under
 #' \eqn{H_0: F_X = F_0}, the transformed observations
@@ -34,7 +41,9 @@
 #'   \le F_0(x_{(i)}) \le
 #'   \min(1, p + \varepsilon_{n,\alpha}),
 #' }
-#' and the QQ band is obtained by transforming these probability limits back to
+#' the SP band is obtained by applying \eqn{g(\cdot)} to the probability
+#' coordinates and these probability limits, and the QQ band is obtained by
+#' transforming these probability limits back to
 #' the data scale:
 #' \deqn{
 #'   Q_0\{\max(0, p - \varepsilon_{n,\alpha})\}
@@ -56,12 +65,12 @@
 #' power can be expected to be low.
 #'
 #' @inheritParams ggplot2::geom_point
-#' @param fun Null distribution function. For `geom_ppplot()`, this is a CDF
-#'   such as [pnorm]. For `geom_qqplot()`, this is a quantile function such as
-#'   [qnorm].
+#' @param fun Null distribution function. For `geom_ppplot()` and
+#'   `geom_spplot()`, this is a CDF such as [pnorm]. For `geom_qqplot()`, this
+#'   is a quantile function such as [qnorm].
 #' @param pdf_fun,cdf_fun,survival_fun,qf_fun,hf_fun Alternate null
-#'   distribution representations. `geom_ppplot()` accepts `pdf_fun`,
-#'   `survival_fun`, `qf_fun`, or `hf_fun` and converts them to a CDF.
+#'   distribution representations. `geom_ppplot()` and `geom_spplot()` accept
+#'   `pdf_fun`, `survival_fun`, `qf_fun`, or `hf_fun` and convert them to a CDF.
 #'   `geom_qqplot()` accepts `cdf_fun`, `pdf_fun`, `survival_fun`, or `hf_fun`
 #'   and converts them to a quantile function.
 #' @param hf_lower Lower integration limit for `hf_fun`. Defaults to `-Inf`.
@@ -82,7 +91,7 @@
 #'   line.
 #' @param shape,size,stroke Optional fixed point appearance. Defaults to `NULL`
 #'   so the corresponding [ggplot2::geom_point()] defaults are used.
-#' @param color Optional fixed point colour. When `NULL`, PP plots map
+#' @param color Optional fixed point colour. When `NULL`, PP and SP plots map
 #'   `colour` to the sorted sample value and QQ plots map `colour` to the
 #'   plotting position.
 #'
@@ -90,13 +99,17 @@
 #' These are calculated by the `stat` part of the layer and can be accessed
 #' with [ggplot2::after_stat()].
 #' \describe{
-#'   \item{`after_stat(x)`}{Theoretical probabilities for PP plots or
-#'   theoretical quantiles for QQ plots.}
-#'   \item{`after_stat(y)`}{Observed probabilities for PP plots or observed
-#'   sample quantiles for QQ plots.}
+#'   \item{`after_stat(x)`}{Theoretical probabilities for PP plots,
+#'   stabilized theoretical probabilities for SP plots, or theoretical
+#'   quantiles for QQ plots.}
+#'   \item{`after_stat(y)`}{Observed probabilities for PP plots, stabilized
+#'   observed probabilities for SP plots, or observed sample quantiles for QQ
+#'   plots.}
 #'   \item{`after_stat(p)`}{Plotting positions returned by [stats::ppoints()].}
-#'   \item{`after_stat(theoretical)`}{Theoretical probabilities or quantiles.}
-#'   \item{`after_stat(observed)`}{Observed probabilities or sample quantiles.}
+#'   \item{`after_stat(theoretical)`}{Theoretical probabilities, stabilized
+#'   theoretical probabilities, or quantiles.}
+#'   \item{`after_stat(observed)`}{Observed probabilities, stabilized observed
+#'   probabilities, or sample quantiles.}
 #'   \item{`after_stat(sample)`}{Sorted sample values.}
 #'   \item{`after_stat(n)`}{Sample size after removing non-finite values.}
 #'   \item{`after_stat(ymin)` and `after_stat(ymax)`}{Lower and upper confidence
@@ -104,7 +117,8 @@
 #' }
 #'
 #' @section Aesthetics:
-#' `geom_ppplot()` and `geom_qqplot()` require the following aesthetic:
+#' `geom_ppplot()`, `geom_spplot()`, and `geom_qqplot()` require the following
+#' aesthetic:
 #' \describe{
 #'   \item{`x`}{Observed sample values.}
 #' }
@@ -129,6 +143,10 @@
 #'   coord_equal()
 #'
 #' ggplot(df, aes(x = x)) +
+#'   geom_spplot(fun = pnorm) +
+#'   coord_equal()
+#'
+#' ggplot(df, aes(x = x)) +
 #'   geom_qqplot(fun = qnorm) +
 #'   coord_equal()
 #'
@@ -145,7 +163,8 @@
 #'
 #'
 #' @name geom_ppplot
-#' @aliases geom_qqplot StatPPPlot StatPPPlotBand StatQQPlot StatQQPlotBand
+#' @aliases geom_spplot geom_qqplot StatPPPlot StatPPPlotBand StatSPPlot
+#'   StatSPPlotBand StatQQPlot StatQQPlotBand
 #' @importFrom ggplot2 GeomPoint GeomRibbon
 #' @export
 geom_ppplot <- function(
@@ -266,6 +285,130 @@ geom_ppplot <- function(
   c(layers, list(default_labs_component(
     x = "Theoretical probabilities",
     y = "Observed probabilities",
+    colour = if (has_fixed_colour) NULL else "x"
+  )))
+}
+
+#' @rdname geom_ppplot
+#' @export
+geom_spplot <- function(
+    mapping = NULL,
+    data = NULL,
+    stat = StatSPPlot,
+    position = "identity",
+    ...,
+    na.rm = FALSE,
+    show.legend = NA,
+    inherit.aes = TRUE,
+    fun = NULL,
+    pdf_fun = NULL,
+    survival_fun = NULL,
+    qf_fun = NULL,
+    hf_fun = NULL,
+    hf_lower = -Inf,
+    args = list(),
+    conf_int = TRUE,
+    level = 0.95,
+    conf_alpha = 0.25,
+    band_n = 501,
+    a = 1 / 2,
+    identity_line = TRUE,
+    line_color = "red",
+    line_linetype = "dashed",
+    line_linewidth = 0.5,
+    shape = NULL,
+    size = NULL,
+    stroke = NULL,
+    color = NULL
+) {
+  point_aes_params <- normalise_colour_params(list(...))
+  has_fixed_colour <- "colour" %in% names(point_aes_params) || !is.null(color)
+
+  default_mapping <- aes(y = after_stat(y))
+  point_stat <- stat
+  if (!has_fixed_colour) {
+    if (inherits(stat, "ggproto")) {
+      point_stat <- ggplot2::ggproto(
+        NULL, stat,
+        default_aes = aes(colour = after_stat(sample))
+      )
+    } else {
+      default_mapping <- modifyList(default_mapping, aes(colour = after_stat(sample)))
+    }
+  }
+  if (is.null(mapping)) {
+    mapping <- default_mapping
+  } else {
+    mapping <- modifyList(default_mapping, mapping)
+  }
+
+  point_params <- list(
+    fun = fun,
+    pdf_fun = pdf_fun,
+    survival_fun = survival_fun,
+    qf_fun = qf_fun,
+    hf_fun = hf_fun,
+    hf_lower = hf_lower,
+    args = args,
+    a = a,
+    na.rm = na.rm
+  )
+  if (!is.null(shape)) point_params$shape <- shape
+  if (!is.null(size)) point_params$size <- size
+  if (!is.null(stroke)) point_params$stroke <- stroke
+  point_params <- c(point_params, point_aes_params)
+  if (!is.null(color)) point_params$colour <- color
+
+  main_layer <- layer(
+    data = data,
+    mapping = mapping,
+    stat = point_stat,
+    geom = GeomPoint,
+    position = position,
+    show.legend = show.legend,
+    inherit.aes = inherit.aes,
+    params = point_params
+  )
+
+  layers <- list()
+
+  if (conf_int) {
+    layers <- c(layers, list(layer(
+      data = data,
+      mapping = aes(ymin = after_stat(ymin), ymax = after_stat(ymax)),
+      stat = StatSPPlotBand,
+      geom = GeomRibbon,
+      position = position,
+      show.legend = FALSE,
+      inherit.aes = inherit.aes,
+      params = list(
+        na.rm = na.rm,
+        level = level,
+        band_n = band_n,
+        a = a,
+        fill = "grey70",
+        linewidth = 0,
+        alpha = conf_alpha
+      )
+    )))
+  }
+
+  if (identity_line) {
+    layers <- c(layers, list(ggplot2::geom_abline(
+      slope = 1,
+      intercept = 0,
+      colour = line_color,
+      linetype = line_linetype,
+      linewidth = line_linewidth,
+      show.legend = FALSE
+    )))
+  }
+
+  layers <- c(layers, list(main_layer))
+
+  c(layers, list(default_labs_component(
+    x = "Stabilized theoretical probabilities",
+    y = "Stabilized observed probabilities",
     colour = if (has_fixed_colour) NULL else "x"
   )))
 }
@@ -468,6 +611,69 @@ StatPPPlotBand <- ggproto("StatPPPlotBand", Stat,
 
 #' @rdname geom_ppplot
 #' @export
+StatSPPlot <- ggproto("StatSPPlot", Stat,
+  required_aes = "x",
+
+  compute_group = function(data, scales, fun = NULL, pdf_fun = NULL,
+                           survival_fun = NULL, qf_fun = NULL, hf_fun = NULL,
+                           hf_lower = -Inf, args = NULL, a = 1 / 2,
+                           na.rm = FALSE) {
+    check_cdf_sources(fun, pdf_fun, survival_fun, qf_fun, hf_fun)
+
+    ord <- order_stat_sample(data$x, na.rm = na.rm, a = a)
+    if (nrow(ord) == 0L) return(data.frame())
+
+    cdf_fun <- make_cdf_function(
+      fun = fun,
+      pdf_fun = pdf_fun,
+      survival_fun = survival_fun,
+      qf_fun = qf_fun,
+      hf_fun = hf_fun,
+      hf_lower = hf_lower,
+      args = args
+    )
+    observed_p <- cdf_fun(ord$sample)
+    theoretical <- sp_transform(ord$p)
+    observed <- sp_transform(observed_p)
+
+    data.frame(
+      x = theoretical,
+      y = observed,
+      p = ord$p,
+      theoretical = theoretical,
+      observed = observed,
+      sample = ord$sample,
+      n = ord$n
+    )
+  }
+)
+
+#' @rdname geom_ppplot
+#' @export
+StatSPPlotBand <- ggproto("StatSPPlotBand", Stat,
+  required_aes = "x",
+
+  compute_group = function(data, scales, na.rm = FALSE, level = 0.95,
+                           band_n = 501, a = 1 / 2) {
+    ord <- order_stat_sample(data$x, na.rm = na.rm, a = a)
+    if (nrow(ord) == 0L) return(data.frame())
+
+    n <- ord$n[1L]
+    eps <- sqrt(log(2 / (1 - level)) / (2 * n))
+    p_grid <- seq(0, 1, length.out = validate_ppqq_band_n(band_n))
+
+    data.frame(
+      x = sp_transform(p_grid),
+      p = p_grid,
+      ymin = sp_transform(pmax(0, p_grid - eps)),
+      ymax = sp_transform(pmin(1, p_grid + eps)),
+      n = n
+    )
+  }
+)
+
+#' @rdname geom_ppplot
+#' @export
 StatQQPlot <- ggproto("StatQQPlot", Stat,
   required_aes = "x",
 
@@ -628,4 +834,10 @@ validate_ppqq_band_n <- function(band_n) {
     cli::cli_abort("{.arg band_n} must be a single number greater than or equal to 2.")
   }
   as.integer(band_n)
+}
+
+#' @noRd
+sp_transform <- function(p) {
+  p <- pmax(0, pmin(1, p))
+  2 / pi * asin(sqrt(p))
 }

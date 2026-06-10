@@ -27,7 +27,6 @@ Description: A ggplot2 extension for visualizing functions in a two-dimensional 
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Depends:
     R (>= 3.5.0),
     ggplot2 (>= 3.3.0)
@@ -46,3 +45,4 @@ Suggests:
 VignetteBuilder: knitr
 Date: 2026-02-20
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.0.0
