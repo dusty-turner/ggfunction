@@ -371,24 +371,25 @@ ggplot() +
     type = "tile")
 ```
 
-**Viridis fill.** Mapping the mass to `fill` as well, with a fillable point shape, pairs the size encoding with a perceptually uniform viridis palette for higher contrast.
-
-```{r pmf-2d-viridis}
-ggplot() +
-  geom_pmf_2d(
-    fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10), args = list(probs = c(0.3, 0.7)),
-    mapping = aes(fill = after_stat(prob)), shape = 21, color = "black"
-  ) +
-  scale_size_area() +
-  scale_fill_viridis_c()
-```
-
 **Highest density regions.** `shade_hdr` accepts one or more coverage levels. Each lattice point is assigned the smallest HDR that contains it, and the assignment is mapped to `alpha` as an ordered factor---the same legend convention as `geom_pdf_2d()`---so points outside all requested regions are nearly transparent. Exact coverages may not be achievable for a discrete distribution, in which case the smallest HDRs with at least the target coverages are used and a message reports the actual coverages.
 
 ```{r pmf-2d-hdr}
 ggplot() +
   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10), shade_hdr = c(0.5, 0.8, 0.95)) +
   scale_size_area()
+```
+
+**Viridis HDR fill.** If the alpha encoding is too subtle, map the HDR levels to `fill` instead with a fillable point shape and a discrete viridis palette, fixing `alpha = 1` to turn off the default encoding. Probability mass stays encoded by point size.
+
+```{r pmf-2d-viridis}
+ggplot() +
+  geom_pmf_2d(
+    fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10), args = list(probs = c(0.3, 0.7)),
+    shade_hdr = c(0.5, 0.8, 0.95),
+    mapping = aes(fill = after_stat(probs)), shape = 21, color = "black", alpha = 1
+  ) +
+  scale_size_area() +
+  scale_fill_viridis_d()
 ```
 
 **Non-product support.** Distributions like the trinomial live on a simplex rather than a full product lattice. Evaluate over a bounding lattice, returning 0 off the support; zero-mass cells are dropped by default (`drop_zeros = TRUE`).
