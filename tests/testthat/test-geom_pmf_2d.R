@@ -242,6 +242,29 @@ test_that("non-scalar fun return aborts with a clear message", {
   )
 })
 
+test_that("point mode uses a fillable shape with fill following colour", {
+  expect_equal(rlang::eval_tidy(GeomPMF2dPoint$default_aes$shape), 21)
+
+  p <- ggplot() +
+    geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10))
+  pt_grob <- ggplot2::layer_grob(p, 1)[[1]]
+  expect_true(all(pt_grob$gp$fill %in% c("black", "#000000", "#000000FF")))
+
+  p_fill <- ggplot() +
+    geom_pmf_2d(
+      fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
+      shade_hdr = c(0.5, 0.8, 0.95),
+      mapping = aes(fill = after_stat(probs)), alpha = 1
+    ) +
+    scale_size_area() +
+    scale_fill_viridis_d()
+  built <- suppressMessages(ggplot_build(p_fill))
+  expect_equal(unique(built$data[[1]]$shape), 21)
+  expect_gt(length(unique(built$data[[1]]$fill)), 1)
+  expect_equal(unique(built$data[[1]]$colour), "black")
+  expect_equal(unique(built$data[[1]]$alpha), 1)
+})
+
 test_that("shade_hdr includes lattice points tied at the cutoff", {
   f_unif <- function(v) 0.25
   result <- suppressMessages(StatPMF2d$compute_group(

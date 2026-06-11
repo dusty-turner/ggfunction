@@ -273,13 +273,16 @@ with
 
 Point mode understands the aesthetics of
 [`ggplot2::geom_point()`](https://ggplot2.tidyverse.org/reference/geom_point.html)
-(notably `size`, `colour`, `shape`, `alpha`, `stroke`); tile mode those
-of
+(notably `size`, `colour`, `fill`, `shape`, `alpha`, `stroke`); tile
+mode those of
 [`ggplot2::geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)
-(notably `fill`, `alpha`, `colour`, `linewidth`, `width`, `height`). The
-probability mass is mapped to `size` (point) or `fill` (tile) by
-default, and when `shade_hdr` is supplied, `alpha` is additionally
-mapped to `after_stat(probs)`.
+(notably `fill`, `alpha`, `colour`, `linewidth`, `width`, `height`).
+Points use the fillable shape 21 by default, with `fill` following
+`colour` when unset, so mapping `fill` (e.g. `fill = after_stat(probs)`)
+colors the point interiors while `colour` outlines them. The probability
+mass is mapped to `size` (point) or `fill` (tile) by default, and when
+`shade_hdr` is supplied, `alpha` is additionally mapped to
+`after_stat(probs)`.
 
 ## See also
 

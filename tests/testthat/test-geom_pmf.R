@@ -135,6 +135,28 @@ test_that("geom_pmf renders black lollipops by default", {
   expect_equal(unique(built$data[[1]]$colour), "black")
 })
 
+test_that("geom_pmf points use a fillable shape with fill following colour", {
+  expect_equal(rlang::eval_tidy(GeomPMF$default_aes$shape), 21)
+
+  p <- ggplot() +
+    geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
+  pt_grob <- ggplot2::layer_grob(p, 1)[[1]]$children[[2]]
+  expect_true(all(pt_grob$gp$fill %in% c("black", "#000000", "#000000FF")))
+
+  p_fill <- ggplot() +
+    geom_pmf(
+      fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3),
+      shade_hdr = c(0.5, 0.8, 0.95),
+      mapping = aes(fill = after_stat(probs)), alpha = 1
+    ) +
+    scale_fill_viridis_d()
+  built <- suppressMessages(ggplot_build(p_fill))
+  expect_equal(unique(built$data[[1]]$shape), 21)
+  expect_gt(length(unique(built$data[[1]]$fill)), 1)
+  expect_equal(unique(built$data[[1]]$colour), "black")
+  expect_equal(unique(built$data[[1]]$alpha), 1)
+})
+
 test_that("geom_pmf with support parameter builds without error", {
   f_mean <- function(x, prob) dbinom(round(x * 10), size = 10, prob = prob)
   p <- ggplot() + geom_pmf(

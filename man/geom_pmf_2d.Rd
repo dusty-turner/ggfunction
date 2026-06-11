@@ -212,10 +212,13 @@ requested regions.}
 \section{Aesthetics}{
 
 Point mode understands the aesthetics of \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}} (notably
-\code{size}, \code{colour}, \code{shape}, \code{alpha}, \code{stroke}); tile mode those of
+\code{size}, \code{colour}, \code{fill}, \code{shape}, \code{alpha}, \code{stroke}); tile mode those of
 \code{\link[ggplot2:geom_tile]{ggplot2::geom_tile()}} (notably \code{fill}, \code{alpha}, \code{colour}, \code{linewidth},
-\code{width}, \code{height}). The probability mass is mapped to \code{size} (point) or
-\code{fill} (tile) by default, and when \code{shade_hdr} is supplied, \code{alpha} is
+\code{width}, \code{height}). Points use the fillable shape 21 by default, with
+\code{fill} following \code{colour} when unset, so mapping \code{fill} (e.g.
+\code{fill = after_stat(probs)}) colors the point interiors while \code{colour}
+outlines them. The probability mass is mapped to \code{size} (point) or \code{fill}
+(tile) by default, and when \code{shade_hdr} is supplied, \code{alpha} is
 additionally mapped to \code{after_stat(probs)}.
 }
 

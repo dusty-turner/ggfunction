@@ -81,6 +81,10 @@
 #'   `linetype`, `linewidth`, `shape`, `size`, and `stroke` for the lollipop
 #'   display.}
 #' }
+#' The points use the fillable shape 21 by default, with `fill` following
+#' `colour` when unset, so default lollipops render solid. Mapping `fill`
+#' (e.g. `fill = after_stat(probs)`) colors the point interiors while the
+#' sticks and outlines keep the `colour` aesthetic.
 #'
 #' @return A ggplot2 layer.
 #'
@@ -217,6 +221,13 @@ StatPMF <- ggproto("StatPMF", Stat,
 #' @export
 GeomPMF <- ggproto("GeomPMF", GeomPoint,
 
+  default_aes = modifyList(GeomPoint$default_aes, aes(shape = 21)),
+
+  draw_key = function(data, params, size) {
+    data$fill <- ifelse(is.na(data$fill), data$colour, data$fill)
+    ggplot2::draw_key_point(data, params, size)
+  },
+
   draw_panel = function(self, data, panel_params, coord, na.rm = FALSE,
                         point_size = 2.5, stick_linewidth = 0.25,
                         stick_linetype = "dashed",
@@ -267,10 +278,12 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
       seg_data, panel_params, coord, na.rm = na.rm
     )
 
-    # Build point data: unshaded points are dimmed
+    # Build point data: unshaded points are dimmed, and the fillable point
+    # shape follows colour when fill is unset so default lollipops are solid
     pt_data         <- data
     pt_data$size    <- point_size
     pt_data$alpha   <- ifelse(in_shade, pt_data$alpha, 0.3)
+    pt_data$fill    <- ifelse(is.na(pt_data$fill), pt_data$colour, pt_data$fill)
 
     pt_grob <- ggproto_parent(GeomPoint, self)$draw_panel(
       pt_data, panel_params, coord, na.rm = na.rm

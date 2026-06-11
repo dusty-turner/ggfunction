@@ -297,10 +297,13 @@ requested regions.</p></dd>
 
 
 <p>Point mode understands the aesthetics of <code><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">ggplot2::geom_point()</a></code> (notably
-<code>size</code>, <code>colour</code>, <code>shape</code>, <code>alpha</code>, <code>stroke</code>); tile mode those of
+<code>size</code>, <code>colour</code>, <code>fill</code>, <code>shape</code>, <code>alpha</code>, <code>stroke</code>); tile mode those of
 <code><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html">ggplot2::geom_tile()</a></code> (notably <code>fill</code>, <code>alpha</code>, <code>colour</code>, <code>linewidth</code>,
-<code>width</code>, <code>height</code>). The probability mass is mapped to <code>size</code> (point) or
-<code>fill</code> (tile) by default, and when <code>shade_hdr</code> is supplied, <code>alpha</code> is
+<code>width</code>, <code>height</code>). Points use the fillable shape 21 by default, with
+<code>fill</code> following <code>colour</code> when unset, so mapping <code>fill</code> (e.g.
+<code>fill = after_stat(probs)</code>) colors the point interiors while <code>colour</code>
+outlines them. The probability mass is mapped to <code>size</code> (point) or <code>fill</code>
+(tile) by default, and when <code>shade_hdr</code> is supplied, <code>alpha</code> is
 additionally mapped to <code>after_stat(probs)</code>.</p>
     </div>
     <div class="section level2">

@@ -307,7 +307,11 @@ It understands the following aesthetics:</p><dl><dt>Computed position aesthetics
 display.</p></dd>
 
 
-</dl></div>
+</dl><p>The points use the fillable shape 21 by default, with <code>fill</code> following
+<code>colour</code> when unset, so default lollipops render solid. Mapping <code>fill</code>
+(e.g. <code>fill = after_stat(probs)</code>) colors the point interiors while the
+sticks and outlines keep the <code>colour</code> aesthetic.</p>
+    </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="geom_pdf.html">geom_pdf()</a></code>, <code><a href="geom_cdf_discrete.html">geom_cdf_discrete()</a></code>, <code><a href="geom_qf_discrete.html">geom_qf_discrete()</a></code>, and

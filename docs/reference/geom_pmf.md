@@ -263,6 +263,11 @@ supplied. It understands the following aesthetics:
   `alpha`, `colour`/`color`, `fill`, `group`, `linetype`, `linewidth`,
   `shape`, `size`, and `stroke` for the lollipop display.
 
+The points use the fillable shape 21 by default, with `fill` following
+`colour` when unset, so default lollipops render solid. Mapping `fill`
+(e.g. `fill = after_stat(probs)`) colors the point interiors while the
+sticks and outlines keep the `colour` aesthetic.
+
 ## See also
 
 [`geom_pdf()`](/reference/geom_pdf.md),

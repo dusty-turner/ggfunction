@@ -455,10 +455,12 @@ ggplot() +
 
 ![](reference/figures/readme-geom-pmf-hdr-1.png)
 
-**Viridis HDR colour.** `shade_hdr` maps HDR membership to `alpha` by
+**Viridis HDR fill.** `shade_hdr` maps HDR membership to `alpha` by
 default. When the alpha encoding is too subtle, map `after_stat(probs)`
-to a discrete color scale instead and fix `alpha = 1`; the sticks and
-points share the HDR colors.
+to a discrete fill scale instead and fix `alpha = 1`: the lollipop
+points use a fillable shape, so the HDR colors fill the points beneath
+black outlines. (Mapping `colour` instead carries the HDR colors to the
+sticks and outlines too.)
 
 ``` r
 
@@ -466,9 +468,9 @@ ggplot() +
   geom_pmf(
     fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3),
     shade_hdr = c(0.5, 0.8, 0.95),
-    mapping = aes(colour = after_stat(probs)), alpha = 1
+    mapping = aes(fill = after_stat(probs)), alpha = 1
   ) +
-  scale_colour_viridis_d()
+  scale_fill_viridis_d()
 ```
 
 ![](reference/figures/readme-geom-pmf-hdr-viridis-1.png)
@@ -544,9 +546,9 @@ ggplot() +
 ![](reference/figures/readme-pmf-2d-hdr-1.png)
 
 **Viridis HDR fill.** If the alpha encoding is too subtle, map the HDR
-levels to `fill` instead with a fillable point shape and a discrete
-viridis palette, fixing `alpha = 1` to turn off the default encoding.
-Probability mass stays encoded by point size.
+levels to `fill` with a discrete viridis palette instead, fixing
+`alpha = 1` to turn off the default encoding; the points use a fillable
+shape by default. Probability mass stays encoded by point size.
 
 ``` r
 
@@ -554,7 +556,7 @@ ggplot() +
   geom_pmf_2d(
     fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10), args = list(probs = c(0.3, 0.7)),
     shade_hdr = c(0.5, 0.8, 0.95),
-    mapping = aes(fill = after_stat(probs)), shape = 21, color = "black", alpha = 1
+    mapping = aes(fill = after_stat(probs)), alpha = 1
   ) +
   scale_size_area() +
   scale_fill_viridis_d()

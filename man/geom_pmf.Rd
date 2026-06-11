@@ -199,6 +199,10 @@ It understands the following aesthetics:
 \code{linetype}, \code{linewidth}, \code{shape}, \code{size}, and \code{stroke} for the lollipop
 display.}
 }
+The points use the fillable shape 21 by default, with \code{fill} following
+\code{colour} when unset, so default lollipops render solid. Mapping \code{fill}
+(e.g. \code{fill = after_stat(probs)}) colors the point interiors while the
+sticks and outlines keep the \code{colour} aesthetic.
 }
 
 \examples{

@@ -76,10 +76,13 @@
 #'
 #' @section Aesthetics:
 #' Point mode understands the aesthetics of [ggplot2::geom_point()] (notably
-#' `size`, `colour`, `shape`, `alpha`, `stroke`); tile mode those of
+#' `size`, `colour`, `fill`, `shape`, `alpha`, `stroke`); tile mode those of
 #' [ggplot2::geom_tile()] (notably `fill`, `alpha`, `colour`, `linewidth`,
-#' `width`, `height`). The probability mass is mapped to `size` (point) or
-#' `fill` (tile) by default, and when `shade_hdr` is supplied, `alpha` is
+#' `width`, `height`). Points use the fillable shape 21 by default, with
+#' `fill` following `colour` when unset, so mapping `fill` (e.g.
+#' `fill = after_stat(probs)`) colors the point interiors while `colour`
+#' outlines them. The probability mass is mapped to `size` (point) or `fill`
+#' (tile) by default, and when `shade_hdr` is supplied, `alpha` is
 #' additionally mapped to `after_stat(probs)`.
 #'
 #' @return A ggplot2 layer.
@@ -246,4 +249,19 @@ GeomPMF2dTile <- ggproto("GeomPMF2dTile", GeomTile)
 
 #' @rdname geom_pmf_2d
 #' @export
-GeomPMF2dPoint <- ggproto("GeomPMF2dPoint", GeomPoint)
+GeomPMF2dPoint <- ggproto("GeomPMF2dPoint", GeomPoint,
+
+  default_aes = modifyList(GeomPoint$default_aes, aes(shape = 21)),
+
+  draw_panel = function(self, data, panel_params, coord, na.rm = FALSE) {
+    data$fill <- ifelse(is.na(data$fill), data$colour, data$fill)
+    ggproto_parent(GeomPoint, self)$draw_panel(
+      data, panel_params, coord, na.rm = na.rm
+    )
+  },
+
+  draw_key = function(data, params, size) {
+    data$fill <- ifelse(is.na(data$fill), data$colour, data$fill)
+    ggplot2::draw_key_point(data, params, size)
+  }
+)
