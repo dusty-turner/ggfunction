@@ -482,6 +482,22 @@ ggplot() +
 
 <img src="man/figures/readme-pmf-2d-tile-1.png" alt="" width="60%" />
 
+**Viridis fill.** Mapping the mass to `fill` as well, with a fillable
+point shape, pairs the size encoding with a perceptually uniform viridis
+palette for higher contrast.
+
+``` r
+ggplot() +
+  geom_pmf_2d(
+    fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10), args = list(probs = c(0.3, 0.7)),
+    mapping = aes(fill = after_stat(prob)), shape = 21, color = "black"
+  ) +
+  scale_size_area() +
+  scale_fill_viridis_c()
+```
+
+<img src="man/figures/readme-pmf-2d-viridis-1.png" alt="" width="60%" />
+
 **Highest density regions.** `shade_hdr` accepts one or more coverage
 levels. Each lattice point is assigned the smallest HDR that contains
 it, and the assignment is mapped to `alpha` as an ordered factor—the
