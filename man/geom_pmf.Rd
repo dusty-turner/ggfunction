@@ -143,13 +143,17 @@ shading. Used with \code{p_lower}.}
 outside the \code{p_lower}/\code{p_upper} interval rather than inside. Defaults to
 \code{FALSE}.}
 
-\item{shade_hdr}{(Optional) A numeric value between 0 and 1 specifying the
-target coverage of the highest density region (HDR) to shade: the
-smallest set of support points containing at least the specified probability
-mass. Because a discrete distribution may not achieve the exact coverage,
-the smallest HDR with coverage >= \code{shade_hdr} is used and a message is
-issued via \code{\link[cli:cli_inform]{cli::cli_inform()}} reporting both the specified and actual
-coverage whenever they differ.}
+\item{shade_hdr}{(Optional) A numeric vector of target coverages for the
+highest density regions (HDRs) to shade, each strictly between 0 and 1,
+e.g. \code{shade_hdr = c(0.5, 0.8, 0.95)}: the smallest sets of support points
+containing at least the specified probability masses. Each support point
+is assigned the smallest requested HDR containing it; the assignment is
+exposed as the ordered factor \code{after_stat(probs)} and mapped to \code{alpha}
+by default, so points outside all requested regions render nearly
+transparent. Because a discrete distribution may not achieve the exact
+coverages, the smallest HDR with coverage >= each target is used and a
+message is issued via \code{\link[cli:cli_inform]{cli::cli_inform()}} reporting the actual coverages
+whenever they differ.}
 }
 \value{
 A ggplot2 layer.
@@ -159,9 +163,11 @@ A ggplot2 layer.
 (PMF) using a lollipop representation. Vertical segments extend from
 zero up to the probability value at each integer support value and a point is
 drawn at the top. Shading modes mirror those of \code{\link[=geom_pdf]{geom_pdf()}}: a cumulative
-threshold (\code{p}), a two-sided interval (\code{p_lower}/\code{p_upper}), or a highest
-density region (\code{shade_hdr}). Non-shaded lollipops are rendered in grey with
-dashed segments.
+threshold (\code{p}), a two-sided interval (\code{p_lower}/\code{p_upper}), or highest
+density regions (\code{shade_hdr}). Lollipops outside a \code{p}-based region are
+rendered at reduced opacity; \code{shade_hdr} maps each support point's smallest
+containing HDR to \code{alpha} as an ordered factor with a legend, mirroring
+\code{\link[=geom_pmf_2d]{geom_pmf_2d()}}.
 }
 \section{Computed variables}{
 
@@ -170,6 +176,10 @@ with \code{\link[ggplot2:after_stat]{ggplot2::after_stat()}}.
 \describe{
 \item{\code{after_stat(x)}}{Support points at which the PMF is evaluated.}
 \item{\code{after_stat(y)}}{Probability mass at each support point.}
+\item{\code{after_stat(probs)}}{Only when \code{shade_hdr} is supplied: the
+smallest requested HDR containing each support point, as an ordered
+factor whose outermost level (e.g. \code{">95\%"}) collects points outside all
+requested regions.}
 }
 }
 
@@ -196,10 +206,10 @@ ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
     p = 0.8)
 
-# Shade the 80\% HDR
+# Shade the 50/80/95\% HDRs
 ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
-    shade_hdr = 0.8)
+    shade_hdr = c(0.5, 0.8, 0.95))
 
 }
 \seealso{

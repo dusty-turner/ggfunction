@@ -217,7 +217,7 @@ ggplot() +
 
 
 ## ----pmf-shading, echo=TRUE---------------------------------------------------
-#| fig.cap: "Shading modes for \\texttt{geom\\_pmf()}: the lower 80\\% by cumulative probability (left) and the 80\\% HDR of a $\\mathrm{Binomial}(10, 0.3)$ distribution (right). Unshaded lollipops are shown in grey."
+#| fig.cap: "Shading modes for \\texttt{geom\\_pmf()}: the lower 80\\% by cumulative probability, with unshaded lollipops rendered at reduced opacity (left), and the 50/80/95\\% HDRs of a $\\mathrm{Binomial}(10, 0.3)$ distribution, with each support point's smallest containing HDR mapped to alpha (right)."
 p1 <- ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10),
     args = list(size = 10, prob = 0.5), p = 0.8) +
@@ -225,8 +225,8 @@ p1 <- ggplot() +
 
 p2 <- ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10),
-    args = list(size = 10, prob = 0.3), shade_hdr = 0.8) +
-  ggtitle("shade_hdr = 0.8")
+    args = list(size = 10, prob = 0.3), shade_hdr = c(0.5, 0.8, 0.95)) +
+  ggtitle("shade_hdr = c(0.5, 0.8, 0.95)")
 
 p1 | p2
 

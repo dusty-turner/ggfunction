@@ -408,8 +408,8 @@ ggplot() +
 <img src="man/figures/readme-geom-pmf-1.png" alt="" width="60%" />
 
 **Single threshold.** The `p` parameter shades lollipops up to the
-$p$-quantile (grey dashed sticks mark the unshaded region). Here we
-shade the lower 80% of a $\text{Binomial}(10, 0.5)$ distribution.
+$p$-quantile (the unshaded region is rendered at reduced opacity). Here
+we shade the lower 80% of a $\text{Binomial}(10, 0.5)$ distribution.
 
 ``` r
 ggplot() +
@@ -418,27 +418,22 @@ ggplot() +
 
 <img src="man/figures/readme-geom-pmf-p-1.png" alt="" width="60%" />
 
-**Highest density region.** `shade_hdr` shades the smallest set of
-support points whose total probability mass meets or exceeds the target
-coverage. For a symmetric unimodal PMF this is a central interval; for a
-skewed distribution it is asymmetric. Here the 70% HDR of a
-$\text{Binomial}(10, 0.3)$ distribution is highlighted.
+**Highest density regions.** `shade_hdr` accepts one or more coverage
+levels and shades the smallest sets of support points whose total
+probability mass meets or exceeds each target. Each support point’s
+smallest containing HDR is mapped to `alpha` as an ordered factor with a
+legend—the same convention as `geom_pmf_2d()`. For a symmetric unimodal
+PMF these are central intervals; for a skewed distribution they are
+asymmetric. Here the 50/80/95% HDRs of a $\text{Binomial}(10, 0.3)$
+distribution are highlighted.
 
 ``` r
 ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3),
-    shade_hdr = .70)
+    shade_hdr = c(0.5, 0.8, 0.95))
 ```
 
 <img src="man/figures/readme-geom-pmf-hdr-1.png" alt="" width="60%" />
-
-``` r
-ggplot() +
-  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3),
-    shade_hdr = .80)
-```
-
-<img src="man/figures/readme-geom-pmf-hdr-2-1.png" alt="" width="60%" />
 
 **Explicit support.** When the support is not a sequence of consecutive
 integers, pass the exact support points via `support`. Here we plot the

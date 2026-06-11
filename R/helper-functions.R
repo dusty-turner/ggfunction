@@ -190,33 +190,6 @@ filter_discrete_xlim <- function(df, xlim = NULL, x_col = "x") {
   df[keep, , drop = FALSE]
 }
 
-#' Smallest-HDR membership indicator for discrete probability masses.
-#' @noRd
-discrete_hdr_indicator <- function(mass, shade_hdr = NULL) {
-  n <- length(mass)
-  if (is.null(shade_hdr)) {
-    return(rep(TRUE, n))
-  }
-
-  fhat_d  <- mass / sum(mass)
-  ord     <- order(mass, decreasing = TRUE)
-  cumprob <- cumsum(fhat_d[ord])
-  k       <- which(cumprob >= shade_hdr)[1L]
-  if (is.na(k)) k <- n
-  actual  <- cumprob[k]
-  cutoff  <- mass[ord[k]]
-
-  if (abs(actual - shade_hdr) > 0.005) {
-    fmt <- function(x) paste0(round(x * 100, 1), "%")
-    cli::cli_inform(c(
-      "!" = "shade_hdr: {fmt(shade_hdr)} is not exactly achievable for this discrete distribution.",
-      "i" = "Using smallest HDR with coverage >= {fmt(shade_hdr)}: actual coverage = {fmt(actual)}."
-    ))
-  }
-
-  mass >= cutoff
-}
-
 #' Smallest containing HDR level for discrete probability masses.
 #'
 #' Assigns each mass point the smallest of the requested highest density

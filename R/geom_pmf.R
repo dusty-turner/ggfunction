@@ -4,9 +4,11 @@
 #' (PMF) using a lollipop representation. Vertical segments extend from
 #' zero up to the probability value at each integer support value and a point is
 #' drawn at the top. Shading modes mirror those of [geom_pdf()]: a cumulative
-#' threshold (`p`), a two-sided interval (`p_lower`/`p_upper`), or a highest
-#' density region (`shade_hdr`). Non-shaded lollipops are rendered in grey with
-#' dashed segments.
+#' threshold (`p`), a two-sided interval (`p_lower`/`p_upper`), or highest
+#' density regions (`shade_hdr`). Lollipops outside a `p`-based region are
+#' rendered at reduced opacity; `shade_hdr` maps each support point's smallest
+#' containing HDR to `alpha` as an ordered factor with a legend, mirroring
+#' [geom_pmf_2d()].
 #'
 #' @inheritParams ggplot2::geom_point
 #' @param fun A function to compute the PMF (e.g. [dbinom] or [dpois]). The
@@ -39,13 +41,17 @@
 #' @param shade_outside Logical; if `TRUE`, shading is applied to the tails
 #'   outside the `p_lower`/`p_upper` interval rather than inside. Defaults to
 #'   `FALSE`.
-#' @param shade_hdr (Optional) A numeric value between 0 and 1 specifying the
-#'   target coverage of the highest density region (HDR) to shade: the
-#'   smallest set of support points containing at least the specified probability
-#'   mass. Because a discrete distribution may not achieve the exact coverage,
-#'   the smallest HDR with coverage >= `shade_hdr` is used and a message is
-#'   issued via [cli::cli_inform()] reporting both the specified and actual
-#'   coverage whenever they differ.
+#' @param shade_hdr (Optional) A numeric vector of target coverages for the
+#'   highest density regions (HDRs) to shade, each strictly between 0 and 1,
+#'   e.g. `shade_hdr = c(0.5, 0.8, 0.95)`: the smallest sets of support points
+#'   containing at least the specified probability masses. Each support point
+#'   is assigned the smallest requested HDR containing it; the assignment is
+#'   exposed as the ordered factor `after_stat(probs)` and mapped to `alpha`
+#'   by default, so points outside all requested regions render nearly
+#'   transparent. Because a discrete distribution may not achieve the exact
+#'   coverages, the smallest HDR with coverage >= each target is used and a
+#'   message is issued via [cli::cli_inform()] reporting the actual coverages
+#'   whenever they differ.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
@@ -54,6 +60,10 @@
 #' \describe{
 #'   \item{`after_stat(x)`}{Support points at which the PMF is evaluated.}
 #'   \item{`after_stat(y)`}{Probability mass at each support point.}
+#'   \item{`after_stat(probs)`}{Only when `shade_hdr` is supplied: the
+#'   smallest requested HDR containing each support point, as an ordered
+#'   factor whose outermost level (e.g. `">95%"`) collects points outside all
+#'   requested regions.}
 #' }
 #'
 #' @section Aesthetics:
@@ -83,10 +93,10 @@
 #'   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
 #'     p = 0.8)
 #'
-#' # Shade the 80% HDR
+#' # Shade the 50/80/95% HDRs
 #' ggplot() +
 #'   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
-#'     shade_hdr = 0.8)
+#'     shade_hdr = c(0.5, 0.8, 0.95))
 #'
 #' @name geom_pmf
 #' @aliases StatPMF GeomPMF
@@ -117,6 +127,10 @@ geom_pmf <- function(mapping = NULL,
   if (is.null(data)) data <- ensure_nonempty_data(data)
 
   default_mapping <- aes(x = after_stat(x), y = after_stat(y))
+  if (!is.null(shade_hdr)) {
+    default_mapping <- modifyList(default_mapping, aes(alpha = after_stat(probs)))
+  }
+
   if (is.null(mapping)) {
     mapping <- default_mapping
   } else {
@@ -158,7 +172,8 @@ StatPMF <- ggproto("StatPMF", Stat,
 
   default_aes = aes(x = NULL, y = after_stat(y)),
 
-  compute_group = function(data, scales, fun, xlim = NULL, support = NULL, args = NULL, ...) {
+  compute_group = function(data, scales, fun, xlim = NULL, support = NULL, args = NULL,
+                           shade_hdr = NULL, ...) {
 
     if (!is.null(support)) {
       x_vals <- sort(support)
@@ -176,7 +191,13 @@ StatPMF <- ggproto("StatPMF", Stat,
     invisible(check_pmf_normalization(fun_injected, support = x_vals, tol = 1e-2))
 
     y_vals <- fun_injected(x_vals)
-    data.frame(x = x_vals, y = y_vals)
+    out <- data.frame(x = x_vals, y = y_vals)
+
+    if (!is.null(shade_hdr)) {
+      out$probs <- discrete_hdr_probs(y_vals, shade_hdr)
+    }
+
+    out
   }
 )
 
@@ -189,17 +210,15 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
                         stick_linetype = "dashed",
                         p = NULL, lower.tail = TRUE,
                         p_lower = NULL, p_upper = NULL,
-                        shade_outside = FALSE, shade_hdr = NULL) {
+                        shade_outside = FALSE) {
 
     n <- nrow(data)
     pmf_vals <- data$y
     cum_vals  <- cumsum(pmf_vals)
 
     # Determine which lollipops fall inside the shaded region
-    if (!is.null(shade_hdr)) {
-      in_shade <- discrete_hdr_indicator(pmf_vals, shade_hdr)
-
-    } else if (!is.null(p_lower) && !is.null(p_upper)) {
+    # (shade_hdr is handled by StatPMF via the alpha-mapped probs factor)
+    if (!is.null(p_lower) && !is.null(p_upper)) {
       idx_lo <- which(cum_vals >= p_lower)[1L]
       if (is.na(idx_lo)) idx_lo <- n
       idx_hi <- which(cum_vals >= p_upper)[1L]
@@ -225,21 +244,21 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
       in_shade <- rep(TRUE, n)
     }
 
-    # Build segment data: unshaded segments are grey + dashed
+    # Build segment data: unshaded segments are dimmed + dashed
     seg_data          <- transform(data, yend = y, y = 0)
     seg_data$linewidth <- stick_linewidth
     seg_data$linetype  <- stick_linetype
-    seg_data$colour    <- ifelse(in_shade, seg_data$colour, "grey70")
+    seg_data$alpha     <- ifelse(in_shade, seg_data$alpha, 0.3)
     seg_data$size      <- NULL
 
     seg_grob <- ggproto_parent(GeomSegment, self)$draw_panel(
       seg_data, panel_params, coord, na.rm = na.rm
     )
 
-    # Build point data: unshaded points are grey
+    # Build point data: unshaded points are dimmed
     pt_data         <- data
     pt_data$size    <- point_size
-    pt_data$colour  <- ifelse(in_shade, pt_data$colour, "grey70")
+    pt_data$alpha   <- ifelse(in_shade, pt_data$alpha, 0.3)
 
     pt_grob <- ggproto_parent(GeomPoint, self)$draw_panel(
       pt_data, panel_params, coord, na.rm = na.rm

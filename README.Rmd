@@ -325,25 +325,19 @@ ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
 ```
 
-**Single threshold.** The `p` parameter shades lollipops up to the $p$-quantile (grey dashed sticks mark the unshaded region). Here we shade the lower 80% of a $\text{Binomial}(10, 0.5)$ distribution.
+**Single threshold.** The `p` parameter shades lollipops up to the $p$-quantile (the unshaded region is rendered at reduced opacity). Here we shade the lower 80% of a $\text{Binomial}(10, 0.5)$ distribution.
 
 ```{r geom-pmf-p}
 ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5), p = 0.8)
 ```
 
-**Highest density region.** `shade_hdr` shades the smallest set of support points whose total probability mass meets or exceeds the target coverage. For a symmetric unimodal PMF this is a central interval; for a skewed distribution it is asymmetric. Here the 70% HDR of a $\text{Binomial}(10, 0.3)$ distribution is highlighted.
+**Highest density regions.** `shade_hdr` accepts one or more coverage levels and shades the smallest sets of support points whose total probability mass meets or exceeds each target. Each support point's smallest containing HDR is mapped to `alpha` as an ordered factor with a legend---the same convention as `geom_pmf_2d()`. For a symmetric unimodal PMF these are central intervals; for a skewed distribution they are asymmetric. Here the 50/80/95% HDRs of a $\text{Binomial}(10, 0.3)$ distribution are highlighted.
 
 ```{r geom-pmf-hdr}
 ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3),
-    shade_hdr = .70)
-```
-
-```{r geom-pmf-hdr-2}
-ggplot() +
-  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3),
-    shade_hdr = .80)
+    shade_hdr = c(0.5, 0.8, 0.95))
 ```
 
 **Explicit support.** When the support is not a sequence of consecutive integers, pass the exact support points via `support`. Here we plot the distribution of the sample mean $\bar X$ of 10 iid $\text{Bernoulli}(0.3)$ draws. The support is $\{0, 0.1, 0.2, \ldots, 1\}$ and the PMF is binomial: $P(\bar X = k/10) = \binom{10}{k}0.3^k 0.7^{10-k}$.

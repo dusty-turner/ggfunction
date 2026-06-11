@@ -464,7 +464,7 @@ ggplot() +
 \caption{Exact distribution of the sample mean of 10 i.i.d.~Bernoulli(0.3) draws (lollipops) with the CLT normal approximation overlaid as a scaled density curve.}\label{fig:pmf-clt}
 \end{figure}
 
-\texttt{geom\_pmf()} supports the same shading modes as \texttt{geom\_pdf()}. The \texttt{p} parameter shades lollipops up to the \(p\)-quantile; \texttt{p\_lower} and \texttt{p\_upper} define a two-sided interval; \texttt{shade\_outside\ =\ TRUE} inverts it; and \texttt{shade\_hdr} shades the smallest set of mass points whose total probability meets or exceeds the target coverage. Unshaded lollipops are rendered in grey to preserve the distributional context. Because a discrete distribution may not achieve the exact target coverage, \texttt{shade\_hdr} finds the smallest HDR with coverage \(\geq\) the requested level and issues a diagnostic via \CRANpkg{cli} when the actual coverage differs from the target by more than 0.5 percentage points.
+\texttt{geom\_pmf()} supports the same shading modes as \texttt{geom\_pdf()}. The \texttt{p} parameter shades lollipops up to the \(p\)-quantile; \texttt{p\_lower} and \texttt{p\_upper} define a two-sided interval; \texttt{shade\_outside\ =\ TRUE} inverts it; and \texttt{shade\_hdr} accepts one or more coverage levels, shading the smallest sets of mass points whose total probability meets or exceeds each target. Lollipops outside a \texttt{p}-based region are rendered at reduced opacity to preserve the distributional context, while \texttt{shade\_hdr} maps each support point's smallest containing HDR to \texttt{alpha} as an ordered factor (\texttt{after\_stat(probs)}), producing the same legend convention as the bivariate layers. Because a discrete distribution may not achieve the exact target coverages, \texttt{shade\_hdr} finds the smallest HDR with coverage \(\geq\) each requested level and issues a diagnostic via \CRANpkg{cli} when an actual coverage differs from its target by more than 0.5 percentage points.
 
 \begin{verbatim}
 p1 <- ggplot() +
@@ -474,8 +474,8 @@ p1 <- ggplot() +
 
 p2 <- ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10),
-    args = list(size = 10, prob = 0.3), shade_hdr = 0.8) +
-  ggtitle("shade_hdr = 0.8")
+    args = list(size = 10, prob = 0.3), shade_hdr = c(0.5, 0.8, 0.95)) +
+  ggtitle("shade_hdr = c(0.5, 0.8, 0.95)")
 
 p1 | p2
 \end{verbatim}
@@ -486,7 +486,7 @@ p1 | p2
 
 }
 
-\caption{Shading modes for \texttt{geom\_pmf()}: the lower 80\% by cumulative probability (left) and the 80\% HDR of a $\mathrm{Binomial}(10, 0.3)$ distribution (right). Unshaded lollipops are shown in grey.}\label{fig:pmf-shading}
+\caption{Shading modes for \texttt{geom\_pmf()}: the lower 80\% by cumulative probability, with unshaded lollipops rendered at reduced opacity (left), and the 50/80/95\% HDRs of a $\mathrm{Binomial}(10, 0.3)$ distribution, with each support point's smallest containing HDR mapped to alpha (right).}\label{fig:pmf-shading}
 \end{figure}
 
 \subsection{\texorpdfstring{Bivariate mass functions: \texttt{geom\_pmf\_2d()}}{Bivariate mass functions: geom\_pmf\_2d()}}\label{bivariate-mass-functions-geom_pmf_2d}
