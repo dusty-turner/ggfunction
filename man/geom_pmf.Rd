@@ -151,9 +151,11 @@ is assigned the smallest requested HDR containing it; the assignment is
 exposed as the ordered factor \code{after_stat(probs)} and mapped to \code{alpha}
 by default, so points outside all requested regions render nearly
 transparent. Because a discrete distribution may not achieve the exact
-coverages, the smallest HDR with coverage >= each target is used and a
-message is issued via \code{\link[cli:cli_inform]{cli::cli_inform()}} reporting the actual coverages
-whenever they differ.}
+coverages, the smallest HDR with coverage >= each target is used; HDRs
+are threshold-based, so all support points tied at the cutoff mass are
+included and the actual coverage can exceed the target. A message is
+issued via \code{\link[cli:cli_inform]{cli::cli_inform()}} reporting the actual coverages whenever
+they differ.}
 }
 \value{
 A ggplot2 layer.

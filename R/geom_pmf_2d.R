@@ -51,8 +51,10 @@
 #'   mapped to `alpha` by default, so points outside all requested regions
 #'   render nearly transparent. Because a discrete distribution may not
 #'   achieve the exact coverages, the smallest HDR with coverage >= each
-#'   target is used and a message is issued via [cli::cli_inform()] reporting
-#'   the actual coverages whenever they differ.
+#'   target is used; HDRs are threshold-based, so all lattice points tied at
+#'   the cutoff mass are included and the actual coverage can exceed the
+#'   target. A message is issued via [cli::cli_inform()] reporting the actual
+#'   coverages whenever they differ.
 #' @param drop_zeros Logical. If `TRUE` (default), lattice points with zero
 #'   mass are removed before rendering. Useful for distributions with
 #'   non-product support evaluated over a bounding lattice.
@@ -208,6 +210,12 @@ StatPMF2d <- ggproto("StatPMF2d", Stat,
     x_vals <- discrete_support(xlim, support_x)
     y_vals <- discrete_support(ylim, support_y)
     grid <- expand.grid(x = x_vals, y = y_vals)
+
+    if (nrow(grid) == 0L) {
+      grid$prob <- numeric(0)
+      if (!is.null(shade_hdr)) grid$probs <- factor(character(0), ordered = TRUE)
+      return(grid)
+    }
 
     args <- args %||% list()
     fun_injected <- function(v) rlang::inject(fun(v, !!!args))

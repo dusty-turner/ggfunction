@@ -233,3 +233,32 @@ test_that("tibble0 creates a data frame", {
   expect_s3_class(result, "data.frame")
   expect_true("x" %in% names(result))
 })
+
+test_that("discrete_support returns empty for integer-free ranges", {
+  expect_length(discrete_support(c(0.2, 0.8)), 0)
+  expect_equal(discrete_support(c(1.2, 3.8)), c(2, 3))
+  expect_equal(discrete_support(c(0, 10)), 0:10)
+  expect_equal(discrete_support(NULL), 0:10)
+  expect_equal(discrete_support(c(0.2, 0.8), support = c(0.5, 0.1)), c(0.1, 0.5))
+})
+
+test_that("discrete_hdr_probs includes ties and reports tie-inclusive coverage", {
+  expect_message(
+    probs_unif <- discrete_hdr_probs(rep(0.25, 4), 0.5),
+    "50% -> 100%",
+    fixed = TRUE
+  )
+  expect_true(all(probs_unif == "50%"))
+
+  m <- dbinom(0:10, 10, 0.5)
+  expect_message(
+    probs_binom <- discrete_hdr_probs(m, 0.8),
+    "80% -> 89.1%",
+    fixed = TRUE
+  )
+  expect_equal(sum(m[probs_binom == "80%"]), 0.890625)
+})
+
+test_that("discrete_hdr_probs aborts on non-positive total mass", {
+  expect_error(discrete_hdr_probs(c(0, 0, 0), 0.5), "positive total mass")
+})

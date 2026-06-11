@@ -13,7 +13,11 @@
 <url><loc>/index.html</loc></url>
 <url><loc>/reference/geom_cdf.html</loc></url>
 <url><loc>/reference/geom_cdf_discrete.html</loc></url>
+<url><loc>/reference/geom_chf.html</loc></url>
 <url><loc>/reference/geom_ecdf.html</loc></url>
+<url><loc>/reference/geom_ecdf_km.html</loc></url>
+<url><loc>/reference/geom_echf.html</loc></url>
+<url><loc>/reference/geom_echf_na.html</loc></url>
 <url><loc>/reference/geom_epmf.html</loc></url>
 <url><loc>/reference/geom_eqf.html</loc></url>
 <url><loc>/reference/geom_function_1d_1d.html</loc></url>
@@ -22,7 +26,10 @@
 <url><loc>/reference/geom_function_2d_2d.html</loc></url>
 <url><loc>/reference/geom_hf.html</loc></url>
 <url><loc>/reference/geom_pdf.html</loc></url>
+<url><loc>/reference/geom_pdf_2d.html</loc></url>
 <url><loc>/reference/geom_pmf.html</loc></url>
+<url><loc>/reference/geom_pmf_2d.html</loc></url>
+<url><loc>/reference/geom_ppplot.html</loc></url>
 <url><loc>/reference/geom_qf.html</loc></url>
 <url><loc>/reference/geom_qf_discrete.html</loc></url>
 <url><loc>/reference/geom_survival.html</loc></url>

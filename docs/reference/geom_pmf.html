@@ -3,15 +3,19 @@
 (PMF) using a lollipop representation. Vertical segments extend from
 zero up to the probability value at each integer support value and a point is
 drawn at the top. Shading modes mirror those of geom_pdf(): a cumulative
-threshold (p), a two-sided interval (p_lower/p_upper), or a highest
-density region (shade_hdr). Non-shaded lollipops are rendered in grey with
-dashed segments."><meta property="og:description" content="geom_pmf() creates a ggplot2 layer that plots a probability mass function
+threshold (p), a two-sided interval (p_lower/p_upper), or highest
+density regions (shade_hdr). Lollipops outside a p-based region are
+rendered at reduced opacity; shade_hdr maps each support point's smallest
+containing HDR to alpha as an ordered factor with a legend, mirroring
+geom_pmf_2d()."><meta property="og:description" content="geom_pmf() creates a ggplot2 layer that plots a probability mass function
 (PMF) using a lollipop representation. Vertical segments extend from
 zero up to the probability value at each integer support value and a point is
 drawn at the top. Shading modes mirror those of geom_pdf(): a cumulative
-threshold (p), a two-sided interval (p_lower/p_upper), or a highest
-density region (shade_hdr). Non-shaded lollipops are rendered in grey with
-dashed segments."><meta property="og:image" content="/logo.png"></head><body>
+threshold (p), a two-sided interval (p_lower/p_upper), or highest
+density regions (shade_hdr). Lollipops outside a p-based region are
+rendered at reduced opacity; shade_hdr maps each support point's smallest
+containing HDR to alpha as an ordered factor with a legend, mirroring
+geom_pmf_2d()."><meta property="og:image" content="/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -35,6 +39,7 @@ dashed segments."><meta property="og:image" content="/logo.png"></head><body>
     <li><a class="dropdown-item" href="../articles/gallery.html">Gallery of Visualizations</a></li>
     <li><a class="dropdown-item" href="../articles/learning-statistics.html">Learning Statistics with ggfunction</a></li>
     <li><a class="dropdown-item" href="../articles/cross-conversion.html">Cross-Conversion Between Distribution Functions</a></li>
+    <li><a class="dropdown-item" href="../articles/survival-analysis.html">Survival Analysis with ggfunction</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/coverage-simulation.html">Simulation Verification of KS Coverage</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -60,9 +65,11 @@ dashed segments."><meta property="og:image" content="/logo.png"></head><body>
 (PMF) using a lollipop representation. Vertical segments extend from
 zero up to the probability value at each integer support value and a point is
 drawn at the top. Shading modes mirror those of <code><a href="geom_pdf.html">geom_pdf()</a></code>: a cumulative
-threshold (<code>p</code>), a two-sided interval (<code>p_lower</code>/<code>p_upper</code>), or a highest
-density region (<code>shade_hdr</code>). Non-shaded lollipops are rendered in grey with
-dashed segments.</p>
+threshold (<code>p</code>), a two-sided interval (<code>p_lower</code>/<code>p_upper</code>), or highest
+density regions (<code>shade_hdr</code>). Lollipops outside a <code>p</code>-based region are
+rendered at reduced opacity; <code>shade_hdr</code> maps each support point's smallest
+containing HDR to <code>alpha</code> as an ordered factor with a legend, mirroring
+<code><a href="geom_pmf_2d.html">geom_pmf_2d()</a></code>.</p>
     </div>
 
     <div class="section level2">
@@ -98,38 +105,37 @@ dashed segments.</p>
     </div>
 
     <div class="section level2">
-    <h2 id="format">Format<a class="anchor" aria-label="anchor" href="#format"></a></h2>
-    <p>An object of class <code>StatPMF</code> (inherits from <code>Stat</code>, <code>ggproto</code>, <code>gg</code>) of length 3.</p>
-<p>An object of class <code>GeomPMF</code> (inherits from <code>GeomPoint</code>, <code>Geom</code>, <code>ggproto</code>, <code>gg</code>) of length 2.</p>
-    </div>
-    <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
 <dl><dt id="arg-mapping">mapping<a class="anchor" aria-label="anchor" href="#arg-mapping"></a></dt>
-<dd><p>Set of aesthetic mappings created by <code><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes()</a></code>. If specified and <code>inherit.aes = TRUE</code> (the default), it is combined with the default mapping at the top level
-of the plot. You must supply <code>mapping</code> if there is no plot mapping.</p></dd>
+<dd><p>Set of aesthetic mappings created by <code><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes()</a></code>. If specified and
+<code>inherit.aes = TRUE</code> (the default), it is combined with the default mapping
+at the top level of the plot. You must supply <code>mapping</code> if there is no plot
+mapping.</p></dd>
 
 
 <dt id="arg-data">data<a class="anchor" aria-label="anchor" href="#arg-data"></a></dt>
-<dd><p>The data to be displayed in this layer. There are three options:</p><ul><li><p><code>NULL</code> (default): the data is inherited from the plot data as specified
-in the call to <code><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot()</a></code>.</p></li>
-<li><p>A <code>data.frame</code>, or other object, will override the plot data. All objects
-will be fortified to produce a data frame. See <code><a href="https://ggplot2.tidyverse.org/reference/fortify.html">fortify()</a></code> for which
-variables will be created.</p></li>
-<li><p>A <code>function</code> will be called with a single argument, the plot data. The return
-value must be a <code>data.frame</code>, and will be used as the layer data. A
-<code>function</code> can be created from a <code>formula</code> (e.g. <code>~ head(.x, 10)</code>).</p></li>
-</ul></dd>
+<dd><p>The data to be displayed in this layer. There are three
+options:</p>
+<p>If <code>NULL</code>, the default, the data is inherited from the plot
+data as specified in the call to <code><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot()</a></code>.</p>
+<p>A <code>data.frame</code>, or other object, will override the plot
+data. All objects will be fortified to produce a data frame. See
+<code><a href="https://ggplot2.tidyverse.org/reference/fortify.html">fortify()</a></code> for which variables will be created.</p>
+<p>A <code>function</code> will be called with a single argument,
+the plot data. The return value must be a <code>data.frame</code>, and
+will be used as the layer data. A <code>function</code> can be created
+from a <code>formula</code> (e.g. <code>~ head(.x, 10)</code>).</p></dd>
 
 
 <dt id="arg-stat">stat<a class="anchor" aria-label="anchor" href="#arg-stat"></a></dt>
-<dd><p>The statistical transformation to use on the data for this layer. When using
-a <code>geom_*()</code> function to construct a layer, the <code>stat</code> argument can be used
-to override the default coupling between geoms and stats. The <code>stat</code> argument
-accepts the following:</p><ul><li><p>A <code>Stat</code> ggproto subclass, for example <code>StatCount</code>.</p></li>
+<dd><p>The statistical transformation to use on the data for this layer.
+When using a <code>geom_*()</code> function to construct a layer, the <code>stat</code>
+argument can be used to override the default coupling between geoms and
+stats. The <code>stat</code> argument accepts the following:</p><ul><li><p>A <code>Stat</code> ggproto subclass, for example <code>StatCount</code>.</p></li>
 <li><p>A string naming the stat. To give the stat as a string, strip the
-function name of the <code>stat_</code> prefix. For example, to use <code><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">stat_count()</a></code>,
+function name of the <code>stat_</code> prefix. For example, to use <code>stat_count()</code>,
 give the stat as <code>"count"</code>.</p></li>
 <li><p>For more information and other ways to specify the stat, see the
 <a href="https://ggplot2.tidyverse.org/reference/layer_stats.html">layer stat</a> documentation.</p></li>
@@ -137,13 +143,13 @@ give the stat as <code>"count"</code>.</p></li>
 
 
 <dt id="arg-position">position<a class="anchor" aria-label="anchor" href="#arg-position"></a></dt>
-<dd><p>A position adjustment to use on the data for this layer. This can be used in
-various ways, including to prevent overplotting and improving the display.
-The <code>position</code> argument accepts the following:</p><ul><li><p>The result of calling a position function, such as <code><a href="https://ggplot2.tidyverse.org/reference/position_jitter.html">position_jitter()</a></code>.
+<dd><p>A position adjustment to use on the data for this layer. This
+can be used in various ways, including to prevent overplotting and
+improving the display. The <code>position</code> argument accepts the following:</p><ul><li><p>The result of calling a position function, such as <code>position_jitter()</code>.
 This method allows for passing extra arguments to the position.</p></li>
 <li><p>A string naming the position adjustment. To give the position as a
-string, strip the function name of the <code>position_</code> prefix. For example, to
-use <code><a href="https://ggplot2.tidyverse.org/reference/position_jitter.html">position_jitter()</a></code>, give the position as <code>"jitter"</code>.</p></li>
+string, strip the function name of the <code>position_</code> prefix. For example,
+to use <code>position_jitter()</code>, give the position as <code>"jitter"</code>.</p></li>
 <li><p>For more information and other ways to specify the position, see the
 <a href="https://ggplot2.tidyverse.org/reference/layer_positions.html">layer position</a> documentation.</p></li>
 </ul></dd>
@@ -154,24 +160,25 @@ use <code><a href="https://ggplot2.tidyverse.org/reference/position_jitter.html"
 
 
 <dt id="arg-na-rm">na.rm<a class="anchor" aria-label="anchor" href="#arg-na-rm"></a></dt>
-<dd><p>If <code>FALSE</code>, the default, missing values are removed with a warning. If
-<code>TRUE</code>, missing values are silently removed.</p></dd>
+<dd><p>If <code>FALSE</code>, the default, missing values are removed with
+a warning. If <code>TRUE</code>, missing values are silently removed.</p></dd>
 
 
 <dt id="arg-show-legend">show.legend<a class="anchor" aria-label="anchor" href="#arg-show-legend"></a></dt>
-<dd><p>Logical. Should this layer be included in the legends? <code>NA</code>, the default,
-includes if any aesthetics are mapped. <code>FALSE</code> never includes, and <code>TRUE</code>
-always includes. It can also be a named logical vector to finely select the
-aesthetics to display. To include legend keys for all levels, even when no
-data exists, use <code>TRUE</code>.  If <code>NA</code>, all levels are shown in legend, but
-unobserved levels are omitted.</p></dd>
+<dd><p>logical. Should this layer be included in the legends?
+<code>NA</code>, the default, includes if any aesthetics are mapped.
+<code>FALSE</code> never includes, and <code>TRUE</code> always includes.
+It can also be a named logical vector to finely select the aesthetics to
+display. To include legend keys for all levels, even
+when no data exists, use <code>TRUE</code>.  If <code>NA</code>, all levels are shown in legend,
+but unobserved levels are omitted.</p></dd>
 
 
 <dt id="arg-inherit-aes">inherit.aes<a class="anchor" aria-label="anchor" href="#arg-inherit-aes"></a></dt>
-<dd><p>If <code>FALSE</code>, overrides the default aesthetics, rather than combining with
-them. This is most useful for helper functions that define both data and
-aesthetics and shouldn't inherit behaviour from the default plot
-specification, e.g. <code><a href="https://ggplot2.tidyverse.org/reference/annotation_borders.html">annotation_borders()</a></code>.</p></dd>
+<dd><p>If <code>FALSE</code>, overrides the default aesthetics,
+rather than combining with them. This is most useful for helper functions
+that define both data and aesthetics and shouldn't inherit behaviour from
+the default plot specification, e.g. <code><a href="https://ggplot2.tidyverse.org/reference/annotation_borders.html">annotation_borders()</a></code>.</p></dd>
 
 
 <dt id="arg-fun">fun<a class="anchor" aria-label="anchor" href="#arg-fun"></a></dt>
@@ -244,39 +251,87 @@ outside the <code>p_lower</code>/<code>p_upper</code> interval rather than insid
 
 
 <dt id="arg-shade-hdr">shade_hdr<a class="anchor" aria-label="anchor" href="#arg-shade-hdr"></a></dt>
-<dd><p>(Optional) A numeric value between 0 and 1 specifying the
-target coverage of the highest density region (HDR) to shade – the
-smallest set of support points containing at least the specified probability
-mass. Because a discrete distribution may not achieve the exact coverage,
-the smallest HDR with coverage &gt;= <code>shade_hdr</code> is used and a message is
-issued via <code><a href="https://cli.r-lib.org/reference/cli_abort.html">cli::cli_inform()</a></code> reporting both the specified and actual
-coverage whenever they differ.</p></dd>
+<dd><p>(Optional) A numeric vector of target coverages for the
+highest density regions (HDRs) to shade, each strictly between 0 and 1,
+e.g. <code>shade_hdr = c(0.5, 0.8, 0.95)</code>: the smallest sets of support points
+containing at least the specified probability masses. Each support point
+is assigned the smallest requested HDR containing it; the assignment is
+exposed as the ordered factor <code>after_stat(probs)</code> and mapped to <code>alpha</code>
+by default, so points outside all requested regions render nearly
+transparent. Because a discrete distribution may not achieve the exact
+coverages, the smallest HDR with coverage &gt;= each target is used; HDRs
+are threshold-based, so all support points tied at the cutoff mass are
+included and the actual coverage can exceed the target. A message is
+issued via <code><a href="https://cli.r-lib.org/reference/cli_abort.html">cli::cli_inform()</a></code> reporting the actual coverages whenever
+they differ.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A ggplot2 layer.</p>
     </div>
+    <div class="section level2">
+    <h2 id="computed-variables">Computed variables<a class="anchor" aria-label="anchor" href="#computed-variables"></a></h2>
+
+
+<p>These are calculated by the <code>stat</code> part of the layer and can be accessed
+with <code><a href="https://ggplot2.tidyverse.org/reference/aes_eval.html">ggplot2::after_stat()</a></code>.</p><dl><dt><code>after_stat(x)</code></dt>
+<dd><p>Support points at which the PMF is evaluated.</p></dd>
+
+<dt><code>after_stat(y)</code></dt>
+<dd><p>Probability mass at each support point.</p></dd>
+
+<dt><code>after_stat(probs)</code></dt>
+<dd><p>Only when <code>shade_hdr</code> is supplied: the
+smallest requested HDR containing each support point, as an ordered
+factor whose outermost level (e.g. <code>"&gt;95%"</code>) collects points outside all
+requested regions.</p></dd>
+
+
+</dl></div>
+    <div class="section level2">
+    <h2 id="aesthetics">Aesthetics<a class="anchor" aria-label="anchor" href="#aesthetics"></a></h2>
+
+
+<p><code>geom_pmf()</code> does not require any input aesthetics when <code>fun</code> is supplied.
+It understands the following aesthetics:</p><dl><dt>Computed position aesthetics</dt>
+<dd><p><code>x</code> and <code>y</code>, mapped by default to
+<code>after_stat(x)</code> and <code>after_stat(y)</code>.</p></dd>
+
+<dt>Drawing aesthetics</dt>
+<dd><p><code>alpha</code>, <code>colour</code>/<code>color</code>, <code>fill</code>, <code>group</code>,
+<code>linetype</code>, <code>linewidth</code>, <code>shape</code>, <code>size</code>, and <code>stroke</code> for the lollipop
+display.</p></dd>
+
+
+</dl></div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="geom_pdf.html">geom_pdf()</a></code>, <code><a href="geom_cdf_discrete.html">geom_cdf_discrete()</a></code>, <code><a href="geom_qf_discrete.html">geom_qf_discrete()</a></code>, and
+<code><a href="geom_survival_discrete.html">geom_survival_discrete()</a></code> for related discrete distribution-function
+layers.</p></div>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># Basic PMF</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
+<span class="r-in"><span><span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
 <span class="r-in"><span>  <span class="fu">geom_pmf</span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="geom_pmf-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Shade the lower tail up to the 80th percentile</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
+<span class="r-in"><span><span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
 <span class="r-in"><span>  <span class="fu">geom_pmf</span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    p <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="geom_pmf-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># Shade the 80% HDR</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
+<span class="r-in"><span><span class="co"># Shade the 50/80/95% HDRs</span></span></span>
+<span class="r-in"><span><span class="fu">ggplot</span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span></span>
 <span class="r-in"><span>  <span class="fu">geom_pmf</span><span class="op">(</span>fun <span class="op">=</span> <span class="va">dbinom</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">10</span>, prob <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>    shade_hdr <span class="op">=</span> <span class="fl">0.8</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> shade_hdr: 80% is not exactly achievable for this discrete distribution.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Using smallest HDR with coverage &gt;= 80%: actual coverage = 89.1%.</span>
+<span class="r-in"><span>    shade_hdr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.8</span>, <span class="fl">0.95</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> shade_hdr: exact coverage is not achievable for this discrete distribution.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Using smallest HDRs with coverage &gt;= each target: 50% -&gt; 65.6%, 80% -&gt; 89.1%,</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   95% -&gt; 97.9%.</span>
 <span class="r-plt img"><img src="geom_pmf-3.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
@@ -290,7 +345,7 @@ coverage whenever they differ.</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

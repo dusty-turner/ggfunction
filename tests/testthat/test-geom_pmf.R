@@ -127,3 +127,15 @@ test_that("StatPMF uses support when provided", {
   ))
   expect_equal(nrow(result), 3)
 })
+
+test_that("shade_hdr includes support points tied at the cutoff", {
+  f_unif <- function(x) rep(0.25, length(x))
+  result <- suppressMessages(StatPMF$compute_group(
+    data = data.frame(group = 1),
+    scales = list(),
+    fun = f_unif,
+    support = 1:4,
+    shade_hdr = 0.5
+  ))
+  expect_true(all(result$probs == "50%"))
+})

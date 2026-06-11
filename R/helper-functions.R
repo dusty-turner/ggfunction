@@ -177,7 +177,12 @@ discrete_support <- function(xlim = NULL, support = NULL, default = 0:10) {
   if (is.null(xlim)) {
     return(default)
   }
-  seq(ceiling(xlim[1]), floor(xlim[2]))
+  lo <- ceiling(xlim[1])
+  hi <- floor(xlim[2])
+  if (lo > hi) {
+    return(numeric(0))
+  }
+  seq.int(lo, hi)
 }
 
 #' Filter already-computed discrete rows to the displayed support range.
@@ -195,17 +200,23 @@ filter_discrete_xlim <- function(df, xlim = NULL, x_col = "x") {
 #' Assigns each mass point the smallest of the requested highest density
 #' regions that contains it, returned as an ordered factor whose first
 #' (outermost) level collects points outside all requested regions, so that
-#' an alpha mapping renders inner regions most opaque.
+#' an alpha mapping renders inner regions most opaque. HDRs are
+#' threshold-based: all masses tied at the cutoff are included, so the
+#' achieved coverage can exceed the target.
 #' @noRd
 discrete_hdr_probs <- function(mass, shade_hdr) {
   if (!is.numeric(shade_hdr) || length(shade_hdr) < 1 ||
       any(!is.finite(shade_hdr)) || any(shade_hdr <= 0) || any(shade_hdr >= 1)) {
     cli::cli_abort("{.arg shade_hdr} must be a numeric vector of coverage levels strictly between 0 and 1.")
   }
+  total <- sum(mass)
+  if (!is.finite(total) || total <= 0) {
+    cli::cli_abort("{.arg shade_hdr}: mass values must have positive total mass.")
+  }
   coverages <- sort(unique(shade_hdr))
   n <- length(mass)
 
-  fhat_d  <- mass / sum(mass)
+  fhat_d  <- mass / total
   ord     <- order(mass, decreasing = TRUE)
   cumprob <- cumsum(fhat_d[ord])
 
@@ -218,9 +229,10 @@ discrete_hdr_probs <- function(mass, shade_hdr) {
   for (i in rev(seq_along(coverages))) {
     k <- which(cumprob >= coverages[i])[1L]
     if (is.na(k)) k <- n
-    actual[i] <- cumprob[k]
     cutoff    <- mass[ord[k]]
-    assigned[mass >= cutoff] <- labels_in[i]
+    in_hdr    <- mass >= cutoff
+    actual[i] <- sum(fhat_d[in_hdr])
+    assigned[in_hdr] <- labels_in[i]
   }
 
   if (any(abs(actual - coverages) > 0.005)) {

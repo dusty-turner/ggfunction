@@ -241,3 +241,30 @@ test_that("non-scalar fun return aborts with a clear message", {
     "mass value per lattice point"
   )
 })
+
+test_that("shade_hdr includes lattice points tied at the cutoff", {
+  f_unif <- function(v) 0.25
+  result <- suppressMessages(StatPMF2d$compute_group(
+    data = data.frame(group = 1),
+    scales = list(),
+    fun = f_unif,
+    xlim = c(0, 1),
+    ylim = c(0, 1),
+    shade_hdr = 0.5
+  ))
+  expect_true(all(result$probs == "50%"))
+})
+
+test_that("empty integer xlim/ylim ranges evaluate no lattice points", {
+  calls <- 0L
+  f_count <- function(v) {
+    calls <<- calls + 1L
+    0.25
+  }
+  b <- ggplot_build(
+    ggplot() +
+      geom_pmf_2d(fun = f_count, xlim = c(0.2, 0.8), ylim = c(0.2, 0.8))
+  )
+  expect_identical(calls, 0L)
+  expect_equal(nrow(b$data[[1]]), 0)
+})
