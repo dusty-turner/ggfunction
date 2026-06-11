@@ -173,6 +173,29 @@ ggplot() +
   geom_pdf(fun = f_mix, xlim = c(-5, 6), shade_hdr = 0.8)
 
 
+## ----pdf-2d, echo=TRUE, fig.width=10, fig.height=4----------------------------
+#| fig.cap: "Highest density regions of bivariate normal densities drawn by \\texttt{geom\\_pdf\\_2d()}, which delegates to ggdensity: filled 50/80/95\\% HDRs of the standard bivariate normal (left) and HDR boundary lines for a correlated bivariate normal with covariance supplied via \\texttt{args} (right)."
+dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
+  x <- matrix(v - mu, ncol = 1)
+  Sinv <- solve(Sigma)
+  1 / (2 * pi * sqrt(det(Sigma))) * exp(-0.5 * as.numeric(t(x) %*% Sinv %*% x))
+}
+
+p1 <- ggplot() +
+  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3),
+    probs = c(0.5, 0.8, 0.95)) +
+  coord_equal() + ggtitle('type = "hdr"')
+
+Sigma <- matrix(c(1, 0.6, 0.6, 1), 2, 2)
+p2 <- ggplot() +
+  geom_pdf_2d(fun = dbvn, args = list(Sigma = Sigma),
+    xlim = c(-3, 3), ylim = c(-3, 3),
+    probs = c(0.5, 0.8, 0.95), type = "hdr_lines") +
+  coord_equal() + ggtitle('type = "hdr_lines"')
+
+p1 | p2
+
+
 ## ----pmf-binomial, echo=TRUE--------------------------------------------------
 #| fig.cap: "The PMF of a $\\mathrm{Binomial}(10, 0.3)$ distribution, rendered as a lollipop chart."
 ggplot() +
@@ -204,6 +227,29 @@ p2 <- ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10),
     args = list(size = 10, prob = 0.3), shade_hdr = 0.8) +
   ggtitle("shade_hdr = 0.8")
+
+p1 | p2
+
+
+## ----pmf-2d, echo=TRUE, fig.width=10, fig.height=4----------------------------
+#| fig.cap: "Bivariate PMFs rendered by \\texttt{geom\\_pmf\\_2d()}: the 80\\% highest density region of a product $\\mathrm{Binomial}(10, 0.3) \\times \\mathrm{Binomial}(10, 0.7)$ distribution, with lattice points outside the HDR greyed (left), and a trinomial distribution with $n = 8$ evaluated over a bounding lattice, rendering only its simplex support (right)."
+dbinom2 <- function(v, sizes = c(10, 10), probs = c(0.5, 0.5)) {
+  dbinom(v[1], sizes[1], probs[1]) * dbinom(v[2], sizes[2], probs[2])
+}
+
+p1 <- ggplot() +
+  geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
+    args = list(probs = c(0.3, 0.7)), shade_hdr = 0.8) +
+  ggtitle("Product binomial, 80% HDR")
+
+dtrinom <- function(v, size = 8, prob = c(0.3, 0.3, 0.4)) {
+  if (sum(v) > size) return(0)
+  dmultinom(c(v, size - sum(v)), prob = prob)
+}
+
+p2 <- ggplot() +
+  geom_pmf_2d(fun = dtrinom, xlim = c(0, 8), ylim = c(0, 8)) +
+  coord_equal() + ggtitle("Trinomial on a simplex")
 
 p1 | p2
 
@@ -304,7 +350,7 @@ ggplot(df_ecdf, aes(x = x, colour = group)) +
 
 
 ## ----ppqq-gof, echo=TRUE, fig.width=10, fig.height=6--------------------------
-#| fig.cap: "PP and QQ diagnostics for samples compared with a fully specified $\\mathcal{N}(0,1)$ null. The normal sample (top row) follows the identity line and remains within the DKW bands, whereas the shifted exponential sample (bottom row) shows the curvature and tail departures expected from skewness."
+#| fig.cap: "PP, QQ, and SP diagnostics for samples compared with a fully specified $\\mathcal{N}(0,1)$ null. The normal sample (top row) follows the identity line and remains within the DKW bands, whereas the shifted exponential sample (bottom row) shows the curvature and tail departures expected from skewness; the SP panels show the same comparison on the variance-stabilized scale."
 set.seed(3)
 
 df_normal <- data.frame("x" = rnorm(50))
@@ -327,6 +373,11 @@ p_norm_qq <- ggplot(df_normal, aes(x = x)) +
   coord_equal() +
   ggtitle("Normal data: QQ")
 
+p_norm_sp <- ggplot(df_normal, aes(x = x)) +
+  geom_spplot(fun = pnorm, colour = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Normal data: SP")
+
 p_exp_pp <- ggplot(df_exp, aes(x = x)) +
   geom_ppplot(fun = pnorm, colour = "black", size = 1.2) +
   coord_equal() +
@@ -337,7 +388,12 @@ p_exp_qq <- ggplot(df_exp, aes(x = x)) +
   coord_equal() +
   ggtitle("Exponential data: QQ")
 
-(p_norm_pp | p_norm_qq) / (p_exp_pp | p_exp_qq) & ppqq_theme
+p_exp_sp <- ggplot(df_exp, aes(x = x)) +
+  geom_spplot(fun = pnorm, colour = "black", size = 1.2) +
+  coord_equal() +
+  ggtitle("Exponential data: SP")
+
+(p_norm_pp | p_norm_qq | p_norm_sp) / (p_exp_pp | p_exp_qq | p_exp_sp) & ppqq_theme
 
 
 ## ----epmf-grouped, echo=TRUE--------------------------------------------------
