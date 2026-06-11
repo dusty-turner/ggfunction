@@ -151,6 +151,23 @@ check_pmf_normalization <- function(f, support, tol = 1e-3,
   invisible(total)
 }
 
+#' Check normalization of precomputed probability masses.
+#' @noRd
+check_pmf_mass_normalization <- function(mass, tol = 1e-3) {
+  if (!ggfunction_check_enabled()) return(invisible(NA_real_))
+  if (any(!is.finite(mass)) || any(mass < 0)) {
+    cli::cli_abort("{.arg fun} must return finite, non-negative mass values over the evaluation lattice.")
+  }
+  total <- sum(mass)
+  if (abs(total - 1) > tol) {
+    cli::cli_alert(sprintf(
+      "The provided function sums to %.4f over the evaluation lattice, which is not equal to 1 within a tolerance of %.3f.",
+      total, tol
+    ))
+  }
+  invisible(total)
+}
+
 #' Resolve the computational support for discrete distribution geoms.
 #' @noRd
 discrete_support <- function(xlim = NULL, support = NULL, default = 0:10) {
@@ -171,6 +188,33 @@ filter_discrete_xlim <- function(df, xlim = NULL, x_col = "x") {
   }
   keep <- df[[x_col]] >= xlim[1] & df[[x_col]] <= xlim[2]
   df[keep, , drop = FALSE]
+}
+
+#' Smallest-HDR membership indicator for discrete probability masses.
+#' @noRd
+discrete_hdr_indicator <- function(mass, shade_hdr = NULL) {
+  n <- length(mass)
+  if (is.null(shade_hdr)) {
+    return(rep(TRUE, n))
+  }
+
+  fhat_d  <- mass / sum(mass)
+  ord     <- order(mass, decreasing = TRUE)
+  cumprob <- cumsum(fhat_d[ord])
+  k       <- which(cumprob >= shade_hdr)[1L]
+  if (is.na(k)) k <- n
+  actual  <- cumprob[k]
+  cutoff  <- mass[ord[k]]
+
+  if (abs(actual - shade_hdr) > 0.005) {
+    fmt <- function(x) paste0(round(x * 100, 1), "%")
+    cli::cli_inform(c(
+      "!" = "shade_hdr: {fmt(shade_hdr)} is not exactly achievable for this discrete distribution.",
+      "i" = "Using smallest HDR with coverage >= {fmt(shade_hdr)}: actual coverage = {fmt(actual)}."
+    ))
+  }
+
+  mass >= cutoff
 }
 
 #' @noRd
@@ -412,4 +456,4 @@ inject_open_fill <- function(data, theme) {
 #' @noRd
 utils::globalVariables(c("x", "y", "z", "p", "level", "GeomLine", "pdf_fun", "cdf_fun",
                          "pmf_fun", "survival_fun", "qf_fun", "hf_fun", "ymin", "ymax",
-                         "status"))
+                         "status", "prob"))

@@ -58,6 +58,7 @@ reference:
       - geom_pdf
       - geom_pdf_2d
       - geom_pmf
+      - geom_pmf_2d
       - geom_cdf
       - geom_cdf_discrete
       - geom_qf

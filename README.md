@@ -34,6 +34,7 @@ The package is organized around four families of geoms:
 | **Probability** | `geom_pdf()` |  | Probability density function |
 |  | `geom_pdf_2d()` |  | Bivariate PDF highest density regions (via ggdensity) |
 |  | `geom_pmf()` |  | Probability mass function (lollipop) |
+|  | `geom_pmf_2d()` |  | Bivariate PMF (tile heatmap or balloon plot) |
 |  | `geom_cdf()` |  | Cumulative distribution function |
 |  | `geom_cdf_discrete()` |  | Discrete CDF (step function) |
 |  | `geom_survival()` |  | Survival function $S(x) = 1 - F(x)$ |
@@ -452,6 +453,68 @@ ggplot() +
 ```
 
 <img src="man/figures/readme-geom-pmf-support-1.png" alt="" width="60%" />
+
+### Bivariate PMF: `geom_pmf_2d()`
+
+`geom_pmf_2d()` evaluates a bivariate mass function on a discrete
+lattice—integers spanning `xlim` $\times$ `ylim` by default, or exact
+values via `support_x`/`support_y`. The function uses the same
+`fun(c(x, y))` convention as the other bivariate layers, with parameters
+passed via `args`. The default `type = "tile"` renders a heatmap with
+fill encoding the probability mass.
+
+``` r
+dbinom2 <- function(v, sizes = c(10, 10), probs = c(0.5, 0.5)) {
+  dbinom(v[1], sizes[1], probs[1]) * dbinom(v[2], sizes[2], probs[2])
+}
+
+ggplot() +
+  geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10), args = list(probs = c(0.3, 0.7)))
+```
+
+<img src="man/figures/readme-pmf-2d-1.png" alt="" width="60%" />
+
+**Balloon plot.** `type = "point"` encodes mass by point size instead;
+`scale_size_area()` makes area proportional to mass.
+
+``` r
+ggplot() +
+  geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10), type = "point") +
+  scale_size_area()
+```
+
+<img src="man/figures/readme-pmf-2d-point-1.png" alt="" width="60%" />
+
+**Highest density region.** As with `geom_pmf()`, `shade_hdr` highlights
+the smallest set of lattice points containing the target probability
+mass, greying out the rest. The exact coverage may not be achievable for
+a discrete distribution, in which case the smallest HDR with at least
+the target coverage is used and a message reports the actual coverage.
+
+``` r
+ggplot() +
+  geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10), shade_hdr = 0.8)
+```
+
+<img src="man/figures/readme-pmf-2d-hdr-1.png" alt="" width="60%" />
+
+**Non-product support.** Distributions like the trinomial live on a
+simplex rather than a full product lattice. Evaluate over a bounding
+lattice, returning 0 off the support; zero-mass cells are dropped by
+default (`drop_zeros = TRUE`).
+
+``` r
+dtrinom <- function(v, size = 8, prob = c(0.3, 0.3, 0.4)) {
+  if (sum(v) > size) return(0)
+  dmultinom(c(v, size - sum(v)), prob = prob)
+}
+
+ggplot() +
+  geom_pmf_2d(fun = dtrinom, xlim = c(0, 8), ylim = c(0, 8)) +
+  coord_equal()
+```
+
+<img src="man/figures/readme-pmf-2d-trinomial-1.png" alt="" width="60%" />
 
 ### CDF: `geom_cdf()` and `geom_cdf_discrete()`
 

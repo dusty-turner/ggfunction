@@ -197,22 +197,7 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
 
     # Determine which lollipops fall inside the shaded region
     if (!is.null(shade_hdr)) {
-      fhat_d   <- pmf_vals / sum(pmf_vals)
-      ord      <- order(pmf_vals, decreasing = TRUE)
-      cumprob  <- cumsum(fhat_d[ord])
-      k        <- which(cumprob >= shade_hdr)[1L]
-      if (is.na(k)) k <- n
-      actual   <- cumprob[k]
-      cutoff   <- pmf_vals[ord[k]]
-      in_shade <- pmf_vals >= cutoff
-
-      if (abs(actual - shade_hdr) > 0.005) {
-        fmt <- function(x) paste0(round(x * 100, 1), "%")
-        cli::cli_inform(c(
-          "!" = "shade_hdr: {fmt(shade_hdr)} is not exactly achievable for this discrete distribution.",
-          "i" = "Using smallest HDR with coverage >= {fmt(shade_hdr)}: actual coverage = {fmt(actual)}."
-        ))
-      }
+      in_shade <- discrete_hdr_indicator(pmf_vals, shade_hdr)
 
     } else if (!is.null(p_lower) && !is.null(p_upper)) {
       idx_lo <- which(cum_vals >= p_lower)[1L]
