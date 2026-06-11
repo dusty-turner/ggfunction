@@ -69,6 +69,7 @@ reference:
       - geom_chf
       - geom_ecdf
       - geom_eqf
+      - geom_ppplot
       - geom_epmf
       - geom_echf
       - geom_ecdf_km

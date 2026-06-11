@@ -47,6 +47,7 @@ The package is organized around four families of geoms:
 |  | `geom_eqf()` |  | Empirical quantile function with confidence ribbon |
 |  | `geom_ppplot()` |  | PP diagnostic plot with DKW confidence ribbon |
 |  | `geom_qqplot()` |  | QQ diagnostic plot with DKW confidence ribbon |
+|  | `geom_spplot()` |  | Stabilized probability (SP) plot with DKW confidence ribbon |
 |  | `geom_epmf()` |  | Empirical PMF (lollipop) |
 |  | `geom_echf()` |  | Empirical cumulative hazard with DKW confidence band |
 | **Censored Data** | `geom_ecdf_km()` |  | Kaplan-Meier survival curve with Greenwood EP band |
@@ -898,6 +899,24 @@ pp + qq
 ```
 
 <img src="man/figures/readme-qqplot-spectral-1.png" alt="" width="60%" />
+
+### Stabilized probability plot: `geom_spplot()`
+
+`geom_spplot()` draws Michael’s (1983) stabilized probability (SP) plot:
+a PP plot with both coordinates passed through the arcsine-square-root
+variance-stabilizing transform $g(p) = \tfrac{2}{\pi} \arcsin \sqrt{p}$.
+Under the null the transformed points have approximately equal variance
+across the whole unit interval, so departures in the tails are as
+visible as departures in the middle. The interface matches
+`geom_ppplot()`: supply a CDF via `fun` (parameters via `args`); the 95%
+DKW/Massart band is carried to the stabilized scale.
+
+``` r
+ggplot(df_single, aes(x = x)) +
+  geom_spplot(fun = pnorm)
+```
+
+<img src="man/figures/readme-spplot-1.png" alt="" width="60%" />
 
 ### Empirical PMF: `geom_epmf()`
 
