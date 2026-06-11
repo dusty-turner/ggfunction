@@ -435,6 +435,23 @@ ggplot() +
 
 <img src="man/figures/readme-geom-pmf-hdr-1.png" alt="" width="60%" />
 
+**Viridis HDR colour.** `shade_hdr` maps HDR membership to `alpha` by
+default. When the alpha encoding is too subtle, map `after_stat(probs)`
+to a discrete color scale instead and fix `alpha = 1`; the sticks and
+points share the HDR colors.
+
+``` r
+ggplot() +
+  geom_pmf(
+    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3),
+    shade_hdr = c(0.5, 0.8, 0.95),
+    mapping = aes(colour = after_stat(probs)), alpha = 1
+  ) +
+  scale_colour_viridis_d()
+```
+
+<img src="man/figures/readme-geom-pmf-hdr-viridis-1.png" alt="" width="60%" />
+
 **Explicit support.** When the support is not a sequence of consecutive
 integers, pass the exact support points via `support`. Here we plot the
 distribution of the sample mean $\bar X$ of 10 iid

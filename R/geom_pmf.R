@@ -25,8 +25,11 @@
 #' @param stick_linewidth Linewidth of the vertical sticks (defaults to 0.25).
 #' @param stick_linetype Linetype of the vertical sticks (defaults to
 #'   `"dashed"`).
-#' @param color Color for the shaded points and segments (defaults to
-#'   `"black"`).
+#' @param color (Optional) Fixed color for the lollipop points and segments.
+#'   When omitted, lollipops render with the geom's default color (black)
+#'   unless a `colour` aesthetic is mapped (e.g.
+#'   `aes(colour = after_stat(probs))`); when supplied, it overrides any
+#'   colour mapping.
 #' @param args A named list of additional arguments to pass to `fun`.
 #' @param p (Optional) A numeric value between 0 and 1 specifying a cumulative
 #'   probability threshold. When `lower.tail = TRUE` (the default), lollipops
@@ -139,6 +142,30 @@ geom_pmf <- function(mapping = NULL,
     mapping <- modifyList(default_mapping, mapping)
   }
 
+  params <- list(
+    fun = fun,
+    xlim = xlim,
+    support = support,
+    point_size = point_size,
+    stick_linewidth = stick_linewidth,
+    stick_linetype = stick_linetype,
+    args = args,
+    na.rm = na.rm,
+    p = p,
+    lower.tail = lower.tail,
+    p_lower = p_lower,
+    p_upper = p_upper,
+    shade_outside = shade_outside,
+    shade_hdr = shade_hdr,
+    ...
+  )
+
+  # Forward color as a fixed aesthetic only when explicitly supplied, so
+  # mapped colour aesthetics are not silently overridden by the default.
+  if (!missing(color)) {
+    params$color <- color
+  }
+
   layer(
     data = data,
     mapping = mapping,
@@ -147,24 +174,7 @@ geom_pmf <- function(mapping = NULL,
     position = position,
     show.legend = show.legend,
     inherit.aes = inherit.aes,
-    params = list(
-      fun = fun,
-      xlim = xlim,
-      support = support,
-      point_size = point_size,
-      stick_linewidth = stick_linewidth,
-      stick_linetype = stick_linetype,
-      color = color,
-      args = args,
-      na.rm = na.rm,
-      p = p,
-      lower.tail = lower.tail,
-      p_lower = p_lower,
-      p_upper = p_upper,
-      shade_outside = shade_outside,
-      shade_hdr = shade_hdr,
-      ...
-    )
+    params = params
   )
 }
 

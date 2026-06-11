@@ -455,6 +455,24 @@ ggplot() +
 
 ![](reference/figures/readme-geom-pmf-hdr-1.png)
 
+**Viridis HDR colour.** `shade_hdr` maps HDR membership to `alpha` by
+default. When the alpha encoding is too subtle, map `after_stat(probs)`
+to a discrete color scale instead and fix `alpha = 1`; the sticks and
+points share the HDR colors.
+
+``` r
+
+ggplot() +
+  geom_pmf(
+    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3),
+    shade_hdr = c(0.5, 0.8, 0.95),
+    mapping = aes(colour = after_stat(probs)), alpha = 1
+  ) +
+  scale_colour_viridis_d()
+```
+
+![](reference/figures/readme-geom-pmf-hdr-viridis-1.png)
+
 **Explicit support.** When the support is not a sequence of consecutive
 integers, pass the exact support points via `support`. Here we plot the
 distribution of the sample mean $`\bar X`$ of 10 iid
@@ -479,8 +497,8 @@ by default, or exact values via `support_x`/`support_y`. The function
 uses the same `fun(c(x, y))` convention as the other bivariate layers,
 with parameters passed via `args`. The default `type = "point"` renders
 a balloon plot with size encoding the probability mass;
-[`scale_size_area()`](https://ggplot2.tidyverse.org/reference/scale_size.html)
-makes area proportional to mass and zero mass vanish.
+`scale_size_area()` makes area proportional to mass and zero mass
+vanish.
 
 ``` r
 
@@ -524,6 +542,25 @@ ggplot() +
 ```
 
 ![](reference/figures/readme-pmf-2d-hdr-1.png)
+
+**Viridis HDR fill.** If the alpha encoding is too subtle, map the HDR
+levels to `fill` instead with a fillable point shape and a discrete
+viridis palette, fixing `alpha = 1` to turn off the default encoding.
+Probability mass stays encoded by point size.
+
+``` r
+
+ggplot() +
+  geom_pmf_2d(
+    fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10), args = list(probs = c(0.3, 0.7)),
+    shade_hdr = c(0.5, 0.8, 0.95),
+    mapping = aes(fill = after_stat(probs)), shape = 21, color = "black", alpha = 1
+  ) +
+  scale_size_area() +
+  scale_fill_viridis_d()
+```
+
+![](reference/figures/readme-pmf-2d-viridis-1.png)
 
 **Non-product support.** Distributions like the trinomial live on a
 simplex rather than a full product lattice. Evaluate over a bounding

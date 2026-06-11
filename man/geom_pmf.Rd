@@ -120,8 +120,11 @@ points to evaluate. When supplied, \code{xlim} is ignored.}
 \item{stick_linetype}{Linetype of the vertical sticks (defaults to
 \code{"dashed"}).}
 
-\item{color}{Color for the shaded points and segments (defaults to
-\code{"black"}).}
+\item{color}{(Optional) Fixed color for the lollipop points and segments.
+When omitted, lollipops render with the geom's default color (black)
+unless a \code{colour} aesthetic is mapped (e.g.
+\code{aes(colour = after_stat(probs))}); when supplied, it overrides any
+colour mapping.}
 
 \item{args}{A named list of additional arguments to pass to \code{fun}.}
 

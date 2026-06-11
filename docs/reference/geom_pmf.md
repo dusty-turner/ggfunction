@@ -171,7 +171,11 @@ GeomPMF
 
 - color:
 
-  Color for the shaded points and segments (defaults to `"black"`).
+  (Optional) Fixed color for the lollipop points and segments. When
+  omitted, lollipops render with the geom's default color (black) unless
+  a `colour` aesthetic is mapped (e.g.
+  `aes(colour = after_stat(probs))`); when supplied, it overrides any
+  colour mapping.
 
 - args:
 

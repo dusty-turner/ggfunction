@@ -214,8 +214,11 @@ points to evaluate. When supplied, <code>xlim</code> is ignored.</p></dd>
 
 
 <dt id="arg-color">color<a class="anchor" aria-label="anchor" href="#arg-color"></a></dt>
-<dd><p>Color for the shaded points and segments (defaults to
-<code>"black"</code>).</p></dd>
+<dd><p>(Optional) Fixed color for the lollipop points and segments.
+When omitted, lollipops render with the geom's default color (black)
+unless a <code>colour</code> aesthetic is mapped (e.g.
+<code>aes(colour = after_stat(probs))</code>); when supplied, it overrides any
+colour mapping.</p></dd>
 
 
 <dt id="arg-args">args<a class="anchor" aria-label="anchor" href="#arg-args"></a></dt>

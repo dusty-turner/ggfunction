@@ -95,6 +95,46 @@ test_that("geom_pmf maps probs to alpha when shade_hdr is supplied", {
   expect_null(l_plain$mapping$alpha)
 })
 
+test_that("geom_pmf allows shade_hdr probs to map to colour", {
+  p <- ggplot() +
+    geom_pmf(
+      fun = dbinom,
+      xlim = c(0, 10),
+      args = list(size = 10, prob = 0.3),
+      shade_hdr = c(0.5, 0.8, 0.95),
+      mapping = aes(colour = after_stat(probs)),
+      alpha = 1
+    ) +
+    scale_colour_viridis_d()
+
+  built <- suppressMessages(ggplot_build(p))
+
+  expect_equal(unique(built$data[[1]]$alpha), 1)
+  expect_gt(length(unique(built$data[[1]]$colour)), 1)
+  expect_false(all(unique(built$data[[1]]$colour) == "black"))
+})
+
+test_that("geom_pmf still accepts fixed color", {
+  p <- ggplot() +
+    geom_pmf(
+      fun = dbinom,
+      xlim = c(0, 10),
+      args = list(size = 10, prob = 0.3),
+      color = "red"
+    )
+
+  built <- ggplot_build(p)
+
+  expect_equal(unique(built$data[[1]]$colour), "red")
+})
+
+test_that("geom_pmf renders black lollipops by default", {
+  p <- ggplot() +
+    geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
+  built <- ggplot_build(p)
+  expect_equal(unique(built$data[[1]]$colour), "black")
+})
+
 test_that("geom_pmf with support parameter builds without error", {
   f_mean <- function(x, prob) dbinom(round(x * 10), size = 10, prob = prob)
   p <- ggplot() + geom_pmf(
