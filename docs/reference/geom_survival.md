@@ -1,8 +1,7 @@
 # Plot a Survival Function S(x) = 1 - F(x)
 
 `geom_survival()` creates a ggplot2 layer that plots a survival
-function, computed as \\S(x) = 1 - F(x)\\ where \\F(x)\\ is a CDF. By
-default only the line is drawn (no fill).
+function. By default only the line is drawn (no fill).
 
 ## Usage
 
@@ -16,7 +15,10 @@ geom_survival(
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = FALSE,
-  fun,
+  fun = NULL,
+  cdf_fun = NULL,
+  pdf_fun = NULL,
+  qf_fun = NULL,
   xlim = NULL,
   n = 101,
   args = list(),
@@ -27,14 +29,6 @@ StatSurvival
 
 GeomSurvival
 ```
-
-## Format
-
-An object of class `StatSurvival` (inherits from `Stat`, `ggproto`,
-`gg`) of length 3.
-
-An object of class `GeomSurvival` (inherits from `GeomPath`, `Geom`,
-`ggproto`, `gg`) of length 2.
 
 ## Arguments
 
@@ -48,9 +42,7 @@ An object of class `GeomSurvival` (inherits from `GeomPath`, `Geom`,
 
 - data:
 
-  Ignored by
-  [`stat_function()`](https://ggplot2.tidyverse.org/reference/geom_function.html),
-  do not use.
+  Ignored by `stat_function()`, do not use.
 
 - stat:
 
@@ -63,8 +55,7 @@ An object of class `GeomSurvival` (inherits from `GeomPath`, `Geom`,
 
   - A string naming the stat. To give the stat as a string, strip the
     function name of the `stat_` prefix. For example, to use
-    [`stat_count()`](https://ggplot2.tidyverse.org/reference/geom_bar.html),
-    give the stat as `"count"`.
+    `stat_count()`, give the stat as `"count"`.
 
   - For more information and other ways to specify the stat, see the
     [layer
@@ -78,14 +69,13 @@ An object of class `GeomSurvival` (inherits from `GeomPath`, `Geom`,
   the display. The `position` argument accepts the following:
 
   - The result of calling a position function, such as
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html).
-    This method allows for passing extra arguments to the position.
+    `position_jitter()`. This method allows for passing extra arguments
+    to the position.
 
   - A string naming the position adjustment. To give the position as a
     string, strip the function name of the `position_` prefix. For
-    example, to use
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html),
-    give the position as `"jitter"`.
+    example, to use `position_jitter()`, give the position as
+    `"jitter"`.
 
   - For more information and other ways to specify the position, see the
     [layer
@@ -104,7 +94,7 @@ An object of class `GeomSurvival` (inherits from `GeomPath`, `Geom`,
 
 - show.legend:
 
-  Logical. Should this layer be included in the legends? `NA`, the
+  logical. Should this layer be included in the legends? `NA`, the
   default, includes if any aesthetics are mapped. `FALSE` never
   includes, and `TRUE` always includes. It can also be a named logical
   vector to finely select the aesthetics to display. To include legend
@@ -121,9 +111,30 @@ An object of class `GeomSurvival` (inherits from `GeomPath`, `Geom`,
 
 - fun:
 
+  A survival function \\S(x)\\ returning values between 0 and 1 (e.g.
+  `function(x) 1 - pnorm(x)`). Evaluated directly. Exactly one of `fun`,
+  `cdf_fun`, `pdf_fun`, or `qf_fun` must be provided.
+
+- cdf_fun:
+
   A CDF function (e.g. [pnorm](https://rdrr.io/r/stats/Normal.html)).
-  The function must accept a numeric vector and return values between 0
-  and 1. The survival function is computed as `1 - fun(x)`.
+  The survival function is computed as `1 - cdf_fun(x)`. Exactly one of
+  `fun`, `cdf_fun`, `pdf_fun`, or `qf_fun` must be provided.
+
+- pdf_fun:
+
+  A PDF function (e.g. [dnorm](https://rdrr.io/r/stats/Normal.html)).
+  The CDF is derived by numerical integration and the survival function
+  is computed as `1 - F(x)`. Exactly one of `fun`, `cdf_fun`, `pdf_fun`,
+  or `qf_fun` must be provided.
+
+- qf_fun:
+
+  A quantile function (e.g.
+  [qnorm](https://rdrr.io/r/stats/Normal.html)). The CDF is derived via
+  interpolation and the survival function is computed as `1 - F(x)`.
+  Exactly one of `fun`, `cdf_fun`, `pdf_fun`, or `qf_fun` must be
+  provided.
 
 - xlim:
 
@@ -131,11 +142,12 @@ An object of class `GeomSurvival` (inherits from `GeomPath`, `Geom`,
 
 - n:
 
-  Number of points at which to evaluate `fun`. Defaults to 101.
+  Number of points at which to evaluate. Defaults to 101.
 
 - args:
 
-  A named list of additional arguments to pass to `fun`.
+  A named list of additional arguments to pass to `fun`, `cdf_fun`, or
+  `pdf_fun`.
 
 - color:
 
@@ -145,14 +157,66 @@ An object of class `GeomSurvival` (inherits from `GeomPath`, `Geom`,
 
 A ggplot2 layer.
 
+## Details
+
+Supply exactly one of `fun` (a survival function), `cdf_fun` (a CDF),
+`pdf_fun` (a PDF), or `qf_fun` (a quantile function). When `cdf_fun` is
+supplied, \\S(x) = 1 - F(x)\\. When `pdf_fun` is supplied, the CDF is
+first derived by numerical integration and then \\S(x) = 1 - F(x)\\.
+When `qf_fun` is supplied, the CDF is derived via interpolation and then
+\\S(x) = 1 - F(x)\\.
+
+## Computed variables
+
+These are calculated by the `stat` part of the layer and can be accessed
+with
+[`ggplot2::after_stat()`](https://ggplot2.tidyverse.org/reference/aes_eval.html).
+
+- `after_stat(x)`:
+
+  Points at which the survival function is evaluated.
+
+- `after_stat(y)`:
+
+  Survival probabilities.
+
+## Aesthetics
+
+`geom_survival()` does not require any input aesthetics when a function
+source is supplied. It understands the following aesthetics:
+
+- Computed position aesthetics:
+
+  `x` and `y`, mapped by default to `after_stat(x)` and `after_stat(y)`.
+
+- Drawing aesthetics:
+
+  `alpha`, `colour`/`color`, `group`, `linetype`, and `linewidth` for
+  the line.
+
+## See also
+
+[`geom_cdf()`](/reference/geom_cdf.md),
+[`geom_chf()`](/reference/geom_chf.md),
+[`geom_hf()`](/reference/geom_hf.md),
+[`geom_survival_discrete()`](/reference/geom_survival_discrete.md), and
+[`geom_ecdf_km()`](/reference/geom_ecdf_km.md) for related survival and
+distribution-function layers.
+
 ## Examples
 
 ``` r
+  # Direct survival function
   ggplot() +
-    geom_survival(fun = pnorm, xlim = c(-3, 3))
+    geom_survival(fun = function(x) 1 - pnorm(x), xlim = c(-3, 3))
+
+
+  # Via CDF
+  ggplot() +
+    geom_survival(cdf_fun = pnorm, xlim = c(-3, 3))
 
 
   ggplot() +
-    geom_survival(fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
+    geom_survival(cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 
 ```

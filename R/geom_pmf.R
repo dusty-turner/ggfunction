@@ -177,12 +177,12 @@ StatPMF <- ggproto("StatPMF", Stat,
   compute_group = function(data, scales, fun, xlim = NULL, support = NULL, args = NULL,
                            shade_hdr = NULL, ...) {
 
-    if (!is.null(support)) {
-      x_vals <- sort(support)
-    } else if (is.null(xlim)) {
-      x_vals <- 0:10
-    } else {
-      x_vals <- seq(ceiling(xlim[1]), floor(xlim[2]))
+    x_vals <- discrete_support(xlim = xlim, support = support)
+
+    if (length(x_vals) == 0L) {
+      out <- data.frame(x = numeric(0), y = numeric(0))
+      if (!is.null(shade_hdr)) out$probs <- factor(character(0), ordered = TRUE)
+      return(out)
     }
 
     fun_injected <- function(x) {

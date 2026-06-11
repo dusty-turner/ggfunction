@@ -25,11 +25,6 @@ geom_epmf(
 StatEPMF
 ```
 
-## Format
-
-An object of class `StatEPMF` (inherits from `Stat`, `ggproto`, `gg`) of
-length 3.
-
 ## Arguments
 
 - mapping:
@@ -44,19 +39,19 @@ length 3.
 
   The data to be displayed in this layer. There are three options:
 
-  - `NULL` (default): the data is inherited from the plot data as
-    specified in the call to
-    [`ggplot()`](https://ggplot2.tidyverse.org/reference/ggplot.html).
+  If `NULL`, the default, the data is inherited from the plot data as
+  specified in the call to
+  [`ggplot()`](https://ggplot2.tidyverse.org/reference/ggplot.html).
 
-  - A `data.frame`, or other object, will override the plot data. All
-    objects will be fortified to produce a data frame. See
-    [`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html)
-    for which variables will be created.
+  A `data.frame`, or other object, will override the plot data. All
+  objects will be fortified to produce a data frame. See
+  [`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html)
+  for which variables will be created.
 
-  - A `function` will be called with a single argument, the plot data.
-    The return value must be a `data.frame`, and will be used as the
-    layer data. A `function` can be created from a `formula` (e.g.
-    `~ head(.x, 10)`).
+  A `function` will be called with a single argument, the plot data. The
+  return value must be a `data.frame`, and will be used as the layer
+  data. A `function` can be created from a `formula` (e.g.
+  `~ head(.x, 10)`).
 
 - stat:
 
@@ -69,8 +64,7 @@ length 3.
 
   - A string naming the stat. To give the stat as a string, strip the
     function name of the `stat_` prefix. For example, to use
-    [`stat_count()`](https://ggplot2.tidyverse.org/reference/geom_bar.html),
-    give the stat as `"count"`.
+    `stat_count()`, give the stat as `"count"`.
 
   - For more information and other ways to specify the stat, see the
     [layer
@@ -84,14 +78,13 @@ length 3.
   the display. The `position` argument accepts the following:
 
   - The result of calling a position function, such as
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html).
-    This method allows for passing extra arguments to the position.
+    `position_jitter()`. This method allows for passing extra arguments
+    to the position.
 
   - A string naming the position adjustment. To give the position as a
     string, strip the function name of the `position_` prefix. For
-    example, to use
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html),
-    give the position as `"jitter"`.
+    example, to use `position_jitter()`, give the position as
+    `"jitter"`.
 
   - For more information and other ways to specify the position, see the
     [layer
@@ -142,7 +135,7 @@ length 3.
 
 - show.legend:
 
-  Logical. Should this layer be included in the legends? `NA`, the
+  logical. Should this layer be included in the legends? `NA`, the
   default, includes if any aesthetics are mapped. `FALSE` never
   includes, and `TRUE` always includes. It can also be a named logical
   vector to finely select the aesthetics to display. To include legend
@@ -179,6 +172,37 @@ and the main lollipop layer.
 The empirical distribution places mass \\c_k / n\\ at each distinct
 observed value \\x_k\\, where \\c_k\\ is the count of occurrences and
 \\n\\ is the total sample size. Ties are handled correctly.
+
+## Computed variables
+
+These are calculated by the `stat` part of the layer and can be accessed
+with
+[`ggplot2::after_stat()`](https://ggplot2.tidyverse.org/reference/aes_eval.html).
+
+- `after_stat(x)`:
+
+  Distinct observed sample values.
+
+- `after_stat(y)`:
+
+  Empirical probability mass at each value.
+
+## Aesthetics
+
+`geom_epmf()` requires the following aesthetic:
+
+- `x`:
+
+  Observed sample values.
+
+It also understands `alpha`, `colour`/`color`, `fill`, `group`,
+`linetype`, `linewidth`, `shape`, `size`, and `stroke`.
+
+## See also
+
+[`geom_pmf()`](/reference/geom_pmf.md) for theoretical PMFs,
+[`geom_ecdf()`](/reference/geom_ecdf.md) for empirical CDFs, and
+[`geom_eqf()`](/reference/geom_eqf.md) for empirical quantile functions.
 
 ## Examples
 

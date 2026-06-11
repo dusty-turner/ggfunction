@@ -5,41 +5,46 @@
 bands using the Dvoretzky–Kiefer–Wolfowitz (DKW) inequality with
 Massart’s (1990) tight constant. The half-width is
 
-$$\varepsilon_{n} = \sqrt{\frac{\log(2/\alpha)}{2n}},\qquad\alpha = 1 - \texttt{𝚕𝚎𝚟𝚎𝚕},$$
+``` math
+\varepsilon_n = \sqrt{\frac{\log(2/\alpha)}{2n}}, \qquad \alpha = 1 - \texttt{level},
+```
 
 giving the band
-$\left\lbrack {\widehat{F}}_{n}(x) - \varepsilon_{n},\;{\widehat{F}}_{n}(x) + \varepsilon_{n} \right\rbrack$
-clipped to $\lbrack 0,1\rbrack$. This band is guaranteed to contain the
-true CDF everywhere simultaneously with probability **at least**
-$1 - \alpha$.
+$`[\hat{F}_n(x) - \varepsilon_n,\; \hat{F}_n(x) + \varepsilon_n]`$
+clipped to $`[0, 1]`$. This band is guaranteed to contain the true CDF
+everywhere simultaneously with probability **at least** $`1 - \alpha`$.
 
 This vignette verifies the guarantee by simulation.
 
 ## What “simultaneous coverage” means
 
-A band has **simultaneous** $(1 - \alpha)$ coverage if
+A band has **simultaneous** $`(1-\alpha)`$ coverage if
 
-$$P\!\left( \sup\limits_{x}|{\widehat{F}}_{n}(x) - F(x)| \leq \varepsilon_{n} \right)\; \geq \; 1 - \alpha.$$
+``` math
+P\!\left(\sup_{x} \lvert \hat{F}_n(x) - F(x) \rvert \leq \varepsilon_n\right)
+\;\geq\; 1 - \alpha.
+```
 
-The supremum equals the Kolmogorov–Smirnov statistic $D_{n}$, so we need
-$P\left( D_{n} \leq \varepsilon_{n} \right) \geq 1 - \alpha$. Because
-$F$ is continuous, $D_{n}$ has a distribution-free null distribution, so
+The supremum equals the Kolmogorov–Smirnov statistic $`D_n`$, so we need
+$`P(D_n \leq \varepsilon_n) \geq 1 - \alpha`$. Because $`F`$ is
+continuous, $`D_n`$ has a distribution-free null distribution, so
 coverage does not depend on the true distribution.
 
 ## Simulation
 
-For each combination of sample size $n$ and nominal level $1 - \alpha$
-we:
+For each combination of sample size $`n`$ and nominal level
+$`1 - \alpha`$ we:
 
-1.  Draw $B = 10,000$ independent samples from $N(0,1)$.
-2.  Compute $D_{n} = \sup_{x}|{\widehat{F}}_{n}(x) - F(x)|$ via
+1.  Draw $`B = 10{,}000`$ independent samples from $`N(0, 1)`$.
+2.  Compute $`D_n = \sup_x \lvert \hat{F}_n(x) - F(x) \rvert`$ via
     [`ks.test()`](https://rdrr.io/r/stats/ks.test.html).
-3.  Compute $\varepsilon_{n}$ using the same formula as
+3.  Compute $`\varepsilon_n`$ using the same formula as
     [`geom_ecdf()`](/reference/geom_ecdf.md).
 4.  Record the fraction of replications where
-    $D_{n} \leq \varepsilon_{n}$.
+    $`D_n \leq \varepsilon_n`$.
 
 ``` r
+
 set.seed(20240101)
 
 B      <- 10000
@@ -64,7 +69,7 @@ results <- do.call(rbind, lapply(ns, function(n) {
 
 ## Results table
 
-Each cell shows empirical coverage (should be $\geq$ nominal).
+Each cell shows empirical coverage (should be $`\geq`$ nominal).
 
 |     |    n |   90% |   95% |   99% |
 |:----|-----:|------:|------:|------:|
@@ -77,26 +82,29 @@ Each cell shows empirical coverage (should be $\geq$ nominal).
 | 19  | 1000 | 89.7% |   95% | 99.1% |
 
 Empirical simultaneous coverage over 10000 simulations from N(0,1).
+{.table}
 
 Coverage is always **at or above** the nominal level. The bands are
-slightly conservative for small $n$ (where the DKW bound is not yet
-tight) and approach the nominal level as $n$ grows.
+slightly conservative for small $`n`$ (where the DKW bound is not yet
+tight) and approach the nominal level as $`n`$ grows.
 
 ## Coverage plot
 
 ![](coverage-simulation_files/figure-html/plot-1.png)
 
 Empirical coverage (solid lines) lies above each dashed nominal line
-across all $n$. As $n$ increases the bands tighten toward the nominal
-level, confirming that the DKW construction is asymptotically exact.
+across all $`n`$. As $`n`$ increases the bands tighten toward the
+nominal level, confirming that the DKW construction is asymptotically
+exact.
 
 ## Distribution-free check
 
-Because $D_{n}$ under a continuous $F$ is distribution-free, the same
+Because $`D_n`$ under a continuous $`F`$ is distribution-free, the same
 coverage holds for any continuous distribution. A quick cross-check with
 Uniform and Exponential confirms this:
 
 ``` r
+
 set.seed(20240102)
 
 n   <- 100
@@ -146,6 +154,7 @@ knitr::kable(dist_results[, c("distribution", "nominal", "empirical_pct")],
 | Beta         |   95%   |   95.6%   |
 
 Coverage at n = 100, level = 0.95 across distributions (B = 10000 sims).
+{.table}
 
 Coverage is at or above 95% for all distributions, confirming the
 distribution-free guarantee.
@@ -155,5 +164,6 @@ distribution-free guarantee.
 The simulations confirm that [`geom_ecdf()`](/reference/geom_ecdf.md)
 and [`geom_eqf()`](/reference/geom_eqf.md) produce valid simultaneous
 confidence bands: empirical coverage is always at or above the nominal
-level, and the bands converge toward the nominal level as $n$ grows. The
-DKW construction is sound for all tested sample sizes and distributions.
+level, and the bands converge toward the nominal level as $`n`$ grows.
+The DKW construction is sound for all tested sample sizes and
+distributions.

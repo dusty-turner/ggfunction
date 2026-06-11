@@ -1,21 +1,19 @@
-# Plot an Empirical Quantile Function
+# Plot an Empirical Cumulative Hazard Function
 
-`geom_eqf()` computes the empirical quantile function of a sample and
-renders it as a left-continuous step function on \\\[0, 1\]\\, using the
-same visual conventions as
-[`geom_qf_discrete()`](/reference/geom_qf_discrete.md): horizontal
-segments, dashed vertical jumps, closed circles at the bottom of each
-jump (value achieved), and open circles at the top (next value not yet
-reached). An optional simultaneous confidence band is drawn by inverting
-the DKW/Massart ECDF band.
+`geom_echf()` computes the empirical cumulative hazard function of a
+sample and renders it as a right-continuous step function. The
+cumulative hazard is obtained by transforming the empirical CDF:
+\\\hat{H}\_n(x) = -\log(1 - \hat{F}\_n(x))\\. An optional simultaneous
+confidence band (defaulting to 95%) is drawn using a monotone
+transformation of the DKW inequality.
 
 ## Usage
 
 ``` r
-geom_eqf(
+geom_echf(
   mapping = NULL,
   data = NULL,
-  stat = StatEQF,
+  stat = StatECHF,
   position = "identity",
   ...,
   na.rm = FALSE,
@@ -27,12 +25,13 @@ geom_eqf(
   show_vert = NULL,
   conf_int = TRUE,
   level = 0.95,
-  conf_alpha = 0.4
+  conf_alpha = 0.4,
+  band_max = NULL
 )
 
-StatEQF
+StatECHF
 
-StatEQFBand
+StatECHFBand
 ```
 
 ## Arguments
@@ -194,22 +193,32 @@ StatEQFBand
 
   Alpha (transparency) of the confidence ribbon. Defaults to `0.4`.
 
+- band_max:
+
+  Maximum value of \\H\\ for the upper confidence band. Defaults to
+  `NULL`, which clips at \\\log(2n)\\ and emits an informational
+  message. Set to `Inf` to disable clipping entirely.
+
 ## Value
 
 A ggplot2 layer, or a list of two layers when `conf_int = TRUE`.
 
 ## Details
 
-The empirical quantile function is the left-continuous inverse of the
-empirical CDF: \\Q(p) = \inf\\x : F_n(x) \geq p\\\\.
+The final observation, where \\\hat{F}\_n(x) = 1\\ and \\\hat{H}\_n(x) =
+\infty\\, is dropped so the step function extends to the right panel
+edge at the last finite value.
 
-The two-sided confidence band at probability level \\p\\ is \\\[Q_n(p -
-\varepsilon),\\ Q_n(p + \varepsilon)\]\\, where \\\varepsilon =
-\sqrt{\log(2/\alpha) / (2n)}\\ is the DKW/Massart half-width (\\\alpha =
-1 - \texttt{level}\\). In the extreme tails, DKW gives only one-sided
-bounds unless known support bounds are supplied; the ribbon displays
-these as open-ended, panel-clipped tails. This follows directly from
-inverting the simultaneous ECDF confidence band.
+The simultaneous confidence band transforms the DKW bounds on the CDF to
+the cumulative hazard scale. The half-width on the CDF scale is
+\\\varepsilon = \sqrt{\log(2/\alpha) / (2n)}\\, where \\\alpha = 1 -
+\texttt{level}\\. The CDF bounds \\\[\hat{F}\_n(x) - \varepsilon,\\
+\hat{F}\_n(x) + \varepsilon\]\\ are clipped to \\\[0, 1 - 1/(2n)\]\\ and
+transformed via \\H = -\log(1 - F)\\ to give the band on the cumulative
+hazard scale. This caps the displayed upper band at \\\log(2n)\\, since
+the ECDF has resolution \\1/n\\ and CDF values closer to 1 than
+\\1/(2n)\\ are below the estimator's resolution. When clipping occurs,
+an informational message is emitted.
 
 ## Computed variables
 
@@ -219,11 +228,12 @@ with
 
 - `after_stat(x)`:
 
-  Empirical cumulative probabilities.
+  Distinct observed sample values except the final value when the
+  empirical cumulative hazard would be infinite.
 
 - `after_stat(y)`:
 
-  Observed sample values.
+  Empirical cumulative hazard values.
 
 - `after_stat(ymin)` and `after_stat(ymax)`:
 
@@ -231,7 +241,7 @@ with
 
 ## Aesthetics
 
-`geom_eqf()` requires the following aesthetic:
+`geom_echf()` requires the following aesthetic:
 
 - `x`:
 
@@ -242,25 +252,38 @@ It also understands `alpha`, `colour`/`color`, `fill`, `group`,
 
 ## See also
 
-[`geom_qf()`](/reference/geom_qf.md) and
-[`geom_qf_discrete()`](/reference/geom_qf_discrete.md) for theoretical
-quantile functions, and [`geom_ecdf()`](/reference/geom_ecdf.md) for
-empirical CDFs.
+[`geom_chf()`](/reference/geom_chf.md) for theoretical cumulative hazard
+functions, [`geom_ecdf()`](/reference/geom_ecdf.md) for empirical CDFs,
+and [`geom_echf_na()`](/reference/geom_echf_na.md) for censored data.
 
 ## Examples
 
 ``` r
 set.seed(1)
-df <- data.frame(x = rnorm(50))
 
-ggplot(df, aes(x = x)) + geom_eqf()
+df <- data.frame(x = rexp(20))
+ggplot(df, aes(x = x)) + geom_echf()
+#> Upper confidence band clipped at "H" = 3.69 (`log(2n)`); true upper bound is
+#> infinite where `F_n(x) + eps >= 1`. Set `band_max = Inf` to disable.
+
+ggplot(df, aes(x = x)) + geom_echf(band_max = Inf)
 
 
-# Compare two groups
+df <- data.frame(x = rexp(100))
+ggplot(df, aes(x = x)) + geom_echf()
+#> Upper confidence band clipped at "H" = 5.3 (`log(2n)`); true upper bound is
+#> infinite where `F_n(x) + eps >= 1`. Set `band_max = Inf` to disable.
+
+
+# Overlaying multiple groups
 df2 <- data.frame(
-  x     = c(rnorm(40), rnorm(40, mean = 2)),
+  x     = c(rexp(40, rate = 1), rexp(40, rate = 0.5)),
   group = rep(c("A", "B"), each = 40)
 )
-ggplot(df2, aes(x = x, colour = group)) + geom_eqf()
+ggplot(df2, aes(x = x, colour = group)) + geom_echf()
+#> Upper confidence band clipped at "H" = 4.38 (`log(2n)`); true upper bound is
+#> infinite where `F_n(x) + eps >= 1`. Set `band_max = Inf` to disable.
+#> Upper confidence band clipped at "H" = 4.38 (`log(2n)`); true upper bound is
+#> infinite where `F_n(x) + eps >= 1`. Set `band_max = Inf` to disable.
 
 ```

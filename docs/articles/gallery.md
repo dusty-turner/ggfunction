@@ -8,6 +8,7 @@ self-contained.
 A lemniscate of Bernoulli with an arrowhead and tail marker:
 
 ``` r
+
 lemniscate <- function(t) {
   r <- sqrt(pmax(2 * cos(2 * t), 0))
   c(r * cos(t), r * sin(t))
@@ -29,6 +30,7 @@ ggplot() +
 Lissajous figures with different frequency ratios:
 
 ``` r
+
 make_lissajous <- function(a, b) {
   function(t) c(sin(a * t), cos(b * t))
 }
@@ -56,6 +58,7 @@ The same 2D function shown as a raster, contour lines, and filled
 contours:
 
 ``` r
+
 f_wave <- function(v) sin(2 * pi * v[1]) + sin(2 * pi * v[2])
 
 p1 <- ggplot() +
@@ -82,6 +85,7 @@ p1 + p2 + p3
 A rotation field rendered as arrows and as streamlines:
 
 ``` r
+
 f_rot <- function(u) c(-u[2], u[1])
 
 p1 <- ggplot() +
@@ -104,6 +108,7 @@ Highest density regions shine for multimodal distributions where
 equal-tailed intervals would miss probability mass:
 
 ``` r
+
 bimodal <- function(x) 0.4 * dnorm(x, -2, 0.8) + 0.6 * dnorm(x, 2, 1)
 
 ggplot() +
@@ -121,6 +126,7 @@ Shade both tails simultaneously with `shade_outside = TRUE` — a natural
 visual for hypothesis testing:
 
 ``` r
+
 ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-4, 4),
@@ -139,6 +145,7 @@ CDF, quantile function, and survival function side-by-side for the same
 Binomial(10, 0.3) distribution:
 
 ``` r
+
 binom_args <- list(size = 10, prob = 0.3)
 
 p1 <- ggplot() +
@@ -161,9 +168,10 @@ p1 + p2 + p3
 ## Non-integer support
 
 A PMF on a custom support — the distribution of the sample mean from a
-discrete uniform on $\{ 0,0.5,1\}$ with $n = 2$:
+discrete uniform on $`\{0, 0.5, 1\}`$ with $`n = 2`$:
 
 ``` r
+
 mean_probs <- function(x) {
   vals <- c(0, 0.5, 1)
   grid <- expand.grid(x1 = vals, x2 = vals)
@@ -187,6 +195,7 @@ Overlay an empirical quantile function with the theoretical quantile
 function to visually assess goodness-of-fit:
 
 ``` r
+
 set.seed(123)
 df <- data.frame(x = rnorm(40))
 

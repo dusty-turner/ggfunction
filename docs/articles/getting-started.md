@@ -3,16 +3,17 @@
 ## Installation
 
 ``` r
+
 # Install from GitHub
 pak::pak("dusty-turner/ggfunction")
 ```
 
 ## Your first plot
 
-Pass any $\left. {\mathbb{R}}\rightarrow{\mathbb{R}} \right.$ function
-and a domain:
+Pass any $`\mathbb{R} \to \mathbb{R}`$ function and a domain:
 
 ``` r
+
 ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi))
 ```
@@ -25,6 +26,7 @@ Use `shade_from` and `shade_to` to highlight an interval under the
 curve:
 
 ``` r
+
 ggplot() +
   geom_function_1d_1d(
     fun = dnorm, xlim = c(-3, 3),
@@ -40,6 +42,7 @@ ggplot() +
 functions. Use `p` to shade a cumulative probability region:
 
 ``` r
+
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975, fill = "tomato")
 ```
@@ -52,6 +55,7 @@ ggplot() +
 functions as lollipop charts:
 
 ``` r
+
 ggplot() +
   geom_pmf(
     fun = dbinom, xlim = c(0, 10),
@@ -67,6 +71,7 @@ ggplot() +
 observed data, with an automatic Kolmogorov–Smirnov confidence band:
 
 ``` r
+
 set.seed(42)
 df <- data.frame(x = rnorm(50))
 
@@ -82,6 +87,7 @@ Every `ggfunction` geom is a standard ggplot2 layer. Add themes, titles,
 and other geoms as usual:
 
 ``` r
+
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3),
            p_lower = 0.025, p_upper = 0.975,

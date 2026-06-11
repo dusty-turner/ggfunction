@@ -1,44 +1,35 @@
-# Plot a Cumulative Distribution Function
+# Plot a Cumulative Hazard Function H(x)
 
-`geom_cdf()` creates a ggplot2 layer that plots a cumulative
-distribution function (CDF) as a line. You can optionally shade a region
-by specifying a cumulative probability threshold via `p`, or a two-sided
-interval via `p_lower` and `p_upper`.
+`geom_chf()` creates a ggplot2 layer that plots a cumulative hazard
+function. By default only the line is drawn (no fill).
 
 ## Usage
 
 ``` r
-geom_cdf(
+geom_chf(
   mapping = NULL,
   data = NULL,
-  stat = StatCDF,
+  stat = StatCHF,
   position = "identity",
   ...,
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = FALSE,
   fun = NULL,
+  hf_fun = NULL,
+  cdf_fun = NULL,
   pdf_fun = NULL,
   survival_fun = NULL,
   qf_fun = NULL,
-  hf_fun = NULL,
   hf_lower = -Inf,
   xlim = NULL,
   n = 101,
-  args = list(),
-  fill = "grey20",
-  color = "black",
-  p = NULL,
-  lower.tail = TRUE,
-  p_lower = NULL,
-  p_upper = NULL,
-  check = TRUE,
-  check_tol = 0.01
+  args = list()
 )
 
-StatCDF
+StatCHF
 
-GeomCDF
+GeomCHF
 ```
 
 ## Arguments
@@ -122,103 +113,76 @@ GeomCDF
 
 - fun:
 
-  A function to compute the CDF (e.g.
-  [pnorm](https://rdrr.io/r/stats/Normal.html)). The function must
-  accept a numeric vector as its first argument and return values
-  between 0 and 1. Exactly one of `fun`, `pdf_fun`, `survival_fun`,
-  `qf_fun`, or `hf_fun` must be provided.
+  A cumulative hazard function \\H(x)\\ (e.g.
+  `function(x) -log(1 - pnorm(x))`). Evaluated directly. Exactly one of
+  `fun`, `hf_fun`, `cdf_fun`, `pdf_fun`, `survival_fun`, or `qf_fun`
+  must be provided.
+
+- hf_fun:
+
+  A hazard function (e.g. a Weibull hazard). The cumulative hazard is
+  derived by numerical integration. Exactly one of `fun`, `hf_fun`,
+  `cdf_fun`, `pdf_fun`, `survival_fun`, or `qf_fun` must be provided.
+
+- cdf_fun:
+
+  A CDF function (e.g. [pnorm](https://rdrr.io/r/stats/Normal.html)).
+  The cumulative hazard is computed as \\H(x) = -\log(1 - F(x))\\.
+  Exactly one of `fun`, `hf_fun`, `cdf_fun`, `pdf_fun`, `survival_fun`,
+  or `qf_fun` must be provided.
 
 - pdf_fun:
 
   A PDF function (e.g. [dnorm](https://rdrr.io/r/stats/Normal.html)).
-  When supplied, the CDF is derived numerically via integration. Exactly
-  one of `fun`, `pdf_fun`, `survival_fun`, `qf_fun`, or `hf_fun` must be
-  provided.
+  The CDF is derived by numerical integration and then \\H(x) =
+  -\log(1 - F(x))\\. Exactly one of `fun`, `hf_fun`, `cdf_fun`,
+  `pdf_fun`, `survival_fun`, or `qf_fun` must be provided.
 
 - survival_fun:
 
-  A survival function (e.g. `function(x) 1 - pnorm(x)`). When supplied,
-  the CDF is computed as \\F(x) = 1 - S(x)\\. Exactly one of `fun`,
-  `pdf_fun`, `survival_fun`, `qf_fun`, or `hf_fun` must be provided.
+  A survival function (e.g. `function(x) 1 - pnorm(x)`). The cumulative
+  hazard is computed as \\H(x) = -\log(S(x))\\. Exactly one of `fun`,
+  `hf_fun`, `cdf_fun`, `pdf_fun`, `survival_fun`, or `qf_fun` must be
+  provided.
 
 - qf_fun:
 
   A quantile function (e.g.
-  [qnorm](https://rdrr.io/r/stats/Normal.html)). When supplied, the CDF
-  is derived via interpolation on a dense grid. Exactly one of `fun`,
-  `pdf_fun`, `survival_fun`, `qf_fun`, or `hf_fun` must be provided.
-
-- hf_fun:
-
-  A hazard function (e.g. a Weibull hazard). When supplied, the CDF is
-  derived via numerical integration of the cumulative hazard as \\F(x) =
-  1 - \exp(-H(x))\\. Exactly one of `fun`, `pdf_fun`, `survival_fun`,
-  `qf_fun`, or `hf_fun` must be provided.
+  [qnorm](https://rdrr.io/r/stats/Normal.html)). The CDF is derived via
+  interpolation and then \\H(x) = -\log(1 - F(x))\\. Exactly one of
+  `fun`, `hf_fun`, `cdf_fun`, `pdf_fun`, `survival_fun`, or `qf_fun`
+  must be provided.
 
 - hf_lower:
 
   Lower limit for integrating `hf_fun`. Defaults to `-Inf`. For
   finite-support hazards, set this to the lower support point (for
   example, `0` for Weibull or exponential hazards); values below
-  `hf_lower` return CDF `0`.
+  `hf_lower` return cumulative hazard `0`.
 
 - xlim:
 
-  A numeric vector of length 2 specifying the x-range over which to
-  evaluate the CDF.
+  A numeric vector of length 2 giving the x-range.
 
 - n:
 
-  Number of points at which to evaluate `fun`.
+  Number of points at which to evaluate. Defaults to 101.
 
 - args:
 
-  A named list of additional arguments passed on to `fun`.
-
-- fill:
-
-  Fill color for the shaded area.
-
-- color:
-
-  Line color for the CDF curve.
-
-- p:
-
-  (Optional) A numeric value between 0 and 1 specifying the threshold
-  value of the CDF. The area will be shaded up until (if
-  `lower.tail = TRUE`) or from (if `lower.tail = FALSE`) the point where
-  the CDF reaches this value.
-
-- lower.tail:
-
-  Logical; if `TRUE` (the default) shading is applied from the left end
-  of the curve up to the threshold; if `FALSE`, shading is applied from
-  the threshold to the right end.
-
-- p_lower:
-
-  (Optional) A numeric value between 0 and 1 specifying the lower CDF
-  threshold for two-sided shading. Used with `p_upper`.
-
-- p_upper:
-
-  (Optional) A numeric value between 0 and 1 specifying the upper CDF
-  threshold for two-sided shading. Used with `p_lower`.
-
-- check:
-
-  Logical; if `TRUE`, issue a diagnostic when the CDF is not near 0 and
-  1 at the lower and upper ends of the drawn x-range. Use `FALSE` to
-  suppress this check.
-
-- check_tol:
-
-  Numeric tolerance used by the CDF endpoint check.
+  A named list of additional arguments to pass to `fun`, `hf_fun`,
+  `cdf_fun`, `pdf_fun`, `survival_fun`, or `qf_fun`.
 
 ## Value
 
 A ggplot2 layer.
+
+## Details
+
+Supply exactly one of `fun` (a cumulative hazard function, evaluated
+directly), `hf_fun` (a hazard function, integrated numerically),
+`cdf_fun` (a CDF), `pdf_fun` (a PDF), `survival_fun` (a survival
+function), or `qf_fun` (a quantile function).
 
 ## Computed variables
 
@@ -228,50 +192,50 @@ with
 
 - `after_stat(x)`:
 
-  Points at which the CDF is evaluated.
+  Points at which the cumulative hazard is evaluated.
 
 - `after_stat(y)`:
 
-  CDF values.
-
-- `after_stat(p)`:
-
-  CDF values; the default y aesthetic maps to this variable.
+  Cumulative hazard values.
 
 ## Aesthetics
 
-`geom_cdf()` does not require any input aesthetics when a function
+`geom_chf()` does not require any input aesthetics when a function
 source is supplied. It understands the following aesthetics:
 
 - Computed position aesthetics:
 
-  `x` and `y`, mapped by default to `after_stat(x)` and `after_stat(p)`.
+  `x` and `y`, mapped by default to `after_stat(x)` and `after_stat(y)`.
 
 - Drawing aesthetics:
 
-  `alpha`, `colour`/`color`, `fill`, `group`, `linetype`, and
-  `linewidth` for the area and outline.
+  `alpha`, `colour`/`color`, `group`, `linetype`, and `linewidth` for
+  the line.
 
 ## See also
 
-[`geom_pdf()`](/reference/geom_pdf.md),
-[`geom_qf()`](/reference/geom_qf.md),
-[`geom_survival()`](/reference/geom_survival.md),
 [`geom_hf()`](/reference/geom_hf.md),
-[`geom_chf()`](/reference/geom_chf.md), and
-[`geom_cdf_discrete()`](/reference/geom_cdf_discrete.md) for related
-distribution-function layers.
+[`geom_survival()`](/reference/geom_survival.md),
+[`geom_cdf()`](/reference/geom_cdf.md), and
+[`geom_echf()`](/reference/geom_echf.md) for related hazard and
+survival-function layers.
 
 ## Examples
 
 ``` r
-  # Plot the standard normal CDF, shading up to the 97.5th percentile.
+  # Via CDF
   ggplot() +
-    geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, lower.tail = TRUE)
+    geom_chf(cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0, 10))
 
 
-  # Parameterized via `args`
+  # Via hazard function (constant hazard = exponential)
+  h_const <- function(x, rate) ifelse(x >= 0, rate, 0)
   ggplot() +
-    geom_cdf(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
+    geom_chf(hf_fun = h_const, args = list(rate = 0.5), xlim = c(0, 10))
+
+
+  # Via survival function
+  ggplot() +
+    geom_chf(survival_fun = function(x) 1 - pnorm(x), xlim = c(-3, 3))
 
 ```

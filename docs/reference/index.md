@@ -27,10 +27,17 @@
   [`StatPDF`](/reference/geom_pdf.md)
   [`GeomPDF`](/reference/geom_pdf.md) : Plot a Probability Density
   Function with a Filled Area
+- [`geom_pdf_2d()`](/reference/geom_pdf_2d.md) : Plot Highest Density
+  Regions of a Bivariate PDF
 - [`geom_pmf()`](/reference/geom_pmf.md)
   [`StatPMF`](/reference/geom_pmf.md)
   [`GeomPMF`](/reference/geom_pmf.md) : Plot a Probability Mass Function
   as Lollipops
+- [`geom_pmf_2d()`](/reference/geom_pmf_2d.md)
+  [`StatPMF2d`](/reference/geom_pmf_2d.md)
+  [`GeomPMF2dTile`](/reference/geom_pmf_2d.md)
+  [`GeomPMF2dPoint`](/reference/geom_pmf_2d.md) : Plot a Bivariate
+  Probability Mass Function
 - [`geom_cdf()`](/reference/geom_cdf.md)
   [`StatCDF`](/reference/geom_cdf.md)
   [`GeomCDF`](/reference/geom_cdf.md) : Plot a Cumulative Distribution
@@ -56,6 +63,10 @@
 - [`geom_hf()`](/reference/geom_hf.md) [`StatHF`](/reference/geom_hf.md)
   [`GeomHF`](/reference/geom_hf.md) : Plot a Hazard Function h(x) = f(x)
   / S(x)
+- [`geom_chf()`](/reference/geom_chf.md)
+  [`StatCHF`](/reference/geom_chf.md)
+  [`GeomCHF`](/reference/geom_chf.md) : Plot a Cumulative Hazard
+  Function H(x)
 - [`geom_ecdf()`](/reference/geom_ecdf.md)
   [`StatECDF`](/reference/geom_ecdf.md)
   [`StatECDFBand`](/reference/geom_ecdf.md) : Plot an Empirical
@@ -64,6 +75,29 @@
   [`StatEQF`](/reference/geom_eqf.md)
   [`StatEQFBand`](/reference/geom_eqf.md) : Plot an Empirical Quantile
   Function
+- [`geom_ppplot()`](/reference/geom_ppplot.md)
+  [`geom_spplot()`](/reference/geom_ppplot.md)
+  [`geom_qqplot()`](/reference/geom_ppplot.md)
+  [`StatPPPlot`](/reference/geom_ppplot.md)
+  [`StatPPPlotBand`](/reference/geom_ppplot.md)
+  [`StatSPPlot`](/reference/geom_ppplot.md)
+  [`StatSPPlotBand`](/reference/geom_ppplot.md)
+  [`StatQQPlot`](/reference/geom_ppplot.md)
+  [`StatQQPlotBand`](/reference/geom_ppplot.md) : PP, QQ, and Stabilized
+  Probability Diagnostic Plots
 - [`geom_epmf()`](/reference/geom_epmf.md)
   [`StatEPMF`](/reference/geom_epmf.md) : Plot an Empirical Probability
   Mass Function
+- [`geom_echf()`](/reference/geom_echf.md)
+  [`StatECHF`](/reference/geom_echf.md)
+  [`StatECHFBand`](/reference/geom_echf.md) : Plot an Empirical
+  Cumulative Hazard Function
+- [`geom_ecdf_km()`](/reference/geom_ecdf_km.md)
+  [`StatECDFKM`](/reference/geom_ecdf_km.md)
+  [`StatECDFKMBand`](/reference/geom_ecdf_km.md)
+  [`StatCensorMarks`](/reference/geom_ecdf_km.md) : Plot a Kaplan-Meier
+  Survival Curve for Censored Data
+- [`geom_echf_na()`](/reference/geom_echf_na.md)
+  [`StatECHFNA`](/reference/geom_echf_na.md)
+  [`StatECHFNABand`](/reference/geom_echf_na.md) : Plot a Nelson-Aalen
+  Cumulative Hazard Estimate for Censored Data

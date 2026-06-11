@@ -79,19 +79,19 @@ stat_function_2d_2d(
 
   The data to be displayed in this layer. There are three options:
 
-  - `NULL` (default): the data is inherited from the plot data as
-    specified in the call to
-    [`ggplot()`](https://ggplot2.tidyverse.org/reference/ggplot.html).
+  If `NULL`, the default, the data is inherited from the plot data as
+  specified in the call to
+  [`ggplot()`](https://ggplot2.tidyverse.org/reference/ggplot.html).
 
-  - A `data.frame`, or other object, will override the plot data. All
-    objects will be fortified to produce a data frame. See
-    [`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html)
-    for which variables will be created.
+  A `data.frame`, or other object, will override the plot data. All
+  objects will be fortified to produce a data frame. See
+  [`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html)
+  for which variables will be created.
 
-  - A `function` will be called with a single argument, the plot data.
-    The return value must be a `data.frame`, and will be used as the
-    layer data. A `function` can be created from a `formula` (e.g.
-    `~ head(.x, 10)`).
+  A `function` will be called with a single argument, the plot data. The
+  return value must be a `data.frame`, and will be used as the layer
+  data. A `function` can be created from a `formula` (e.g.
+  `~ head(.x, 10)`).
 
 - position:
 
@@ -100,14 +100,13 @@ stat_function_2d_2d(
   the display. The `position` argument accepts the following:
 
   - The result of calling a position function, such as
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html).
-    This method allows for passing extra arguments to the position.
+    `position_jitter()`. This method allows for passing extra arguments
+    to the position.
 
   - A string naming the position adjustment. To give the position as a
     string, strip the function name of the `position_` prefix. For
-    example, to use
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html),
-    give the position as `"jitter"`.
+    example, to use `position_jitter()`, give the position as
+    `"jitter"`.
 
   - For more information and other ways to specify the position, see the
     [layer
@@ -126,7 +125,7 @@ stat_function_2d_2d(
 
 - show.legend:
 
-  Logical. Should this layer be included in the legends? `NA`, the
+  logical. Should this layer be included in the legends? `NA`, the
   default, includes if any aesthetics are mapped. `FALSE` never
   includes, and `TRUE` always includes. It can also be a named logical
   vector to finely select the aesthetics to display. To include legend
@@ -223,6 +222,24 @@ stat_function_2d_2d(
 
 A ggplot2 layer.
 
+## Computed variables
+
+`geom_function_2d_2d()` delegates vector-field and stream-field
+computation to ggvfields. The local function interface evaluates `fun`
+on seed points from `grid` or from the regular grid determined by
+`xlim`, `ylim`, and `n`; downstream computed variables are those
+supplied by the corresponding ggvfields stat.
+
+## Aesthetics
+
+`geom_function_2d_2d()` does not require input aesthetics when `fun` is
+supplied. Aesthetics for vectors, streamlines, arrowheads, seed points,
+and tail points are delegated to
+[`ggvfields::geom_vector_field()`](https://rdrr.io/pkg/ggvfields/man/geom_vector_field.html)
+or
+[`ggvfields::geom_stream_field()`](https://rdrr.io/pkg/ggvfields/man/geom_stream_field.html)
+depending on `type`.
+
 ## See also
 
 ggvfields (Turner, Kahle, and Sturdivant) for a richer collection of
@@ -242,5 +259,11 @@ ggplot() + geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1))
 # Stream field
 ggplot() + geom_function_2d_2d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1),
   type = "stream")
+
+
+# Parameterized field via `args`
+g <- function(u, k = 1) k * c(-u[2], u[1])
+ggplot() + geom_function_2d_2d(fun = g, xlim = c(-1, 1), ylim = c(-1, 1),
+  args = list(k = 3))
 
 ```

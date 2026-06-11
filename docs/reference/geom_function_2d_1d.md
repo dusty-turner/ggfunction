@@ -17,6 +17,7 @@ geom_function_2d_1d(
   xlim = NULL,
   ylim = NULL,
   n = NULL,
+  args = list(),
   type = "raster",
   bins = NULL,
   binwidth = NULL,
@@ -37,7 +38,8 @@ stat_function_2d_1d(
   fun = NULL,
   xlim = c(-1, 1),
   ylim = c(-1, 1),
-  n = 50
+  n = 50,
+  args = list()
 )
 
 StatFunction2d
@@ -49,27 +51,12 @@ StatFunction2dContour
 StatFunction2dContourFilled
 ```
 
-## Format
-
-An object of class `StatFunction2d` (inherits from `Stat`, `ggproto`,
-`gg`) of length 3.
-
-An object of class `GeomFunction2d` (inherits from `GeomRaster`, `Geom`,
-`ggproto`, `gg`) of length 2.
-
-An object of class `StatFunction2dContour` (inherits from `StatContour`,
-`Stat`, `ggproto`, `gg`) of length 5.
-
-An object of class `StatFunction2dContourFilled` (inherits from
-`StatContourFilled`, `Stat`, `ggproto`, `gg`) of length 5.
-
 ## Arguments
 
 - mapping:
 
-  Aesthetic mappings, created using
-  [`aes()`](https://ggplot2.tidyverse.org/reference/aes.html). If
-  `NULL`, defaults are used.
+  Aesthetic mappings, created using `aes()`. If `NULL`, defaults are
+  used.
 
 - data:
 
@@ -111,6 +98,10 @@ An object of class `StatFunction2dContourFilled` (inherits from
   Number of points in the grid along each axis. Defaults to `50` in
   `stat_function_2d_1d`.
 
+- args:
+
+  A named list of additional arguments passed to `fun`.
+
 - type:
 
   Character. Type of visualization: `"raster"` (default), `"contour"`,
@@ -147,6 +138,69 @@ An object of class `StatFunction2dContourFilled` (inherits from
 ## Value
 
 A `ggplot2` layer.
+
+## Computed variables
+
+These are calculated by the `stat` part of the layer and can be accessed
+with
+[`ggplot2::after_stat()`](https://ggplot2.tidyverse.org/reference/aes_eval.html).
+
+- `after_stat(x)`:
+
+  Grid x coordinates.
+
+- `after_stat(y)`:
+
+  Grid y coordinates.
+
+- `after_stat(z)`:
+
+  Function values on the grid for raster and contour inputs. The raster
+  display maps `fill = after_stat(z)` by default.
+
+- `after_stat(level)`:
+
+  Contour level for `type = "contour"` or `type = "contour_filled"`.
+
+- `after_stat(nlevel)`:
+
+  Contour level scaled to a maximum of 1.
+
+- `after_stat(piece)`:
+
+  Contour piece identifier.
+
+- `after_stat(level_low)`:
+
+  Lower boundary of each filled-contour band.
+
+- `after_stat(level_high)`:
+
+  Upper boundary of each filled-contour band.
+
+- `after_stat(level_mid)`:
+
+  Midpoint of each filled-contour band.
+
+## Dropped variables
+
+`z` is used to compute contour lines or filled contour bands and is not
+available after contouring.
+
+## Aesthetics
+
+`geom_function_2d_1d()` does not require input aesthetics when `fun` is
+supplied. Raster layers understand `x`, `y`, `fill`, `alpha`, and
+`group`; contour layers use ggplot2's contour aesthetics, including
+`colour`, `linetype`, `linewidth`, `fill`, and `group` depending on
+`type`.
+
+## See also
+
+[`ggplot2::geom_raster()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)
+and
+[`ggplot2::geom_contour()`](https://ggplot2.tidyverse.org/reference/geom_contour.html)
+for the underlying raster and contour drawing conventions.
 
 ## Examples
 
@@ -221,4 +275,18 @@ f_spiral <- function(v) {
 
 ggplot() +
   geom_function_2d_1d(fun = f_spiral, xlim = c(-50, 50), ylim = c(-50, 50), n = 500)
+
+
+# Parameterized scalar field via `args`
+f <- function(v, a = 1, b = 1) {
+  a * sin(v[1]) + b * cos(v[2])
+}
+
+ggplot() +
+  geom_function_2d_1d(
+    fun = f,
+    xlim = c(-5, 5),
+    ylim = c(-5, 5),
+    args = list(a = 2, b = 0.5)
+  )
 ```

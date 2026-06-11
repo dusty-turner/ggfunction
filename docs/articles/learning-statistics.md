@@ -10,9 +10,10 @@ of a continuous random variable taking on a given value. The area under
 the curve over an interval equals the probability of falling in that
 interval.
 
-For a standard normal, $P(-1 < X < 1) \approx 0.68$:
+For a standard normal, $`P(-1 < X < 1) \approx 0.68`$:
 
 ``` r
+
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-4, 4),
            p_lower = pnorm(-1), p_upper = pnorm(1),
@@ -27,11 +28,12 @@ ggplot() +
 
 ## From PDF to CDF
 
-The cumulative distribution function (CDF) $F(x) = P(X \leq x)$ is the
-running area under the PDF from $-\infty$ to $x$. Notice how the CDF’s
-steepest climb corresponds to where the PDF is tallest:
+The cumulative distribution function (CDF) $`F(x) = P(X \le x)`$ is the
+running area under the PDF from $`-\infty`$ to $`x`$. Notice how the
+CDF’s steepest climb corresponds to where the PDF is tallest:
 
 ``` r
+
 p1 <- ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-4, 4), fill = "steelblue",
            p = 0.8) +
@@ -51,12 +53,13 @@ p1 + p2
 
 ## Quantiles and percentiles
 
-The quantile function $Q(p) = F^{-1}(p)$ answers the inverse question:
-given a probability $p$, what value $x$ satisfies $F(x) = p$?
+The quantile function $`Q(p) = F^{-1}(p)`$ answers the inverse question:
+given a probability $`p`$, what value $`x`$ satisfies $`F(x) = p`$?
 
-The median is the 50th percentile — $Q(0.5)$:
+The median is the 50th percentile — $`Q(0.5)`$:
 
 ``` r
+
 ggplot() +
   geom_qf(fun = qnorm, args = list(mean = 0, sd = 1)) +
   geom_vline(xintercept = 0.5, linetype = "dashed", color = "darkgreen") +
@@ -77,6 +80,7 @@ step function with jumps at each support point — open circles mark where
 the function jumps away from, closed circles mark where it lands:
 
 ``` r
+
 binom_args <- list(size = 10, prob = 0.3)
 
 p1 <- ggplot() +
@@ -96,12 +100,13 @@ p1 + p2
 
 ## Hypothesis testing visually
 
-In a two-sided test at significance level $\alpha = 0.05$, we reject
-$H_{0}$ when the test statistic falls in the tails beyond
-$\pm z_{0.025} \approx \pm 1.96$. The shaded **rejection region**
+In a two-sided test at significance level $`\alpha = 0.05`$, we reject
+$`H_0`$ when the test statistic falls in the tails beyond
+$`\pm z_{0.025} \approx \pm 1.96`$. The shaded **rejection region**
 captures the most extreme 5% of the null distribution:
 
 ``` r
+
 ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-4, 4),
@@ -126,6 +131,7 @@ region below shows the values that are *not* rejected by the two-sided
 test:
 
 ``` r
+
 ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-4, 4),
@@ -144,12 +150,13 @@ ggplot() +
 
 ## Comparing theory to data
 
-Generate a sample from $N(0,1)$ and overlay the empirical CDF with the
-theoretical CDF. The KS confidence band (shown automatically by
+Generate a sample from $`N(0, 1)`$ and overlay the empirical CDF with
+the theoretical CDF. The KS confidence band (shown automatically by
 [`geom_ecdf()`](/reference/geom_ecdf.md)) helps assess whether the data
 are consistent with the theoretical model:
 
 ``` r
+
 set.seed(2024)
 df <- data.frame(x = rnorm(40))
 
@@ -169,15 +176,16 @@ ggplot(df, aes(x = x)) +
 
 ## Survival and hazard
 
-The survival function $S(x) = 1 - F(x) = P(X > x)$ gives the probability
-of surviving past time $x$. The hazard function $h(x) = f(x)/S(x)$ is
-the instantaneous failure rate.
+The survival function $`S(x) = 1 - F(x) = P(X > x)`$ gives the
+probability of surviving past time $`x`$. The hazard function
+$`h(x) = f(x) / S(x)`$ is the instantaneous failure rate.
 
 The **exponential** distribution has a constant hazard — no memory of
 aging. The **Weibull** distribution allows increasing or decreasing
 hazard depending on the shape parameter:
 
 ``` r
+
 p1 <- ggplot() +
   geom_survival(fun = pexp, xlim = c(0, 6),
                 args = list(rate = 0.5), color = "steelblue") +
@@ -200,6 +208,12 @@ p2 <- ggplot() +
   theme_minimal()
 
 p1 + p2
+#> Warning: The resulting survival function is not monotonically non-increasing.
+#> ℹ Check the function supplied to `fun`, `cdf_fun`, or `pdf_fun`.
+#> The resulting survival function is not monotonically non-increasing.
+#> ℹ Check the function supplied to `fun`, `cdf_fun`, or `pdf_fun`.
+#> The resulting survival function is not monotonically non-increasing.
+#> ℹ Check the function supplied to `fun`, `cdf_fun`, or `pdf_fun`.
 ```
 
 ![](learning-statistics_files/figure-html/survival-hazard-1.png)
@@ -216,6 +230,7 @@ captures the most probable values for a given coverage level.
 Compare the HDR to an equal-tailed interval for a right-skewed mixture:
 
 ``` r
+
 skewed <- function(x) 0.7 * dnorm(x, 2, 0.8) + 0.3 * dnorm(x, 5, 1.5)
 
 p1 <- ggplot() +

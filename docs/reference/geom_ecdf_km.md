@@ -1,21 +1,20 @@
-# Plot an Empirical Quantile Function
+# Plot a Kaplan-Meier Survival Curve for Censored Data
 
-`geom_eqf()` computes the empirical quantile function of a sample and
-renders it as a left-continuous step function on \\\[0, 1\]\\, using the
-same visual conventions as
-[`geom_qf_discrete()`](/reference/geom_qf_discrete.md): horizontal
-segments, dashed vertical jumps, closed circles at the bottom of each
-jump (value achieved), and open circles at the top (next value not yet
-reached). An optional simultaneous confidence band is drawn by inverting
-the DKW/Massart ECDF band.
+`geom_ecdf_km()` computes the Kaplan-Meier product-limit survival
+estimator from right-censored data and renders it as a decreasing step
+function starting at 1, using the same visual conventions as
+[`geom_survival_discrete()`](/reference/geom_survival_discrete.md). An
+optional simultaneous confidence band (defaulting to 95%) is drawn
+around the curve using the equal-precision (EP) construction of Nair
+(1984), and censoring times are marked with "+" symbols by default.
 
 ## Usage
 
 ``` r
-geom_eqf(
+geom_ecdf_km(
   mapping = NULL,
   data = NULL,
-  stat = StatEQF,
+  stat = StatECDFKM,
   position = "identity",
   ...,
   na.rm = FALSE,
@@ -27,12 +26,17 @@ geom_eqf(
   show_vert = NULL,
   conf_int = TRUE,
   level = 0.95,
-  conf_alpha = 0.4
+  conf_alpha = 0.4,
+  censor_marks = TRUE,
+  censor_shape = 3,
+  censor_size = 2
 )
 
-StatEQF
+StatECDFKM
 
-StatEQFBand
+StatECDFKMBand
+
+StatCensorMarks
 ```
 
 ## Arguments
@@ -183,8 +187,8 @@ StatEQFBand
 
 - conf_int:
 
-  Logical. If `TRUE` (the default), draws a simultaneous DKW confidence
-  band around the ECDF.
+  Logical. If `TRUE` (the default), draws a simultaneous EP confidence
+  band around the KM curve.
 
 - level:
 
@@ -194,22 +198,42 @@ StatEQFBand
 
   Alpha (transparency) of the confidence ribbon. Defaults to `0.4`.
 
+- censor_marks:
+
+  Logical. If `TRUE` (the default), draws "+" marks at censoring times
+  on the survival curve.
+
+- censor_shape:
+
+  Shape for censoring marks. Defaults to `3` ("+").
+
+- censor_size:
+
+  Size for censoring marks. Defaults to `2`.
+
 ## Value
 
-A ggplot2 layer, or a list of two layers when `conf_int = TRUE`.
+A ggplot2 layer, or a list of layers when `conf_int = TRUE` or
+`censor_marks = TRUE`.
 
 ## Details
 
-The empirical quantile function is the left-continuous inverse of the
-empirical CDF: \\Q(p) = \inf\\x : F_n(x) \geq p\\\\.
+The Kaplan-Meier estimator at event time \\t_j\\ is \$\$\hat{S}(t) =
+\prod\_{t_j \le t} \left(1 - \frac{d_j}{n_j}\right),\$\$ where \\d_j\\
+is the number of events and \\n_j\\ is the number at risk just before
+\\t_j\\.
 
-The two-sided confidence band at probability level \\p\\ is \\\[Q_n(p -
-\varepsilon),\\ Q_n(p + \varepsilon)\]\\, where \\\varepsilon =
-\sqrt{\log(2/\alpha) / (2n)}\\ is the DKW/Massart half-width (\\\alpha =
-1 - \texttt{level}\\). In the extreme tails, DKW gives only one-sided
-bounds unless known support bounds are supplied; the ribbon displays
-these as open-ended, panel-clipped tails. This follows directly from
-inverting the simultaneous ECDF confidence band.
+The simultaneous confidence band uses the Greenwood variance estimator
+\$\$\widehat{\mathrm{Var}}\[\hat{S}(t)\] = \hat{S}(t)^2 \sum\_{t_j \le
+t} \frac{d_j}{n_j(n_j - d_j)}\$\$ with the equal-precision (EP) critical
+value of Nair (1984), giving bounds \\\hat{S}(t) \pm
+c\_{\mathrm{EP}}\\\mathrm{se}(t)\\ clipped to \\\[0, 1\]\\. The EP
+critical value \\c\_{\mathrm{EP}}\\ is derived from the asymptotic
+distribution of the standardized KM process. It depends on endpoints
+\\a(t) = nG(t)/(1 + nG(t))\\, where \\G(t)\\ is Greenwood's cumulative
+variance term, evaluated at the first and last valid event-time values.
+The resulting band is simultaneous (valid at all \\t\\ jointly), not
+merely pointwise, and is asymptotically correct.
 
 ## Computed variables
 
@@ -219,48 +243,75 @@ with
 
 - `after_stat(x)`:
 
-  Empirical cumulative probabilities.
+  Event or censoring times used by the displayed layer.
 
 - `after_stat(y)`:
 
-  Observed sample values.
+  Kaplan-Meier survival estimates for the main curve, or survival
+  estimates at censoring times for censor marks.
 
 - `after_stat(ymin)` and `after_stat(ymax)`:
 
-  Lower and upper confidence band limits when `conf_int = TRUE`.
+  Lower and upper simultaneous confidence-band limits when
+  `conf_int = TRUE`.
+
+## Dropped variables
+
+`status` is used to compute event times, censoring times, and risk sets,
+but is not available after statistical transformation.
 
 ## Aesthetics
 
-`geom_eqf()` requires the following aesthetic:
+`geom_ecdf_km()` requires the following aesthetics:
 
 - `x`:
 
-  Observed sample values.
+  Observed time (event or censoring time).
+
+- `status`:
+
+  Event indicator: 1 = event occurred, 0 = censored.
 
 It also understands `alpha`, `colour`/`color`, `fill`, `group`,
 `linetype`, `linewidth`, `shape`, `size`, and `stroke`.
 
 ## See also
 
-[`geom_qf()`](/reference/geom_qf.md) and
-[`geom_qf_discrete()`](/reference/geom_qf_discrete.md) for theoretical
-quantile functions, and [`geom_ecdf()`](/reference/geom_ecdf.md) for
-empirical CDFs.
+[`geom_ecdf()`](/reference/geom_ecdf.md) for complete (uncensored) data,
+[`geom_survival()`](/reference/geom_survival.md) and
+[`geom_survival_discrete()`](/reference/geom_survival_discrete.md) for
+theoretical survival functions,
+[`geom_echf_na()`](/reference/geom_echf_na.md) for the Nelson-Aalen
+cumulative hazard.
 
 ## Examples
 
 ``` r
-set.seed(1)
-df <- data.frame(x = rnorm(50))
-
-ggplot(df, aes(x = x)) + geom_eqf()
-
-
-# Compare two groups
-df2 <- data.frame(
-  x     = c(rnorm(40), rnorm(40, mean = 2)),
-  group = rep(c("A", "B"), each = 40)
+set.seed(42)
+n <- 50
+true_time <- rexp(n, rate = 0.5)
+cens_time <- rexp(n, rate = 0.2)
+df <- data.frame(
+  time   = pmin(true_time, cens_time),
+  status = as.integer(true_time <= cens_time)
 )
-ggplot(df2, aes(x = x, colour = group)) + geom_eqf()
+
+ggplot(df, aes(x = time, status = status)) +
+  geom_ecdf_km()
+
+
+# Without confidence band or censor marks
+ggplot(df, aes(x = time, status = status)) +
+  geom_ecdf_km(conf_int = FALSE, censor_marks = FALSE)
+
+
+# Grouped data
+df2 <- data.frame(
+  time   = c(rexp(40, 0.5), rexp(40, 1)),
+  status = sample(0:1, 80, replace = TRUE, prob = c(0.2, 0.8)),
+  group  = rep(c("A", "B"), each = 40)
+)
+ggplot(df2, aes(x = time, status = status, colour = group)) +
+  geom_ecdf_km()
 
 ```

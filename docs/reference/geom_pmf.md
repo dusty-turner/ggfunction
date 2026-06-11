@@ -5,9 +5,11 @@ function (PMF) using a lollipop representation. Vertical segments extend
 from zero up to the probability value at each integer support value and
 a point is drawn at the top. Shading modes mirror those of
 [`geom_pdf()`](/reference/geom_pdf.md): a cumulative threshold (`p`), a
-two-sided interval (`p_lower`/`p_upper`), or a highest density region
-(`shade_hdr`). Non-shaded lollipops are rendered in grey with dashed
-segments.
+two-sided interval (`p_lower`/`p_upper`), or highest density regions
+(`shade_hdr`). Lollipops outside a `p`-based region are rendered at
+reduced opacity; `shade_hdr` maps each support point's smallest
+containing HDR to `alpha` as an ordered factor with a legend, mirroring
+[`geom_pmf_2d()`](/reference/geom_pmf_2d.md).
 
 ## Usage
 
@@ -42,14 +44,6 @@ StatPMF
 GeomPMF
 ```
 
-## Format
-
-An object of class `StatPMF` (inherits from `Stat`, `ggproto`, `gg`) of
-length 3.
-
-An object of class `GeomPMF` (inherits from `GeomPoint`, `Geom`,
-`ggproto`, `gg`) of length 2.
-
 ## Arguments
 
 - mapping:
@@ -64,19 +58,19 @@ An object of class `GeomPMF` (inherits from `GeomPoint`, `Geom`,
 
   The data to be displayed in this layer. There are three options:
 
-  - `NULL` (default): the data is inherited from the plot data as
-    specified in the call to
-    [`ggplot()`](https://ggplot2.tidyverse.org/reference/ggplot.html).
+  If `NULL`, the default, the data is inherited from the plot data as
+  specified in the call to
+  [`ggplot()`](https://ggplot2.tidyverse.org/reference/ggplot.html).
 
-  - A `data.frame`, or other object, will override the plot data. All
-    objects will be fortified to produce a data frame. See
-    [`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html)
-    for which variables will be created.
+  A `data.frame`, or other object, will override the plot data. All
+  objects will be fortified to produce a data frame. See
+  [`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html)
+  for which variables will be created.
 
-  - A `function` will be called with a single argument, the plot data.
-    The return value must be a `data.frame`, and will be used as the
-    layer data. A `function` can be created from a `formula` (e.g.
-    `~ head(.x, 10)`).
+  A `function` will be called with a single argument, the plot data. The
+  return value must be a `data.frame`, and will be used as the layer
+  data. A `function` can be created from a `formula` (e.g.
+  `~ head(.x, 10)`).
 
 - stat:
 
@@ -89,8 +83,7 @@ An object of class `GeomPMF` (inherits from `GeomPoint`, `Geom`,
 
   - A string naming the stat. To give the stat as a string, strip the
     function name of the `stat_` prefix. For example, to use
-    [`stat_count()`](https://ggplot2.tidyverse.org/reference/geom_bar.html),
-    give the stat as `"count"`.
+    `stat_count()`, give the stat as `"count"`.
 
   - For more information and other ways to specify the stat, see the
     [layer
@@ -104,14 +97,13 @@ An object of class `GeomPMF` (inherits from `GeomPoint`, `Geom`,
   the display. The `position` argument accepts the following:
 
   - The result of calling a position function, such as
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html).
-    This method allows for passing extra arguments to the position.
+    `position_jitter()`. This method allows for passing extra arguments
+    to the position.
 
   - A string naming the position adjustment. To give the position as a
     string, strip the function name of the `position_` prefix. For
-    example, to use
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html),
-    give the position as `"jitter"`.
+    example, to use `position_jitter()`, give the position as
+    `"jitter"`.
 
   - For more information and other ways to specify the position, see the
     [layer
@@ -130,7 +122,7 @@ An object of class `GeomPMF` (inherits from `GeomPoint`, `Geom`,
 
 - show.legend:
 
-  Logical. Should this layer be included in the legends? `NA`, the
+  logical. Should this layer be included in the legends? `NA`, the
   default, includes if any aesthetics are mapped. `FALSE` never
   includes, and `TRUE` always includes. It can also be a named logical
   vector to finely select the aesthetics to display. To include legend
@@ -214,18 +206,66 @@ An object of class `GeomPMF` (inherits from `GeomPoint`, `Geom`,
 
 - shade_hdr:
 
-  (Optional) A numeric value between 0 and 1 specifying the target
-  coverage of the highest density region (HDR) to shade – the smallest
-  set of support points containing at least the specified probability
-  mass. Because a discrete distribution may not achieve the exact
-  coverage, the smallest HDR with coverage \>= `shade_hdr` is used and a
-  message is issued via
+  (Optional) A numeric vector of target coverages for the highest
+  density regions (HDRs) to shade, each strictly between 0 and 1, e.g.
+  `shade_hdr = c(0.5, 0.8, 0.95)`: the smallest sets of support points
+  containing at least the specified probability masses. Each support
+  point is assigned the smallest requested HDR containing it; the
+  assignment is exposed as the ordered factor `after_stat(probs)` and
+  mapped to `alpha` by default, so points outside all requested regions
+  render nearly transparent. Because a discrete distribution may not
+  achieve the exact coverages, the smallest HDR with coverage \>= each
+  target is used; HDRs are threshold-based, so all support points tied
+  at the cutoff mass are included and the actual coverage can exceed the
+  target. A message is issued via
   [`cli::cli_inform()`](https://cli.r-lib.org/reference/cli_abort.html)
-  reporting both the specified and actual coverage whenever they differ.
+  reporting the actual coverages whenever they differ.
 
 ## Value
 
 A ggplot2 layer.
+
+## Computed variables
+
+These are calculated by the `stat` part of the layer and can be accessed
+with
+[`ggplot2::after_stat()`](https://ggplot2.tidyverse.org/reference/aes_eval.html).
+
+- `after_stat(x)`:
+
+  Support points at which the PMF is evaluated.
+
+- `after_stat(y)`:
+
+  Probability mass at each support point.
+
+- `after_stat(probs)`:
+
+  Only when `shade_hdr` is supplied: the smallest requested HDR
+  containing each support point, as an ordered factor whose outermost
+  level (e.g. `">95%"`) collects points outside all requested regions.
+
+## Aesthetics
+
+`geom_pmf()` does not require any input aesthetics when `fun` is
+supplied. It understands the following aesthetics:
+
+- Computed position aesthetics:
+
+  `x` and `y`, mapped by default to `after_stat(x)` and `after_stat(y)`.
+
+- Drawing aesthetics:
+
+  `alpha`, `colour`/`color`, `fill`, `group`, `linetype`, `linewidth`,
+  `shape`, `size`, and `stroke` for the lollipop display.
+
+## See also
+
+[`geom_pdf()`](/reference/geom_pdf.md),
+[`geom_cdf_discrete()`](/reference/geom_cdf_discrete.md),
+[`geom_qf_discrete()`](/reference/geom_qf_discrete.md), and
+[`geom_survival_discrete()`](/reference/geom_survival_discrete.md) for
+related discrete distribution-function layers.
 
 ## Examples
 
@@ -241,11 +281,12 @@ ggplot() +
     p = 0.8)
 
 
-# Shade the 80% HDR
+# Shade the 50/80/95% HDRs
 ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
-    shade_hdr = 0.8)
-#> ! shade_hdr: 80% is not exactly achievable for this discrete distribution.
-#> ℹ Using smallest HDR with coverage >= 80%: actual coverage = 89.1%.
+    shade_hdr = c(0.5, 0.8, 0.95))
+#> ! shade_hdr: exact coverage is not achievable for this discrete distribution.
+#> ℹ Using smallest HDRs with coverage >= each target: 50% -> 65.6%, 80% -> 89.1%,
+#>   95% -> 97.9%.
 
 ```

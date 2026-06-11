@@ -128,6 +128,40 @@ test_that("StatPMF uses support when provided", {
   expect_equal(nrow(result), 3)
 })
 
+test_that("StatPMF evaluates nothing for integer-free xlim ranges", {
+  calls <- 0L
+  f_count <- function(x) {
+    calls <<- calls + 1L
+    rep(0.5, length(x))
+  }
+
+  result <- StatPMF$compute_group(
+    data = data.frame(group = 1),
+    scales = list(),
+    fun = f_count,
+    xlim = c(0.2, 0.8)
+  )
+  expect_identical(calls, 0L)
+  expect_equal(nrow(result), 0)
+
+  with_hdr <- StatPMF$compute_group(
+    data = data.frame(group = 1),
+    scales = list(),
+    fun = f_count,
+    xlim = c(0.2, 0.8),
+    shade_hdr = 0.8
+  )
+  expect_identical(calls, 0L)
+  expect_equal(nrow(with_hdr), 0)
+  expect_s3_class(with_hdr$probs, "ordered")
+
+  b <- ggplot_build(
+    ggplot() + geom_pmf(fun = f_count, xlim = c(0.2, 0.8))
+  )
+  expect_identical(calls, 0L)
+  expect_equal(nrow(b$data[[1]]), 0)
+})
+
 test_that("shade_hdr includes support points tied at the cutoff", {
   f_unif <- function(x) rep(0.25, length(x))
   result <- suppressMessages(StatPMF$compute_group(

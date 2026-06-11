@@ -18,6 +18,7 @@ geom_cdf_discrete(
   inherit.aes = FALSE,
   fun = NULL,
   pmf_fun = NULL,
+  survival_fun = NULL,
   xlim = NULL,
   support = NULL,
   args = list(),
@@ -31,14 +32,6 @@ StatCDFDiscrete
 
 GeomCDFDiscrete
 ```
-
-## Format
-
-An object of class `StatCDFDiscrete` (inherits from `Stat`, `ggproto`,
-`gg`) of length 3.
-
-An object of class `GeomCDFDiscrete` (inherits from `Geom`, `ggproto`,
-`gg`) of length 5.
 
 ## Arguments
 
@@ -54,19 +47,19 @@ An object of class `GeomCDFDiscrete` (inherits from `Geom`, `ggproto`,
 
   The data to be displayed in this layer. There are three options:
 
-  - `NULL` (default): the data is inherited from the plot data as
-    specified in the call to
-    [`ggplot()`](https://ggplot2.tidyverse.org/reference/ggplot.html).
+  If `NULL`, the default, the data is inherited from the plot data as
+  specified in the call to
+  [`ggplot()`](https://ggplot2.tidyverse.org/reference/ggplot.html).
 
-  - A `data.frame`, or other object, will override the plot data. All
-    objects will be fortified to produce a data frame. See
-    [`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html)
-    for which variables will be created.
+  A `data.frame`, or other object, will override the plot data. All
+  objects will be fortified to produce a data frame. See
+  [`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html)
+  for which variables will be created.
 
-  - A `function` will be called with a single argument, the plot data.
-    The return value must be a `data.frame`, and will be used as the
-    layer data. A `function` can be created from a `formula` (e.g.
-    `~ head(.x, 10)`).
+  A `function` will be called with a single argument, the plot data. The
+  return value must be a `data.frame`, and will be used as the layer
+  data. A `function` can be created from a `formula` (e.g.
+  `~ head(.x, 10)`).
 
 - stat:
 
@@ -79,8 +72,7 @@ An object of class `GeomCDFDiscrete` (inherits from `Geom`, `ggproto`,
 
   - A string naming the stat. To give the stat as a string, strip the
     function name of the `stat_` prefix. For example, to use
-    [`stat_count()`](https://ggplot2.tidyverse.org/reference/geom_bar.html),
-    give the stat as `"count"`.
+    `stat_count()`, give the stat as `"count"`.
 
   - For more information and other ways to specify the stat, see the
     [layer
@@ -94,14 +86,13 @@ An object of class `GeomCDFDiscrete` (inherits from `Geom`, `ggproto`,
   the display. The `position` argument accepts the following:
 
   - The result of calling a position function, such as
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html).
-    This method allows for passing extra arguments to the position.
+    `position_jitter()`. This method allows for passing extra arguments
+    to the position.
 
   - A string naming the position adjustment. To give the position as a
     string, strip the function name of the `position_` prefix. For
-    example, to use
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html),
-    give the position as `"jitter"`.
+    example, to use `position_jitter()`, give the position as
+    `"jitter"`.
 
   - For more information and other ways to specify the position, see the
     [layer
@@ -120,7 +111,7 @@ An object of class `GeomCDFDiscrete` (inherits from `Geom`, `ggproto`,
 
 - show.legend:
 
-  Logical. Should this layer be included in the legends? `NA`, the
+  logical. Should this layer be included in the legends? `NA`, the
   default, includes if any aesthetics are mapped. `FALSE` never
   includes, and `TRUE` always includes. It can also be a named logical
   vector to finely select the aesthetics to display. To include legend
@@ -140,23 +131,32 @@ An object of class `GeomCDFDiscrete` (inherits from `Geom`, `ggproto`,
   A discrete CDF function (e.g.
   [pbinom](https://rdrr.io/r/stats/Binomial.html)). Evaluated directly
   on the integer support derived from `xlim` or `support`. Exactly one
-  of `fun` or `pmf_fun` must be provided.
+  of `fun`, `pmf_fun`, or `survival_fun` must be provided.
 
 - pmf_fun:
 
   A PMF function (e.g. [dbinom](https://rdrr.io/r/stats/Binomial.html)).
   The CDF is computed internally via cumulative summation. Exactly one
-  of `fun` or `pmf_fun` must be provided.
+  of `fun`, `pmf_fun`, or `survival_fun` must be provided.
+
+- survival_fun:
+
+  A discrete survival function. The CDF is computed as \\F(x) = 1 -
+  S(x)\\ on the integer support. Exactly one of `fun`, `pmf_fun`, or
+  `survival_fun` must be provided.
 
 - xlim:
 
-  A numeric vector of length 2 specifying the range of integer support
-  values.
+  A numeric vector of length 2 specifying the range of support values to
+  display. When `support` is not supplied, this range is also used as
+  the computational support.
 
 - support:
 
   An optional integer or numeric vector giving the exact support points
-  to evaluate. When supplied, `xlim` is ignored.
+  used for cumulative computation. When supplied with `xlim`, the
+  cumulative probabilities are computed on the full `support` and then
+  filtered to the displayed `xlim`.
 
 - args:
 
@@ -189,11 +189,54 @@ A ggplot2 layer.
 
 ## Details
 
-Supply **either** `pmf_fun` (a PMF such as
-[dbinom](https://rdrr.io/r/stats/Binomial.html), from which the CDF is
-computed via cumulative summation) **or** `fun` (a CDF such as
+Supply exactly one of `fun` (a CDF such as
 [pbinom](https://rdrr.io/r/stats/Binomial.html), evaluated directly on
-the integer support).
+the integer support), `pmf_fun` (a PMF such as
+[dbinom](https://rdrr.io/r/stats/Binomial.html), from which the CDF is
+computed via cumulative summation), or `survival_fun` (a discrete
+survival function, from which the CDF is computed as \\F(x) = 1 -
+S(x)\\).
+
+## Computed variables
+
+These are calculated by the `stat` part of the layer and can be accessed
+with
+[`ggplot2::after_stat()`](https://ggplot2.tidyverse.org/reference/aes_eval.html).
+
+- `after_stat(x)`:
+
+  Support points at which the discrete CDF is evaluated.
+
+- `after_stat(y)`:
+
+  Cumulative probabilities.
+
+- `after_stat(p)`:
+
+  Cumulative probabilities; the default y aesthetic maps to this
+  variable.
+
+## Aesthetics
+
+`geom_cdf_discrete()` does not require any input aesthetics when a
+function source is supplied. It understands the following aesthetics:
+
+- Computed position aesthetics:
+
+  `x` and `y`, mapped by default to `after_stat(x)` and `after_stat(p)`.
+
+- Drawing aesthetics:
+
+  `alpha`, `colour`/`color`, `fill`, `group`, `linetype`, `linewidth`,
+  `shape`, `size`, and `stroke` for steps, jump segments, and endpoints.
+
+## See also
+
+[`geom_cdf()`](/reference/geom_cdf.md),
+[`geom_pmf()`](/reference/geom_pmf.md),
+[`geom_qf_discrete()`](/reference/geom_qf_discrete.md), and
+[`geom_survival_discrete()`](/reference/geom_survival_discrete.md) for
+related discrete distribution-function layers.
 
 ## Examples
 

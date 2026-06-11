@@ -7,8 +7,8 @@ the mapping by taking a numeric scalar (e.g. time) and returning a
 numeric vector of length 2 (representing \\(x, y)\\). The underlying
 Stat_1d_2d evaluates `fun` over a time sequence spanning `tlim` in
 increments of `dt`, and
-[ggvfields::GeomStream](https://rdrr.io/pkg/ggvfields/man/geom_stream.html)
-renders the resulting path.
+[GeomStream](https://rdrr.io/pkg/ggvfields/man/geom_stream.html) renders
+the resulting path.
 
 ## Arguments
 
@@ -74,6 +74,12 @@ renders the resulting path.
   Logical. If `TRUE`, a point is drawn at the tail (starting position)
   of the stream.
 
+- type:
+
+  Character. Rendering type passed to
+  [ggvfields::GeomStream](https://rdrr.io/pkg/ggvfields/man/geom_stream.html).
+  Defaults to `"stream"`.
+
 - arrow:
 
   A [`grid::arrow()`](https://rdrr.io/r/grid/arrow.html) specification
@@ -95,6 +101,38 @@ one-dimensional function over a time sequence.
 In many cases these layers are useful for visualizing dynamic systems or
 flows where a one-dimensional parameter (often time) drives movement in
 two-dimensional space.
+
+## Computed variables
+
+These are calculated by the `stat` part of the layer and can be accessed
+with
+[`ggplot2::after_stat()`](https://ggplot2.tidyverse.org/reference/aes_eval.html).
+
+- `after_stat(t)`:
+
+  Parameter values, typically time.
+
+- `after_stat(x)`:
+
+  First coordinate returned by `fun`.
+
+- `after_stat(y)`:
+
+  Second coordinate returned by `fun`.
+
+## Aesthetics
+
+`geom_function_1d_2d()` does not require input aesthetics when `fun` is
+supplied. The default mapping sets `colour = after_stat(t)`. Additional
+path and stream aesthetics such as `alpha`, `colour`/`color`, `group`,
+`linetype`, and `linewidth` are passed to
+[ggvfields::GeomStream](https://rdrr.io/pkg/ggvfields/man/geom_stream.html).
+
+## See also
+
+[`geom_function_2d_2d()`](/reference/geom_function_2d_2d.md) for vector
+fields generated from two-dimensional inputs, and ggvfields for the
+delegated stream drawing machinery.
 
 ## Examples
 

@@ -1,38 +1,34 @@
-# Plot an Empirical Quantile Function
+# Plot Highest Density Regions of a Bivariate PDF
 
-`geom_eqf()` computes the empirical quantile function of a sample and
-renders it as a left-continuous step function on \\\[0, 1\]\\, using the
-same visual conventions as
-[`geom_qf_discrete()`](/reference/geom_qf_discrete.md): horizontal
-segments, dashed vertical jumps, closed circles at the bottom of each
-jump (value achieved), and open circles at the top (next value not yet
-reached). An optional simultaneous confidence band is drawn by inverting
-the DKW/Massart ECDF band.
+`geom_pdf_2d()` visualizes a theoretical bivariate probability density
+function through its highest density regions (HDRs). It is a thin,
+probability-facing wrapper around ggdensity: HDR computation, contour
+construction, probability labels, and default aesthetics are delegated
+to
+[`ggdensity::geom_hdr_fun()`](https://jamesotto852.github.io/ggdensity/reference/geom_hdr_fun.html)
+for `type = "hdr"` (filled regions) and
+[`ggdensity::geom_hdr_lines_fun()`](https://jamesotto852.github.io/ggdensity/reference/geom_hdr_fun.html)
+for `type = "hdr_lines"` (boundary contours).
 
 ## Usage
 
 ``` r
-geom_eqf(
+geom_pdf_2d(
   mapping = NULL,
   data = NULL,
-  stat = StatEQF,
   position = "identity",
   ...,
   na.rm = FALSE,
   show.legend = NA,
-  inherit.aes = TRUE,
-  open_fill = NULL,
-  vert_type = "dashed",
-  show_points = NULL,
-  show_vert = NULL,
-  conf_int = TRUE,
-  level = 0.95,
-  conf_alpha = 0.4
+  inherit.aes = FALSE,
+  fun,
+  xlim = NULL,
+  ylim = NULL,
+  n = 100,
+  args = list(),
+  probs = c(0.99, 0.95, 0.8, 0.5),
+  type = c("hdr", "hdr_lines")
 )
-
-StatEQF
-
-StatEQFBand
 ```
 
 ## Arguments
@@ -62,24 +58,6 @@ StatEQFBand
   return value must be a `data.frame`, and will be used as the layer
   data. A `function` can be created from a `formula` (e.g.
   `~ head(.x, 10)`).
-
-- stat:
-
-  The statistical transformation to use on the data for this layer. When
-  using a `geom_*()` function to construct a layer, the `stat` argument
-  can be used to override the default coupling between geoms and stats.
-  The `stat` argument accepts the following:
-
-  - A `Stat` ggproto subclass, for example `StatCount`.
-
-  - A string naming the stat. To give the stat as a string, strip the
-    function name of the `stat_` prefix. For example, to use
-    `stat_count()`, give the stat as `"count"`.
-
-  - For more information and other ways to specify the stat, see the
-    [layer
-    stat](https://ggplot2.tidyverse.org/reference/layer_stats.html)
-    documentation.
 
 - position:
 
@@ -141,7 +119,8 @@ StatEQFBand
 
 - na.rm:
 
-  If `TRUE`, silently remove missing values. Defaults to `FALSE`.
+  If `FALSE`, the default, missing values are removed with a warning. If
+  `TRUE`, missing values are silently removed.
 
 - show.legend:
 
@@ -160,107 +139,109 @@ StatEQFBand
   plot specification, e.g.
   [`annotation_borders()`](https://ggplot2.tidyverse.org/reference/annotation_borders.html).
 
-- open_fill:
+- fun:
 
-  Fill color for the open (hollow) endpoint circles. Defaults to `NULL`,
-  which uses the active theme's panel background color.
+  A bivariate density function accepting a length-2 numeric vector
+  `v = c(x, y)` and returning one numeric density value.
 
-- vert_type:
+- xlim, ylim:
 
-  Line type for the vertical jump segments. Defaults to `"dashed"`.
+  Numeric vectors of length 2 specifying the evaluation range, passed
+  through to ggdensity.
 
-- show_points:
+- n:
 
-  Logical. If `FALSE`, suppresses all endpoint circles. If `NULL` (the
-  default), circles are shown when there are 50 or fewer points and
-  hidden otherwise.
+  Grid resolution passed to ggdensity. Defaults to `100`.
 
-- show_vert:
+- args:
 
-  Logical. If `FALSE`, suppresses the vertical jump segments. If `NULL`
-  (the default), segments are shown when there are 50 or fewer points
-  and hidden otherwise.
+  A named list of additional arguments passed to `fun`.
 
-- conf_int:
+- probs:
 
-  Logical. If `TRUE` (the default), draws a simultaneous DKW confidence
-  band around the ECDF.
+  HDR probabilities passed to ggdensity. Defaults to
+  `c(0.99, 0.95, 0.8, 0.5)`.
 
-- level:
+- type:
 
-  Confidence level for the band. Defaults to `0.95`.
-
-- conf_alpha:
-
-  Alpha (transparency) of the confidence ribbon. Defaults to `0.4`.
+  Character. `"hdr"` (default) draws filled highest density regions;
+  `"hdr_lines"` draws HDR boundary contour lines.
 
 ## Value
 
-A ggplot2 layer, or a list of two layers when `conf_int = TRUE`.
+A ggplot2 layer.
 
 ## Details
 
-The empirical quantile function is the left-continuous inverse of the
-empirical CDF: \\Q(p) = \inf\\x : F_n(x) \geq p\\\\.
+The supplied density uses ggfunction's 2D function convention: `fun`
+receives a single numeric vector `v = c(x, y)` and returns one density
+value. ggdensity expects a function of two vectorized arguments
+`fun(x, y)`; `geom_pdf_2d()` adapts between the two interfaces
+internally, closing over `args` in the process.
 
-The two-sided confidence band at probability level \\p\\ is \\\[Q_n(p -
-\varepsilon),\\ Q_n(p + \varepsilon)\]\\, where \\\varepsilon =
-\sqrt{\log(2/\alpha) / (2n)}\\ is the DKW/Massart half-width (\\\alpha =
-1 - \texttt{level}\\). In the extreme tails, DKW gives only one-sided
-bounds unless known support bounds are supplied; the ribbon displays
-these as open-ended, panel-clipped tails. This follows directly from
-inverting the simultaneous ECDF confidence band.
+For arbitrary density heatmaps or raw iso-density contours (level sets
+not calibrated to probability content), use
+[`geom_function_2d_1d()`](/reference/geom_function_2d_1d.md) with
+`type = "raster"`, `"contour"`, or `"contour_filled"`.
 
 ## Computed variables
 
-These are calculated by the `stat` part of the layer and can be accessed
-with
-[`ggplot2::after_stat()`](https://ggplot2.tidyverse.org/reference/aes_eval.html).
-
-- `after_stat(x)`:
-
-  Empirical cumulative probabilities.
-
-- `after_stat(y)`:
-
-  Observed sample values.
-
-- `after_stat(ymin)` and `after_stat(ymax)`:
-
-  Lower and upper confidence band limits when `conf_int = TRUE`.
-
-## Aesthetics
-
-`geom_eqf()` requires the following aesthetic:
-
-- `x`:
-
-  Observed sample values.
-
-It also understands `alpha`, `colour`/`color`, `fill`, `group`,
-`linetype`, `linewidth`, `shape`, `size`, and `stroke`.
+Computed variables and default aesthetics are those supplied by the
+delegated ggdensity stat. In particular, the built data includes an
+ordered factor `probs`, which is mapped to `alpha` by default for filled
+HDRs.
 
 ## See also
 
-[`geom_qf()`](/reference/geom_qf.md) and
-[`geom_qf_discrete()`](/reference/geom_qf_discrete.md) for theoretical
-quantile functions, and [`geom_ecdf()`](/reference/geom_ecdf.md) for
-empirical CDFs.
+[`ggdensity::geom_hdr_fun()`](https://jamesotto852.github.io/ggdensity/reference/geom_hdr_fun.html)
+and
+[`ggdensity::geom_hdr_lines_fun()`](https://jamesotto852.github.io/ggdensity/reference/geom_hdr_fun.html)
+for the underlying HDR machinery;
+[`geom_function_2d_1d()`](/reference/geom_function_2d_1d.md) for raw
+density rasters and iso-density contours;
+[`geom_pdf()`](/reference/geom_pdf.md) for univariate densities.
 
 ## Examples
 
 ``` r
-set.seed(1)
-df <- data.frame(x = rnorm(50))
+dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
+  x <- matrix(v - mu, ncol = 1)
+  Sinv <- solve(Sigma)
+  1 / (2 * pi * sqrt(det(Sigma))) *
+    exp(-0.5 * as.numeric(t(x) %*% Sinv %*% x))
+}
 
-ggplot(df, aes(x = x)) + geom_eqf()
+ggplot() +
+  geom_pdf_2d(
+    fun = dbvn,
+    xlim = c(-3, 3),
+    ylim = c(-3, 3),
+    probs = c(0.5, 0.8, 0.95)
+  ) +
+  coord_equal()
 
 
-# Compare two groups
-df2 <- data.frame(
-  x     = c(rnorm(40), rnorm(40, mean = 2)),
-  group = rep(c("A", "B"), each = 40)
-)
-ggplot(df2, aes(x = x, colour = group)) + geom_eqf()
+ggplot() +
+  geom_pdf_2d(
+    fun = dbvn,
+    xlim = c(-3, 3),
+    ylim = c(-3, 3),
+    probs = c(0.5, 0.8, 0.95),
+    type = "hdr_lines"
+  ) +
+  coord_equal()
+
+
+# Parameterized via `args`
+Sigma <- matrix(c(1, 0.6, 0.6, 1), 2, 2)
+ggplot() +
+  geom_pdf_2d(
+    fun = dbvn,
+    args = list(Sigma = Sigma),
+    xlim = c(-3, 3),
+    ylim = c(-3, 3),
+    type = "hdr_lines"
+  ) +
+  coord_equal()
 
 ```

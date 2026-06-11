@@ -1,21 +1,19 @@
-# Plot an Empirical Quantile Function
+# Plot a Nelson-Aalen Cumulative Hazard Estimate for Censored Data
 
-`geom_eqf()` computes the empirical quantile function of a sample and
-renders it as a left-continuous step function on \\\[0, 1\]\\, using the
-same visual conventions as
-[`geom_qf_discrete()`](/reference/geom_qf_discrete.md): horizontal
-segments, dashed vertical jumps, closed circles at the bottom of each
-jump (value achieved), and open circles at the top (next value not yet
-reached). An optional simultaneous confidence band is drawn by inverting
-the DKW/Massart ECDF band.
+`geom_echf_na()` computes the Nelson-Aalen cumulative hazard estimator
+from right-censored data and renders it as an increasing step function
+starting at 0, using the same visual conventions as
+[`geom_cdf_discrete()`](/reference/geom_cdf_discrete.md). An optional
+pointwise normal confidence band (defaulting to 95%) is drawn around the
+curve using the Nelson variance estimator.
 
 ## Usage
 
 ``` r
-geom_eqf(
+geom_echf_na(
   mapping = NULL,
   data = NULL,
-  stat = StatEQF,
+  stat = StatECHFNA,
   position = "identity",
   ...,
   na.rm = FALSE,
@@ -30,9 +28,9 @@ geom_eqf(
   conf_alpha = 0.4
 )
 
-StatEQF
+StatECHFNA
 
-StatEQFBand
+StatECHFNABand
 ```
 
 ## Arguments
@@ -183,8 +181,8 @@ StatEQFBand
 
 - conf_int:
 
-  Logical. If `TRUE` (the default), draws a simultaneous DKW confidence
-  band around the ECDF.
+  Logical. If `TRUE` (the default), draws a pointwise normal confidence
+  band around the Nelson-Aalen estimate.
 
 - level:
 
@@ -200,16 +198,15 @@ A ggplot2 layer, or a list of two layers when `conf_int = TRUE`.
 
 ## Details
 
-The empirical quantile function is the left-continuous inverse of the
-empirical CDF: \\Q(p) = \inf\\x : F_n(x) \geq p\\\\.
+The Nelson-Aalen estimator at event time \\t_j\\ is \$\$\hat{H}(t) =
+\sum\_{t_j \le t} \frac{d_j}{n_j},\$\$ where \\d_j\\ is the number of
+events and \\n_j\\ is the number at risk just before \\t_j\\.
 
-The two-sided confidence band at probability level \\p\\ is \\\[Q_n(p -
-\varepsilon),\\ Q_n(p + \varepsilon)\]\\, where \\\varepsilon =
-\sqrt{\log(2/\alpha) / (2n)}\\ is the DKW/Massart half-width (\\\alpha =
-1 - \texttt{level}\\). In the extreme tails, DKW gives only one-sided
-bounds unless known support bounds are supplied; the ribbon displays
-these as open-ended, panel-clipped tails. This follows directly from
-inverting the simultaneous ECDF confidence band.
+The pointwise confidence band uses the Nelson variance estimator
+\$\$\widehat{\mathrm{Var}}\[\hat{H}(t)\] = \sum\_{t_j \le t}
+\frac{d_j}{n_j^2}\$\$ with the normal critical value, giving pointwise
+bounds \\\hat{H}(t) \pm z\_{1-\alpha/2}\\\mathrm{se}(t)\\ with lower
+bound clipped to 0.
 
 ## Computed variables
 
@@ -219,48 +216,71 @@ with
 
 - `after_stat(x)`:
 
-  Empirical cumulative probabilities.
+  Event times.
 
 - `after_stat(y)`:
 
-  Observed sample values.
+  Nelson-Aalen cumulative hazard estimates.
 
 - `after_stat(ymin)` and `after_stat(ymax)`:
 
   Lower and upper confidence band limits when `conf_int = TRUE`.
 
+## Dropped variables
+
+`status` is used to compute event times and risk sets, but is not
+available after statistical transformation.
+
 ## Aesthetics
 
-`geom_eqf()` requires the following aesthetic:
+`geom_echf_na()` requires the following aesthetics:
 
 - `x`:
 
-  Observed sample values.
+  Observed time (event or censoring time).
+
+- `status`:
+
+  Event indicator: 1 = event occurred, 0 = censored.
 
 It also understands `alpha`, `colour`/`color`, `fill`, `group`,
 `linetype`, `linewidth`, `shape`, `size`, and `stroke`.
 
 ## See also
 
-[`geom_qf()`](/reference/geom_qf.md) and
-[`geom_qf_discrete()`](/reference/geom_qf_discrete.md) for theoretical
-quantile functions, and [`geom_ecdf()`](/reference/geom_ecdf.md) for
-empirical CDFs.
+[`geom_echf()`](/reference/geom_echf.md) for complete (uncensored) data,
+[`geom_chf()`](/reference/geom_chf.md) for theoretical cumulative hazard
+functions, [`geom_ecdf_km()`](/reference/geom_ecdf_km.md) for the
+Kaplan-Meier survival curve.
 
 ## Examples
 
 ``` r
-set.seed(1)
-df <- data.frame(x = rnorm(50))
-
-ggplot(df, aes(x = x)) + geom_eqf()
-
-
-# Compare two groups
-df2 <- data.frame(
-  x     = c(rnorm(40), rnorm(40, mean = 2)),
-  group = rep(c("A", "B"), each = 40)
+set.seed(42)
+n <- 50
+true_time <- rexp(n, rate = 0.5)
+cens_time <- rexp(n, rate = 0.2)
+df <- data.frame(
+  time   = pmin(true_time, cens_time),
+  status = as.integer(true_time <= cens_time)
 )
-ggplot(df2, aes(x = x, colour = group)) + geom_eqf()
+
+ggplot(df, aes(x = time, status = status)) +
+  geom_echf_na()
+
+
+# Without confidence band
+ggplot(df, aes(x = time, status = status)) +
+  geom_echf_na(conf_int = FALSE)
+
+
+# Grouped data
+df2 <- data.frame(
+  time   = c(rexp(40, 0.5), rexp(40, 1)),
+  status = sample(0:1, 80, replace = TRUE, prob = c(0.2, 0.8)),
+  group  = rep(c("A", "B"), each = 40)
+)
+ggplot(df2, aes(x = time, status = status, colour = group)) +
+  geom_echf_na()
 
 ```

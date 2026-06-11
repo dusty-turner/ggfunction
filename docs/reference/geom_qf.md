@@ -16,18 +16,16 @@ geom_qf(
   na.rm = FALSE,
   show.legend = NA,
   inherit.aes = TRUE,
-  fun,
+  fun = NULL,
+  cdf_fun = NULL,
+  pdf_fun = NULL,
+  survival_fun = NULL,
   n = 101,
   args = list()
 )
 
 StatQF
 ```
-
-## Format
-
-An object of class `StatQF` (inherits from `Stat`, `ggproto`, `gg`) of
-length 2.
 
 ## Arguments
 
@@ -41,9 +39,7 @@ length 2.
 
 - data:
 
-  Ignored by
-  [`stat_function()`](https://ggplot2.tidyverse.org/reference/geom_function.html),
-  do not use.
+  Ignored by `stat_function()`, do not use.
 
 - stat:
 
@@ -56,8 +52,7 @@ length 2.
 
   - A string naming the stat. To give the stat as a string, strip the
     function name of the `stat_` prefix. For example, to use
-    [`stat_count()`](https://ggplot2.tidyverse.org/reference/geom_bar.html),
-    give the stat as `"count"`.
+    `stat_count()`, give the stat as `"count"`.
 
   - For more information and other ways to specify the stat, see the
     [layer
@@ -71,14 +66,13 @@ length 2.
   the display. The `position` argument accepts the following:
 
   - The result of calling a position function, such as
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html).
-    This method allows for passing extra arguments to the position.
+    `position_jitter()`. This method allows for passing extra arguments
+    to the position.
 
   - A string naming the position adjustment. To give the position as a
     string, strip the function name of the `position_` prefix. For
-    example, to use
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html),
-    give the position as `"jitter"`.
+    example, to use `position_jitter()`, give the position as
+    `"jitter"`.
 
   - For more information and other ways to specify the position, see the
     [layer
@@ -97,7 +91,7 @@ length 2.
 
 - show.legend:
 
-  Logical. Should this layer be included in the legends? `NA`, the
+  logical. Should this layer be included in the legends? `NA`, the
   default, includes if any aesthetics are mapped. `FALSE` never
   includes, and `TRUE` always includes. It can also be a named logical
   vector to finely select the aesthetics to display. To include legend
@@ -117,7 +111,29 @@ length 2.
   A function to compute the quantile function (e.g.
   [qnorm](https://rdrr.io/r/stats/Normal.html)). The function must
   accept a numeric vector of probabilities (values in `[0,1]`) as its
-  first argument.
+  first argument. Exactly one of `fun`, `cdf_fun`, `pdf_fun`, or
+  `survival_fun` must be provided.
+
+- cdf_fun:
+
+  A CDF function (e.g. [pnorm](https://rdrr.io/r/stats/Normal.html)).
+  The quantile function is derived numerically via root-finding. Exactly
+  one of `fun`, `cdf_fun`, `pdf_fun`, or `survival_fun` must be
+  provided.
+
+- pdf_fun:
+
+  A PDF function (e.g. [dnorm](https://rdrr.io/r/stats/Normal.html)).
+  The CDF is first derived by numerical integration, then the quantile
+  function by root-finding. Exactly one of `fun`, `cdf_fun`, `pdf_fun`,
+  or `survival_fun` must be provided.
+
+- survival_fun:
+
+  A survival function (e.g. `function(x) 1 - pnorm(x)`). The CDF is
+  computed as \\F(x) = 1 - S(x)\\ and then the quantile function is
+  derived by root-finding. Exactly one of `fun`, `cdf_fun`, `pdf_fun`,
+  or `survival_fun` must be provided.
 
 - n:
 
@@ -130,11 +146,60 @@ length 2.
 
 - args:
 
-  A named list of additional arguments to pass to `fun`.
+  A named list of additional arguments to pass to `fun`, `cdf_fun`, or
+  `pdf_fun`.
 
 ## Value
 
 A ggplot2 layer.
+
+## Details
+
+Supply exactly one of `fun` (a quantile function), `cdf_fun` (a CDF),
+`pdf_fun` (a PDF), or `survival_fun` (a survival function). When
+`cdf_fun` is supplied, the quantile function is derived by numerical
+root-finding. When `pdf_fun` is supplied, the CDF is first derived by
+numerical integration and then inverted. When `survival_fun` is
+supplied, the CDF is computed as \\F(x) = 1 - S(x)\\ and then inverted.
+
+## Computed variables
+
+These are calculated by the `stat` part of the layer and can be accessed
+with
+[`ggplot2::after_stat()`](https://ggplot2.tidyverse.org/reference/aes_eval.html).
+
+- `after_stat(p)`:
+
+  Probability values at which the quantile function is evaluated.
+
+- `after_stat(x)`:
+
+  Quantile values; the default y aesthetic maps to this variable.
+
+- `after_stat(q)`:
+
+  Quantile values.
+
+## Aesthetics
+
+`geom_qf()` does not require any input aesthetics when a function source
+is supplied. It understands the following aesthetics:
+
+- Computed position aesthetics:
+
+  `x` and `y`, mapped by default to `after_stat(p)` and `after_stat(x)`.
+
+- Drawing aesthetics:
+
+  `alpha`, `colour`/`color`, `group`, `linetype`, and `linewidth` for
+  the line.
+
+## See also
+
+[`geom_cdf()`](/reference/geom_cdf.md),
+[`geom_pdf()`](/reference/geom_pdf.md), and
+[`geom_qf_discrete()`](/reference/geom_qf_discrete.md) for related
+quantile and distribution-function layers.
 
 ## Examples
 

@@ -6,7 +6,8 @@ right-continuous step function, using the same visual conventions as
 segments, dashed vertical jumps, open circles at the left limit of each
 jump, and closed circles at the achieved value. An optional simultaneous
 confidence band (defaulting to 95%) is drawn around the step function
-using the Kolmogorov-Smirnov construction.
+using the Dvoretzky–Kiefer–Wolfowitz (DKW) inequality with Massart's
+sharp constant.
 
 ## Usage
 
@@ -34,14 +35,6 @@ StatECDF
 StatECDFBand
 ```
 
-## Format
-
-An object of class `StatECDF` (inherits from `Stat`, `ggproto`, `gg`) of
-length 3.
-
-An object of class `StatECDFBand` (inherits from `Stat`, `ggproto`,
-`gg`) of length 3.
-
 ## Arguments
 
 - mapping:
@@ -56,19 +49,19 @@ An object of class `StatECDFBand` (inherits from `Stat`, `ggproto`,
 
   The data to be displayed in this layer. There are three options:
 
-  - `NULL` (default): the data is inherited from the plot data as
-    specified in the call to
-    [`ggplot()`](https://ggplot2.tidyverse.org/reference/ggplot.html).
+  If `NULL`, the default, the data is inherited from the plot data as
+  specified in the call to
+  [`ggplot()`](https://ggplot2.tidyverse.org/reference/ggplot.html).
 
-  - A `data.frame`, or other object, will override the plot data. All
-    objects will be fortified to produce a data frame. See
-    [`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html)
-    for which variables will be created.
+  A `data.frame`, or other object, will override the plot data. All
+  objects will be fortified to produce a data frame. See
+  [`fortify()`](https://ggplot2.tidyverse.org/reference/fortify.html)
+  for which variables will be created.
 
-  - A `function` will be called with a single argument, the plot data.
-    The return value must be a `data.frame`, and will be used as the
-    layer data. A `function` can be created from a `formula` (e.g.
-    `~ head(.x, 10)`).
+  A `function` will be called with a single argument, the plot data. The
+  return value must be a `data.frame`, and will be used as the layer
+  data. A `function` can be created from a `formula` (e.g.
+  `~ head(.x, 10)`).
 
 - stat:
 
@@ -81,8 +74,7 @@ An object of class `StatECDFBand` (inherits from `Stat`, `ggproto`,
 
   - A string naming the stat. To give the stat as a string, strip the
     function name of the `stat_` prefix. For example, to use
-    [`stat_count()`](https://ggplot2.tidyverse.org/reference/geom_bar.html),
-    give the stat as `"count"`.
+    `stat_count()`, give the stat as `"count"`.
 
   - For more information and other ways to specify the stat, see the
     [layer
@@ -96,14 +88,13 @@ An object of class `StatECDFBand` (inherits from `Stat`, `ggproto`,
   the display. The `position` argument accepts the following:
 
   - The result of calling a position function, such as
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html).
-    This method allows for passing extra arguments to the position.
+    `position_jitter()`. This method allows for passing extra arguments
+    to the position.
 
   - A string naming the position adjustment. To give the position as a
     string, strip the function name of the `position_` prefix. For
-    example, to use
-    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html),
-    give the position as `"jitter"`.
+    example, to use `position_jitter()`, give the position as
+    `"jitter"`.
 
   - For more information and other ways to specify the position, see the
     [layer
@@ -154,7 +145,7 @@ An object of class `StatECDFBand` (inherits from `Stat`, `ggproto`,
 
 - show.legend:
 
-  Logical. Should this layer be included in the legends? `NA`, the
+  logical. Should this layer be included in the legends? `NA`, the
   default, includes if any aesthetics are mapped. `FALSE` never
   includes, and `TRUE` always includes. It can also be a named logical
   vector to finely select the aesthetics to display. To include legend
@@ -192,7 +183,7 @@ An object of class `StatECDFBand` (inherits from `Stat`, `ggproto`,
 
 - conf_int:
 
-  Logical. If `TRUE` (the default), draws a simultaneous KS confidence
+  Logical. If `TRUE` (the default), draws a simultaneous DKW confidence
   band around the ECDF.
 
 - level:
@@ -213,11 +204,47 @@ The empirical distribution places mass \\c_k / n\\ at each distinct
 observed value \\x_k\\, where \\c_k\\ is the count of occurrences and
 \\n\\ is the total sample size. Ties are handled correctly.
 
-The simultaneous confidence band inverts the Kolmogorov-Smirnov test.
-The half-width is \\\varepsilon = \sqrt{\log(2/\alpha) / (2n)}\\, where
-\\\alpha = 1 - \texttt{level}\\, giving pointwise bounds
-\\\[\hat{F}\_n(x) - \varepsilon,\\ \hat{F}\_n(x) + \varepsilon\]\\
-clipped to \\\[0, 1\]\\.
+The simultaneous confidence band is the DKW/Massart band. The half-width
+is \\\varepsilon = \sqrt{\log(2/\alpha) / (2n)}\\, where \\\alpha = 1 -
+\texttt{level}\\, giving pointwise bounds \\\[\hat{F}\_n(x) -
+\varepsilon,\\ \hat{F}\_n(x) + \varepsilon\]\\ clipped to \\\[0, 1\]\\.
+
+## Computed variables
+
+These are calculated by the `stat` part of the layer and can be accessed
+with
+[`ggplot2::after_stat()`](https://ggplot2.tidyverse.org/reference/aes_eval.html).
+
+- `after_stat(x)`:
+
+  Distinct observed sample values.
+
+- `after_stat(y)`:
+
+  Empirical cumulative probabilities.
+
+- `after_stat(ymin)` and `after_stat(ymax)`:
+
+  Lower and upper confidence band limits when `conf_int = TRUE`.
+
+## Aesthetics
+
+`geom_ecdf()` requires the following aesthetic:
+
+- `x`:
+
+  Observed sample values.
+
+It also understands `alpha`, `colour`/`color`, `fill`, `group`,
+`linetype`, `linewidth`, `shape`, `size`, and `stroke`.
+
+## See also
+
+[`geom_cdf()`](/reference/geom_cdf.md) for theoretical CDFs,
+[`geom_eqf()`](/reference/geom_eqf.md) for empirical quantile functions,
+[`geom_epmf()`](/reference/geom_epmf.md) for empirical probability
+masses, and [`geom_ecdf_km()`](/reference/geom_ecdf_km.md) for
+right-censored data.
 
 ## Examples
 

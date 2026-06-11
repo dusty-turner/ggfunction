@@ -8,17 +8,13 @@ directly. It provides a unified interface organized around two families:
 1.  **Dimensional taxonomy** – functions classified by input/output
     dimension:
     - [`geom_function_1d_1d()`](/reference/geom_function_1d_1d.md):
-      $\left. {\mathbb{R}}\rightarrow{\mathbb{R}} \right.$ (scalar to
-      scalar)
+      $`\mathbb{R} \to \mathbb{R}`$ (scalar to scalar)
     - [`geom_function_1d_2d()`](/reference/geom_function_1d_2d.md):
-      $\left. {\mathbb{R}}\rightarrow{\mathbb{R}}^{2} \right.$
-      (parametric curves)
+      $`\mathbb{R} \to \mathbb{R}^2`$ (parametric curves)
     - [`geom_function_2d_1d()`](/reference/geom_function_2d_1d.md):
-      $\left. {\mathbb{R}}^{2}\rightarrow{\mathbb{R}} \right.$ (scalar
-      fields, raster/contour)
+      $`\mathbb{R}^2 \to \mathbb{R}`$ (scalar fields, raster/contour)
     - [`geom_function_2d_2d()`](/reference/geom_function_2d_2d.md):
-      $\left. {\mathbb{R}}^{2}\rightarrow{\mathbb{R}}^{2} \right.$
-      (vector fields)
+      $`\mathbb{R}^2 \to \mathbb{R}^2`$ (vector fields)
 2.  **Probability distributions** – specialized geoms for distribution
     functions:
     - [`geom_pdf()`](/reference/geom_pdf.md): probability density
@@ -33,21 +29,22 @@ directly. It provides a unified interface organized around two families:
     - [`geom_qf_discrete()`](/reference/geom_qf_discrete.md): discrete
       quantile function (left-continuous step function)
     - [`geom_survival_discrete()`](/reference/geom_survival_discrete.md):
-      discrete survival function $S(x) = 1 - F(x)$ (right-continuous
+      discrete survival function $`S(x) = 1 - F(x)`$ (right-continuous
       step function)
     - [`geom_survival()`](/reference/geom_survival.md): survival
-      function $S(x) = 1 - F(x)$
+      function $`S(x) = 1 - F(x)`$
     - [`geom_hf()`](/reference/geom_hf.md): hazard function
-      $h(x) = f(x)/S(x)$
+      $`h(x) = f(x)/S(x)`$
 
 ## Dimensional Taxonomy
 
 ### 1D to 1D: Scalar Functions
 
-Plot any $\left. f:{\mathbb{R}}\rightarrow{\mathbb{R}} \right.$ with
-optional interval shading:
+Plot any $`f: \mathbb{R} \to \mathbb{R}`$ with optional interval
+shading:
 
 ``` r
+
 ggplot() +
   geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi))
 ```
@@ -57,6 +54,7 @@ ggplot() +
 Shade a specific interval:
 
 ``` r
+
 ggplot() +
   geom_function_1d_1d(
     fun = dnorm, xlim = c(-3, 3),
@@ -72,6 +70,7 @@ Map a scalar parameter to a 2D path using `tlim` to set the parameter
 range:
 
 ``` r
+
 f <- function(t) c(sin(t), cos(t))
 ggplot() +
   geom_function_1d_2d(fun = f, tlim = c(0, 2 * pi))
@@ -81,10 +80,10 @@ ggplot() +
 
 ### 2D to 1D: Scalar Fields
 
-Visualize $\left. f:{\mathbb{R}}^{2}\rightarrow{\mathbb{R}} \right.$ as
-a raster:
+Visualize $`f: \mathbb{R}^2 \to \mathbb{R}`$ as a raster:
 
 ``` r
+
 f_gaussian <- function(v) exp(-(v[1]^2 + v[2]^2) / 2)
 
 ggplot() +
@@ -96,6 +95,7 @@ ggplot() +
 Or as contour lines:
 
 ``` r
+
 ggplot() +
   geom_function_2d_1d(
     fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3),
@@ -108,6 +108,7 @@ ggplot() +
 Or as filled contours:
 
 ``` r
+
 ggplot() +
   geom_function_2d_1d(
     fun = f_gaussian, xlim = c(-3, 3), ylim = c(-3, 3),
@@ -123,6 +124,7 @@ Visualize vector fields as short arrows at each grid point (the default,
 `type = "vector"`):
 
 ``` r
+
 f_rotation <- function(u) c(-u[2], u[1])
 ggplot() +
   geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1))
@@ -133,6 +135,7 @@ ggplot() +
 Or as integral-curve streamlines with `type = "stream"`:
 
 ``` r
+
 ggplot() +
   geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1),
     type = "stream")
@@ -145,6 +148,7 @@ ggplot() +
 ### PDF with Shading
 
 ``` r
+
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975, fill = "tomato")
 ```
@@ -154,6 +158,7 @@ ggplot() +
 Two-sided shading (e.g., middle 95%):
 
 ``` r
+
 ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-3, 3),
@@ -166,6 +171,7 @@ ggplot() +
 Shade the tails instead (outside):
 
 ``` r
+
 ggplot() +
   geom_pdf(
     fun = dnorm, xlim = c(-3, 3),
@@ -178,6 +184,7 @@ ggplot() +
 ### CDF
 
 ``` r
+
 ggplot() +
   geom_cdf(fun = pnorm, xlim = c(-3, 3))
 ```
@@ -187,6 +194,7 @@ ggplot() +
 With shading below a quantile:
 
 ``` r
+
 ggplot() +
   geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.975, fill = "darkgreen")
 ```
@@ -196,6 +204,7 @@ ggplot() +
 ### PMF (Lollipop)
 
 ``` r
+
 ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
 ```
@@ -206,6 +215,7 @@ Tail shading with `p` and HDR shading with `shade_hdr` work the same way
 as in [`geom_pdf()`](/reference/geom_pdf.md):
 
 ``` r
+
 ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5), p = 0.8)
 ```
@@ -213,6 +223,7 @@ ggplot() +
 ![](ggfunction_files/figure-html/unnamed-chunk-15-1.png)
 
 ``` r
+
 ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3),
     shade_hdr = 0.7)
@@ -223,6 +234,7 @@ ggplot() +
 ### Quantile Function
 
 ``` r
+
 ggplot() +
   geom_qf(fun = qnorm, args = list(mean = 0, sd = 1))
 ```
@@ -236,6 +248,7 @@ discrete CDF as a right-continuous step function with dashed vertical
 jumps and open/closed endpoint circles:
 
 ``` r
+
 ggplot() +
   geom_cdf_discrete(
     pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
@@ -248,6 +261,7 @@ Use `show_points = FALSE` or `show_vert = FALSE` to suppress circles or
 jump lines:
 
 ``` r
+
 ggplot() +
   geom_cdf_discrete(
     pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
@@ -261,10 +275,11 @@ ggplot() +
 
 [`geom_qf_discrete()`](/reference/geom_qf_discrete.md) renders the
 inverse of the discrete CDF as a left-continuous step function on
-$\lbrack 0,1\rbrack$, with closed circles at the bottom of each jump and
-open circles at the top:
+$`[0, 1]`$, with closed circles at the bottom of each jump and open
+circles at the top:
 
 ``` r
+
 ggplot() +
   geom_qf_discrete(
     pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
@@ -276,11 +291,12 @@ ggplot() +
 ### Discrete Survival Function (Step Function)
 
 [`geom_survival_discrete()`](/reference/geom_survival_discrete.md)
-renders the discrete survival function $S(x) = 1 - F(x) = P(X > x)$ as a
-right-continuous step function with the same visual conventions as
+renders the discrete survival function $`S(x) = 1 - F(x) = P(X > x)`$ as
+a right-continuous step function with the same visual conventions as
 [`geom_cdf_discrete()`](/reference/geom_cdf_discrete.md):
 
 ``` r
+
 ggplot() +
   geom_survival_discrete(
     pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
@@ -292,8 +308,11 @@ ggplot() +
 ### Survival Function
 
 ``` r
+
 ggplot() +
   geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
+#> Warning: The resulting survival function is not monotonically non-increasing.
+#> ℹ Check the function supplied to `fun`, `cdf_fun`, or `pdf_fun`.
 ```
 
 ![](ggfunction_files/figure-html/unnamed-chunk-22-1.png)
@@ -303,6 +322,7 @@ ggplot() +
 The exponential distribution has a constant hazard rate:
 
 ``` r
+
 ggplot() +
   geom_hf(
     pdf_fun = dexp, cdf_fun = pexp,
