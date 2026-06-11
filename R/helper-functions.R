@@ -217,6 +217,50 @@ discrete_hdr_indicator <- function(mass, shade_hdr = NULL) {
   mass >= cutoff
 }
 
+#' Smallest containing HDR level for discrete probability masses.
+#'
+#' Assigns each mass point the smallest of the requested highest density
+#' regions that contains it, returned as an ordered factor whose first
+#' (outermost) level collects points outside all requested regions, so that
+#' an alpha mapping renders inner regions most opaque.
+#' @noRd
+discrete_hdr_probs <- function(mass, shade_hdr) {
+  if (!is.numeric(shade_hdr) || length(shade_hdr) < 1 ||
+      any(!is.finite(shade_hdr)) || any(shade_hdr <= 0) || any(shade_hdr >= 1)) {
+    cli::cli_abort("{.arg shade_hdr} must be a numeric vector of coverage levels strictly between 0 and 1.")
+  }
+  coverages <- sort(unique(shade_hdr))
+  n <- length(mass)
+
+  fhat_d  <- mass / sum(mass)
+  ord     <- order(mass, decreasing = TRUE)
+  cumprob <- cumsum(fhat_d[ord])
+
+  fmt <- function(x) paste0(round(x * 100, 1), "%")
+  labels_in <- fmt(coverages)
+  label_out <- paste0(">", labels_in[length(labels_in)])
+
+  assigned <- rep(label_out, n)
+  actual   <- numeric(length(coverages))
+  for (i in rev(seq_along(coverages))) {
+    k <- which(cumprob >= coverages[i])[1L]
+    if (is.na(k)) k <- n
+    actual[i] <- cumprob[k]
+    cutoff    <- mass[ord[k]]
+    assigned[mass >= cutoff] <- labels_in[i]
+  }
+
+  if (any(abs(actual - coverages) > 0.005)) {
+    pairs <- paste0(fmt(coverages), " -> ", fmt(actual), collapse = ", ")
+    cli::cli_inform(c(
+      "!" = "shade_hdr: exact coverage is not achievable for this discrete distribution.",
+      "i" = "Using smallest HDRs with coverage >= each target: {pairs}."
+    ))
+  }
+
+  factor(assigned, levels = c(label_out, rev(labels_in)), ordered = TRUE)
+}
+
 #' @noRd
 build_step_polygon <- function(x, y) {
   # Build step-function polygon vertices from (x, y) pairs.
@@ -456,4 +500,4 @@ inject_open_fill <- function(data, theme) {
 #' @noRd
 utils::globalVariables(c("x", "y", "z", "p", "level", "GeomLine", "pdf_fun", "cdf_fun",
                          "pmf_fun", "survival_fun", "qf_fun", "hf_fun", "ymin", "ymax",
-                         "status", "prob"))
+                         "status", "prob", "probs"))

@@ -491,7 +491,7 @@ p1 | p2
 
 \subsection{\texorpdfstring{Bivariate mass functions: \texttt{geom\_pmf\_2d()}}{Bivariate mass functions: geom\_pmf\_2d()}}\label{bivariate-mass-functions-geom_pmf_2d}
 
-\texttt{geom\_pmf\_2d()} is the discrete counterpart: it evaluates a bivariate PMF over a lattice and renders the masses either as a balloon plot of points (\texttt{type\ =\ "point"}, the default, with size mapped to \texttt{after\_stat(prob)}; \texttt{ggplot2::scale\_size\_area()} is recommended so that mass is proportional to point area) or as a heatmap of tiles (\texttt{type\ =\ "tile"}, with fill mapped to \texttt{after\_stat(prob)}). The lattice is the product of per-axis supports--integers spanning \texttt{xlim} \(\times\) \texttt{ylim}, or exact values supplied via \texttt{support\_x} and \texttt{support\_y}--and the mass function follows the same \texttt{fun(c(x,\ y))} convention as \texttt{geom\_pdf\_2d()}. As in \texttt{geom\_pmf()}, the total lattice mass is validated, and \texttt{shade\_hdr} highlights the smallest set of lattice points whose total mass meets or exceeds the target coverage, rendering the remainder in grey; because a discrete distribution generally cannot achieve the target coverage exactly, the smallest HDR with coverage at least the target is used and the actual coverage is reported. Distributions with non-product support are accommodated by evaluating over a bounding lattice and returning zero off the support: zero-mass cells are dropped by default (\texttt{drop\_zeros\ =\ TRUE}), so a trinomial distribution, for example, renders only its simplex support.
+\texttt{geom\_pmf\_2d()} is the discrete counterpart: it evaluates a bivariate PMF over a lattice and renders the masses either as a balloon plot of points (\texttt{type\ =\ "point"}, the default, with size mapped to \texttt{after\_stat(prob)}; \texttt{ggplot2::scale\_size\_area()} is recommended so that mass is proportional to point area) or as a heatmap of tiles (\texttt{type\ =\ "tile"}, with fill mapped to \texttt{after\_stat(prob)}). The lattice is the product of per-axis supports--integers spanning \texttt{xlim} \(\times\) \texttt{ylim}, or exact values supplied via \texttt{support\_x} and \texttt{support\_y}--and the mass function follows the same \texttt{fun(c(x,\ y))} convention as \texttt{geom\_pdf\_2d()}. As in \texttt{geom\_pmf()}, the total lattice mass is validated. The \texttt{shade\_hdr} parameter accepts one or more coverage levels and highlights the corresponding highest density regions: each lattice point is assigned the smallest requested HDR that contains it, and the assignment is exposed as an ordered factor (\texttt{after\_stat(probs)}) mapped to \texttt{alpha} by default, reproducing the legend convention of \texttt{geom\_pdf\_2d()}; points outside all requested regions render nearly transparent. Because a discrete distribution generally cannot achieve a target coverage exactly, the smallest HDR with coverage at least each target is used and the actual coverages are reported. Distributions with non-product support are accommodated by evaluating over a bounding lattice and returning zero off the support: zero-mass cells are dropped by default (\texttt{drop\_zeros\ =\ TRUE}), so a trinomial distribution, for example, renders only its simplex support.
 
 \begin{verbatim}
 dbinom2 <- function(v, sizes = c(10, 10), probs = c(0.5, 0.5)) {
@@ -500,9 +500,9 @@ dbinom2 <- function(v, sizes = c(10, 10), probs = c(0.5, 0.5)) {
 
 p1 <- ggplot() +
   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-    args = list(probs = c(0.3, 0.7)), shade_hdr = 0.8) +
+    args = list(probs = c(0.3, 0.7)), shade_hdr = c(0.5, 0.8, 0.95)) +
   scale_size_area() +
-  ggtitle("Product binomial, 80% HDR")
+  ggtitle("Product binomial, 50/80/95% HDRs")
 
 dtrinom <- function(v, size = 8, prob = c(0.3, 0.3, 0.4)) {
   if (sum(v) > size) return(0)
@@ -523,7 +523,7 @@ p1 | p2
 
 }
 
-\caption{Bivariate PMFs rendered by \texttt{geom\_pmf\_2d()}: the 80\% highest density region of a product $\mathrm{Binomial}(10, 0.3) \times \mathrm{Binomial}(10, 0.7)$ distribution in the default balloon rendering, with lattice points outside the HDR greyed (left), and a trinomial distribution with $n = 8$ evaluated over a bounding lattice in the tile rendering, showing only its simplex support (right).}\label{fig:pmf-2d}
+\caption{Bivariate PMFs rendered by \texttt{geom\_pmf\_2d()}: the 50/80/95\% highest density regions of a product $\mathrm{Binomial}(10, 0.3) \times \mathrm{Binomial}(10, 0.7)$ distribution in the default balloon rendering, with each lattice point's smallest containing HDR mapped to alpha (left), and a trinomial distribution with $n = 8$ evaluated over a bounding lattice in the tile rendering, showing only its simplex support (right).}\label{fig:pmf-2d}
 \end{figure}
 
 \subsection{Cumulative distribution and survival functions}\label{cumulative-distribution-and-survival-functions}

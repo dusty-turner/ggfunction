@@ -487,15 +487,18 @@ ggplot() +
 
 <img src="man/figures/readme-pmf-2d-tile-1.png" alt="" width="60%" />
 
-**Highest density region.** As with `geom_pmf()`, `shade_hdr` highlights
-the smallest set of lattice points containing the target probability
-mass, greying out the rest. The exact coverage may not be achievable for
-a discrete distribution, in which case the smallest HDR with at least
-the target coverage is used and a message reports the actual coverage.
+**Highest density regions.** `shade_hdr` accepts one or more coverage
+levels. Each lattice point is assigned the smallest HDR that contains
+it, and the assignment is mapped to `alpha` as an ordered factor—the
+same legend convention as `geom_pdf_2d()`—so points outside all
+requested regions are nearly transparent. Exact coverages may not be
+achievable for a discrete distribution, in which case the smallest HDRs
+with at least the target coverages are used and a message reports the
+actual coverages.
 
 ``` r
 ggplot() +
-  geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10), shade_hdr = 0.8) +
+  geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10), shade_hdr = c(0.5, 0.8, 0.95)) +
   scale_size_area()
 ```
 

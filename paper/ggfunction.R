@@ -232,16 +232,16 @@ p1 | p2
 
 
 ## ----pmf-2d, echo=TRUE, fig.width=10, fig.height=4----------------------------
-#| fig.cap: "Bivariate PMFs rendered by \\texttt{geom\\_pmf\\_2d()}: the 80\\% highest density region of a product $\\mathrm{Binomial}(10, 0.3) \\times \\mathrm{Binomial}(10, 0.7)$ distribution in the default balloon rendering, with lattice points outside the HDR greyed (left), and a trinomial distribution with $n = 8$ evaluated over a bounding lattice in the tile rendering, showing only its simplex support (right)."
+#| fig.cap: "Bivariate PMFs rendered by \\texttt{geom\\_pmf\\_2d()}: the 50/80/95\\% highest density regions of a product $\\mathrm{Binomial}(10, 0.3) \\times \\mathrm{Binomial}(10, 0.7)$ distribution in the default balloon rendering, with each lattice point's smallest containing HDR mapped to alpha (left), and a trinomial distribution with $n = 8$ evaluated over a bounding lattice in the tile rendering, showing only its simplex support (right)."
 dbinom2 <- function(v, sizes = c(10, 10), probs = c(0.5, 0.5)) {
   dbinom(v[1], sizes[1], probs[1]) * dbinom(v[2], sizes[2], probs[2])
 }
 
 p1 <- ggplot() +
   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-    args = list(probs = c(0.3, 0.7)), shade_hdr = 0.8) +
+    args = list(probs = c(0.3, 0.7)), shade_hdr = c(0.5, 0.8, 0.95)) +
   scale_size_area() +
-  ggtitle("Product binomial, 80% HDR")
+  ggtitle("Product binomial, 50/80/95% HDRs")
 
 dtrinom <- function(v, size = 8, prob = c(0.3, 0.3, 0.4)) {
   if (sum(v) > size) return(0)

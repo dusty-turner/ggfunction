@@ -136,14 +136,17 @@ for each axis, overriding \code{xlim}/\code{ylim}. Non-integer values are allowe
 
 \item{args}{A named list of additional arguments passed to \code{fun}.}
 
-\item{shade_hdr}{(Optional) A numeric value between 0 and 1 specifying the
-target coverage of the highest density region (HDR) to highlight: the
-smallest set of lattice points containing at least the specified
-probability mass. Points outside the HDR are rendered in grey. Because a
-discrete distribution may not achieve the exact coverage, the smallest
-HDR with coverage >= \code{shade_hdr} is used and a message is issued via
-\code{\link[cli:cli_inform]{cli::cli_inform()}} reporting both the specified and actual coverage
-whenever they differ.}
+\item{shade_hdr}{(Optional) A numeric vector of target coverages for the
+highest density regions (HDRs) to highlight, each strictly between 0 and
+1, e.g. \code{shade_hdr = c(0.5, 0.8, 0.95)}: the smallest sets of lattice
+points containing at least the specified probability masses. Each lattice
+point is assigned the smallest requested HDR containing it; the
+assignment is exposed as the ordered factor \code{after_stat(probs)} and
+mapped to \code{alpha} by default, so points outside all requested regions
+render nearly transparent. Because a discrete distribution may not
+achieve the exact coverages, the smallest HDR with coverage >= each
+target is used and a message is issued via \code{\link[cli:cli_inform]{cli::cli_inform()}} reporting
+the actual coverages whenever they differ.}
 
 \item{drop_zeros}{Logical. If \code{TRUE} (default), lattice points with zero
 mass are removed before rendering. Useful for distributions with
@@ -161,9 +164,10 @@ A ggplot2 layer.
 discrete lattice and renders it either as a balloon plot of points
 (\code{type = "point"}, the default), with size encoding the probability mass,
 or as a heatmap of tiles (\code{type = "tile"}), with fill encoding the
-probability mass. An optional highest density region can be highlighted via
-\code{shade_hdr}, mirroring \code{\link[=geom_pmf]{geom_pmf()}}: lattice points outside the HDR are
-rendered in grey.
+probability mass. One or more highest density regions can be highlighted
+via \code{shade_hdr}: each lattice point is assigned the smallest requested HDR
+that contains it, and the assignment is mapped to \code{alpha} as an ordered
+factor, mirroring the legend convention of \code{\link[=geom_pdf_2d]{geom_pdf_2d()}}.
 }
 \details{
 The supplied mass function uses ggfunction's 2D function convention, shared
@@ -180,9 +184,9 @@ support; cells with zero mass are removed by default (\code{drop_zeros = TRUE}).
 The total mass over the lattice is checked to be 1 (within \code{1e-2}), with a
 \code{\link[cli:cli_alert]{cli::cli_alert()}} otherwise; disable via
 \code{options(ggfunction.check = FALSE)}. As in \code{\link[=geom_pmf]{geom_pmf()}}, the exact
-\code{shade_hdr} coverage may not be achievable for a discrete distribution, in
-which case the smallest HDR with coverage at least \code{shade_hdr} is used and
-a message reports the actual coverage.
+\code{shade_hdr} coverages may not be achievable for a discrete distribution, in
+which case the smallest HDR with coverage at least each target is used and
+a message reports the actual coverages.
 
 Unlike \code{\link[=geom_pmf]{geom_pmf()}}, \code{geom_pmf_2d()} defaults to \code{inherit.aes = FALSE}
 since the layer is driven entirely by \code{fun}. For the default point mode,
@@ -196,8 +200,10 @@ with \code{\link[ggplot2:after_stat]{ggplot2::after_stat()}}.
 \describe{
 \item{\code{after_stat(x)} and \code{after_stat(y)}}{Lattice coordinates.}
 \item{\code{after_stat(prob)}}{Probability mass at each lattice point.}
-\item{\code{after_stat(hdr)}}{Logical HDR membership; all \code{TRUE} when
-\code{shade_hdr} is \code{NULL}.}
+\item{\code{after_stat(probs)}}{Only when \code{shade_hdr} is supplied: the
+smallest requested HDR containing each lattice point, as an ordered
+factor whose outermost level (e.g. \code{">95\%"}) collects points outside all
+requested regions.}
 }
 }
 
@@ -207,8 +213,8 @@ Point mode understands the aesthetics of \code{\link[ggplot2:geom_point]{ggplot2
 \code{size}, \code{colour}, \code{shape}, \code{alpha}, \code{stroke}); tile mode those of
 \code{\link[ggplot2:geom_tile]{ggplot2::geom_tile()}} (notably \code{fill}, \code{alpha}, \code{colour}, \code{linewidth},
 \code{width}, \code{height}). The probability mass is mapped to \code{size} (point) or
-\code{fill} (tile) by default. Note that legend keys are drawn from the scale
-and are not greyed by \code{shade_hdr}.
+\code{fill} (tile) by default, and when \code{shade_hdr} is supplied, \code{alpha} is
+additionally mapped to \code{after_stat(probs)}.
 }
 
 \examples{
@@ -234,10 +240,10 @@ ggplot() +
   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
     type = "tile")
 
-# Highlight the 80\% highest density region
+# Highlight the 50/80/95\% highest density regions
 ggplot() +
   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-    shade_hdr = 0.8) +
+    shade_hdr = c(0.5, 0.8, 0.95)) +
   scale_size_area()
 
 # Non-product support: trinomial over a bounding lattice

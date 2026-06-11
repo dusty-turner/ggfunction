@@ -4,9 +4,10 @@
 #' discrete lattice and renders it either as a balloon plot of points
 #' (`type = "point"`, the default), with size encoding the probability mass,
 #' or as a heatmap of tiles (`type = "tile"`), with fill encoding the
-#' probability mass. An optional highest density region can be highlighted via
-#' `shade_hdr`, mirroring [geom_pmf()]: lattice points outside the HDR are
-#' rendered in grey.
+#' probability mass. One or more highest density regions can be highlighted
+#' via `shade_hdr`: each lattice point is assigned the smallest requested HDR
+#' that contains it, and the assignment is mapped to `alpha` as an ordered
+#' factor, mirroring the legend convention of [geom_pdf_2d()].
 #'
 #' @details
 #' The supplied mass function uses ggfunction's 2D function convention, shared
@@ -23,9 +24,9 @@
 #' The total mass over the lattice is checked to be 1 (within `1e-2`), with a
 #' [cli::cli_alert()] otherwise; disable via
 #' `options(ggfunction.check = FALSE)`. As in [geom_pmf()], the exact
-#' `shade_hdr` coverage may not be achievable for a discrete distribution, in
-#' which case the smallest HDR with coverage at least `shade_hdr` is used and
-#' a message reports the actual coverage.
+#' `shade_hdr` coverages may not be achievable for a discrete distribution, in
+#' which case the smallest HDR with coverage at least each target is used and
+#' a message reports the actual coverages.
 #'
 #' Unlike [geom_pmf()], `geom_pmf_2d()` defaults to `inherit.aes = FALSE`
 #' since the layer is driven entirely by `fun`. For the default point mode,
@@ -41,14 +42,17 @@
 #' @param support_x,support_y Optional numeric vectors of exact support points
 #'   for each axis, overriding `xlim`/`ylim`. Non-integer values are allowed.
 #' @param args A named list of additional arguments passed to `fun`.
-#' @param shade_hdr (Optional) A numeric value between 0 and 1 specifying the
-#'   target coverage of the highest density region (HDR) to highlight: the
-#'   smallest set of lattice points containing at least the specified
-#'   probability mass. Points outside the HDR are rendered in grey. Because a
-#'   discrete distribution may not achieve the exact coverage, the smallest
-#'   HDR with coverage >= `shade_hdr` is used and a message is issued via
-#'   [cli::cli_inform()] reporting both the specified and actual coverage
-#'   whenever they differ.
+#' @param shade_hdr (Optional) A numeric vector of target coverages for the
+#'   highest density regions (HDRs) to highlight, each strictly between 0 and
+#'   1, e.g. `shade_hdr = c(0.5, 0.8, 0.95)`: the smallest sets of lattice
+#'   points containing at least the specified probability masses. Each lattice
+#'   point is assigned the smallest requested HDR containing it; the
+#'   assignment is exposed as the ordered factor `after_stat(probs)` and
+#'   mapped to `alpha` by default, so points outside all requested regions
+#'   render nearly transparent. Because a discrete distribution may not
+#'   achieve the exact coverages, the smallest HDR with coverage >= each
+#'   target is used and a message is issued via [cli::cli_inform()] reporting
+#'   the actual coverages whenever they differ.
 #' @param drop_zeros Logical. If `TRUE` (default), lattice points with zero
 #'   mass are removed before rendering. Useful for distributions with
 #'   non-product support evaluated over a bounding lattice.
@@ -62,8 +66,10 @@
 #' \describe{
 #'   \item{`after_stat(x)` and `after_stat(y)`}{Lattice coordinates.}
 #'   \item{`after_stat(prob)`}{Probability mass at each lattice point.}
-#'   \item{`after_stat(hdr)`}{Logical HDR membership; all `TRUE` when
-#'   `shade_hdr` is `NULL`.}
+#'   \item{`after_stat(probs)`}{Only when `shade_hdr` is supplied: the
+#'   smallest requested HDR containing each lattice point, as an ordered
+#'   factor whose outermost level (e.g. `">95%"`) collects points outside all
+#'   requested regions.}
 #' }
 #'
 #' @section Aesthetics:
@@ -71,8 +77,8 @@
 #' `size`, `colour`, `shape`, `alpha`, `stroke`); tile mode those of
 #' [ggplot2::geom_tile()] (notably `fill`, `alpha`, `colour`, `linewidth`,
 #' `width`, `height`). The probability mass is mapped to `size` (point) or
-#' `fill` (tile) by default. Note that legend keys are drawn from the scale
-#' and are not greyed by `shade_hdr`.
+#' `fill` (tile) by default, and when `shade_hdr` is supplied, `alpha` is
+#' additionally mapped to `after_stat(probs)`.
 #'
 #' @return A ggplot2 layer.
 #'
@@ -102,10 +108,10 @@
 #'   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
 #'     type = "tile")
 #'
-#' # Highlight the 80% highest density region
+#' # Highlight the 50/80/95% highest density regions
 #' ggplot() +
 #'   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-#'     shade_hdr = 0.8) +
+#'     shade_hdr = c(0.5, 0.8, 0.95)) +
 #'   scale_size_area()
 #'
 #' # Non-product support: trinomial over a bounding lattice
@@ -156,6 +162,10 @@ geom_pmf_2d <- function(
     default_mapping <- aes(
       x = after_stat(x), y = after_stat(y), fill = after_stat(prob)
     )
+  }
+
+  if (!is.null(shade_hdr)) {
+    default_mapping <- modifyList(default_mapping, aes(alpha = after_stat(probs)))
   }
 
   if (is.null(mapping)) {
@@ -210,7 +220,9 @@ StatPMF2d <- ggproto("StatPMF2d", Stat,
 
     invisible(check_pmf_mass_normalization(grid$prob, tol = 1e-2))
 
-    grid$hdr <- discrete_hdr_indicator(grid$prob, shade_hdr)
+    if (!is.null(shade_hdr)) {
+      grid$probs <- discrete_hdr_probs(grid$prob, shade_hdr)
+    }
 
     if (isTRUE(drop_zeros)) {
       grid <- grid[grid$prob > 0, , drop = FALSE]
@@ -222,32 +234,8 @@ StatPMF2d <- ggproto("StatPMF2d", Stat,
 
 #' @rdname geom_pmf_2d
 #' @export
-GeomPMF2dTile <- ggproto("GeomPMF2dTile", GeomTile,
-
-  draw_panel = function(self, data, panel_params, coord,
-                        lineend = "butt", linejoin = "mitre") {
-    if (!is.null(data$hdr)) {
-      data$fill <- ifelse(data$hdr, data$fill, "grey70")
-    }
-    ggproto_parent(GeomTile, self)$draw_panel(
-      data, panel_params, coord, lineend = lineend, linejoin = linejoin
-    )
-  }
-)
+GeomPMF2dTile <- ggproto("GeomPMF2dTile", GeomTile)
 
 #' @rdname geom_pmf_2d
 #' @export
-GeomPMF2dPoint <- ggproto("GeomPMF2dPoint", GeomPoint,
-
-  draw_panel = function(self, data, panel_params, coord, na.rm = FALSE) {
-    if (!is.null(data$hdr)) {
-      data$colour <- ifelse(data$hdr, data$colour, "grey70")
-      if (!is.null(data$fill)) {
-        data$fill <- ifelse(data$hdr, data$fill, "grey70")
-      }
-    }
-    ggproto_parent(GeomPoint, self)$draw_panel(
-      data, panel_params, coord, na.rm = na.rm
-    )
-  }
-)
+GeomPMF2dPoint <- ggproto("GeomPMF2dPoint", GeomPoint)

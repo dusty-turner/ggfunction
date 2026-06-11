@@ -18,7 +18,7 @@ test_that("StatPMF2d computes correct PMF values on the lattice", {
   expect_equal(nrow(result), 121)
   expect_true(all(result$prob >= 0))
   expect_lt(abs(sum(result$prob) - 1), 0.01)
-  expect_true(all(result$hdr))
+  expect_false("probs" %in% names(result))
   expect_equal(
     result$prob[result$x == 5 & result$y == 5],
     dbinom(5, 10, 0.5)^2
@@ -98,7 +98,7 @@ test_that("StatPMF2d respects non-integer support_x/support_y", {
   expect_lt(abs(sum(result$prob) - 1), 0.01)
 })
 
-test_that("shade_hdr marks the smallest HDR with at least target coverage", {
+test_that("shade_hdr assigns the smallest HDR with at least target coverage", {
   result <- suppressMessages(StatPMF2d$compute_group(
     data = data.frame(group = 1),
     scales = list(),
@@ -107,21 +107,63 @@ test_that("shade_hdr marks the smallest HDR with at least target coverage", {
     ylim = c(0, 10),
     shade_hdr = 0.8
   ))
-  expect_type(result$hdr, "logical")
-  expect_true(any(result$hdr) && any(!result$hdr))
-  expect_gte(sum(result$prob[result$hdr]), 0.8)
-  expect_gte(min(result$prob[result$hdr]), max(result$prob[!result$hdr]))
+  expect_s3_class(result$probs, "ordered")
+  expect_equal(levels(result$probs), c(">80%", "80%"))
+  in_hdr <- result$probs == "80%"
+  expect_true(any(in_hdr) && any(!in_hdr))
+  expect_gte(sum(result$prob[in_hdr]), 0.8)
+  expect_gte(min(result$prob[in_hdr]), max(result$prob[!in_hdr]))
+})
+
+test_that("multi-level shade_hdr yields nested ordered levels", {
+  result <- suppressMessages(StatPMF2d$compute_group(
+    data = data.frame(group = 1),
+    scales = list(),
+    fun = dbinom2,
+    xlim = c(0, 10),
+    ylim = c(0, 10),
+    shade_hdr = c(0.5, 0.8, 0.95)
+  ))
+  expect_equal(levels(result$probs), c(">95%", "95%", "80%", "50%"))
+  mass_at <- function(lvls) sum(result$prob[result$probs %in% lvls])
+  expect_gte(mass_at("50%"), 0.5)
+  expect_gte(mass_at(c("50%", "80%")), 0.8)
+  expect_gte(mass_at(c("50%", "80%", "95%")), 0.95)
+  expect_gte(min(result$prob[result$probs == "50%"]),
+             max(result$prob[result$probs == "80%"]))
+})
+
+test_that("shade_hdr maps probs to alpha by default", {
+  l_hdr <- geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
+    shade_hdr = 0.8)
+  l_plain <- geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10))
+  expect_equal(rlang::as_label(l_hdr$mapping$alpha), "after_stat(probs)")
+  expect_null(l_plain$mapping$alpha)
+})
+
+test_that("invalid shade_hdr aborts with a clear message", {
+  expect_error(
+    StatPMF2d$compute_group(
+      data = data.frame(group = 1),
+      scales = list(),
+      fun = dbinom2,
+      xlim = c(0, 10),
+      ylim = c(0, 10),
+      shade_hdr = 1.2
+    ),
+    "between 0 and 1"
+  )
 })
 
 test_that("geom_pmf_2d with shade_hdr builds in both modes", {
-  p_tile <- ggplot() +
-    geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-      shade_hdr = 0.8)
   p_point <- ggplot() +
     geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-      shade_hdr = 0.8, type = "point")
-  expect_no_error(suppressMessages(ggplot_build(p_tile)))
+      shade_hdr = c(0.5, 0.8, 0.95))
+  p_tile <- ggplot() +
+    geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
+      shade_hdr = c(0.5, 0.8, 0.95), type = "tile")
   expect_no_error(suppressMessages(ggplot_build(p_point)))
+  expect_no_error(suppressMessages(ggplot_build(p_tile)))
 })
 
 test_that("drop_zeros removes off-support cells of a bounding lattice", {
