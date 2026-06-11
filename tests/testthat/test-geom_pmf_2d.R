@@ -27,7 +27,8 @@ test_that("StatPMF2d computes correct PMF values on the lattice", {
 
 test_that("geom_pmf_2d builds tile mode without error", {
   p <- ggplot() +
-    geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10))
+    geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
+      type = "tile")
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
 })
@@ -40,12 +41,12 @@ test_that("geom_pmf_2d builds point mode without error", {
   expect_silent(ggplot_build(p))
 })
 
-test_that("geom_pmf_2d defaults to tile mode and switches geoms", {
+test_that("geom_pmf_2d defaults to point mode and switches geoms", {
   l_default <- geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10))
-  l_point <- geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-    type = "point")
-  expect_s3_class(l_default$geom, "GeomPMF2dTile")
-  expect_s3_class(l_point$geom, "GeomPMF2dPoint")
+  l_tile <- geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
+    type = "tile")
+  expect_s3_class(l_default$geom, "GeomPMF2dPoint")
+  expect_s3_class(l_tile$geom, "GeomPMF2dTile")
   expect_s3_class(l_default$stat, "StatPMF2d")
 })
 
@@ -169,20 +170,20 @@ test_that("normalization check alerts for non-normalized fun", {
   ))
 })
 
-test_that("geom_pmf_2d maps prob to fill (tile) or size (point) by default", {
-  l_tile <- geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10))
-  l_point <- geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-    type = "point")
-  expect_equal(rlang::as_label(l_tile$mapping$fill), "after_stat(prob)")
-  expect_null(l_tile$mapping$size)
+test_that("geom_pmf_2d maps prob to size (point) or fill (tile) by default", {
+  l_point <- geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10))
+  l_tile <- geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
+    type = "tile")
   expect_equal(rlang::as_label(l_point$mapping$size), "after_stat(prob)")
   expect_null(l_point$mapping$fill)
+  expect_equal(rlang::as_label(l_tile$mapping$fill), "after_stat(prob)")
+  expect_null(l_tile$mapping$size)
 
   # User mappings override the defaults
   l_custom <- geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
     mapping = aes(alpha = after_stat(prob)))
   expect_equal(rlang::as_label(l_custom$mapping$alpha), "after_stat(prob)")
-  expect_equal(rlang::as_label(l_custom$mapping$fill), "after_stat(prob)")
+  expect_equal(rlang::as_label(l_custom$mapping$size), "after_stat(prob)")
 })
 
 test_that("non-scalar fun return aborts with a clear message", {

@@ -24,7 +24,7 @@ geom_pmf_2d(
   args = list(),
   shade_hdr = NULL,
   drop_zeros = TRUE,
-  type = c("tile", "point")
+  type = c("point", "tile")
 )
 
 StatPMF2d
@@ -149,18 +149,18 @@ whenever they differ.}
 mass are removed before rendering. Useful for distributions with
 non-product support evaluated over a bounding lattice.}
 
-\item{type}{Character. Either \code{"tile"} (default) for a heatmap with
-\code{fill = after_stat(prob)}, or \code{"point"} for a balloon plot with
-\code{size = after_stat(prob)}.}
+\item{type}{Character. Either \code{"point"} (default) for a balloon plot with
+\code{size = after_stat(prob)}, or \code{"tile"} for a heatmap with
+\code{fill = after_stat(prob)}.}
 }
 \value{
 A ggplot2 layer.
 }
 \description{
 \code{geom_pmf_2d()} evaluates a bivariate probability mass function on a
-discrete lattice and renders it either as a heatmap of tiles
-(\code{type = "tile"}, the default), with fill encoding the probability mass, or
-as a balloon plot of points (\code{type = "point"}), with size encoding the
+discrete lattice and renders it either as a balloon plot of points
+(\code{type = "point"}, the default), with size encoding the probability mass,
+or as a heatmap of tiles (\code{type = "tile"}), with fill encoding the
 probability mass. An optional highest density region can be highlighted via
 \code{shade_hdr}, mirroring \code{\link[=geom_pmf]{geom_pmf()}}: lattice points outside the HDR are
 rendered in grey.
@@ -185,7 +185,7 @@ which case the smallest HDR with coverage at least \code{shade_hdr} is used and
 a message reports the actual coverage.
 
 Unlike \code{\link[=geom_pmf]{geom_pmf()}}, \code{geom_pmf_2d()} defaults to \code{inherit.aes = FALSE}
-since the layer is driven entirely by \code{fun}. For point mode,
+since the layer is driven entirely by \code{fun}. For the default point mode,
 \code{\link[ggplot2:scale_size_area]{ggplot2::scale_size_area()}} is recommended so that mass is proportional to
 point area and zero mass maps to zero area.
 }
@@ -203,11 +203,11 @@ with \code{\link[ggplot2:after_stat]{ggplot2::after_stat()}}.
 
 \section{Aesthetics}{
 
-Tile mode understands the aesthetics of \code{\link[ggplot2:geom_tile]{ggplot2::geom_tile()}} (notably
-\code{fill}, \code{alpha}, \code{colour}, \code{linewidth}, \code{width}, \code{height}); point mode
-those of \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}} (notably \code{size}, \code{colour}, \code{shape},
-\code{alpha}, \code{stroke}). The probability mass is mapped to \code{fill} (tile) or
-\code{size} (point) by default. Note that legend keys are drawn from the scale
+Point mode understands the aesthetics of \code{\link[ggplot2:geom_point]{ggplot2::geom_point()}} (notably
+\code{size}, \code{colour}, \code{shape}, \code{alpha}, \code{stroke}); tile mode those of
+\code{\link[ggplot2:geom_tile]{ggplot2::geom_tile()}} (notably \code{fill}, \code{alpha}, \code{colour}, \code{linewidth},
+\code{width}, \code{height}). The probability mass is mapped to \code{size} (point) or
+\code{fill} (tile) by default. Note that legend keys are drawn from the scale
 and are not greyed by \code{shade_hdr}.
 }
 
@@ -218,25 +218,27 @@ dbinom2 <- function(v, sizes = c(10, 10), probs = c(0.5, 0.5)) {
 }
 
 ggplot() +
-  geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10))
+  geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10)) +
+  scale_size_area()
 
 # Parameterized via `args`
 ggplot() +
   geom_pmf_2d(
     fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
     args = list(probs = c(0.3, 0.7))
-  )
+  ) +
+  scale_size_area()
 
-# Balloon plot
+# Tile heatmap
 ggplot() +
   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-    type = "point") +
-  scale_size_area()
+    type = "tile")
 
 # Highlight the 80\% highest density region
 ggplot() +
   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-    shade_hdr = 0.8)
+    shade_hdr = 0.8) +
+  scale_size_area()
 
 # Non-product support: trinomial over a bounding lattice
 dtrinom <- function(v, size = 8, prob = c(0.3, 0.3, 0.4)) {
@@ -246,6 +248,7 @@ dtrinom <- function(v, size = 8, prob = c(0.3, 0.3, 0.4)) {
 
 ggplot() +
   geom_pmf_2d(fun = dtrinom, xlim = c(0, 8), ylim = c(0, 8)) +
+  scale_size_area() +
   coord_equal()
 
 }

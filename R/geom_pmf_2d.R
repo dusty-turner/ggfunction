@@ -1,9 +1,9 @@
 #' Plot a Bivariate Probability Mass Function
 #'
 #' `geom_pmf_2d()` evaluates a bivariate probability mass function on a
-#' discrete lattice and renders it either as a heatmap of tiles
-#' (`type = "tile"`, the default), with fill encoding the probability mass, or
-#' as a balloon plot of points (`type = "point"`), with size encoding the
+#' discrete lattice and renders it either as a balloon plot of points
+#' (`type = "point"`, the default), with size encoding the probability mass,
+#' or as a heatmap of tiles (`type = "tile"`), with fill encoding the
 #' probability mass. An optional highest density region can be highlighted via
 #' `shade_hdr`, mirroring [geom_pmf()]: lattice points outside the HDR are
 #' rendered in grey.
@@ -28,7 +28,7 @@
 #' a message reports the actual coverage.
 #'
 #' Unlike [geom_pmf()], `geom_pmf_2d()` defaults to `inherit.aes = FALSE`
-#' since the layer is driven entirely by `fun`. For point mode,
+#' since the layer is driven entirely by `fun`. For the default point mode,
 #' [ggplot2::scale_size_area()] is recommended so that mass is proportional to
 #' point area and zero mass maps to zero area.
 #'
@@ -52,9 +52,9 @@
 #' @param drop_zeros Logical. If `TRUE` (default), lattice points with zero
 #'   mass are removed before rendering. Useful for distributions with
 #'   non-product support evaluated over a bounding lattice.
-#' @param type Character. Either `"tile"` (default) for a heatmap with
-#'   `fill = after_stat(prob)`, or `"point"` for a balloon plot with
-#'   `size = after_stat(prob)`.
+#' @param type Character. Either `"point"` (default) for a balloon plot with
+#'   `size = after_stat(prob)`, or `"tile"` for a heatmap with
+#'   `fill = after_stat(prob)`.
 #'
 #' @section Computed variables:
 #' These are calculated by the `stat` part of the layer and can be accessed
@@ -67,11 +67,11 @@
 #' }
 #'
 #' @section Aesthetics:
-#' Tile mode understands the aesthetics of [ggplot2::geom_tile()] (notably
-#' `fill`, `alpha`, `colour`, `linewidth`, `width`, `height`); point mode
-#' those of [ggplot2::geom_point()] (notably `size`, `colour`, `shape`,
-#' `alpha`, `stroke`). The probability mass is mapped to `fill` (tile) or
-#' `size` (point) by default. Note that legend keys are drawn from the scale
+#' Point mode understands the aesthetics of [ggplot2::geom_point()] (notably
+#' `size`, `colour`, `shape`, `alpha`, `stroke`); tile mode those of
+#' [ggplot2::geom_tile()] (notably `fill`, `alpha`, `colour`, `linewidth`,
+#' `width`, `height`). The probability mass is mapped to `size` (point) or
+#' `fill` (tile) by default. Note that legend keys are drawn from the scale
 #' and are not greyed by `shade_hdr`.
 #'
 #' @return A ggplot2 layer.
@@ -86,25 +86,27 @@
 #' }
 #'
 #' ggplot() +
-#'   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10))
+#'   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10)) +
+#'   scale_size_area()
 #'
 #' # Parameterized via `args`
 #' ggplot() +
 #'   geom_pmf_2d(
 #'     fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
 #'     args = list(probs = c(0.3, 0.7))
-#'   )
+#'   ) +
+#'   scale_size_area()
 #'
-#' # Balloon plot
+#' # Tile heatmap
 #' ggplot() +
 #'   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-#'     type = "point") +
-#'   scale_size_area()
+#'     type = "tile")
 #'
 #' # Highlight the 80% highest density region
 #' ggplot() +
 #'   geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-#'     shade_hdr = 0.8)
+#'     shade_hdr = 0.8) +
+#'   scale_size_area()
 #'
 #' # Non-product support: trinomial over a bounding lattice
 #' dtrinom <- function(v, size = 8, prob = c(0.3, 0.3, 0.4)) {
@@ -114,6 +116,7 @@
 #'
 #' ggplot() +
 #'   geom_pmf_2d(fun = dtrinom, xlim = c(0, 8), ylim = c(0, 8)) +
+#'   scale_size_area() +
 #'   coord_equal()
 #'
 #' @name geom_pmf_2d
@@ -137,21 +140,21 @@ geom_pmf_2d <- function(
     args = list(),
     shade_hdr = NULL,
     drop_zeros = TRUE,
-    type = c("tile", "point")
+    type = c("point", "tile")
 ) {
   type <- match.arg(type)
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
 
-  if (identical(type, "tile")) {
-    geom <- GeomPMF2dTile
-    default_mapping <- aes(
-      x = after_stat(x), y = after_stat(y), fill = after_stat(prob)
-    )
-  } else {
+  if (identical(type, "point")) {
     geom <- GeomPMF2dPoint
     default_mapping <- aes(
       x = after_stat(x), y = after_stat(y), size = after_stat(prob)
+    )
+  } else {
+    geom <- GeomPMF2dTile
+    default_mapping <- aes(
+      x = after_stat(x), y = after_stat(y), fill = after_stat(prob)
     )
   }
 
