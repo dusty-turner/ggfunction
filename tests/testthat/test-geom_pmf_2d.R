@@ -278,6 +278,21 @@ test_that("shade_hdr includes lattice points tied at the cutoff", {
   expect_true(all(result$probs == "50%"))
 })
 
+test_that("exactly tied masses always share an HDR level", {
+  result <- suppressMessages(StatPMF2d$compute_group(
+    data = data.frame(group = 1),
+    scales = list(),
+    fun = dbinom2,
+    xlim = c(0, 10),
+    ylim = c(0, 10),
+    args = list(probs = c(0.3, 0.7)),
+    shade_hdr = c(0.5, 0.8, 0.95)
+  ))
+  groups <- split(as.character(result$probs), result$prob)
+  expect_gt(sum(lengths(groups) > 1), 0)
+  expect_true(all(vapply(groups, function(lvls) length(unique(lvls)) == 1L, logical(1))))
+})
+
 test_that("empty integer xlim/ylim ranges evaluate no lattice points", {
   calls <- 0L
   f_count <- function(v) {

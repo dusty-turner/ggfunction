@@ -427,6 +427,16 @@ PMF these are central intervals; for a skewed distribution they are
 asymmetric. Here the 50/80/95% HDRs of a $\text{Binomial}(10, 0.3)$
 distribution are highlighted.
 
+Two properties of discrete shading are worth keeping in mind. First, it
+almost always *overshoots*: a discrete distribution can rarely hit a
+target coverage exactly, so the smallest region with coverage at least
+the target is used and a message reports the achieved coverages (the
+cumulative `p`/`p_lower`/`p_upper` intervals likewise include the
+support point that crosses each threshold). Second, HDRs never split
+ties: each HDR is the probability-threshold set $\{x : p(x) \ge c\}$, so
+support points with exactly equal mass are always included or excluded
+together—another source of overshoot.
+
 ``` r
 ggplot() +
   geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3),
@@ -508,7 +518,9 @@ same legend convention as `geom_pdf_2d()`—so points outside all
 requested regions are nearly transparent. Exact coverages may not be
 achievable for a discrete distribution, in which case the smallest HDRs
 with at least the target coverages are used and a message reports the
-actual coverages.
+actual coverages; as in the univariate case, lattice points with exactly
+equal mass are always assigned to the same region, so the achieved
+coverage almost always overshoots the target.
 
 ``` r
 ggplot() +
@@ -521,7 +533,11 @@ ggplot() +
 **Viridis HDR fill.** If the alpha encoding is too subtle, map the HDR
 levels to `fill` with a discrete viridis palette instead, fixing
 `alpha = 1` to turn off the default encoding; the points use a fillable
-shape by default. Probability mass stays encoded by point size.
+shape by default. Probability mass stays encoded by point size. The fill
+also makes the discrete-HDR properties above easy to see: the regions
+overshoot their targets, and points of nearly identical size can carry
+different HDR colors—those masses differ slightly, while exactly tied
+masses always share a region.
 
 ``` r
 ggplot() +
