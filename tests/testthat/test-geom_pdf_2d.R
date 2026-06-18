@@ -24,6 +24,17 @@ test_that("geom_pdf_2d builds HDR lines without error", {
   expect_no_error(ggplot_build(p))
 })
 
+test_that("geom_pdf_2d builds density rasters without error", {
+  p <- ggplot() +
+    geom_pdf_2d(
+      fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), n = 30,
+      type = "raster"
+    ) +
+    coord_equal()
+  expect_s3_class(p, "gg")
+  expect_no_error(ggplot_build(p))
+})
+
 test_that("geom_pdf_2d defaults to filled HDRs", {
   l_default <- geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3))
   l_lines <- geom_pdf_2d(
@@ -32,6 +43,53 @@ test_that("geom_pdf_2d defaults to filled HDRs", {
   )
   expect_s3_class(l_default$stat, "StatHdrFun")
   expect_s3_class(l_lines$stat, "StatHdrLinesFun")
+})
+
+test_that("geom_pdf_2d raster uses density alpha on a dark-gray raster", {
+  l_raster <- geom_pdf_2d(
+    fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3),
+    n = 20, type = "raster"
+  )
+  expect_s3_class(l_raster$stat, "StatFunction2d")
+  expect_s3_class(l_raster$geom, "GeomFunction2d")
+  expect_equal(rlang::as_label(l_raster$mapping$alpha), "after_stat(z)")
+
+  built <- ggplot_build(ggplot() + l_raster)
+  expect_equal(nrow(built$data[[1]]), 20^2)
+  expect_true("z" %in% names(built$data[[1]]))
+  expect_equal(unique(built$data[[1]]$fill), "grey20")
+  expect_gt(length(unique(built$data[[1]]$alpha)), 1)
+})
+
+test_that("geom_pdf_2d raster allows mapping and fill overrides", {
+  p_mapped <- ggplot() +
+    geom_pdf_2d(
+      fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), n = 20,
+      type = "raster",
+      mapping = aes(fill = after_stat(z), alpha = after_stat(sqrt(z)))
+    )
+  b_mapped <- ggplot_build(p_mapped)
+  expect_gt(length(unique(b_mapped$data[[1]]$fill)), 1)
+  expect_gt(length(unique(b_mapped$data[[1]]$alpha)), 1)
+  expect_false(all(b_mapped$data[[1]]$fill == "grey20"))
+
+  p_fixed <- ggplot() +
+    geom_pdf_2d(
+      fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), n = 20,
+      type = "raster",
+      fill = "steelblue"
+    )
+  b_fixed <- ggplot_build(p_fixed)
+  expect_equal(unique(b_fixed$data[[1]]$fill), "steelblue")
+
+  p_alpha <- ggplot() +
+    geom_pdf_2d(
+      fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), n = 20,
+      type = "raster",
+      alpha = 0.4
+    )
+  b_alpha <- ggplot_build(p_alpha)
+  expect_equal(unique(b_alpha$data[[1]]$alpha), 0.4)
 })
 
 test_that("pdf2d_vector_fun_to_xy_fun adapts and vectorizes fun", {
@@ -66,6 +124,29 @@ test_that("args are passed through the adapter", {
       )
   )
   expect_equal(b_args$data[[1]], b_fixed$data[[1]])
+})
+
+test_that("args are passed through in raster mode", {
+  Sigma <- matrix(c(1, 0.6, 0.6, 1), 2, 2)
+  dbvn_fixed <- function(v) dbvn(v, Sigma = Sigma)
+
+  b_args <- ggplot_build(
+    ggplot() +
+      geom_pdf_2d(
+        fun = dbvn, args = list(Sigma = Sigma),
+        xlim = c(-3, 3), ylim = c(-3, 3), n = 20, type = "raster"
+      )
+  )
+  b_fixed <- ggplot_build(
+    ggplot() +
+      geom_pdf_2d(
+        fun = dbvn_fixed,
+        xlim = c(-3, 3), ylim = c(-3, 3), n = 20, type = "raster"
+      )
+  )
+
+  expect_equal(b_args$data[[1]]$z, b_fixed$data[[1]]$z)
+  expect_equal(b_args$data[[1]]$alpha, b_fixed$data[[1]]$alpha)
 })
 
 test_that("invalid type errors via match.arg", {

@@ -1,4 +1,4 @@
-# Simulation Verification of KS Confidence Band Coverage
+# Simulation Verification of DKW Confidence Band Coverage
 
 [`geom_ecdf()`](/reference/geom_ecdf.md) and
 [`geom_eqf()`](/reference/geom_eqf.md) draw simultaneous confidence

@@ -68,7 +68,7 @@ ggplot() +
 ## Working with data
 
 [`geom_ecdf()`](/reference/geom_ecdf.md) builds an empirical CDF from
-observed data, with an automatic Kolmogorov–Smirnov confidence band:
+observed data, with an automatic DKW/Massart confidence band:
 
 ``` r
 

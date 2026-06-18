@@ -1,14 +1,16 @@
-# Plot Highest Density Regions of a Bivariate PDF
+# Plot a Bivariate PDF
 
 `geom_pdf_2d()` visualizes a theoretical bivariate probability density
-function through its highest density regions (HDRs). It is a thin,
-probability-facing wrapper around ggdensity: HDR computation, contour
-construction, probability labels, and default aesthetics are delegated
-to
+function either through highest density regions (HDRs) or as a raw
+density raster. For HDRs it is a thin, probability-facing wrapper around
+ggdensity: HDR computation, contour construction, probability labels,
+and default aesthetics are delegated to
 [`ggdensity::geom_hdr_fun()`](https://jamesotto852.github.io/ggdensity/reference/geom_hdr_fun.html)
 for `type = "hdr"` (filled regions) and
 [`ggdensity::geom_hdr_lines_fun()`](https://jamesotto852.github.io/ggdensity/reference/geom_hdr_fun.html)
-for `type = "hdr_lines"` (boundary contours).
+for `type = "hdr_lines"` (boundary contours). For `type = "raster"`, the
+density is evaluated on the requested grid and drawn with
+[`ggplot2::geom_raster()`](https://ggplot2.tidyverse.org/reference/geom_tile.html).
 
 ## Usage
 
@@ -27,7 +29,7 @@ geom_pdf_2d(
   n = 100,
   args = list(),
   probs = c(0.99, 0.95, 0.8, 0.5),
-  type = c("hdr", "hdr_lines")
+  type = c("hdr", "hdr_lines", "raster")
 )
 ```
 
@@ -66,13 +68,14 @@ geom_pdf_2d(
   the display. The `position` argument accepts the following:
 
   - The result of calling a position function, such as
-    `position_jitter()`. This method allows for passing extra arguments
-    to the position.
+    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html).
+    This method allows for passing extra arguments to the position.
 
   - A string naming the position adjustment. To give the position as a
     string, strip the function name of the `position_` prefix. For
-    example, to use `position_jitter()`, give the position as
-    `"jitter"`.
+    example, to use
+    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html),
+    give the position as `"jitter"`.
 
   - For more information and other ways to specify the position, see the
     [layer
@@ -146,12 +149,11 @@ geom_pdf_2d(
 
 - xlim, ylim:
 
-  Numeric vectors of length 2 specifying the evaluation range, passed
-  through to ggdensity.
+  Numeric vectors of length 2 specifying the evaluation range.
 
 - n:
 
-  Grid resolution passed to ggdensity. Defaults to `100`.
+  Grid resolution. Defaults to `100`.
 
 - args:
 
@@ -160,12 +162,13 @@ geom_pdf_2d(
 - probs:
 
   HDR probabilities passed to ggdensity. Defaults to
-  `c(0.99, 0.95, 0.8, 0.5)`.
+  `c(0.99, 0.95, 0.8, 0.5)`. Ignored when `type = "raster"`.
 
 - type:
 
   Character. `"hdr"` (default) draws filled highest density regions;
-  `"hdr_lines"` draws HDR boundary contour lines.
+  `"hdr_lines"` draws HDR boundary contour lines; `"raster"` draws the
+  evaluated density as a dark-gray raster with alpha mapped to density.
 
 ## Value
 
@@ -179,17 +182,21 @@ value. ggdensity expects a function of two vectorized arguments
 `fun(x, y)`; `geom_pdf_2d()` adapts between the two interfaces
 internally, closing over `args` in the process.
 
-For arbitrary density heatmaps or raw iso-density contours (level sets
-not calibrated to probability content), use
+Raw density rasters map `after_stat(z)` to `alpha` by default with a
+fixed dark gray fill; `probs` is ignored for `type = "raster"`.
+
+For arbitrary iso-density contours (level sets not calibrated to
+probability content), use
 [`geom_function_2d_1d()`](/reference/geom_function_2d_1d.md) with
-`type = "raster"`, `"contour"`, or `"contour_filled"`.
+`type = "contour"` or `"contour_filled"`.
 
 ## Computed variables
 
-Computed variables and default aesthetics are those supplied by the
+HDR computed variables and default aesthetics are those supplied by the
 delegated ggdensity stat. In particular, the built data includes an
 ordered factor `probs`, which is mapped to `alpha` by default for filled
-HDRs.
+HDRs. Raster layers expose `after_stat(z)`, the evaluated density value,
+and map it to `alpha` by default.
 
 ## See also
 
@@ -198,8 +205,8 @@ and
 [`ggdensity::geom_hdr_lines_fun()`](https://jamesotto852.github.io/ggdensity/reference/geom_hdr_fun.html)
 for the underlying HDR machinery;
 [`geom_function_2d_1d()`](/reference/geom_function_2d_1d.md) for raw
-density rasters and iso-density contours;
-[`geom_pdf()`](/reference/geom_pdf.md) for univariate densities.
+iso-density contours; [`geom_pdf()`](/reference/geom_pdf.md) for
+univariate densities.
 
 ## Examples
 
@@ -242,6 +249,11 @@ ggplot() +
     ylim = c(-3, 3),
     type = "hdr_lines"
   ) +
+  coord_equal()
+
+
+ggplot() +
+  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), type = "raster") +
   coord_equal()
 
 ```

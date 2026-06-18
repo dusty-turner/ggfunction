@@ -151,7 +151,7 @@ ggplot() +
 ## Comparing theory to data
 
 Generate a sample from $`N(0, 1)`$ and overlay the empirical CDF with
-the theoretical CDF. The KS confidence band (shown automatically by
+the theoretical CDF. The DKW confidence band (shown automatically by
 [`geom_ecdf()`](/reference/geom_ecdf.md)) helps assess whether the data
 are consistent with the theoretical model:
 
@@ -166,7 +166,7 @@ ggplot(df, aes(x = x)) +
            color = "firebrick", linewidth = 0.8) +
   labs(
     title = "Empirical vs. Theoretical CDF",
-    subtitle = "Blue = ECDF with 95% KS band, Red = N(0, 1)",
+    subtitle = "Blue = ECDF with 95% DKW band, Red = N(0, 1)",
     x = "x", y = "F(x)"
   ) +
   theme_minimal()
@@ -187,11 +187,11 @@ hazard depending on the shape parameter:
 ``` r
 
 p1 <- ggplot() +
-  geom_survival(fun = pexp, xlim = c(0, 6),
+  geom_survival(cdf_fun = pexp, xlim = c(0, 6),
                 args = list(rate = 0.5), color = "steelblue") +
-  geom_survival(fun = pweibull, xlim = c(0, 6),
+  geom_survival(cdf_fun = pweibull, xlim = c(0, 6),
                 args = list(shape = 2, scale = 2), color = "firebrick") +
-  geom_survival(fun = pweibull, xlim = c(0, 6),
+  geom_survival(cdf_fun = pweibull, xlim = c(0, 6),
                 args = list(shape = 0.5, scale = 2), color = "forestgreen") +
   labs(title = "Survival Functions", x = "t", y = "S(t)") +
   theme_minimal()
@@ -208,12 +208,6 @@ p2 <- ggplot() +
   theme_minimal()
 
 p1 + p2
-#> Warning: The resulting survival function is not monotonically non-increasing.
-#> ℹ Check the function supplied to `fun`, `cdf_fun`, or `pdf_fun`.
-#> The resulting survival function is not monotonically non-increasing.
-#> ℹ Check the function supplied to `fun`, `cdf_fun`, or `pdf_fun`.
-#> The resulting survival function is not monotonically non-increasing.
-#> ℹ Check the function supplied to `fun`, `cdf_fun`, or `pdf_fun`.
 ```
 
 ![](learning-statistics_files/figure-html/survival-hazard-1.png)

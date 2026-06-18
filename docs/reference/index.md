@@ -27,8 +27,7 @@
   [`StatPDF`](/reference/geom_pdf.md)
   [`GeomPDF`](/reference/geom_pdf.md) : Plot a Probability Density
   Function with a Filled Area
-- [`geom_pdf_2d()`](/reference/geom_pdf_2d.md) : Plot Highest Density
-  Regions of a Bivariate PDF
+- [`geom_pdf_2d()`](/reference/geom_pdf_2d.md) : Plot a Bivariate PDF
 - [`geom_pmf()`](/reference/geom_pmf.md)
   [`StatPMF`](/reference/geom_pmf.md)
   [`GeomPMF`](/reference/geom_pmf.md) : Plot a Probability Mass Function

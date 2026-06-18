@@ -358,16 +358,18 @@ ggplot() +
 ### Bivariate PDF: `geom_pdf_2d()`
 
 [`geom_pdf_2d()`](/reference/geom_pdf_2d.md) visualizes a theoretical
-bivariate density through its highest density regions. It is a thin
-wrapper around
-[**ggdensity**](https://jamesotto852.github.io/ggdensity/): the function
-is supplied in **ggfunction**’s `fun(c(x, y))` convention and adapted
-internally, while HDR computation, probability labels, and default
-aesthetics are delegated to
+bivariate density through its highest density regions or as a raw
+density raster. It is a thin wrapper around
+[**ggdensity**](https://jamesotto852.github.io/ggdensity/) for HDRs: the
+function is supplied in **ggfunction**’s `fun(c(x, y))` convention and
+adapted internally, while HDR computation, probability labels, and
+default aesthetics are delegated to
 [`ggdensity::geom_hdr_fun()`](https://jamesotto852.github.io/ggdensity/reference/geom_hdr_fun.html)
 (filled regions, the default `type = "hdr"`) or
 [`ggdensity::geom_hdr_lines_fun()`](https://jamesotto852.github.io/ggdensity/reference/geom_hdr_fun.html)
-(`type = "hdr_lines"`). Parameters pass via `args` as usual.
+(`type = "hdr_lines"`). With `type = "raster"`, the density is evaluated
+on the requested grid and drawn as a dark-gray raster with `alpha`
+mapped to `after_stat(z)`. Parameters pass via `args` as usual.
 
 ``` r
 
@@ -402,10 +404,23 @@ ggplot() +
 
 ![](reference/figures/readme-pdf-2d-lines-1.png)
 
-For raw density heatmaps or arbitrary iso-density contours not
-calibrated to probability content, use
+**Raw density raster.** `type = "raster"` plots the evaluated density
+grid directly. The default fill is fixed dark gray and alpha varies with
+the density value.
+
+``` r
+
+ggplot() +
+  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), type = "raster") +
+  coord_equal()
+```
+
+![](reference/figures/readme-pdf-2d-raster-1.png)
+
+For arbitrary iso-density contours not calibrated to probability
+content, use
 [`geom_function_2d_1d()`](/reference/geom_function_2d_1d.md) with
-`type = "raster"`, `"contour"`, or `"contour_filled"`.
+`type = "contour"` or `"contour_filled"`.
 
 ### PMF: `geom_pmf()`
 
@@ -1218,8 +1233,7 @@ pak::pak("dusty-turner/ggfunction")
   [`StatPDF`](/reference/geom_pdf.md)
   [`GeomPDF`](/reference/geom_pdf.md) : Plot a Probability Density
   Function with a Filled Area
-- [`geom_pdf_2d()`](/reference/geom_pdf_2d.md) : Plot Highest Density
-  Regions of a Bivariate PDF
+- [`geom_pdf_2d()`](/reference/geom_pdf_2d.md) : Plot a Bivariate PDF
 - [`geom_pmf()`](/reference/geom_pmf.md)
   [`StatPMF`](/reference/geom_pmf.md)
   [`GeomPMF`](/reference/geom_pmf.md) : Plot a Probability Mass Function
@@ -1307,5 +1321,6 @@ pak::pak("dusty-turner/ggfunction")
   ggfunction](/articles/learning-statistics.md):
 - [Cross-Conversion Between Distribution
   Functions](/articles/cross-conversion.md):
-- [Simulation Verification of KS Confidence Band
+- [Survival Analysis with ggfunction](/articles/survival-analysis.md):
+- [Simulation Verification of DKW Confidence Band
   Coverage](/articles/coverage-simulation.md):

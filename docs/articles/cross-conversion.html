@@ -12,8 +12,8 @@
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Cross-Conversion Between Distribution Functions">
 </head>
@@ -43,6 +43,7 @@
     <li><a class="dropdown-item" href="../articles/gallery.html">Gallery of Visualizations</a></li>
     <li><a class="dropdown-item" href="../articles/learning-statistics.html">Learning Statistics with ggfunction</a></li>
     <li><a class="dropdown-item" href="../articles/cross-conversion.html">Cross-Conversion Between Distribution Functions</a></li>
+    <li><a class="dropdown-item" href="../articles/survival-analysis.html">Survival Analysis with ggfunction</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/coverage-simulation.html">Simulation Verification of KS Coverage</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -126,7 +127,8 @@ The table below summarizes the routes:</p>
 <code>cdf_fun</code> (differentiate), <code>survival_fun</code>
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">1 - S</annotation></semantics></math>
 then differentiate), <code>qf_fun</code> (interpolate then
-differentiate)</td>
+differentiate), <code>hf_fun</code>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo>=</mo><mi>h</mi><mo>⋅</mo><msup><mi>e</mi><mrow><mi>−</mi><mi>H</mi></mrow></msup></mrow><annotation encoding="application/x-tex">f = h \cdot e^{-H}</annotation></semantics></math>)</td>
 </tr>
 <tr class="even">
 <td><code><a href="../reference/geom_cdf.html">geom_cdf()</a></code></td>
@@ -134,7 +136,9 @@ differentiate)</td>
 <td>
 <code>pdf_fun</code> (integrate), <code>survival_fun</code>
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">1 - S</annotation></semantics></math>),
-<code>qf_fun</code> (interpolate)</td>
+<code>qf_fun</code> (interpolate), <code>hf_fun</code> (integrate
+hazard,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo>=</mo><mn>1</mn><mo>−</mo><msup><mi>e</mi><mrow><mi>−</mi><mi>H</mi></mrow></msup></mrow><annotation encoding="application/x-tex">F = 1 - e^{-H}</annotation></semantics></math>)</td>
 </tr>
 <tr class="odd">
 <td><code><a href="../reference/geom_survival.html">geom_survival()</a></code></td>
@@ -167,13 +171,26 @@ then differentiate), <code>qf_fun</code> (interpolate then
 differentiate)</td>
 </tr>
 <tr class="even">
+<td><code><a href="../reference/geom_chf.html">geom_chf()</a></code></td>
+<td>Cumulative hazard</td>
+<td>
+<code>hf_fun</code> (integrate), <code>cdf_fun</code>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>F</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">-\log(1-F)</annotation></semantics></math>),
+<code>survival_fun</code>
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mi>S</mi></mrow><annotation encoding="application/x-tex">-\log S</annotation></semantics></math>),
+<code>pdf_fun</code> (integrate then
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>F</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">-\log(1-F)</annotation></semantics></math>),
+<code>qf_fun</code> (interpolate then
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>F</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">-\log(1-F)</annotation></semantics></math>)</td>
+</tr>
+<tr class="odd">
 <td><code><a href="../reference/geom_cdf_discrete.html">geom_cdf_discrete()</a></code></td>
 <td>CDF</td>
 <td>
 <code>pmf_fun</code> (cumulative sum), <code>survival_fun</code>
 (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>S</mi></mrow><annotation encoding="application/x-tex">1 - S</annotation></semantics></math>)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code><a href="../reference/geom_survival_discrete.html">geom_survival_discrete()</a></code></td>
 <td>Survival</td>
 <td>
@@ -182,7 +199,7 @@ differentiate)</td>
 <code>pmf_fun</code> (cumsum, then
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo>−</mo><mi>F</mi></mrow><annotation encoding="application/x-tex">1 - F</annotation></semantics></math>)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code><a href="../reference/geom_qf_discrete.html">geom_qf_discrete()</a></code></td>
 <td>Quantile</td>
 <td>
@@ -223,7 +240,7 @@ without ever writing a CDF or quantile function yourself:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Quantile (from PDF)"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="op">(</span><span class="va">p1</span> <span class="op">|</span> <span class="va">p2</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="va">p3</span> <span class="op">|</span> <span class="va">p4</span><span class="op">)</span></span></code></pre></div>
-<p><img src="cross-conversion_files/figure-html/gamma-four-views-1.png" alt="" width="960"></p>
+<p><img src="cross-conversion_files/figure-html/gamma-four-views-1.png" class="r-plt" alt="" width="960"></p>
 </div>
 <div class="section level2">
 <h2 id="how-the-conversions-work">How the conversions work<a class="anchor" aria-label="anchor" href="#how-the-conversions-work"></a>
@@ -415,6 +432,79 @@ sufficient for plotting, though downstream differentiation (e.g. to
 obtain a PDF) amplifies the error by one order of magnitude.</p>
 </div>
 <div class="section level3">
+<h3 id="hazard-to-cdf-numerical-integration">Hazard to CDF: numerical integration<a class="anchor" aria-label="anchor" href="#hazard-to-cdf-numerical-integration"></a>
+</h3>
+<p>Given a hazard function
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math>,
+the cumulative hazard is
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msubsup><mo>∫</mo><mi>ℓ</mi><mi>x</mi></msubsup><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>t</mi><mo stretchy="false" form="postfix">)</mo><mspace width="0.167em"></mspace><mi>d</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">H(x) = \int_{\ell}^{x} h(t)\, dt</annotation></semantics></math>,
+where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>ℓ</mi><annotation encoding="application/x-tex">\ell</annotation></semantics></math>
+is the support origin. By default <code>ggfunction</code> uses
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ℓ</mi><mo>=</mo><mi>−</mi><mi>∞</mi></mrow><annotation encoding="application/x-tex">\ell = -\infty</annotation></semantics></math>;
+for finite-support hazards, pass <code>hf_lower</code> to the plotting
+geom (for example, <code>hf_lower = 0</code> for exponential or Weibull
+hazards). Values below a finite <code>hf_lower</code> have CDF, PDF, and
+cumulative hazard equal to 0. The CDF follows as
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>1</mn><mo>−</mo><msup><mi>e</mi><mrow><mi>−</mi><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">F(x) = 1 - e^{-H(x)}</annotation></semantics></math>.
+Internally, <code>hf_to_cdf()</code> computes
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">H(x)</annotation></semantics></math>
+via <code><a href="https://rdrr.io/r/stats/integrate.html">stats::integrate()</a></code> and applies the exponential
+transform:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hf_to_cdf</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">hf_fun</span>, <span class="va">lower</span> <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">chf_fun</span> <span class="op">&lt;-</span> <span class="fu">hf_to_chf</span><span class="op">(</span><span class="va">hf_fun</span>, lower <span class="op">=</span> <span class="va">lower</span><span class="op">)</span></span>
+<span>  <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="op">-</span><span class="fu">chf_fun</span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>where <code>hf_to_chf()</code> performs the actual integration from
+<code>lower</code>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hf_to_chf</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">hf_fun</span>, <span class="va">lower</span> <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">x</span>, <span class="kw">function</span><span class="op">(</span><span class="va">xi</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/is.finite.html">is.finite</a></span><span class="op">(</span><span class="va">lower</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="va">xi</span> <span class="op">&lt;=</span> <span class="va">lower</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
+<span>      <span class="va">res</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/try.html">try</a></span><span class="op">(</span></span>
+<span>        <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/integrate.html">integrate</a></span><span class="op">(</span><span class="va">hf_fun</span>, lower <span class="op">=</span> <span class="va">lower</span>, upper <span class="op">=</span> <span class="va">xi</span>,</span>
+<span>                         stop.on.error <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>,</span>
+<span>        silent <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>      <span class="op">)</span></span>
+<span>      <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/class.html">inherits</a></span><span class="op">(</span><span class="va">res</span>, <span class="st">"try-error"</span><span class="op">)</span><span class="op">)</span> <span class="cn">NA_real_</span> <span class="kw">else</span> <span class="va">res</span><span class="op">$</span><span class="va">value</span></span>
+<span>    <span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p><strong>Accuracy.</strong> Similar to <code>pdf_to_cdf</code>, each
+evaluation point requires a call to <code><a href="https://rdrr.io/r/stats/integrate.html">integrate()</a></code>. Absolute
+error is typically below
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>6</mn></mrow></msup><annotation encoding="application/x-tex">10^{-6}</annotation></semantics></math>
+for smooth hazard functions.</p>
+</div>
+<div class="section level3">
+<h3 id="hazard-to-pdf-direct-formula">Hazard to PDF: direct formula<a class="anchor" aria-label="anchor" href="#hazard-to-pdf-direct-formula"></a>
+</h3>
+<p>Rather than chaining <code>hf_to_cdf</code> + <code>cdf_to_pdf</code>
+(which nests numerical operations and can be unstable),
+<code>hf_to_pdf()</code> applies the identity
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>h</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>⋅</mo><msup><mi>e</mi><mrow><mi>−</mi><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow></msup></mrow><annotation encoding="application/x-tex">f(x) = h(x) \cdot e^{-H(x)}</annotation></semantics></math>
+directly:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hf_to_pdf</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">hf_fun</span>, <span class="va">lower</span> <span class="op">=</span> <span class="op">-</span><span class="cn">Inf</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">chf_fun</span> <span class="op">&lt;-</span> <span class="fu">hf_to_chf</span><span class="op">(</span><span class="va">hf_fun</span>, lower <span class="op">=</span> <span class="va">lower</span><span class="op">)</span></span>
+<span>  <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">x</span>, <span class="kw">function</span><span class="op">(</span><span class="va">xi</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/is.finite.html">is.finite</a></span><span class="op">(</span><span class="va">lower</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="va">xi</span> <span class="op">&lt;</span> <span class="va">lower</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
+<span>      <span class="va">H_x</span> <span class="op">&lt;-</span> <span class="fu">chf_fun</span><span class="op">(</span><span class="va">xi</span><span class="op">)</span></span>
+<span>      <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">H_x</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="cn">NA_real_</span><span class="op">)</span></span>
+<span>      <span class="fu">hf_fun</span><span class="op">(</span><span class="va">xi</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="op">-</span><span class="va">H_x</span><span class="op">)</span></span>
+<span>    <span class="op">}</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>This avoids the finite-difference step entirely, producing a more
+accurate derived PDF.</p>
+<p><strong>Accuracy.</strong> For smooth hazard functions the error is
+comparable to <code>pdf_to_cdf</code>—typically below
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mn>10</mn><mrow><mi>−</mi><mn>6</mn></mrow></msup><annotation encoding="application/x-tex">10^{-6}</annotation></semantics></math>.</p>
+</div>
+<div class="section level3">
 <h3 id="chained-conversions">Chained conversions<a class="anchor" aria-label="anchor" href="#chained-conversions"></a>
 </h3>
 <p>Some geoms require two conversions in sequence. For example,
@@ -454,7 +544,7 @@ then inverts by root-finding.</p>
 <p>We can compare derived values against the exact analytic functions to
 see the conversion error in practice. Here we use the standard normal
 distribution:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># CDF derived from PDF vs exact</span></span>
 <span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_cdf.html">geom_cdf</a></span><span class="op">(</span>pdf_fun <span class="op">=</span> <span class="va">dnorm</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -474,7 +564,7 @@ distribution:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"QF: derived (black) vs exact (red)"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">|</span> <span class="va">p2</span> <span class="op">|</span> <span class="va">p3</span></span></code></pre></div>
-<p><img src="cross-conversion_files/figure-html/accuracy-1.png" alt="" width="960"></p>
+<p><img src="cross-conversion_files/figure-html/accuracy-1.png" class="r-plt" alt="" width="960"></p>
 <p>The derived curves (black) are visually indistinguishable from the
 exact curves (red dashed), confirming that the numerical methods are
 accurate enough for plotting.</p>
@@ -484,7 +574,7 @@ accurate enough for plotting.</p>
 </h2>
 <p>Suppose you only have the survival function of an exponential
 distribution:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">my_surv</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">rate</span><span class="op">)</span> <span class="fl">1</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html">pexp</a></span><span class="op">(</span><span class="va">x</span>, rate <span class="op">=</span> <span class="va">rate</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -500,13 +590,13 @@ distribution:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"QF (from survival)"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">|</span> <span class="va">p2</span> <span class="op">|</span> <span class="va">p3</span></span></code></pre></div>
-<p><img src="cross-conversion_files/figure-html/surv-example-1.png" alt="" width="960"></p>
+<p><img src="cross-conversion_files/figure-html/surv-example-1.png" class="r-plt" alt="" width="960"></p>
 </div>
 <div class="section level2">
 <h2 id="example-from-a-quantile-function">Example: from a quantile function<a class="anchor" aria-label="anchor" href="#example-from-a-quantile-function"></a>
 </h2>
 <p>Similarly, if you only have a quantile function:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/geom_cdf.html">geom_cdf</a></span><span class="op">(</span>qf_fun <span class="op">=</span> <span class="va">qnorm</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"CDF (from QF)"</span><span class="op">)</span></span>
@@ -520,7 +610,62 @@ distribution:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Survival (from QF)"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span> <span class="op">|</span> <span class="va">p2</span> <span class="op">|</span> <span class="va">p3</span></span></code></pre></div>
-<p><img src="cross-conversion_files/figure-html/qf-example-1.png" alt="" width="960"></p>
+<p><img src="cross-conversion_files/figure-html/qf-example-1.png" class="r-plt" alt="" width="960"></p>
+</div>
+<div class="section level2">
+<h2 id="example-from-a-hazard-function">Example: from a hazard function<a class="anchor" aria-label="anchor" href="#example-from-a-hazard-function"></a>
+</h2>
+<p>Suppose you only have the hazard function of a Weibull
+distribution:</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">h_weibull</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">shape</span>, <span class="va">scale</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/Weibull.html">dweibull</a></span><span class="op">(</span><span class="va">x</span>, shape <span class="op">=</span> <span class="va">shape</span>, scale <span class="op">=</span> <span class="va">scale</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/stats/Weibull.html">pweibull</a></span><span class="op">(</span><span class="va">x</span>, shape <span class="op">=</span> <span class="va">shape</span>, scale <span class="op">=</span> <span class="va">scale</span>, lower.tail <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_pdf.html">geom_pdf</a></span><span class="op">(</span>hf_fun <span class="op">=</span> <span class="va">h_weibull</span>, hf_lower <span class="op">=</span> <span class="fl">0</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">5</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">2</span>, scale <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"PDF (from hazard)"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_cdf.html">geom_cdf</a></span><span class="op">(</span>hf_fun <span class="op">=</span> <span class="va">h_weibull</span>, hf_lower <span class="op">=</span> <span class="fl">0</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">5</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">2</span>, scale <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"CDF (from hazard)"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_chf.html">geom_chf</a></span><span class="op">(</span>hf_fun <span class="op">=</span> <span class="va">h_weibull</span>, hf_lower <span class="op">=</span> <span class="fl">0</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0.01</span>, <span class="fl">5</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>shape <span class="op">=</span> <span class="fl">2</span>, scale <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Cumulative hazard (from hazard)"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">|</span> <span class="va">p2</span> <span class="op">|</span> <span class="va">p3</span></span></code></pre></div>
+<p><img src="cross-conversion_files/figure-html/hf-example-1.png" class="r-plt" alt="" width="960"></p>
+</div>
+<div class="section level2">
+<h2 id="example-cumulative-hazard-function">Example: cumulative hazard function<a class="anchor" aria-label="anchor" href="#example-cumulative-hazard-function"></a>
+</h2>
+<p><code><a href="../reference/geom_chf.html">geom_chf()</a></code> accepts any of the six standard function
+types. Here we show the cumulative hazard derived from a CDF, a survival
+function, and a hazard function:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_chf.html">geom_chf</a></span><span class="op">(</span>cdf_fun <span class="op">=</span> <span class="va">pexp</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">5</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>rate <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"H(x) from CDF"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_chf.html">geom_chf</a></span><span class="op">(</span>survival_fun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">rate</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="op">-</span><span class="va">rate</span> <span class="op">*</span> <span class="va">x</span><span class="op">)</span>,</span>
+<span>           xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">5</span><span class="op">)</span>, args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>rate <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"H(x) from survival"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="../reference/geom_chf.html">geom_chf</a></span><span class="op">(</span>hf_fun <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fl">1</span>, hf_lower <span class="op">=</span> <span class="fl">0</span>, xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"H(x) from hazard"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p1</span> <span class="op">|</span> <span class="va">p2</span> <span class="op">|</span> <span class="va">p3</span></span>
+<span><span class="co">#&gt; Warning: Removed 100 rows containing missing values or values outside the scale range</span></span>
+<span><span class="co">#&gt; (`geom_chf()`).</span></span>
+<span><span class="co">#&gt; `geom_chf()`: Each group consists of only one observation.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Do you need to adjust the <span style="color: #00BB00;">group</span> aesthetic?</span></span></code></pre></div>
+<p><img src="cross-conversion_files/figure-html/chf-example-1.png" class="r-plt" alt="" width="960"></p>
+<p>For the exponential distribution with rate 1,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>H</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>x</mi></mrow><annotation encoding="application/x-tex">H(x) = x</annotation></semantics></math>—a
+straight line confirming the constant hazard.</p>
 </div>
 <div class="section level2">
 <h2 id="performance-considerations">Performance considerations<a class="anchor" aria-label="anchor" href="#performance-considerations"></a>
@@ -557,6 +702,19 @@ interpolation table. After setup, CDF lookups are
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(1)</annotation></semantics></math>
 via <code><a href="https://rdrr.io/r/stats/approxfun.html">approxfun()</a></code>.</li>
 <li>
+<strong>Hazard to CDF</strong> (<code>hf_to_cdf</code>):
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math>
+calls to <code><a href="https://rdrr.io/r/stats/integrate.html">integrate()</a></code>, comparable to
+<code>pdf_to_cdf</code>. Use <code>hf_lower</code> for finite-support
+hazards so integration begins at the support origin.</li>
+<li>
+<strong>Hazard to PDF</strong> (<code>hf_to_pdf</code>):
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n)</annotation></semantics></math>
+calls to <code><a href="https://rdrr.io/r/stats/integrate.html">integrate()</a></code> plus one hazard evaluation per point.
+Slightly more expensive than <code>pdf_to_cdf</code> but avoids the
+instability of chaining <code>hf_to_cdf</code> +
+<code>cdf_to_pdf</code>.</li>
+<li>
 <strong>Chained</strong> (<code>pdf_fun</code> to quantile):
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false" form="prefix">(</mo><mi>n</mi><mo>⋅</mo><mi>m</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">O(n \cdot m)</annotation></semantics></math>
 calls to <code><a href="https://rdrr.io/r/stats/integrate.html">integrate()</a></code>. The most expensive path but still
@@ -579,8 +737,9 @@ perform exact arithmetic rather than numerical approximation:</p>
 <ul>
 <li>
 <strong>PMF to CDF</strong>: cumulative summation of the PMF values
-over the integer (or explicit) support. This is exact up to
-floating-point rounding.</li>
+over the full integer or explicit support. <code>xlim</code> can then
+filter the displayed range. This is exact up to floating-point
+rounding.</li>
 <li>
 <strong>PMF to survival</strong>: cumulative summation followed by
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mn>1</mn><mo>−</mo><mi>F</mi><mo stretchy="false" form="prefix">(</mo><mi>x</mi><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">S(x) = 1 - F(x)</annotation></semantics></math>.
@@ -612,7 +771,7 @@ accuracy trade-off for discrete conversions.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

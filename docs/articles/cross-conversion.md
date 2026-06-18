@@ -23,11 +23,12 @@ the routes:
 
 | Geom | Native (`fun`) | Alternates |
 |----|----|----|
-| [`geom_pdf()`](/reference/geom_pdf.md) | PDF | `cdf_fun` (differentiate), `survival_fun` ($`1 - S`$ then differentiate), `qf_fun` (interpolate then differentiate) |
-| [`geom_cdf()`](/reference/geom_cdf.md) | CDF | `pdf_fun` (integrate), `survival_fun` ($`1 - S`$), `qf_fun` (interpolate) |
+| [`geom_pdf()`](/reference/geom_pdf.md) | PDF | `cdf_fun` (differentiate), `survival_fun` ($`1 - S`$ then differentiate), `qf_fun` (interpolate then differentiate), `hf_fun` ($`f = h \cdot e^{-H}`$) |
+| [`geom_cdf()`](/reference/geom_cdf.md) | CDF | `pdf_fun` (integrate), `survival_fun` ($`1 - S`$), `qf_fun` (interpolate), `hf_fun` (integrate hazard, $`F = 1 - e^{-H}`$) |
 | [`geom_survival()`](/reference/geom_survival.md) | Survival | `cdf_fun` ($`1 - F`$), `pdf_fun` (integrate, then $`1 - F`$), `qf_fun` (interpolate, then $`1 - F`$) |
 | [`geom_qf()`](/reference/geom_qf.md) | Quantile | `cdf_fun` (root-find), `pdf_fun` (integrate, then root-find), `survival_fun` ($`1 - S`$, then root-find) |
 | [`geom_hf()`](/reference/geom_hf.md) | Hazard | `pdf_fun` + `cdf_fun` (ratio, or just one), `survival_fun` ($`1 - S`$ then differentiate), `qf_fun` (interpolate then differentiate) |
+| [`geom_chf()`](/reference/geom_chf.md) | Cumulative hazard | `hf_fun` (integrate), `cdf_fun` ($`-\log(1-F)`$), `survival_fun` ($`-\log S`$), `pdf_fun` (integrate then $`-\log(1-F)`$), `qf_fun` (interpolate then $`-\log(1-F)`$) |
 | [`geom_cdf_discrete()`](/reference/geom_cdf_discrete.md) | CDF | `pmf_fun` (cumulative sum), `survival_fun` ($`1 - S`$) |
 | [`geom_survival_discrete()`](/reference/geom_survival_discrete.md) | Survival | `cdf_fun` ($`1 - F`$), `pmf_fun` (cumsum, then $`1 - F`$) |
 | [`geom_qf_discrete()`](/reference/geom_qf_discrete.md) | Quantile | `cdf_fun` (invert on support), `pmf_fun` (cumsum, then invert), `survival_fun` ($`1 - S`$, then invert) |
@@ -250,6 +251,78 @@ three decimal digits of accuracy. This is more than sufficient for
 plotting, though downstream differentiation (e.g. to obtain a PDF)
 amplifies the error by one order of magnitude.
 
+### Hazard to CDF: numerical integration
+
+Given a hazard function $`h`$, the cumulative hazard is
+$`H(x) = \int_{\ell}^{x} h(t)\, dt`$, where $`\ell`$ is the support
+origin. By default `ggfunction` uses $`\ell = -\infty`$; for
+finite-support hazards, pass `hf_lower` to the plotting geom (for
+example, `hf_lower = 0` for exponential or Weibull hazards). Values
+below a finite `hf_lower` have CDF, PDF, and cumulative hazard equal to
+0. The CDF follows as $`F(x) = 1 - e^{-H(x)}`$. Internally,
+`hf_to_cdf()` computes $`H(x)`$ via
+[`stats::integrate()`](https://rdrr.io/r/stats/integrate.html) and
+applies the exponential transform:
+
+``` r
+
+hf_to_cdf <- function(hf_fun, lower = -Inf) {
+  chf_fun <- hf_to_chf(hf_fun, lower = lower)
+  function(x) 1 - exp(-chf_fun(x))
+}
+```
+
+where `hf_to_chf()` performs the actual integration from `lower`.
+
+``` r
+
+hf_to_chf <- function(hf_fun, lower = -Inf) {
+  function(x) {
+    vapply(x, function(xi) {
+      if (is.finite(lower) && xi <= lower) return(0)
+      res <- try(
+        stats::integrate(hf_fun, lower = lower, upper = xi,
+                         stop.on.error = FALSE),
+        silent = TRUE
+      )
+      if (inherits(res, "try-error")) NA_real_ else res$value
+    }, numeric(1))
+  }
+}
+```
+
+**Accuracy.** Similar to `pdf_to_cdf`, each evaluation point requires a
+call to [`integrate()`](https://rdrr.io/r/stats/integrate.html).
+Absolute error is typically below $`10^{-6}`$ for smooth hazard
+functions.
+
+### Hazard to PDF: direct formula
+
+Rather than chaining `hf_to_cdf` + `cdf_to_pdf` (which nests numerical
+operations and can be unstable), `hf_to_pdf()` applies the identity
+$`f(x) = h(x) \cdot e^{-H(x)}`$ directly:
+
+``` r
+
+hf_to_pdf <- function(hf_fun, lower = -Inf) {
+  chf_fun <- hf_to_chf(hf_fun, lower = lower)
+  function(x) {
+    vapply(x, function(xi) {
+      if (is.finite(lower) && xi < lower) return(0)
+      H_x <- chf_fun(xi)
+      if (is.na(H_x)) return(NA_real_)
+      hf_fun(xi) * exp(-H_x)
+    }, numeric(1))
+  }
+}
+```
+
+This avoids the finite-difference step entirely, producing a more
+accurate derived PDF.
+
+**Accuracy.** For smooth hazard functions the error is comparable to
+`pdf_to_cdf`—typically below $`10^{-6}`$.
+
 ### Chained conversions
 
 Some geoms require two conversions in sequence. For example,
@@ -356,6 +429,66 @@ p1 | p2 | p3
 
 ![](cross-conversion_files/figure-html/qf-example-1.png)
 
+## Example: from a hazard function
+
+Suppose you only have the hazard function of a Weibull distribution:
+
+``` r
+
+h_weibull <- function(x, shape, scale) {
+  dweibull(x, shape = shape, scale = scale) / pweibull(x, shape = shape, scale = scale, lower.tail = FALSE)
+}
+
+p1 <- ggplot() +
+  geom_pdf(hf_fun = h_weibull, hf_lower = 0, xlim = c(0.01, 5), args = list(shape = 2, scale = 1)) +
+  ggtitle("PDF (from hazard)")
+
+p2 <- ggplot() +
+  geom_cdf(hf_fun = h_weibull, hf_lower = 0, xlim = c(0.01, 5), args = list(shape = 2, scale = 1)) +
+  ggtitle("CDF (from hazard)")
+
+p3 <- ggplot() +
+  geom_chf(hf_fun = h_weibull, hf_lower = 0, xlim = c(0.01, 5), args = list(shape = 2, scale = 1)) +
+  ggtitle("Cumulative hazard (from hazard)")
+
+p1 | p2 | p3
+```
+
+![](cross-conversion_files/figure-html/hf-example-1.png)
+
+## Example: cumulative hazard function
+
+[`geom_chf()`](/reference/geom_chf.md) accepts any of the six standard
+function types. Here we show the cumulative hazard derived from a CDF, a
+survival function, and a hazard function:
+
+``` r
+
+p1 <- ggplot() +
+  geom_chf(cdf_fun = pexp, xlim = c(0, 5), args = list(rate = 1)) +
+  ggtitle("H(x) from CDF")
+
+p2 <- ggplot() +
+  geom_chf(survival_fun = function(x, rate) exp(-rate * x),
+           xlim = c(0, 5), args = list(rate = 1)) +
+  ggtitle("H(x) from survival")
+
+p3 <- ggplot() +
+  geom_chf(hf_fun = function(x) 1, hf_lower = 0, xlim = c(0, 5)) +
+  ggtitle("H(x) from hazard")
+
+p1 | p2 | p3
+#> Warning: Removed 100 rows containing missing values or values outside the scale range
+#> (`geom_chf()`).
+#> `geom_chf()`: Each group consists of only one observation.
+#> ℹ Do you need to adjust the group aesthetic?
+```
+
+![](cross-conversion_files/figure-html/chf-example-1.png)
+
+For the exponential distribution with rate 1, $`H(x) = x`$—a straight
+line confirming the constant hazard.
+
 ## Performance considerations
 
 - **Integration** (`pdf_to_cdf`): $`O(n)`$ calls to
@@ -374,6 +507,14 @@ p1 | p2 | p3
   function on 10,000 grid points to build the interpolation table. After
   setup, CDF lookups are $`O(1)`$ via
   [`approxfun()`](https://rdrr.io/r/stats/approxfun.html).
+- **Hazard to CDF** (`hf_to_cdf`): $`O(n)`$ calls to
+  [`integrate()`](https://rdrr.io/r/stats/integrate.html), comparable to
+  `pdf_to_cdf`. Use `hf_lower` for finite-support hazards so integration
+  begins at the support origin.
+- **Hazard to PDF** (`hf_to_pdf`): $`O(n)`$ calls to
+  [`integrate()`](https://rdrr.io/r/stats/integrate.html) plus one
+  hazard evaluation per point. Slightly more expensive than `pdf_to_cdf`
+  but avoids the instability of chaining `hf_to_cdf` + `cdf_to_pdf`.
 - **Chained** (`pdf_fun` to quantile): $`O(n \cdot m)`$ calls to
   [`integrate()`](https://rdrr.io/r/stats/integrate.html). The most
   expensive path but still completes in under a second for the default
@@ -391,9 +532,9 @@ Discrete geoms (`geom_cdf_discrete`, `geom_survival_discrete`,
 `geom_qf_discrete`) perform exact arithmetic rather than numerical
 approximation:
 
-- **PMF to CDF**: cumulative summation of the PMF values over the
-  integer (or explicit) support. This is exact up to floating-point
-  rounding.
+- **PMF to CDF**: cumulative summation of the PMF values over the full
+  integer or explicit support. `xlim` can then filter the displayed
+  range. This is exact up to floating-point rounding.
 - **PMF to survival**: cumulative summation followed by
   $`S(x) = 1 - F(x)`$. Again exact.
 - **CDF to quantile (discrete)**: the CDF is evaluated at each support

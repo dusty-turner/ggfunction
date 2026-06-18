@@ -173,8 +173,8 @@ ggplot() +
   geom_pdf(fun = f_mix, xlim = c(-5, 6), shade_hdr = 0.8)
 
 
-## ----pdf-2d, echo=TRUE, fig.width=10, fig.height=4----------------------------
-#| fig.cap: "Highest density regions of bivariate normal densities drawn by \\texttt{geom\\_pdf\\_2d()}, which delegates to ggdensity: filled 50/80/95\\% HDRs of the standard bivariate normal (left) and HDR boundary lines for a correlated bivariate normal with covariance supplied via \\texttt{args} (right)."
+## ----pdf-2d, echo=TRUE, fig.width=12, fig.height=4----------------------------
+#| fig.cap: "Bivariate normal densities drawn by \\texttt{geom\\_pdf\\_2d()}: filled 50/80/95\\% HDRs of the standard bivariate normal (left), HDR boundary lines for a correlated bivariate normal with covariance supplied via \\texttt{args} (middle), and a raw density raster with alpha mapped to density (right)."
 dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
   x <- matrix(v - mu, ncol = 1)
   Sinv <- solve(Sigma)
@@ -193,7 +193,12 @@ p2 <- ggplot() +
     probs = c(0.5, 0.8, 0.95), type = "hdr_lines") +
   coord_equal() + ggtitle('type = "hdr_lines"')
 
-p1 | p2
+p3 <- ggplot() +
+  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3),
+    type = "raster") +
+  coord_equal() + ggtitle('type = "raster"')
+
+p1 | p2 | p3
 
 
 ## ----pmf-binomial, echo=TRUE--------------------------------------------------

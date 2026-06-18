@@ -1,12 +1,13 @@
-#' Plot Highest Density Regions of a Bivariate PDF
+#' Plot a Bivariate PDF
 #'
 #' `geom_pdf_2d()` visualizes a theoretical bivariate probability density
-#' function through its highest density regions (HDRs). It is a thin,
-#' probability-facing wrapper around \pkg{ggdensity}: HDR computation, contour
-#' construction, probability labels, and default aesthetics are delegated to
-#' [ggdensity::geom_hdr_fun()] for `type = "hdr"` (filled regions) and
-#' [ggdensity::geom_hdr_lines_fun()] for `type = "hdr_lines"` (boundary
-#' contours).
+#' function either through highest density regions (HDRs) or as a raw density
+#' raster. For HDRs it is a thin, probability-facing wrapper around
+#' \pkg{ggdensity}: HDR computation, contour construction, probability labels,
+#' and default aesthetics are delegated to [ggdensity::geom_hdr_fun()] for
+#' `type = "hdr"` (filled regions) and [ggdensity::geom_hdr_lines_fun()] for
+#' `type = "hdr_lines"` (boundary contours). For `type = "raster"`, the density
+#' is evaluated on the requested grid and drawn with [ggplot2::geom_raster()].
 #'
 #' @details
 #' The supplied density uses ggfunction's 2D function convention: `fun`
@@ -15,33 +16,38 @@
 #' `fun(x, y)`; `geom_pdf_2d()` adapts between the two interfaces internally,
 #' closing over `args` in the process.
 #'
-#' For arbitrary density heatmaps or raw iso-density contours (level sets not
-#' calibrated to probability content), use [geom_function_2d_1d()] with
-#' `type = "raster"`, `"contour"`, or `"contour_filled"`.
+#' Raw density rasters map `after_stat(z)` to `alpha` by default with a fixed
+#' dark gray fill; `probs` is ignored for `type = "raster"`.
+#'
+#' For arbitrary iso-density contours (level sets not calibrated to probability
+#' content), use [geom_function_2d_1d()] with `type = "contour"` or
+#' `"contour_filled"`.
 #'
 #' @inheritParams ggplot2::geom_path
 #' @param fun A bivariate density function accepting a length-2 numeric vector
 #'   `v = c(x, y)` and returning one numeric density value.
 #' @param xlim,ylim Numeric vectors of length 2 specifying the evaluation
-#'   range, passed through to ggdensity.
-#' @param n Grid resolution passed to ggdensity. Defaults to `100`.
+#'   range.
+#' @param n Grid resolution. Defaults to `100`.
 #' @param args A named list of additional arguments passed to `fun`.
 #' @param probs HDR probabilities passed to ggdensity. Defaults to
-#'   `c(0.99, 0.95, 0.8, 0.5)`.
+#'   `c(0.99, 0.95, 0.8, 0.5)`. Ignored when `type = "raster"`.
 #' @param type Character. `"hdr"` (default) draws filled highest density
-#'   regions; `"hdr_lines"` draws HDR boundary contour lines.
+#'   regions; `"hdr_lines"` draws HDR boundary contour lines; `"raster"` draws
+#'   the evaluated density as a dark-gray raster with alpha mapped to density.
 #'
 #' @section Computed variables:
-#' Computed variables and default aesthetics are those supplied by the
+#' HDR computed variables and default aesthetics are those supplied by the
 #' delegated \pkg{ggdensity} stat. In particular, the built data includes an
 #' ordered factor `probs`, which is mapped to `alpha` by default for filled
-#' HDRs.
+#' HDRs. Raster layers expose `after_stat(z)`, the evaluated density value,
+#' and map it to `alpha` by default.
 #'
 #' @return A ggplot2 layer.
 #'
 #' @seealso [ggdensity::geom_hdr_fun()] and [ggdensity::geom_hdr_lines_fun()]
-#'   for the underlying HDR machinery; [geom_function_2d_1d()] for raw density
-#'   rasters and iso-density contours; [geom_pdf()] for univariate densities.
+#'   for the underlying HDR machinery; [geom_function_2d_1d()] for raw
+#'   iso-density contours; [geom_pdf()] for univariate densities.
 #'
 #' @examples
 #' dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
@@ -82,6 +88,10 @@
 #'   ) +
 #'   coord_equal()
 #'
+#' ggplot() +
+#'   geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), type = "raster") +
+#'   coord_equal()
+#'
 #' @name geom_pdf_2d
 #' @export
 #' @importFrom ggdensity geom_hdr_fun geom_hdr_lines_fun
@@ -99,12 +109,41 @@ geom_pdf_2d <- function(
     n = 100,
     args = list(),
     probs = c(0.99, 0.95, 0.8, 0.5),
-    type = c("hdr", "hdr_lines")
+    type = c("hdr", "hdr_lines", "raster")
 ) {
   type <- match.arg(type)
-  fun_xy <- pdf2d_vector_fun_to_xy_fun(fun, args)
 
-  if (identical(type, "hdr")) {
+  if (identical(type, "raster")) {
+    raster_mapping <- aes(alpha = after_stat(z))
+    if (is.null(mapping)) {
+      mapping <- raster_mapping
+    } else {
+      mapping <- modifyList(raster_mapping, mapping)
+    }
+
+    dots <- list(...)
+    if (!"fill" %in% names(dots) && is.null(mapping$fill)) dots$fill <- "grey20"
+    dots$na.rm <- na.rm
+
+    do.call(geom_function_2d_1d, c(
+      list(
+        mapping = mapping,
+        data = data,
+        position = position,
+        fun = fun,
+        xlim = xlim,
+        ylim = ylim,
+        n = n,
+        args = args,
+        type = "raster",
+        show.legend = show.legend,
+        inherit.aes = inherit.aes
+      ),
+      dots
+    ))
+
+  } else if (identical(type, "hdr")) {
+    fun_xy <- pdf2d_vector_fun_to_xy_fun(fun, args)
     ggdensity::geom_hdr_fun(
       mapping = mapping,
       data = data,
@@ -121,6 +160,7 @@ geom_pdf_2d <- function(
       ...
     )
   } else {
+    fun_xy <- pdf2d_vector_fun_to_xy_fun(fun, args)
     ggdensity::geom_hdr_lines_fun(
       mapping = mapping,
       data = data,

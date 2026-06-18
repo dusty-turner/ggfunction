@@ -74,7 +74,8 @@ StatEQFBand
 
   - A string naming the stat. To give the stat as a string, strip the
     function name of the `stat_` prefix. For example, to use
-    `stat_count()`, give the stat as `"count"`.
+    [`stat_count()`](https://ggplot2.tidyverse.org/reference/geom_bar.html),
+    give the stat as `"count"`.
 
   - For more information and other ways to specify the stat, see the
     [layer
@@ -88,13 +89,14 @@ StatEQFBand
   the display. The `position` argument accepts the following:
 
   - The result of calling a position function, such as
-    `position_jitter()`. This method allows for passing extra arguments
-    to the position.
+    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html).
+    This method allows for passing extra arguments to the position.
 
   - A string naming the position adjustment. To give the position as a
     string, strip the function name of the `position_` prefix. For
-    example, to use `position_jitter()`, give the position as
-    `"jitter"`.
+    example, to use
+    [`position_jitter()`](https://ggplot2.tidyverse.org/reference/position_jitter.html),
+    give the position as `"jitter"`.
 
   - For more information and other ways to specify the position, see the
     [layer

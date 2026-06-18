@@ -2,7 +2,7 @@
 % Please edit documentation in R/geom_pdf_2d.R
 \name{geom_pdf_2d}
 \alias{geom_pdf_2d}
-\title{Plot Highest Density Regions of a Bivariate PDF}
+\title{Plot a Bivariate PDF}
 \usage{
 geom_pdf_2d(
   mapping = NULL,
@@ -18,7 +18,7 @@ geom_pdf_2d(
   n = 100,
   args = list(),
   probs = c(0.99, 0.95, 0.8, 0.5),
-  type = c("hdr", "hdr_lines")
+  type = c("hdr", "hdr_lines", "raster")
 )
 }
 \arguments{
@@ -103,29 +103,31 @@ the default plot specification, e.g. \code{\link[ggplot2:annotation_borders]{ann
 \code{v = c(x, y)} and returning one numeric density value.}
 
 \item{xlim, ylim}{Numeric vectors of length 2 specifying the evaluation
-range, passed through to ggdensity.}
+range.}
 
-\item{n}{Grid resolution passed to ggdensity. Defaults to \code{100}.}
+\item{n}{Grid resolution. Defaults to \code{100}.}
 
 \item{args}{A named list of additional arguments passed to \code{fun}.}
 
 \item{probs}{HDR probabilities passed to ggdensity. Defaults to
-\code{c(0.99, 0.95, 0.8, 0.5)}.}
+\code{c(0.99, 0.95, 0.8, 0.5)}. Ignored when \code{type = "raster"}.}
 
 \item{type}{Character. \code{"hdr"} (default) draws filled highest density
-regions; \code{"hdr_lines"} draws HDR boundary contour lines.}
+regions; \code{"hdr_lines"} draws HDR boundary contour lines; \code{"raster"} draws
+the evaluated density as a dark-gray raster with alpha mapped to density.}
 }
 \value{
 A ggplot2 layer.
 }
 \description{
 \code{geom_pdf_2d()} visualizes a theoretical bivariate probability density
-function through its highest density regions (HDRs). It is a thin,
-probability-facing wrapper around \pkg{ggdensity}: HDR computation, contour
-construction, probability labels, and default aesthetics are delegated to
-\code{\link[ggdensity:geom_hdr_fun]{ggdensity::geom_hdr_fun()}} for \code{type = "hdr"} (filled regions) and
-\code{\link[ggdensity:geom_hdr_lines_fun]{ggdensity::geom_hdr_lines_fun()}} for \code{type = "hdr_lines"} (boundary
-contours).
+function either through highest density regions (HDRs) or as a raw density
+raster. For HDRs it is a thin, probability-facing wrapper around
+\pkg{ggdensity}: HDR computation, contour construction, probability labels,
+and default aesthetics are delegated to \code{\link[ggdensity:geom_hdr_fun]{ggdensity::geom_hdr_fun()}} for
+\code{type = "hdr"} (filled regions) and \code{\link[ggdensity:geom_hdr_lines_fun]{ggdensity::geom_hdr_lines_fun()}} for
+\code{type = "hdr_lines"} (boundary contours). For \code{type = "raster"}, the density
+is evaluated on the requested grid and drawn with \code{\link[ggplot2:geom_raster]{ggplot2::geom_raster()}}.
 }
 \details{
 The supplied density uses ggfunction's 2D function convention: \code{fun}
@@ -134,16 +136,20 @@ value. \pkg{ggdensity} expects a function of two vectorized arguments
 \code{fun(x, y)}; \code{geom_pdf_2d()} adapts between the two interfaces internally,
 closing over \code{args} in the process.
 
-For arbitrary density heatmaps or raw iso-density contours (level sets not
-calibrated to probability content), use \code{\link[=geom_function_2d_1d]{geom_function_2d_1d()}} with
-\code{type = "raster"}, \code{"contour"}, or \code{"contour_filled"}.
+Raw density rasters map \code{after_stat(z)} to \code{alpha} by default with a fixed
+dark gray fill; \code{probs} is ignored for \code{type = "raster"}.
+
+For arbitrary iso-density contours (level sets not calibrated to probability
+content), use \code{\link[=geom_function_2d_1d]{geom_function_2d_1d()}} with \code{type = "contour"} or
+\code{"contour_filled"}.
 }
 \section{Computed variables}{
 
-Computed variables and default aesthetics are those supplied by the
+HDR computed variables and default aesthetics are those supplied by the
 delegated \pkg{ggdensity} stat. In particular, the built data includes an
 ordered factor \code{probs}, which is mapped to \code{alpha} by default for filled
-HDRs.
+HDRs. Raster layers expose \code{after_stat(z)}, the evaluated density value,
+and map it to \code{alpha} by default.
 }
 
 \examples{
@@ -185,9 +191,13 @@ ggplot() +
   ) +
   coord_equal()
 
+ggplot() +
+  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), type = "raster") +
+  coord_equal()
+
 }
 \seealso{
 \code{\link[ggdensity:geom_hdr_fun]{ggdensity::geom_hdr_fun()}} and \code{\link[ggdensity:geom_hdr_lines_fun]{ggdensity::geom_hdr_lines_fun()}}
-for the underlying HDR machinery; \code{\link[=geom_function_2d_1d]{geom_function_2d_1d()}} for raw density
-rasters and iso-density contours; \code{\link[=geom_pdf]{geom_pdf()}} for univariate densities.
+for the underlying HDR machinery; \code{\link[=geom_function_2d_1d]{geom_function_2d_1d()}} for raw
+iso-density contours; \code{\link[=geom_pdf]{geom_pdf()}} for univariate densities.
 }

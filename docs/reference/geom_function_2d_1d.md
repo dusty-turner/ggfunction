@@ -55,8 +55,9 @@ StatFunction2dContourFilled
 
 - mapping:
 
-  Aesthetic mappings, created using `aes()`. If `NULL`, defaults are
-  used.
+  Aesthetic mappings, created using
+  [`aes()`](https://ggplot2.tidyverse.org/reference/aes.html). If
+  `NULL`, defaults are used.
 
 - data:
 

@@ -310,9 +310,7 @@ ggplot() +
 ``` r
 
 ggplot() +
-  geom_survival(fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
-#> Warning: The resulting survival function is not monotonically non-increasing.
-#> ℹ Check the function supplied to `fun`, `cdf_fun`, or `pdf_fun`.
+  geom_survival(cdf_fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
 ```
 
 ![](ggfunction_files/figure-html/unnamed-chunk-22-1.png)

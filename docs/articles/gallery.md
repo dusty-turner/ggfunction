@@ -31,20 +31,18 @@ Lissajous figures with different frequency ratios:
 
 ``` r
 
-make_lissajous <- function(a, b) {
-  function(t) c(sin(a * t), cos(b * t))
-}
+lissajous <- function(t, a, b) c(sin(a * t), cos(b * t))
 
 p1 <- ggplot() +
-  geom_function_1d_2d(fun = make_lissajous(3, 2), tlim = c(0, 2 * pi)) +
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 2 * pi), args = list(a = 3, b = 2)) +
   coord_equal() + ggtitle("3:2") + theme_void()
 
 p2 <- ggplot() +
-  geom_function_1d_2d(fun = make_lissajous(5, 4), tlim = c(0, 2 * pi)) +
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 2 * pi), args = list(a = 5, b = 4)) +
   coord_equal() + ggtitle("5:4") + theme_void()
 
 p3 <- ggplot() +
-  geom_function_1d_2d(fun = make_lissajous(7, 6), tlim = c(0, 2 * pi)) +
+  geom_function_1d_2d(fun = lissajous, tlim = c(0, 2 * pi), args = list(a = 7, b = 6)) +
   coord_equal() + ggtitle("7:6") + theme_void()
 
 p1 + p2 + p3
@@ -204,8 +202,52 @@ ggplot(df, aes(x = x)) +
   geom_qf(fun = qnorm, args = list(mean = 0, sd = 1),
            color = "firebrick", linewidth = 0.8) +
   labs(title = "Empirical vs. theoretical quantile function",
-       subtitle = "Blue = data with KS band, Red = N(0, 1)") +
+       subtitle = "Blue = data with DKW band, Red = N(0, 1)") +
   theme_minimal()
 ```
 
 ![](gallery_files/figure-html/emp-vs-theory-1.png)
+
+The same comparison can be made directly with PP and QQ diagnostic
+plots:
+
+``` r
+
+pp <- ggplot(df, aes(x = x)) +
+  geom_ppplot(fun = pnorm) +
+  coord_equal() +
+  labs(title = "PP plot")
+
+qq <- ggplot(df, aes(x = x)) +
+  geom_qqplot(fun = qnorm) +
+  coord_equal() +
+  labs(title = "QQ plot")
+
+pp + qq
+```
+
+![](gallery_files/figure-html/pp-qq-diagnostics-1.png)
+
+Use a fixed colour for black points, or add a spectral scale explicitly:
+
+``` r
+
+qq_black <- ggplot(df, aes(x = x)) +
+  geom_qqplot(fun = qnorm, colour = "black") +
+  coord_equal() +
+  labs(title = "Black points")
+
+qq_spectral <- ggplot(df, aes(x = x)) +
+  geom_qqplot(fun = qnorm) +
+  scale_colour_gradientn(
+    colors = grDevices::rainbow(10),
+    limits = c(0, 1),
+    labels = function(x) paste0(round(100 * x), "%")
+  ) +
+  coord_equal() +
+  labs(title = "Spectral scale")
+
+qq_black + qq_spectral
+```
+
+![](gallery_files/figure-html/qq-diagnostics-styling-1.png)

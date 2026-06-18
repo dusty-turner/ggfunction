@@ -12,5 +12,6 @@
   ggfunction](/articles/learning-statistics.md):
 - [Cross-Conversion Between Distribution
   Functions](/articles/cross-conversion.md):
-- [Simulation Verification of KS Confidence Band
+- [Survival Analysis with ggfunction](/articles/survival-analysis.md):
+- [Simulation Verification of DKW Confidence Band
   Coverage](/articles/coverage-simulation.md):

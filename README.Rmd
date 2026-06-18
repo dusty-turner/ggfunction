@@ -285,7 +285,7 @@ ggplot() +
 
 ### Bivariate PDF: `geom_pdf_2d()`
 
-`geom_pdf_2d()` visualizes a theoretical bivariate density through its highest density regions. It is a thin wrapper around [**ggdensity**](https://jamesotto852.github.io/ggdensity/): the function is supplied in **ggfunction**'s `fun(c(x, y))` convention and adapted internally, while HDR computation, probability labels, and default aesthetics are delegated to `ggdensity::geom_hdr_fun()` (filled regions, the default `type = "hdr"`) or `ggdensity::geom_hdr_lines_fun()` (`type = "hdr_lines"`). Parameters pass via `args` as usual.
+`geom_pdf_2d()` visualizes a theoretical bivariate density through its highest density regions or as a raw density raster. It is a thin wrapper around [**ggdensity**](https://jamesotto852.github.io/ggdensity/) for HDRs: the function is supplied in **ggfunction**'s `fun(c(x, y))` convention and adapted internally, while HDR computation, probability labels, and default aesthetics are delegated to `ggdensity::geom_hdr_fun()` (filled regions, the default `type = "hdr"`) or `ggdensity::geom_hdr_lines_fun()` (`type = "hdr_lines"`). With `type = "raster"`, the density is evaluated on the requested grid and drawn as a dark-gray raster with `alpha` mapped to `after_stat(z)`. Parameters pass via `args` as usual.
 
 ```{r pdf-2d}
 dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
@@ -313,7 +313,15 @@ ggplot() +
   coord_equal()
 ```
 
-For raw density heatmaps or arbitrary iso-density contours not calibrated to probability content, use `geom_function_2d_1d()` with `type = "raster"`, `"contour"`, or `"contour_filled"`.
+**Raw density raster.** `type = "raster"` plots the evaluated density grid directly. The default fill is fixed dark gray and alpha varies with the density value.
+
+```{r pdf-2d-raster}
+ggplot() +
+  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), type = "raster") +
+  coord_equal()
+```
+
+For arbitrary iso-density contours not calibrated to probability content, use `geom_function_2d_1d()` with `type = "contour"` or `"contour_filled"`.
 
 
 ### PMF: `geom_pmf()`

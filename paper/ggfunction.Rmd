@@ -382,10 +382,10 @@ The normalized values $A_k / A_n$ are then compared against the specified probab
 
 ## Bivariate density functions: `geom_pdf_2d()`
 
-The density family extends to bivariate distributions through `geom_pdf_2d()`, which visualizes a joint density $f(x, y)$ through its highest density regions (HDRs)--the smallest regions of the plane containing specified probability masses. Rather than reimplement this computation, the layer is a thin, probability-facing wrapper around \CRANpkg{ggdensity} [@otto2023ggdensity]: with `type = "hdr"` (the default), filled regions are drawn by `ggdensity::geom_hdr_fun()`, and with `type = "hdr_lines"` the region boundaries are drawn by `ggdensity::geom_hdr_lines_fun()`, so HDR computation, probability labeling, and default aesthetics remain with \CRANpkg{ggdensity}. The density is supplied in \pkg{ggfunction}'s bivariate convention--`fun` receives a single vector $v = (x, y)$ and returns one density value, with parameters passed via `args`--and is adapted internally to \CRANpkg{ggdensity}'s vectorized two-argument interface. The `probs` parameter sets the HDR coverage levels, defaulting to 99%, 95%, 80%, and 50%. For raw density heatmaps or iso-density contours not calibrated to probability content, `geom_function_2d_1d()` remains the appropriate tool.
+The density family extends to bivariate distributions through `geom_pdf_2d()`, which visualizes a joint density $f(x, y)$ through its highest density regions (HDRs)--the smallest regions of the plane containing specified probability masses--or as a raw density raster. Rather than reimplement the HDR computation, the layer is a thin, probability-facing wrapper around \CRANpkg{ggdensity} [@otto2023ggdensity]: with `type = "hdr"` (the default), filled regions are drawn by `ggdensity::geom_hdr_fun()`, and with `type = "hdr_lines"` the region boundaries are drawn by `ggdensity::geom_hdr_lines_fun()`, so HDR computation, probability labeling, and default aesthetics remain with \CRANpkg{ggdensity}. The density is supplied in \pkg{ggfunction}'s bivariate convention--`fun` receives a single vector $v = (x, y)$ and returns one density value, with parameters passed via `args`--and is adapted internally to \CRANpkg{ggdensity}'s vectorized two-argument interface. The `probs` parameter sets the HDR coverage levels, defaulting to 99%, 95%, 80%, and 50%, and is ignored by `type = "raster"`, which evaluates the density on a grid and renders a dark-gray raster with alpha mapped to the density value. For iso-density contours not calibrated to probability content, `geom_function_2d_1d()` remains the appropriate tool.
 
-```{r pdf-2d, echo=TRUE, fig.width=10, fig.height=4}
-#| fig.cap: "Highest density regions of bivariate normal densities drawn by \\texttt{geom\\_pdf\\_2d()}, which delegates to ggdensity: filled 50/80/95\\% HDRs of the standard bivariate normal (left) and HDR boundary lines for a correlated bivariate normal with covariance supplied via \\texttt{args} (right)."
+```{r pdf-2d, echo=TRUE, fig.width=12, fig.height=4}
+#| fig.cap: "Bivariate normal densities drawn by \\texttt{geom\\_pdf\\_2d()}: filled 50/80/95\\% HDRs of the standard bivariate normal (left), HDR boundary lines for a correlated bivariate normal with covariance supplied via \\texttt{args} (middle), and a raw density raster with alpha mapped to density (right)."
 dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
   x <- matrix(v - mu, ncol = 1)
   Sinv <- solve(Sigma)
@@ -404,7 +404,12 @@ p2 <- ggplot() +
     probs = c(0.5, 0.8, 0.95), type = "hdr_lines") +
   coord_equal() + ggtitle('type = "hdr_lines"')
 
-p1 | p2
+p3 <- ggplot() +
+  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3),
+    type = "raster") +
+  coord_equal() + ggtitle('type = "raster"')
+
+p1 | p2 | p3
 ```
 
 ## Probability mass functions: `geom_pmf()`
@@ -1079,7 +1084,7 @@ Several existing packages overlap with \pkg{ggfunction} in purpose, and understa
 
 2. \CRANpkg{ggdist} [@kay2024ggdist]. This package excels at visualizing distributional uncertainty in Bayesian workflows: posterior distributions, predictive intervals, and uncertainty estimates from fitted models. Its geoms work primarily with samples or distributional objects rather than the `d`/`p`/`q`/`h` function families that \pkg{ggfunction} targets.
 
-3. \CRANpkg{ggdensity} [@otto2023ggdensity]. This package improves bivariate density visualization in \CRANpkg{ggplot2}, with a particular focus on highest density regions (HDRs). \pkg{ggfunction}'s `shade_hdr` parameter in `geom_pdf()` follows the HDR computation approach introduced there: normalizing density values, sorting in descending order, and accumulating until the target coverage is reached. More directly, `geom_pdf_2d()` is a thin wrapper that delegates HDR computation and rendering to \CRANpkg{ggdensity}'s `geom_hdr_fun()` and `geom_hdr_lines_fun()`, adapting the `fun(c(x, y))` convention shared by \pkg{ggfunction}'s bivariate layers to \CRANpkg{ggdensity}'s vectorized two-argument interface.
+3. \CRANpkg{ggdensity} [@otto2023ggdensity]. This package improves bivariate density visualization in \CRANpkg{ggplot2}, with a particular focus on highest density regions (HDRs). \pkg{ggfunction}'s `shade_hdr` parameter in `geom_pdf()` follows the HDR computation approach introduced there: normalizing density values, sorting in descending order, and accumulating until the target coverage is reached. More directly, `geom_pdf_2d()` delegates HDR computation and rendering to \CRANpkg{ggdensity}'s `geom_hdr_fun()` and `geom_hdr_lines_fun()`, adapting the `fun(c(x, y))` convention shared by \pkg{ggfunction}'s bivariate layers to \CRANpkg{ggdensity}'s vectorized two-argument interface; its raster mode evaluates the same bivariate density convention directly on a grid.
 
 4. \CRANpkg{mosaic} [@pruim2017mosaic]. The `plotDist()` function provides quick plots of named distributions and supports shading, but it is built on the \CRANpkg{lattice} [@lattice] graphics framework rather than \CRANpkg{ggplot2}, and therefore cannot be composed with \CRANpkg{ggplot2} layers.
 
