@@ -189,13 +189,16 @@ StatPMF <- ggproto("StatPMF", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
   compute_group = function(data, scales, fun, xlim = NULL, support = NULL, args = NULL,
-                           shade_hdr = NULL, ...) {
+                           shade_hdr = NULL, p = NULL, lower.tail = TRUE,
+                           p_lower = NULL, p_upper = NULL, shade_outside = FALSE,
+                           ...) {
 
     x_vals <- discrete_support(xlim = xlim, support = support)
 
     if (length(x_vals) == 0L) {
       out <- data.frame(x = numeric(0), y = numeric(0))
       if (!is.null(shade_hdr)) out$probs <- factor(character(0), ordered = TRUE)
+      out$in_shade <- logical(0)
       return(out)
     }
 
@@ -212,6 +215,14 @@ StatPMF <- ggproto("StatPMF", Stat,
     if (!is.null(shade_hdr)) {
       out$probs <- discrete_hdr_probs(y_vals, shade_hdr)
     }
+
+    # Resolve p-based shading here, per group, so the cumulative probability
+    # never crosses group boundaries (a panel-level cumsum would mis-shade the
+    # second and later groups).
+    out$in_shade <- pmf_shade_index(
+      y_vals, p = p, lower.tail = lower.tail,
+      p_lower = p_lower, p_upper = p_upper, shade_outside = shade_outside
+    )
 
     out
   }
@@ -236,36 +247,11 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
                         shade_outside = FALSE) {
 
     n <- nrow(data)
-    pmf_vals <- data$y
-    cum_vals  <- cumsum(pmf_vals)
 
-    # Determine which lollipops fall inside the shaded region
-    # (shade_hdr is handled by StatPMF via the alpha-mapped probs factor)
-    if (!is.null(p_lower) && !is.null(p_upper)) {
-      idx_lo <- which(cum_vals >= p_lower)[1L]
-      if (is.na(idx_lo)) idx_lo <- n
-      idx_hi <- which(cum_vals >= p_upper)[1L]
-      if (is.na(idx_hi)) idx_hi <- n
-      if (shade_outside) {
-        in_shade <- seq_len(n) < idx_lo | seq_len(n) > idx_hi
-      } else {
-        in_shade <- seq_len(n) >= idx_lo & seq_len(n) <= idx_hi
-      }
-
-    } else if (!is.null(p)) {
-      if (lower.tail) {
-        idx <- which(cum_vals >= p)[1L]
-        if (is.na(idx)) idx <- n
-        in_shade <- seq_len(n) <= idx
-      } else {
-        idx <- which(cum_vals >= (1 - p))[1L]
-        if (is.na(idx)) idx <- 0L
-        in_shade <- seq_len(n) > idx
-      }
-
-    } else {
-      in_shade <- rep(TRUE, n)
-    }
+    # Shading membership is resolved per group in StatPMF$compute_group (so the
+    # cumulative probability never crosses group boundaries); shade_hdr is
+    # handled separately via the alpha-mapped probs factor.
+    in_shade <- if (!is.null(data$in_shade)) data$in_shade else rep(TRUE, n)
 
     # Build segment data: unshaded segments are dimmed + dashed
     seg_data          <- transform(data, yend = y, y = 0)

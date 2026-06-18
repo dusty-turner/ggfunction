@@ -165,7 +165,11 @@ return density \code{0}.}
 
 \item{p}{(Optional) A numeric value between 0 and 1 specifying the cumulative probability
 threshold. The area will be shaded up until the point where the cumulative density reaches
-this value.}
+this value. The cumulative density is measured relative to the mass within the drawn
+\code{xlim} window (the density is renormalized over \code{xlim}), so when \code{xlim} is narrower than
+the support, \code{p} refers to the conditional probability within \code{xlim} rather than the
+unconditional CDF. Widen \code{xlim} to cover the full support for \code{p} to match the
+unconditional CDF.}
 
 \item{lower.tail}{Logical; if \code{TRUE} (the default) the shaded area extends from the left end
 of the density up to the threshold. If \code{FALSE}, the shading extends from the threshold to the

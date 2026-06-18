@@ -264,7 +264,12 @@ Stat_1d_2d <- ggproto("Stat_1d_2d", Stat,
 
   compute_group = function(data, scales, fun, tlim, dt, args, ...) {
 
-    t <- seq(tlim[1], tlim[2], dt)
+    # Sample by count rather than `by = dt` so the final endpoint is always
+    # included; `seq(by = dt)` drops tlim[2] whenever the span is not an exact
+    # multiple of dt, leaving closed/periodic curves (e.g. tlim = c(0, 2*pi))
+    # unclosed.
+    n_t <- max(2L, ceiling((tlim[2] - tlim[1]) / dt) + 1L)
+    t <- seq(tlim[1], tlim[2], length.out = n_t)
 
     orig_fun <- fun
     fun <- function(v) rlang::inject(orig_fun(v, !!!args))

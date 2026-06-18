@@ -9,6 +9,7 @@
 #' is computed via cumulative summation), or `survival_fun` (a discrete
 #' survival function, from which the CDF is computed as \eqn{F(x) = 1 - S(x)}).
 #'
+#' @importFrom scales alpha
 #' @inheritParams ggplot2::geom_path
 #' @param fun A discrete CDF function (e.g. [pbinom]). Evaluated directly on
 #'   the integer support derived from `xlim` or `support`. Exactly one of
@@ -161,6 +162,7 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
     if (!is.null(fun)) {
       fun_injected <- function(x) rlang::inject(fun(x, !!!args))
       cdf_vals <- fun_injected(x_vals)
+      invisible(check_discrete_cdf(cdf_vals, source = "fun"))
       out <- data.frame(x = x_vals, y = cdf_vals, p = cdf_vals)
       return(filter_discrete_xlim(out, xlim = xlim))
     }
@@ -180,6 +182,7 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
       surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
       surv_vals <- surv_injected(x_vals)
       cdf_vals <- 1 - surv_vals
+      invisible(check_discrete_cdf(cdf_vals, source = "survival_fun"))
       out <- data.frame(x = x_vals, y = cdf_vals, p = cdf_vals)
       return(filter_discrete_xlim(out, xlim = xlim))
     }

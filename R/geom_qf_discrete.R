@@ -177,19 +177,20 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
         p_grid <- p_grid[keep]
         q_vals <- q_vals[keep]
       }
-      if (!is.null(xlim)) {
-        keep   <- q_vals >= xlim[1] & q_vals <= xlim[2]
-        p_grid <- p_grid[keep]
-        q_vals <- q_vals[keep]
-      }
 
-      # For each unique support value, the right boundary is the largest p
-      # where Q(p) equals that value (= F(x_k) from the CDF).
+      # For each unique support value, the right boundary approximates F(x_k):
+      # the largest grid p whose quantile equals that value. The grid stops at
+      # 0.9999, so pin the final (largest-support) boundary to exactly 1 to
+      # match F(x_max) = 1 from the exact cdf_fun/pmf_fun paths. Pin before the
+      # xlim filter so the pin targets the distribution's true maximum, then
+      # apply xlim as a display-only filter (consistent with the other paths).
       q_unique <- sort(unique(q_vals))
       p_right  <- vapply(q_unique,
                          function(xk) max(p_grid[q_vals == xk]),
                          numeric(1))
-      return(data.frame(p = p_right, x = q_unique))
+      if (length(p_right) > 0L) p_right[length(p_right)] <- 1
+      out <- data.frame(p = p_right, x = q_unique)
+      return(filter_discrete_xlim(out, xlim = xlim))
     }
 
     if (!is.null(cdf_fun)) {
@@ -197,6 +198,7 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
 
       cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
       cdf_vals <- cdf_injected(x_vals)
+      invisible(check_discrete_cdf(cdf_vals, source = "cdf_fun"))
 
       out <- data.frame(p = cdf_vals, x = x_vals)
       return(filter_discrete_xlim(out, xlim = xlim))
@@ -222,6 +224,7 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
       surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
       surv_vals <- surv_injected(x_vals)
       cdf_vals <- 1 - surv_vals
+      invisible(check_discrete_cdf(cdf_vals, source = "survival_fun"))
 
       out <- data.frame(p = cdf_vals, x = x_vals)
       return(filter_discrete_xlim(out, xlim = xlim))

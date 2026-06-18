@@ -159,7 +159,7 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
     if (!is.null(fun)) {
       fun_injected   <- function(x) rlang::inject(fun(x, !!!args))
       survival_vals  <- fun_injected(x_vals)
-      if (length(survival_vals) > 1 && any(diff(survival_vals) > 0)) {
+      if (length(survival_vals) > 1 && any(diff(survival_vals) > 0, na.rm = TRUE)) {
         cli::cli_warn(c(
           "The resulting survival function is not monotonically non-increasing.",
           "i" = "Check the function supplied to {.arg fun}."
@@ -172,7 +172,7 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
     if (!is.null(cdf_fun)) {
       cdf_injected   <- function(x) rlang::inject(cdf_fun(x, !!!args))
       survival_vals  <- 1 - cdf_injected(x_vals)
-      if (length(survival_vals) > 1 && any(diff(survival_vals) > 0)) {
+      if (length(survival_vals) > 1 && any(diff(survival_vals) > 0, na.rm = TRUE)) {
         cli::cli_warn(c(
           "The resulting survival function is not monotonically non-increasing.",
           "i" = "Check the function supplied to {.arg cdf_fun}."

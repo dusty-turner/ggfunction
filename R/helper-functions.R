@@ -249,6 +249,81 @@ discrete_hdr_probs <- function(mass, shade_hdr) {
   factor(assigned, levels = c(label_out, rev(labels_in)), ordered = TRUE)
 }
 
+#' Soft validity check for a discrete CDF over its computational support.
+#'
+#' Warns (without aborting) when the derived CDF leaves [0, 1], is not
+#' monotonically non-decreasing, or does not approach 1 at the top of the
+#' support (e.g. a truncated support). Mirrors [check_cdf_normalization()] for
+#' the discrete `fun`/`cdf_fun`/`survival_fun` paths, which otherwise accept
+#' malformed input silently.
+#' @noRd
+check_discrete_cdf <- function(cdf_vals, tol = 1e-2, source = "fun") {
+  if (!ggfunction_check_enabled()) return(invisible(cdf_vals))
+  finite <- cdf_vals[is.finite(cdf_vals)]
+  if (length(finite) == 0L) return(invisible(cdf_vals))
+  if (any(finite < -tol) || any(finite > 1 + tol)) {
+    cli::cli_alert(sprintf(
+      "The CDF derived from `%s` leaves [0, 1] (range %.4f to %.4f).",
+      source, min(finite), max(finite)
+    ))
+  }
+  if (length(finite) > 1L && any(diff(finite) < -tol)) {
+    cli::cli_alert(sprintf(
+      "The CDF derived from `%s` is not monotonically non-decreasing over the support.",
+      source
+    ))
+  }
+  last <- finite[length(finite)]
+  if (abs(last - 1) > tol) {
+    cli::cli_alert(sprintf(
+      "The CDF derived from `%s` reaches %.4f at the top of the support, not ~1; supply the full support via `support` if it is truncated.",
+      source, last
+    ))
+  }
+  invisible(cdf_vals)
+}
+
+#' Per-group lollipop shading membership for a discrete PMF.
+#'
+#' Returns a logical vector marking which support points fall inside the
+#' requested `p` / `p_lower`-`p_upper` shading region. Computed per group (on a
+#' single group's masses), so the cumulative probabilities never cross group
+#' boundaries. The upper tail (`lower.tail = FALSE`) includes the crossing
+#' atom, mirroring the lower tail.
+#' @noRd
+pmf_shade_index <- function(y, p = NULL, lower.tail = TRUE,
+                            p_lower = NULL, p_upper = NULL,
+                            shade_outside = FALSE) {
+  n <- length(y)
+  if (n == 0L) return(logical(0))
+  cum <- cumsum(y)
+  if (!is.null(p_lower) && !is.null(p_upper)) {
+    idx_lo <- which(cum >= p_lower)[1L]
+    if (is.na(idx_lo)) idx_lo <- n
+    idx_hi <- which(cum >= p_upper)[1L]
+    if (is.na(idx_hi)) idx_hi <- n
+    if (shade_outside) {
+      seq_len(n) < idx_lo | seq_len(n) > idx_hi
+    } else {
+      seq_len(n) >= idx_lo & seq_len(n) <= idx_hi
+    }
+  } else if (!is.null(p)) {
+    if (lower.tail) {
+      idx <- which(cum >= p)[1L]
+      if (is.na(idx)) idx <- n
+      seq_len(n) <= idx
+    } else {
+      # Smallest suffix whose tail mass is >= p, inclusive of the crossing
+      # atom, so the upper tail mirrors the lower tail.
+      idx <- which(cum > (1 - p))[1L]
+      if (is.na(idx)) idx <- n
+      seq_len(n) >= idx
+    }
+  } else {
+    rep(TRUE, n)
+  }
+}
+
 #' @noRd
 build_step_polygon <- function(x, y) {
   # Build step-function polygon vertices from (x, y) pairs.
@@ -488,4 +563,4 @@ inject_open_fill <- function(data, theme) {
 #' @noRd
 utils::globalVariables(c("x", "y", "z", "p", "level", "GeomLine", "pdf_fun", "cdf_fun",
                          "pmf_fun", "survival_fun", "qf_fun", "hf_fun", "ymin", "ymax",
-                         "status", "prob", "probs"))
+                         "status", "prob", "probs", "qq_x", "qq_ymin", "qq_ymax"))

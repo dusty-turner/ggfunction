@@ -39,7 +39,11 @@
 #' @param alpha Alpha transparency for the shaded area.
 #' @param p (Optional) A numeric value between 0 and 1 specifying the cumulative probability
 #'   threshold. The area will be shaded up until the point where the cumulative density reaches
-#'   this value.
+#'   this value. The cumulative density is measured relative to the mass within the drawn
+#'   `xlim` window (the density is renormalized over `xlim`), so when `xlim` is narrower than
+#'   the support, `p` refers to the conditional probability within `xlim` rather than the
+#'   unconditional CDF. Widen `xlim` to cover the full support for `p` to match the
+#'   unconditional CDF.
 #' @param lower.tail Logical; if `TRUE` (the default) the shaded area extends from the left end
 #'   of the density up to the threshold. If `FALSE`, the shading extends from the threshold to the
 #'   right end.

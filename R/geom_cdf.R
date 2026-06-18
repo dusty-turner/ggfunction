@@ -307,12 +307,19 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
     x_vals <- data$x
     y_vals <- data$y
 
+    warn_unreached <- function(prob) {
+      cli::cli_warn(c(
+        "The shading probability {.val {prob}} is not reached by the CDF within the drawn range.",
+        "i" = "The shaded boundary was clamped to the edge of {.arg xlim}; widen {.arg xlim} to shade the intended region."
+      ))
+    }
+
     if (!is.null(p_lower) && !is.null(p_upper)) {
       # Two-sided shading: shade between x where CDF = p_lower and CDF = p_upper
       idx_lower <- which(y_vals >= p_lower)[1]
-      if (is.na(idx_lower)) idx_lower <- length(y_vals)
+      if (is.na(idx_lower)) { warn_unreached(p_lower); idx_lower <- length(y_vals) }
       idx_upper <- which(y_vals >= p_upper)[1]
-      if (is.na(idx_upper)) idx_upper <- length(y_vals)
+      if (is.na(idx_upper)) { warn_unreached(p_upper); idx_upper <- length(y_vals) }
       threshold_lower <- x_vals[idx_lower]
       threshold_upper <- x_vals[idx_upper]
       clip_data <- data[data$x >= threshold_lower & data$x <= threshold_upper, , drop = FALSE]
@@ -320,13 +327,13 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
     } else if (!is.null(p)) {
       if (lower.tail) {
         idx <- which(y_vals >= p)[1]
-        if (is.na(idx)) idx <- length(y_vals)
+        if (is.na(idx)) { warn_unreached(p); idx <- length(y_vals) }
         threshold_x <- x_vals[idx]
         clip_data <- data[data$x <= threshold_x, , drop = FALSE]
         clip_range <- c(min(x_vals), threshold_x)
       } else {
         idx <- which(y_vals >= (1 - p))[1]
-        if (is.na(idx)) idx <- 1
+        if (is.na(idx)) { warn_unreached(1 - p); idx <- 1 }
         threshold_x <- x_vals[idx]
         clip_data <- data[data$x >= threshold_x, , drop = FALSE]
         clip_range <- c(threshold_x, max(x_vals))
