@@ -230,7 +230,10 @@ discrete_hdr_probs <- function(mass, shade_hdr) {
     k <- which(cumprob >= coverages[i])[1L]
     if (is.na(k)) k <- n
     cutoff    <- mass[ord[k]]
-    in_hdr    <- mass >= cutoff
+    # Use a relative tolerance so masses that are mathematically tied but
+    # differ by floating-point rounding (e.g. symmetric products) are not
+    # split across HDR levels.
+    in_hdr    <- mass >= cutoff * (1 - 1e-9)
     actual[i] <- sum(fhat_d[in_hdr])
     assigned[in_hdr] <- labels_in[i]
   }
