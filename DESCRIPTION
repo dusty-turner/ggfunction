@@ -1,6 +1,6 @@
 Package: ggfunction
 Type: Package
-Title: Extending ggplot2 with functional capabilities
+Title: Extending 'ggplot2' with Functional Capabilities
 Version: 0.1.0
 Authors@R:
     c(person(given = "Dusty",
@@ -23,7 +23,13 @@ Authors@R:
            comment = c(ORCID = "0000-0002-0665-2515",
                        contribution = "Early drafts of the (E)CDF stats and geoms.")))
 Maintainer: Dusty Turner <dusty.s.turner@gmail.com>
-Description: A ggplot2 extension for visualizing functions in a two-dimensional space. 
+Description: A 'ggplot2' extension for visualizing mathematical functions and
+    probability distributions in two-dimensional space. Provides geoms and
+    stats for scalar, parametric, and vector-valued functions as well as
+    probability density, mass, cumulative distribution, quantile, hazard,
+    cumulative hazard, and survival functions, in both theoretical and
+    empirical (including Kaplan-Meier) forms, with support for region and
+    highest-density-region shading.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -34,17 +40,19 @@ Imports:
     ggvfields,
     ggdensity,
     cli,
-    rlang
+    rlang,
+    grid,
+    scales,
+    stats
 URL: https://github.com/dusty-turner/ggfunction
 BugReports: https://github.com/dusty-turner/ggfunction/issues
 Suggests:
     knitr,
     patchwork,
     rmarkdown,
-    scales,
     survival,
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
-Date: 2026-02-20
+Date: 2026-06-18
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
