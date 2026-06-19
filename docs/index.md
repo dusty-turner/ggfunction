@@ -150,6 +150,27 @@ ggplot() +
 
 ![](reference/figures/readme-2d-1d-raster-1.png)
 
+**Alpha rasters.** The default raster maps function values to `fill`,
+yielding the usual continuous fill scale and legend. For opacity-based
+displays, set `raster_aes = "alpha"` to keep a fixed dark-gray fill and
+scale finite values to literal 0–1 alpha values.
+
+``` r
+
+h <- function(v) exp(-(v[1]^2 + v[2]^2) / 2)
+
+ggplot() +
+  geom_function_2d_1d(
+    fun = h,
+    xlim = c(-4, 4),
+    ylim = c(-4, 4),
+    raster_aes = "alpha"
+  ) +
+  coord_equal()
+```
+
+![](reference/figures/readme-2d-1d-alpha-raster-1.png)
+
 **Contour modes.** The `type` argument switches among three visual
 encodings of the same field. `"contour"` draws iso-level curves colored
 by level value; `"contour_filled"` draws filled regions between levels;
@@ -368,8 +389,10 @@ default aesthetics are delegated to
 (filled regions, the default `type = "hdr"`) or
 [`ggdensity::geom_hdr_lines_fun()`](https://jamesotto852.github.io/ggdensity/reference/geom_hdr_fun.html)
 (`type = "hdr_lines"`). With `type = "raster"`, the density is evaluated
-on the requested grid and drawn as a dark-gray raster with `alpha`
-mapped to `after_stat(z)`. Parameters pass via `args` as usual.
+on the requested grid and drawn with the alpha-raster mode of
+[`geom_function_2d_1d()`](/reference/geom_function_2d_1d.md): a
+dark-gray fill with alpha scaled to literal 0–1 transparency. Parameters
+pass via `args` as usual.
 
 ``` r
 
@@ -405,8 +428,8 @@ ggplot() +
 ![](reference/figures/readme-pdf-2d-lines-1.png)
 
 **Raw density raster.** `type = "raster"` plots the evaluated density
-grid directly. The default fill is fixed dark gray and alpha varies with
-the density value.
+grid directly. The default fill is fixed dark gray, the lowest finite
+density is transparent, and the highest finite density is opaque.
 
 ``` r
 

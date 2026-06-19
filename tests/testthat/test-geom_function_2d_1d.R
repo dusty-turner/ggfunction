@@ -21,6 +21,99 @@ test_that("geom_function_2d_1d builds raster without error", {
   expect_silent(ggplot_build(p))
 })
 
+test_that("geom_function_2d_1d raster defaults to fill scale", {
+  f <- function(v) exp(-(v[1]^2 + v[2]^2))
+  l_raster <- geom_function_2d_1d(
+    fun = f, xlim = c(-3, 3), ylim = c(-3, 3),
+    n = 20, type = "raster"
+  )
+  expect_s3_class(l_raster$stat, "StatFunction2d")
+  expect_s3_class(l_raster$geom, "GeomFunction2d")
+  expect_equal(rlang::as_label(l_raster$mapping$fill), "after_stat(z)")
+  expect_null(l_raster$mapping$alpha)
+
+  built <- ggplot_build(ggplot() + l_raster)
+  expect_equal(nrow(built$data[[1]]), 20^2)
+  expect_true("z" %in% names(built$data[[1]]))
+  expect_gt(length(unique(built$data[[1]]$fill)), 1)
+  expect_equal(unique(built$data[[1]]$alpha), 1)
+})
+
+test_that("geom_function_2d_1d raster can use alpha with fixed fill", {
+  f <- function(v) exp(-(v[1]^2 + v[2]^2))
+  l_raster <- geom_function_2d_1d(
+    fun = f, xlim = c(-3, 3), ylim = c(-3, 3),
+    n = 20, type = "raster", raster_aes = "alpha"
+  )
+  expect_s3_class(l_raster$stat, "StatFunction2d")
+  expect_s3_class(l_raster$geom, "GeomFunction2d")
+  expect_equal(
+    rlang::as_label(l_raster$mapping$alpha),
+    "after_stat(function2d_alpha_rescale(z))"
+  )
+
+  built <- ggplot_build(ggplot() + l_raster)
+  expect_equal(nrow(built$data[[1]]), 20^2)
+  expect_true("z" %in% names(built$data[[1]]))
+  expect_equal(unique(built$data[[1]]$fill), "grey20")
+  expect_gt(length(unique(built$data[[1]]$alpha)), 1)
+  expect_equal(range(built$data[[1]]$alpha), c(0, 1))
+  expect_s3_class(built$data[[1]]$alpha, "AsIs")
+})
+
+test_that("geom_function_2d_1d alpha raster handles degenerate ranges", {
+  p_zero <- ggplot() +
+    geom_function_2d_1d(
+      fun = function(v) 0,
+      xlim = c(-1, 1), ylim = c(-1, 1), n = 5,
+      raster_aes = "alpha"
+    )
+  b_zero <- ggplot_build(p_zero)
+  expect_equal(unique(b_zero$data[[1]]$alpha), 0)
+
+  p_const <- ggplot() +
+    geom_function_2d_1d(
+      fun = function(v) 1,
+      xlim = c(-1, 1), ylim = c(-1, 1), n = 5,
+      raster_aes = "alpha"
+    )
+  b_const <- ggplot_build(p_const)
+  expect_equal(unique(b_const$data[[1]]$alpha), 1)
+})
+
+test_that("geom_function_2d_1d alpha raster allows mapping and aesthetic overrides", {
+  f <- function(v) exp(-(v[1]^2 + v[2]^2))
+
+  p_mapped <- ggplot() +
+    geom_function_2d_1d(
+      fun = f, xlim = c(-3, 3), ylim = c(-3, 3), n = 20,
+      raster_aes = "alpha",
+      mapping = aes(fill = after_stat(z), alpha = after_stat(sqrt(z)))
+    )
+  b_mapped <- ggplot_build(p_mapped)
+  expect_gt(length(unique(b_mapped$data[[1]]$fill)), 1)
+  expect_gt(length(unique(b_mapped$data[[1]]$alpha)), 1)
+  expect_false(all(b_mapped$data[[1]]$fill == "grey20"))
+
+  p_fixed <- ggplot() +
+    geom_function_2d_1d(
+      fun = f, xlim = c(-3, 3), ylim = c(-3, 3), n = 20,
+      raster_aes = "alpha",
+      fill = "steelblue"
+    )
+  b_fixed <- ggplot_build(p_fixed)
+  expect_equal(unique(b_fixed$data[[1]]$fill), "steelblue")
+
+  p_alpha <- ggplot() +
+    geom_function_2d_1d(
+      fun = f, xlim = c(-3, 3), ylim = c(-3, 3), n = 20,
+      raster_aes = "alpha",
+      alpha = 0.4
+    )
+  b_alpha <- ggplot_build(p_alpha)
+  expect_equal(unique(b_alpha$data[[1]]$alpha), 0.4)
+})
+
 test_that("geom_function_2d_1d builds contour without error", {
   f <- function(v) sqrt(v[1]^2 + v[2]^2)
   p <- ggplot() + geom_function_2d_1d(fun = f, xlim = c(-1, 1), ylim = c(-1, 1), type = "contour")

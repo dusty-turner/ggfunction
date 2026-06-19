@@ -19,6 +19,7 @@ geom_function_2d_1d(
   n = NULL,
   args = list(),
   type = "raster",
+  raster_aes = c("fill", "alpha"),
   bins = NULL,
   binwidth = NULL,
   breaks = NULL,
@@ -108,6 +109,13 @@ StatFunction2dContourFilled
   Character. Type of visualization: `"raster"` (default), `"contour"`,
   or `"contour_filled"`.
 
+- raster_aes:
+
+  Character. Default raster aesthetic encoding. `"fill"` (default) maps
+  `after_stat(z)` to `fill`, preserving the usual fill scale and legend.
+  `"alpha"` uses a fixed dark gray fill and scales `after_stat(z)` to
+  literal 0–1 alpha values.
+
 - bins:
 
   Number of contour bins. Only used when `type` is `"contour"` or
@@ -157,7 +165,8 @@ with
 - `after_stat(z)`:
 
   Function values on the grid for raster and contour inputs. The raster
-  display maps `fill = after_stat(z)` by default.
+  display maps `fill = after_stat(z)` by default, or scales it to
+  literal alpha values when `raster_aes = "alpha"`.
 
 - `after_stat(level)`:
 
@@ -208,13 +217,24 @@ for the underlying raster and contour drawing conventions.
 ``` r
 # Function that calculates the norm
 f <- function(v) {
-  x <- v[1]
-  y <- v[2]
+  x <- v[1]; y <- v[2]
   c(sqrt(x^2 + y^2))
 }
 
 ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5))
+
+
+ggplot() +
+  geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), raster_aes = "alpha")
+
+
+ggplot() +
+  geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), type = "contour")
+
+
+ggplot() +
+  geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), type = "contour_filled")
 
 
 # Sinusoidal combination of sine and cosine
@@ -289,5 +309,15 @@ ggplot() +
     xlim = c(-5, 5),
     ylim = c(-5, 5),
     args = list(a = 2, b = 0.5)
+  )
+
+
+# Alpha raster with a fixed fill
+ggplot() +
+  geom_function_2d_1d(
+    fun = f_gaussian,
+    xlim = c(-5, 5),
+    ylim = c(-5, 5),
+    raster_aes = "alpha"
   )
 ```

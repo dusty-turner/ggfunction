@@ -188,6 +188,8 @@ A scalar field assigns a real value to each point in a two-dimensional domain. \
   \texttt{"contour\_filled"}: filled regions between contour levels rendered by \texttt{ggplot2::GeomContourFilled}.
 \end{itemize}
 
+For raster layers, \texttt{raster\_aes\ =\ "fill"} keeps the default heatmap representation and continuous fill legend, while \texttt{raster\_aes\ =\ "alpha"} fixes the fill at dark gray and rescales finite function values to literal 0--1 alpha values.
+
 \begin{verbatim}
 f_sc <- function(u) {
   x <- u[1]; y <- u[2]
@@ -389,7 +391,7 @@ The normalized values \(A_k / A_n\) are then compared against the specified prob
 
 \subsection{\texorpdfstring{Bivariate density functions: \texttt{geom\_pdf\_2d()}}{Bivariate density functions: geom\_pdf\_2d()}}\label{bivariate-density-functions-geom_pdf_2d}
 
-The density family extends to bivariate distributions through \texttt{geom\_pdf\_2d()}, which visualizes a joint density \(f(x, y)\) through its highest density regions (HDRs)--the smallest regions of the plane containing specified probability masses--or as a raw density raster. Rather than reimplement the HDR computation, the layer is a thin, probability-facing wrapper around \CRANpkg{ggdensity} \citep{otto2023ggdensity}: with \texttt{type\ =\ "hdr"} (the default), filled regions are drawn by \texttt{ggdensity::geom\_hdr\_fun()}, and with \texttt{type\ =\ "hdr\_lines"} the region boundaries are drawn by \texttt{ggdensity::geom\_hdr\_lines\_fun()}, so HDR computation, probability labeling, and default aesthetics remain with \CRANpkg{ggdensity}. The density is supplied in \pkg{ggfunction}'s bivariate convention--\texttt{fun} receives a single vector \(v = (x, y)\) and returns one density value, with parameters passed via \texttt{args}--and is adapted internally to \CRANpkg{ggdensity}'s vectorized two-argument interface. The \texttt{probs} parameter sets the HDR coverage levels, defaulting to 99\%, 95\%, 80\%, and 50\%, and is ignored by \texttt{type\ =\ "raster"}, which evaluates the density on a grid and renders a dark-gray raster with alpha mapped to the density value. For iso-density contours not calibrated to probability content, \texttt{geom\_function\_2d\_1d()} remains the appropriate tool.
+The density family extends to bivariate distributions through \texttt{geom\_pdf\_2d()}, which visualizes a joint density \(f(x, y)\) through its highest density regions (HDRs)--the smallest regions of the plane containing specified probability masses--or as a raw density raster. Rather than reimplement the HDR computation, the layer is a thin, probability-facing wrapper around \CRANpkg{ggdensity} \citep{otto2023ggdensity}: with \texttt{type\ =\ "hdr"} (the default), filled regions are drawn by \texttt{ggdensity::geom\_hdr\_fun()}, and with \texttt{type\ =\ "hdr\_lines"} the region boundaries are drawn by \texttt{ggdensity::geom\_hdr\_lines\_fun()}, so HDR computation, probability labeling, and default aesthetics remain with \CRANpkg{ggdensity}. The density is supplied in \pkg{ggfunction}'s bivariate convention--\texttt{fun} receives a single vector \(v = (x, y)\) and returns one density value, with parameters passed via \texttt{args}--and is adapted internally to \CRANpkg{ggdensity}'s vectorized two-argument interface. The \texttt{probs} parameter sets the HDR coverage levels, defaulting to 99\%, 95\%, 80\%, and 50\%, and is ignored by \texttt{type\ =\ "raster"}, which evaluates the density on a grid using the alpha-raster mode of \texttt{geom\_function\_2d\_1d()}: dark-gray fill with density scaled to literal 0--1 alpha values. For iso-density contours not calibrated to probability content, \texttt{geom\_function\_2d\_1d()} remains the appropriate tool.
 
 \begin{verbatim}
 dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
@@ -424,7 +426,7 @@ p1 | p2 | p3
 
 }
 
-\caption{Bivariate normal densities drawn by \texttt{geom\_pdf\_2d()}: filled 50/80/95\% HDRs of the standard bivariate normal (left), HDR boundary lines for a correlated bivariate normal with covariance supplied via \texttt{args} (middle), and a raw density raster with alpha mapped to density (right).}\label{fig:pdf-2d}
+\caption{Bivariate normal densities drawn by \texttt{geom\_pdf\_2d()}: filled 50/80/95\% HDRs of the standard bivariate normal (left), HDR boundary lines for a correlated bivariate normal with covariance supplied via \texttt{args} (middle), and a raw density raster with density scaled to literal alpha (right).}\label{fig:pdf-2d}
 \end{figure}
 
 \subsection{\texorpdfstring{Probability mass functions: \texttt{geom\_pmf()}}{Probability mass functions: geom\_pmf()}}\label{probability-mass-functions-geom_pmf}

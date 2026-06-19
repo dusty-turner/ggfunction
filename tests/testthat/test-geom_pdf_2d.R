@@ -52,13 +52,36 @@ test_that("geom_pdf_2d raster uses density alpha on a dark-gray raster", {
   )
   expect_s3_class(l_raster$stat, "StatFunction2d")
   expect_s3_class(l_raster$geom, "GeomFunction2d")
-  expect_equal(rlang::as_label(l_raster$mapping$alpha), "after_stat(z)")
+  expect_equal(
+    rlang::as_label(l_raster$mapping$alpha),
+    "after_stat(function2d_alpha_rescale(z))"
+  )
 
   built <- ggplot_build(ggplot() + l_raster)
   expect_equal(nrow(built$data[[1]]), 20^2)
   expect_true("z" %in% names(built$data[[1]]))
   expect_equal(unique(built$data[[1]]$fill), "grey20")
   expect_gt(length(unique(built$data[[1]]$alpha)), 1)
+  expect_equal(range(built$data[[1]]$alpha), c(0, 1))
+  expect_s3_class(built$data[[1]]$alpha, "AsIs")
+})
+
+test_that("geom_pdf_2d raster handles degenerate alpha ranges", {
+  p_zero <- ggplot() +
+    geom_pdf_2d(
+      fun = function(v) 0,
+      xlim = c(-1, 1), ylim = c(-1, 1), n = 5, type = "raster"
+    )
+  b_zero <- ggplot_build(p_zero)
+  expect_equal(unique(b_zero$data[[1]]$alpha), 0)
+
+  p_const <- ggplot() +
+    geom_pdf_2d(
+      fun = function(v) 1,
+      xlim = c(-1, 1), ylim = c(-1, 1), n = 5, type = "raster"
+    )
+  b_const <- ggplot_build(p_const)
+  expect_equal(unique(b_const$data[[1]]$alpha), 1)
 })
 
 test_that("geom_pdf_2d raster allows mapping and fill overrides", {

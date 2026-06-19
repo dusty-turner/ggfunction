@@ -168,7 +168,7 @@ geom_pdf_2d(
 
   Character. `"hdr"` (default) draws filled highest density regions;
   `"hdr_lines"` draws HDR boundary contour lines; `"raster"` draws the
-  evaluated density as a dark-gray raster with alpha mapped to density.
+  evaluated density as a dark-gray raster with alpha scaled from 0 to 1.
 
 ## Value
 
@@ -182,8 +182,11 @@ value. ggdensity expects a function of two vectorized arguments
 `fun(x, y)`; `geom_pdf_2d()` adapts between the two interfaces
 internally, closing over `args` in the process.
 
-Raw density rasters map `after_stat(z)` to `alpha` by default with a
-fixed dark gray fill; `probs` is ignored for `type = "raster"`.
+Raw density rasters use
+[`geom_function_2d_1d()`](/reference/geom_function_2d_1d.md) with
+`raster_aes = "alpha"`: the evaluated density is mapped to literal alpha
+values scaled from 0 to 1 by default, with a fixed dark gray fill.
+`probs` is ignored for `type = "raster"`.
 
 For arbitrary iso-density contours (level sets not calibrated to
 probability content), use
@@ -196,7 +199,7 @@ HDR computed variables and default aesthetics are those supplied by the
 delegated ggdensity stat. In particular, the built data includes an
 ordered factor `probs`, which is mapped to `alpha` by default for filled
 HDRs. Raster layers expose `after_stat(z)`, the evaluated density value,
-and map it to `alpha` by default.
+and scale it to literal 0–1 alpha values by default.
 
 ## See also
 

@@ -16,8 +16,10 @@
 #' `fun(x, y)`; `geom_pdf_2d()` adapts between the two interfaces internally,
 #' closing over `args` in the process.
 #'
-#' Raw density rasters map `after_stat(z)` to `alpha` by default with a fixed
-#' dark gray fill; `probs` is ignored for `type = "raster"`.
+#' Raw density rasters use [geom_function_2d_1d()] with
+#' `raster_aes = "alpha"`: the evaluated density is mapped to literal alpha
+#' values scaled from 0 to 1 by default, with a fixed dark gray fill. `probs`
+#' is ignored for `type = "raster"`.
 #'
 #' For arbitrary iso-density contours (level sets not calibrated to probability
 #' content), use [geom_function_2d_1d()] with `type = "contour"` or
@@ -34,14 +36,14 @@
 #'   `c(0.99, 0.95, 0.8, 0.5)`. Ignored when `type = "raster"`.
 #' @param type Character. `"hdr"` (default) draws filled highest density
 #'   regions; `"hdr_lines"` draws HDR boundary contour lines; `"raster"` draws
-#'   the evaluated density as a dark-gray raster with alpha mapped to density.
+#'   the evaluated density as a dark-gray raster with alpha scaled from 0 to 1.
 #'
 #' @section Computed variables:
 #' HDR computed variables and default aesthetics are those supplied by the
 #' delegated \pkg{ggdensity} stat. In particular, the built data includes an
 #' ordered factor `probs`, which is mapped to `alpha` by default for filled
 #' HDRs. Raster layers expose `after_stat(z)`, the evaluated density value,
-#' and map it to `alpha` by default.
+#' and scale it to literal 0--1 alpha values by default.
 #'
 #' @return A ggplot2 layer.
 #'
@@ -114,15 +116,7 @@ geom_pdf_2d <- function(
   type <- match.arg(type)
 
   if (identical(type, "raster")) {
-    raster_mapping <- aes(alpha = after_stat(z))
-    if (is.null(mapping)) {
-      mapping <- raster_mapping
-    } else {
-      mapping <- modifyList(raster_mapping, mapping)
-    }
-
     dots <- list(...)
-    if (!"fill" %in% names(dots) && is.null(mapping$fill)) dots$fill <- "grey20"
     dots$na.rm <- na.rm
 
     do.call(geom_function_2d_1d, c(
@@ -136,6 +130,7 @@ geom_pdf_2d <- function(
         n = n,
         args = args,
         type = "raster",
+        raster_aes = "alpha",
         show.legend = show.legend,
         inherit.aes = inherit.aes
       ),
