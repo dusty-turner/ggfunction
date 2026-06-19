@@ -125,9 +125,9 @@ function either through highest density regions (HDRs) or as a raw density
 raster. For HDRs it is a thin, probability-facing wrapper around
 \pkg{ggdensity}: HDR computation, contour construction, probability labels,
 and default aesthetics are delegated to \code{\link[ggdensity:geom_hdr_fun]{ggdensity::geom_hdr_fun()}} for
-\code{type = "hdr"} (filled regions) and \code{\link[ggdensity:geom_hdr_lines_fun]{ggdensity::geom_hdr_lines_fun()}} for
+\code{type = "hdr"} (filled regions) and \code{\link[ggdensity:geom_hdr_fun]{ggdensity::geom_hdr_lines_fun()}} for
 \code{type = "hdr_lines"} (boundary contours). For \code{type = "raster"}, the density
-is evaluated on the requested grid and drawn with \code{\link[ggplot2:geom_raster]{ggplot2::geom_raster()}}.
+is evaluated on the requested grid and drawn with \code{\link[ggplot2:geom_tile]{ggplot2::geom_raster()}}.
 }
 \details{
 The supplied density uses ggfunction's 2D function convention: \code{fun}
@@ -197,7 +197,7 @@ ggplot() +
 
 }
 \seealso{
-\code{\link[ggdensity:geom_hdr_fun]{ggdensity::geom_hdr_fun()}} and \code{\link[ggdensity:geom_hdr_lines_fun]{ggdensity::geom_hdr_lines_fun()}}
+\code{\link[ggdensity:geom_hdr_fun]{ggdensity::geom_hdr_fun()}} and \code{\link[ggdensity:geom_hdr_fun]{ggdensity::geom_hdr_lines_fun()}}
 for the underlying HDR machinery; \code{\link[=geom_function_2d_1d]{geom_function_2d_1d()}} for raw
 iso-density contours; \code{\link[=geom_pdf]{geom_pdf()}} for univariate densities.
 }

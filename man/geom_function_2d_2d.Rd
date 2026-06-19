@@ -153,7 +153,7 @@ regular grid is generated from \code{xlim}, \code{ylim}, and \code{n}.}
 (\code{type = "stream"} only). Defaults to \code{"rk4"}.}
 
 \item{geom}{The geometric object to use to display the data. Defaults to
-\link[ggvfields:GeomStream]{ggvfields::GeomStream}.}
+\link[ggvfields:geom_stream]{ggvfields::GeomStream}.}
 }
 \value{
 A ggplot2 layer.
