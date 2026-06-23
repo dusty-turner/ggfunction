@@ -1,9 +1,12 @@
-# R/internal_utils.R
+# R/helper-functions.R
 
 #' @noRd
 ensure_nonempty_data <- function(data) {
   if (empty(data)) {
-    tibble0(group = 1, .size = 1)
+    # A single-row, single-column placeholder so a function-only layer has data
+    # to draw from. (Previously built via tibble0(group = 1, .size = 1), which
+    # leaked `.size`/`.name_repair` as stray columns under base data.frame.)
+    data.frame(group = 1L)
   } else {
     data
   }
@@ -18,11 +21,6 @@ ensure_length_two <- function(n) {
 
 #' @noRd
 times <- `*`
-
-#' @noRd
-tibble0 <- function(...) {
-  data.frame(..., .name_repair = "minimal")
-}
 
 #' @noRd
 empty <- function(df) {

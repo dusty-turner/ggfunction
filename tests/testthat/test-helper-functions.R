@@ -228,10 +228,19 @@ test_that("times is multiplication", {
   expect_equal(times(3, 4), 12)
 })
 
-test_that("tibble0 creates a data frame", {
-  result <- tibble0(x = 1, y = 2, .size = 1)
+test_that("ensure_nonempty_data returns a clean 1x1 placeholder", {
+  result <- ensure_nonempty_data(NULL)
   expect_s3_class(result, "data.frame")
-  expect_true("x" %in% names(result))
+  expect_equal(nrow(result), 1L)
+  # Exactly one column named `group`; guards against stray control args
+  # (.size/.name_repair) leaking in as columns.
+  expect_equal(ncol(result), 1L)
+  expect_named(result, "group")
+})
+
+test_that("ensure_nonempty_data passes through non-empty data unchanged", {
+  d <- data.frame(x = 1:3, y = letters[1:3])
+  expect_identical(ensure_nonempty_data(d), d)
 })
 
 test_that("discrete_support returns empty for integer-free ranges", {
