@@ -7,7 +7,7 @@
 \maketitle
 
 \abstract{%
-The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions, probability distributions, and empirical data distributions. It is organized around three complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for theoretical probability distributions--density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions, together with bivariate density and mass functions--each with built-in support for region shading central to hypothesis testing and interval estimation. The third family provides geoms for empirical distributions computed from samples: the empirical CDF with a simultaneous Kolmogorov--Smirnov confidence band, the empirical quantile function with the inverted KS band, one-sample PP, QQ, and stabilized probability (SP) diagnostic plots with DKW bands under a fully specified null distribution, the empirical PMF as a lollipop chart, and the empirical cumulative hazard function with a transformed DKW confidence band. For right-censored survival data, \code{geom\_ecdf\_km()} and \code{geom\_echf\_na()} provide the Kaplan--Meier survival estimator \citep{kaplan1958nonparametric} and Nelson--Aalen cumulative hazard estimator \citep{nelson1972theory, aalen1978nonparametric}, respectively, each with simultaneous equal-precision confidence bands \citep{nair1984confidence}. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
+The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions, probability distributions, and empirical data distributions. It is organized around three complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for theoretical probability distributions--density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions, together with bivariate density and mass functions--each with built-in support for region shading central to hypothesis testing and interval estimation. The third family provides geoms for empirical distributions computed from samples: the empirical CDF with a simultaneous Dvoretzky--Kiefer--Wolfowitz (DKW) confidence band, the empirical quantile function with the inverted DKW band, one-sample PP, QQ, and stabilized probability (SP) diagnostic plots with DKW bands under a fully specified null distribution, the empirical PMF as a lollipop chart, and the empirical cumulative hazard function with a transformed DKW confidence band. For right-censored survival data, \code{geom\_ecdf\_km()} and \code{geom\_echf\_na()} provide the Kaplan--Meier survival estimator \citep{kaplan1958nonparametric} and Nelson--Aalen cumulative hazard estimator \citep{nelson1972theory, aalen1978nonparametric}, respectively, each with simultaneous equal-precision confidence bands \citep{nair1984confidence}. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
 }
 
 \section{Introduction}\label{introduction}
@@ -361,7 +361,7 @@ p1 | p2 | p3
 \caption{Three shading modes for \texttt{geom\_pdf()}: lower tail ($p = 0.975$, left), central 95\% interval (center), and two-tailed rejection region at $\alpha = 0.05$ (right).}\label{fig:pdf-shading-modes}
 \end{figure}
 
-\textbf{Highest density region.} The \texttt{shade\_hdr} parameter specifies a coverage probability and shades the corresponding highest density region (HDR)--the smallest subset of the domain containing the specified probability mass. For multimodal densities the HDR may be disconnected, producing multiple disjoint shaded intervals. The algorithm follows \citet{otto2023ggdensity}: evaluate the density on the grid, normalize the values to sum to one, sort in descending order, accumulate until the target coverage is reached, and shade all grid intervals at or above the resulting density threshold.
+\textbf{Highest density region.} The \texttt{shade\_hdr} parameter specifies a coverage probability and shades the corresponding highest density region (HDR)--the smallest subset of the domain containing the specified probability mass. For multimodal densities the HDR may be disconnected, producing multiple disjoint shaded intervals. The algorithm follows \citet{otto2023ggdensity}: evaluate the density on an equally spaced grid, normalize the values to sum to one, sort in descending order, accumulate until the target coverage is reached, and shade all grid intervals at or above the resulting density threshold. The normalized cumulative sum equals the integrated probability mass under the equal-spacing assumption, so the grid is taken uniform.
 
 \begin{verbatim}
 f_mix <- function(x) 0.6 * dnorm(x, mean = -2, sd = 0.6) + 0.4 * dnorm(x, mean = 2, sd = 1.2)
@@ -696,7 +696,7 @@ H(x) = \int_{\ell}^{x} h(t)\, dt = -\log S(x)
 \label{eq:chf}
 \end{equation}
 
-accumulates the instantaneous hazard over time. It is a monotonically non-decreasing function starting at zero that rises without bound for distributions with unbounded support. In reliability analysis, \(H(x)\) is often more convenient than \(h(x)\) because it is monotone and avoids the division by \(S(x)\) that can cause numerical instability in the hazard function's tail.
+accumulates the instantaneous hazard over time, where \(\ell\) denotes the lower endpoint of the support so that \(S(\ell) = 1\); the identity \(\int_{\ell}^{x} h(t)\,dt = -\log S(x)\) holds under this convention. It is a monotonically non-decreasing function starting at zero that rises without bound for distributions with unbounded support. In reliability analysis, \(H(x)\) is often more convenient than \(h(x)\) because it is monotone and avoids the division by \(S(x)\) that can cause numerical instability in the hazard function's tail.
 
 \texttt{geom\_chf()} renders \(H(x)\) as a curve. It accepts a cumulative hazard function directly via \texttt{fun}, or derives \(H\) from any other standard characterization: a hazard function via \texttt{hf\_fun} (integrated numerically from \texttt{hf\_lower}), a CDF via \texttt{cdf\_fun} (\(H = -\log(1 - F)\)), a survival function via \texttt{survival\_fun} (\(H = -\log S\)), a PDF via \texttt{pdf\_fun} (integrated to obtain \(F\), then transformed), or a quantile function via \texttt{qf\_fun} (interpolated to obtain \(F\), then transformed).
 
@@ -762,13 +762,13 @@ finite-sample result that implies
 \begin{equation}
 P\!\left(\sup_x |\hat{F}_n(x) - F(x)| \leq \varepsilon\right) \geq 1 - \alpha,
 \quad \varepsilon = \sqrt{\frac{\log(2/\alpha)}{2n}},
-\label{eq:ks-band}
+\label{eq:dkw-band}
 \end{equation}
 
 so the ribbon \([\hat{F}_n(x) - \varepsilon,\, \hat{F}_n(x) + \varepsilon]\) (clipped to
 \([0, 1]\)) covers the true CDF \(F\) simultaneously at all \(x\) with probability at least
 \(1 - \alpha\). The confidence level is controlled by the \texttt{level} parameter (default
-0.95), and the ribbon's transparency by \texttt{conf\_alpha} (default 0.3).
+0.95), and the ribbon's transparency by \texttt{conf\_alpha} (default 0.4).
 
 \begin{verbatim}
 set.seed(1)
@@ -806,7 +806,7 @@ applies: jump segments and endpoint circles are hidden when the sample has more 
 50 distinct values.
 
 The confidence band for the quantile function follows directly from inverting
-\eqref{eq:ks-band}: since \(\hat{F}_n(x) - \varepsilon \leq F(x) \leq \hat{F}_n(x) +
+\eqref{eq:dkw-band}: since \(\hat{F}_n(x) - \varepsilon \leq F(x) \leq \hat{F}_n(x) +
 \varepsilon\) simultaneously, applying \(Q\) to all three sides yields
 \(Q_n(p - \varepsilon) \leq Q(p) \leq Q_n(p + \varepsilon)\).
 
@@ -846,7 +846,7 @@ used by the theoretical distribution geoms.
 
 Under \(H_0: F = F_0\), the probability integral transform gives
 \(F_0(X_i) \stackrel{\mathrm{iid}}{\sim} \mathrm{Unif}(0,1)\). Therefore
-\eqref{eq:ks-band} gives a simultaneous DKW band on the probability scale. For PP
+\eqref{eq:dkw-band} gives a simultaneous DKW band on the probability scale. For PP
 plots, the ribbon is simply
 
 \begin{equation}
@@ -968,7 +968,7 @@ this boundary is dropped automatically and the step function extends to the
 right panel edge at the last finite value.
 
 The simultaneous confidence band is obtained by applying the monotone
-transformation \(H = -\log(1 - F)\) to the DKW bounds \eqref{eq:ks-band}. Because
+transformation \(H = -\log(1 - F)\) to the DKW bounds \eqref{eq:dkw-band}. Because
 the DKW inequality guarantees \(\hat{F}_n(x) - \varepsilon \leq F(x) \leq
 \hat{F}_n(x) + \varepsilon\) simultaneously at all \(x\), applying \(H = -\log(1 -
 F)\) to both sides (and clipping the CDF bounds to \([0, 1)\)) yields a
@@ -1115,7 +1115,7 @@ consistent with the generating model.
 
 \subsection{Validity of the confidence band}\label{validity-of-the-confidence-band}
 
-The DKW inequality \eqref{eq:ks-band} is a \emph{finite-sample} result: it
+The DKW inequality \eqref{eq:dkw-band} is a \emph{finite-sample} result: it
 holds for every \(n \geq 1\), not merely asymptotically. It guarantees that the
 simultaneous confidence band contains the true CDF everywhere with probability
 at least \(1 - \alpha\) at any sample size. Because the KS statistic
@@ -1124,7 +1124,7 @@ for continuous \(F\), the coverage guarantee holds regardless of the shape of th
 true distribution.
 
 We verify the guarantee by simulation. For each combination of sample size \(n\)
-and nominal level \(1 - \alpha\), we draw \(B = 2{,}000\) independent samples from
+and nominal level \(1 - \alpha\), we draw \(B = 10{,}000\) independent samples from
 \(\mathcal{N}(0,1)\), compute \(D_n\) via \texttt{ks.test()}, and record the fraction of
 replications for which \(D_n \leq \varepsilon_n\), where \(\varepsilon_n\) is the
 half-width used by \texttt{geom\_ecdf()}.
@@ -1226,7 +1226,7 @@ Several layers involve numerical integration or accumulation:
 
 The default resolution of \(n = 101\) for one-dimensional functions and \(n = 50\) for two-dimensional grids (yielding 2500 evaluation points) balances visual fidelity against computational cost. Users may increase \(n\) for functions with fine-scale structure.
 
-\section{Composability and the grammar and limitations}\label{composability-and-the-grammar-and-limitations}
+\section{Composability and limitations}\label{composability-and-limitations}
 
 Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the rest of the grammar. Layers can be overlaid, scaled, themed, annotated, and faceted exactly as one would with any other geom. The following example superimposes two normal densities with different means and spreads, demonstrating that function visualization and standard \CRANpkg{ggplot2} idioms are fully interoperable:
 

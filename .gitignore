@@ -12,3 +12,7 @@ Rplots.pdf
 .DS_Store
 paper/articles/
 .positai
+
+paper/render.log
+paper/*.knit.md
+paper/*.utf8.md
