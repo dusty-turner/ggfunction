@@ -5,6 +5,9 @@
 #' threshold via `p`, or a two-sided interval via `p_lower` and `p_upper`.
 #'
 #' @inheritParams ggplot2::geom_function
+#' @param data Optional data frame. Not required when a function is supplied via
+#'   `fun` (or `pdf_fun`/`survival_fun`/`qf_fun`/`hf_fun`); a placeholder is
+#'   created internally so the layer can render from the function alone.
 #' @param fun A function to compute the CDF (e.g. [pnorm]). The function must accept a numeric
 #'   vector as its first argument and return values between 0 and 1. Exactly one of `fun`,
 #'   `pdf_fun`, `survival_fun`, `qf_fun`, or `hf_fun` must be provided.

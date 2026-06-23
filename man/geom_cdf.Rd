@@ -44,7 +44,9 @@ GeomCDF
 at the top level of the plot. You must supply \code{mapping} if there is no plot
 mapping.}
 
-\item{data}{Ignored by \code{stat_function()}, do not use.}
+\item{data}{Optional data frame. Not required when a function is supplied via
+\code{fun} (or \code{pdf_fun}/\code{survival_fun}/\code{qf_fun}/\code{hf_fun}); a placeholder is
+created internally so the layer can render from the function alone.}
 
 \item{stat}{The statistical transformation to use on the data for this layer.
 When using a \verb{geom_*()} function to construct a layer, the \code{stat}

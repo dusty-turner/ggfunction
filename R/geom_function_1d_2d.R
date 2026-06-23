@@ -23,8 +23,8 @@
 #'   Defaults to [Stat_1d_2d].
 #' @param position Position adjustment, either as a string or the result of a
 #'   call to a position adjustment function.
-#' @param na.rm Logical. If `FALSE` (the default), missing values are removed
-#'   with a warning.
+#' @param na.rm Logical. If `FALSE`, the default, missing values are removed
+#'   with a warning. If `TRUE`, missing values are silently removed.
 #' @param show.legend Logical. Should this layer be included in the legends?
 #' @param inherit.aes Logical. If `FALSE`, overrides the default aesthetics
 #'   rather than combining with them.

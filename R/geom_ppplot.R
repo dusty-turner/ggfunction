@@ -113,7 +113,8 @@
 #'   \item{`after_stat(sample)`}{Sorted sample values.}
 #'   \item{`after_stat(n)`}{Sample size after removing non-finite values.}
 #'   \item{`after_stat(ymin)` and `after_stat(ymax)`}{Lower and upper confidence
-#'   band limits when `conf_int = TRUE`.}
+#'   band limits for PP and SP plots when `conf_int = TRUE`. For QQ plots the
+#'   band limits are exposed as `after_stat(qq_ymin)` and `after_stat(qq_ymax)`.}
 #' }
 #'
 #' @section Aesthetics:

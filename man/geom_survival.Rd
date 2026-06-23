@@ -103,7 +103,7 @@ Exactly one of \code{fun}, \code{cdf_fun}, \code{pdf_fun}, or \code{qf_fun} must
 \item{n}{Number of points at which to evaluate. Defaults to 101.}
 
 \item{args}{A named list of additional arguments to pass to \code{fun},
-\code{cdf_fun}, or \code{pdf_fun}.}
+\code{cdf_fun}, \code{pdf_fun}, or \code{qf_fun}.}
 
 \item{color}{Line color for the survival curve.}
 }

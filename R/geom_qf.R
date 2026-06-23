@@ -31,7 +31,7 @@
 #'   near 0 and 1 where quantile functions are typically most curved, and never include
 #'   the exact endpoints (avoiding \eqn{\pm\infty} for unbounded distributions).
 #' @param args A named list of additional arguments to pass to `fun`, `cdf_fun`,
-#'   or `pdf_fun`.
+#'   `pdf_fun`, or `survival_fun`.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:

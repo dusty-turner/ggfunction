@@ -20,8 +20,8 @@
 #' @param survival_fun A discrete survival function. The CDF is computed as
 #'   \eqn{F(x) = 1 - S(x)} on the integer support. Exactly one of `fun`,
 #'   `pmf_fun`, or `survival_fun` must be provided.
-#' @param args A named list of additional arguments to pass to `fun` or
-#'   `pmf_fun`.
+#' @param args A named list of additional arguments to pass to `fun`,
+#'   `pmf_fun`, or `survival_fun`.
 #' @param xlim A numeric vector of length 2 specifying the range of support
 #'   values to display. When `support` is not supplied, this range is also used
 #'   as the computational support.

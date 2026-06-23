@@ -100,7 +100,7 @@ near 0 and 1 where quantile functions are typically most curved, and never inclu
 the exact endpoints (avoiding \eqn{\pm\infty} for unbounded distributions).}
 
 \item{args}{A named list of additional arguments to pass to \code{fun}, \code{cdf_fun},
-or \code{pdf_fun}.}
+\code{pdf_fun}, or \code{survival_fun}.}
 }
 \value{
 A ggplot2 layer.

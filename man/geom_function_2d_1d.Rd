@@ -7,7 +7,7 @@
 \alias{GeomFunction2d}
 \alias{StatFunction2dContour}
 \alias{StatFunction2dContourFilled}
-\title{Create a 2D Function Visualization Layer of the Norm of a Vector Field}
+\title{Visualize a Scalar Field z = f(x, y)}
 \usage{
 geom_function_2d_1d(
   mapping = NULL,
@@ -66,7 +66,8 @@ StatFunction2dContourFilled
 
 \item{position}{Position adjustment for the layer. Defaults to \code{"identity"}.}
 
-\item{fun}{A function that takes a matrix of x, y values and returns a matrix of dx, dy values.}
+\item{fun}{A function evaluated at each grid point. It takes a length-2
+numeric vector \code{c(x, y)} and returns a single numeric value \code{z}.}
 
 \item{xlim}{Numeric vector of length 2 specifying the x-range of the grid. Required if \code{fun} is provided.}
 
@@ -94,7 +95,8 @@ StatFunction2dContourFilled
 A \code{ggplot2} layer.
 }
 \description{
-\code{geom_function_2d_1d} adds a layer to visualize 2D functions or vector fields in a \code{ggplot2} plot.
+\code{geom_function_2d_1d} adds a layer that visualizes a scalar-valued function
+of two variables, \eqn{z = f(x, y)}, over a grid as a raster or contour plot.
 }
 \section{Computed variables}{
 

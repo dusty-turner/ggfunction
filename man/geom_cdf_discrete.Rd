@@ -117,8 +117,8 @@ points used for cumulative computation. When supplied with \code{xlim}, the
 cumulative probabilities are computed on the full \code{support} and then
 filtered to the displayed \code{xlim}.}
 
-\item{args}{A named list of additional arguments to pass to \code{fun} or
-\code{pmf_fun}.}
+\item{args}{A named list of additional arguments to pass to \code{fun},
+\code{pmf_fun}, or \code{survival_fun}.}
 
 \item{open_fill}{Fill color for the open (hollow) endpoint circles. Defaults
 to \code{NULL}, which uses the active theme's panel background color.}

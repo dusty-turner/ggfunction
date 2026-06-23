@@ -18,8 +18,8 @@ call to a position adjustment function.}
 
 \item{...}{Other arguments passed on to \code{\link[ggplot2:layer]{ggplot2::layer()}}.}
 
-\item{na.rm}{Logical. If \code{FALSE} (the default), missing values are removed
-with a warning.}
+\item{na.rm}{Logical. If \code{FALSE}, the default, missing values are removed
+with a warning. If \code{TRUE}, missing values are silently removed.}
 
 \item{show.legend}{Logical. Should this layer be included in the legends?}
 

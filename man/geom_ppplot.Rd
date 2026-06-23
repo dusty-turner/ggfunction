@@ -337,7 +337,8 @@ probabilities, or sample quantiles.}
 \item{\code{after_stat(sample)}}{Sorted sample values.}
 \item{\code{after_stat(n)}}{Sample size after removing non-finite values.}
 \item{\code{after_stat(ymin)} and \code{after_stat(ymax)}}{Lower and upper confidence
-band limits when \code{conf_int = TRUE}.}
+band limits for PP and SP plots when \code{conf_int = TRUE}. For QQ plots the
+band limits are exposed as \code{after_stat(qq_ymin)} and \code{after_stat(qq_ymax)}.}
 }
 }
 

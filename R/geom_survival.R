@@ -26,7 +26,7 @@
 #'   Exactly one of `fun`, `cdf_fun`, `pdf_fun`, or `qf_fun` must be provided.
 #' @param n Number of points at which to evaluate. Defaults to 101.
 #' @param args A named list of additional arguments to pass to `fun`,
-#'   `cdf_fun`, or `pdf_fun`.
+#'   `cdf_fun`, `pdf_fun`, or `qf_fun`.
 #' @param xlim A numeric vector of length 2 giving the x-range.
 #' @param color Line color for the survival curve.
 #' @param ... Other parameters passed on to [ggplot2::layer()].

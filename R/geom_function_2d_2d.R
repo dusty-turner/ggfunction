@@ -37,7 +37,8 @@
 #' @param method Character. Integration method, e.g. `"rk4"` or `"euler"`
 #'   (`type = "stream"` only). Defaults to `"rk4"`.
 #' @param geom The geometric object to use to display the data. Defaults to
-#'   [ggvfields::GeomStream].
+#'   [ggvfields::GeomStream]. Only `stat_function_2d_2d()` accepts this
+#'   argument; `geom_function_2d_2d()` has a fixed geom.
 #' @param ... Other arguments passed to [ggplot2::layer()].
 #'
 #' @section Computed variables:

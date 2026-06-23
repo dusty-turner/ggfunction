@@ -1,6 +1,7 @@
-#' Create a 2D Function Visualization Layer of the Norm of a Vector Field
+#' Visualize a Scalar Field z = f(x, y)
 #'
-#' `geom_function_2d_1d` adds a layer to visualize 2D functions or vector fields in a `ggplot2` plot.
+#' `geom_function_2d_1d` adds a layer that visualizes a scalar-valued function
+#' of two variables, \eqn{z = f(x, y)}, over a grid as a raster or contour plot.
 #'
 #' @param mapping Aesthetic mappings, created using `aes()`. If `NULL`, defaults are used.
 #' @param data Optional data frame to override the default data source.
@@ -8,7 +9,8 @@
 #' @param geom Geom used for rendering. Defaults to `GeomFunction2d`.
 #' @param ... Other arguments passed to the layer, such as additional parameters.
 #' @param position Position adjustment for the layer. Defaults to `"identity"`.
-#' @param fun A function that takes a matrix of x, y values and returns a matrix of dx, dy values.
+#' @param fun A function evaluated at each grid point. It takes a length-2
+#'   numeric vector `c(x, y)` and returns a single numeric value `z`.
 #' @param xlim Numeric vector of length 2 specifying the x-range of the grid. Required if `fun` is provided.
 #' @param ylim Numeric vector of length 2 specifying the y-range of the grid. Required if `fun` is provided.
 #' @param n Number of points in the grid along each axis. Defaults to `50` in `stat_function_2d_1d`.
@@ -301,7 +303,7 @@ StatFunction2d <- ggproto(
     } else {
       # fun is NULL, expecting user-provided data with x,y and dx,dy or angle/distance
       if (!all(c("x", "y") %in% names(data))) {
-        stop("`stat_vector()` requires `x` and `y` aesthetics or a `fun` with `xlim`/`ylim`.")
+        stop("`stat_function_2d_1d()` requires `x` and `y` aesthetics or a `fun` with `xlim`/`ylim`.")
       }
 
     }

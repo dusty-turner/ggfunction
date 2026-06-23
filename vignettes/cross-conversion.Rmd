@@ -344,7 +344,8 @@ p1 <- ggplot() +
 # PDF derived from CDF vs exact
 p2 <- ggplot() +
   geom_pdf(cdf_fun = pnorm, xlim = c(-3, 3)) +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3), color = "red", alpha = 0) +
+  geom_pdf(fun = dnorm, xlim = c(-3, 3), color = "red", fill = NA,
+           alpha = 1, linetype = "dashed") +
   ggtitle("PDF: derived (black) vs exact (red)")
 
 # QF derived from CDF vs exact
