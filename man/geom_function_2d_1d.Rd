@@ -22,6 +22,7 @@ geom_function_2d_1d(
   n = NULL,
   args = list(),
   type = "raster",
+  raster_aes = c("fill", "alpha"),
   bins = NULL,
   binwidth = NULL,
   breaks = NULL,
@@ -79,6 +80,11 @@ numeric vector \code{c(x, y)} and returns a single numeric value \code{z}.}
 
 \item{type}{Character. Type of visualization: \code{"raster"} (default), \code{"contour"}, or \code{"contour_filled"}.}
 
+\item{raster_aes}{Character. Default raster aesthetic encoding. \code{"fill"}
+(default) maps \code{after_stat(z)} to \code{fill}, preserving the usual fill scale
+and legend. \code{"alpha"} uses a fixed dark gray fill and scales
+\code{after_stat(z)} to literal 0--1 alpha values.}
+
 \item{bins}{Number of contour bins. Only used when \code{type} is \code{"contour"} or \code{"contour_filled"}.}
 
 \item{binwidth}{Width of contour bins. Only used when \code{type} is \code{"contour"} or \code{"contour_filled"}.}
@@ -106,7 +112,8 @@ with \code{\link[ggplot2:after_stat]{ggplot2::after_stat()}}.
 \item{\code{after_stat(x)}}{Grid x coordinates.}
 \item{\code{after_stat(y)}}{Grid y coordinates.}
 \item{\code{after_stat(z)}}{Function values on the grid for raster and contour
-inputs. The raster display maps \code{fill = after_stat(z)} by default.}
+inputs. The raster display maps \code{fill = after_stat(z)} by default, or
+scales it to literal alpha values when \code{raster_aes = "alpha"}.}
 \item{\code{after_stat(level)}}{Contour level for \code{type = "contour"} or
 \code{type = "contour_filled"}.}
 \item{\code{after_stat(nlevel)}}{Contour level scaled to a maximum of 1.}
@@ -134,13 +141,21 @@ contour layers use ggplot2's contour aesthetics, including \code{colour},
 \examples{
 # Function that calculates the norm
 f <- function(v) {
-  x <- v[1]
-  y <- v[2]
+  x <- v[1]; y <- v[2]
   c(sqrt(x^2 + y^2))
 }
 
 ggplot() +
   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5))
+
+ggplot() +
+  geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), raster_aes = "alpha")
+
+ggplot() +
+  geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), type = "contour")
+
+ggplot() +
+  geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), type = "contour_filled")
 
 # Sinusoidal combination of sine and cosine
 f_sin_cos <- function(v) {
@@ -209,6 +224,15 @@ ggplot() +
     xlim = c(-5, 5),
     ylim = c(-5, 5),
     args = list(a = 2, b = 0.5)
+  )
+
+# Alpha raster with a fixed fill
+ggplot() +
+  geom_function_2d_1d(
+    fun = f_gaussian,
+    xlim = c(-5, 5),
+    ylim = c(-5, 5),
+    raster_aes = "alpha"
   )
 }
 \seealso{

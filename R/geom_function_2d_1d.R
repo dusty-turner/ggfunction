@@ -16,6 +16,10 @@
 #' @param n Number of points in the grid along each axis. Defaults to `50` in `stat_function_2d_1d`.
 #' @param args A named list of additional arguments passed to `fun`.
 #' @param type Character. Type of visualization: `"raster"` (default), `"contour"`, or `"contour_filled"`.
+#' @param raster_aes Character. Default raster aesthetic encoding. `"fill"`
+#'   (default) maps `after_stat(z)` to `fill`, preserving the usual fill scale
+#'   and legend. `"alpha"` uses a fixed dark gray fill and scales
+#'   `after_stat(z)` to literal 0--1 alpha values.
 #' @param bins Number of contour bins. Only used when `type` is `"contour"` or `"contour_filled"`.
 #' @param binwidth Width of contour bins. Only used when `type` is `"contour"` or `"contour_filled"`.
 #' @param breaks Numeric vector of specific contour break values. Only used when `type` is `"contour"` or `"contour_filled"`.
@@ -30,7 +34,8 @@
 #'   \item{`after_stat(x)`}{Grid x coordinates.}
 #'   \item{`after_stat(y)`}{Grid y coordinates.}
 #'   \item{`after_stat(z)`}{Function values on the grid for raster and contour
-#'   inputs. The raster display maps `fill = after_stat(z)` by default.}
+#'   inputs. The raster display maps `fill = after_stat(z)` by default, or
+#'   scales it to literal alpha values when `raster_aes = "alpha"`.}
 #'   \item{`after_stat(level)`}{Contour level for `type = "contour"` or
 #'   `type = "contour_filled"`.}
 #'   \item{`after_stat(nlevel)`}{Contour level scaled to a maximum of 1.}
@@ -59,13 +64,21 @@
 #' @examples
 #' # Function that calculates the norm
 #' f <- function(v) {
-#'   x <- v[1]
-#'   y <- v[2]
+#'   x <- v[1]; y <- v[2]
 #'   c(sqrt(x^2 + y^2))
 #' }
 #'
 #' ggplot() +
 #'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5))
+#'
+#' ggplot() +
+#'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), raster_aes = "alpha")
+#'
+#' ggplot() +
+#'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), type = "contour")
+#'
+#' ggplot() +
+#'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), type = "contour_filled")
 #'
 #' # Sinusoidal combination of sine and cosine
 #' f_sin_cos <- function(v) {
@@ -135,6 +148,15 @@
 #'     ylim = c(-5, 5),
 #'     args = list(a = 2, b = 0.5)
 #'   )
+#'
+#' # Alpha raster with a fixed fill
+#' ggplot() +
+#'   geom_function_2d_1d(
+#'     fun = f_gaussian,
+#'     xlim = c(-5, 5),
+#'     ylim = c(-5, 5),
+#'     raster_aes = "alpha"
+#'   )
 
 #' @rdname geom_function_2d_1d
 #' @export
@@ -148,6 +170,7 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
                                 n = NULL,
                                 args = list(),
                                 type = "raster",
+                                raster_aes = c("fill", "alpha"),
                                 bins = NULL,
                                 binwidth = NULL,
                                 breaks = NULL,
@@ -168,6 +191,8 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
   }
 
   type <- match.arg(type, c("raster", "contour", "contour_filled"))
+  raster_aes <- match.arg(raster_aes)
+  dots <- list(...)
 
   if (type == "contour") {
     stat <- StatFunction2dContour
@@ -185,8 +210,18 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
     }
   } else {
     # raster (default)
-    if (is.null(mapping)) {
-      mapping <- aes(fill = after_stat(z))
+    if (identical(raster_aes, "fill")) {
+      if (is.null(mapping)) {
+        mapping <- aes(fill = after_stat(z))
+      }
+    } else {
+      default_mapping <- aes(alpha = after_stat(function2d_alpha_rescale(z)))
+      if (is.null(mapping)) {
+        mapping <- default_mapping
+      } else {
+        mapping <- modifyList(default_mapping, mapping)
+      }
+      if (!"fill" %in% names(dots) && is.null(mapping$fill)) dots$fill <- "grey20"
     }
   }
 
@@ -195,9 +230,9 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
     xlim = xlim,
     ylim = ylim,
     n = n,
-    args = args,
-    ...
+    args = args
   )
+  params <- c(params, dots)
 
   if (!is.null(bins)) params$bins <- bins
   if (!is.null(binwidth)) params$binwidth <- binwidth
@@ -213,6 +248,24 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
     inherit.aes = inherit.aes,
     params = params
   )
+}
+
+
+#' @noRd
+function2d_alpha_rescale <- function(z) {
+  out <- rep(NA_real_, length(z))
+  finite <- is.finite(z)
+  if (!any(finite)) return(I(out))
+
+  z_min <- min(z[finite])
+  z_max <- max(z[finite])
+  if (z_max <= z_min) {
+    out[finite] <- if (z_max == 0) 0 else 1
+  } else {
+    out[finite] <- (z[finite] - z_min) / (z_max - z_min)
+  }
+
+  I(out)
 }
 
 

@@ -174,7 +174,7 @@ ggplot() +
 
 
 ## ----pdf-2d, echo=TRUE, fig.width=12, fig.height=4----------------------------
-#| fig.cap: "Bivariate normal densities drawn by \\texttt{geom\\_pdf\\_2d()}: filled 50/80/95\\% HDRs of the standard bivariate normal (left), HDR boundary lines for a correlated bivariate normal with covariance supplied via \\texttt{args} (middle), and a raw density raster with alpha mapped to density (right)."
+#| fig.cap: "Bivariate normal densities drawn by \\texttt{geom\\_pdf\\_2d()}: filled 50/80/95\\% HDRs of the standard bivariate normal (left), HDR boundary lines for a correlated bivariate normal with covariance supplied via \\texttt{args} (middle), and a raw density raster with density scaled to literal alpha (right)."
 dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
   x <- matrix(v - mu, ncol = 1)
   Sinv <- solve(Sigma)

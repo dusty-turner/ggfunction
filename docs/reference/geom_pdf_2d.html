@@ -203,7 +203,7 @@ range.</p></dd>
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
 <dd><p>Character. <code>"hdr"</code> (default) draws filled highest density
 regions; <code>"hdr_lines"</code> draws HDR boundary contour lines; <code>"raster"</code> draws
-the evaluated density as a dark-gray raster with alpha mapped to density.</p></dd>
+the evaluated density as a dark-gray raster with alpha scaled from 0 to 1.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -217,8 +217,10 @@ receives a single numeric vector <code>v = c(x, y)</code> and returns one densit
 value. <span class="pkg">ggdensity</span> expects a function of two vectorized arguments
 <code>fun(x, y)</code>; <code>geom_pdf_2d()</code> adapts between the two interfaces internally,
 closing over <code>args</code> in the process.</p>
-<p>Raw density rasters map <code>after_stat(z)</code> to <code>alpha</code> by default with a fixed
-dark gray fill; <code>probs</code> is ignored for <code>type = "raster"</code>.</p>
+<p>Raw density rasters use <code><a href="geom_function_2d_1d.html">geom_function_2d_1d()</a></code> with
+<code>raster_aes = "alpha"</code>: the evaluated density is mapped to literal alpha
+values scaled from 0 to 1 by default, with a fixed dark gray fill. <code>probs</code>
+is ignored for <code>type = "raster"</code>.</p>
 <p>For arbitrary iso-density contours (level sets not calibrated to probability
 content), use <code><a href="geom_function_2d_1d.html">geom_function_2d_1d()</a></code> with <code>type = "contour"</code> or
 <code>"contour_filled"</code>.</p>
@@ -231,7 +233,7 @@ content), use <code><a href="geom_function_2d_1d.html">geom_function_2d_1d()</a>
 delegated <span class="pkg">ggdensity</span> stat. In particular, the built data includes an
 ordered factor <code>probs</code>, which is mapped to <code>alpha</code> by default for filled
 HDRs. Raster layers expose <code>after_stat(z)</code>, the evaluated density value,
-and map it to <code>alpha</code> by default.</p>
+and scale it to literal 0–1 alpha values by default.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

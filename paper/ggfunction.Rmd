@@ -230,6 +230,8 @@ A scalar field assigns a real value to each point in a two-dimensional domain. `
 - `"contour"`: iso-level curves with `colour` mapped to `after_stat(level)`, producing a colored legend automatically.
 - `"contour_filled"`: filled regions between contour levels rendered by `ggplot2::GeomContourFilled`.
 
+For raster layers, `raster_aes = "fill"` keeps the default heatmap representation and continuous fill legend, while `raster_aes = "alpha"` fixes the fill at dark gray and rescales finite function values to literal 0--1 alpha values.
+
 ```{r sincos-raster, echo=TRUE}
 #| fig.cap: "The function $f(x, y) = \\sin(x)\\cos(y)$ over $[-\\pi, \\pi]^2$ rendered as a raster heatmap."
 f_sc <- function(u) {
@@ -382,10 +384,10 @@ The normalized values $A_k / A_n$ are then compared against the specified probab
 
 ## Bivariate density functions: `geom_pdf_2d()`
 
-The density family extends to bivariate distributions through `geom_pdf_2d()`, which visualizes a joint density $f(x, y)$ through its highest density regions (HDRs)--the smallest regions of the plane containing specified probability masses--or as a raw density raster. Rather than reimplement the HDR computation, the layer is a thin, probability-facing wrapper around \CRANpkg{ggdensity} [@otto2023ggdensity]: with `type = "hdr"` (the default), filled regions are drawn by `ggdensity::geom_hdr_fun()`, and with `type = "hdr_lines"` the region boundaries are drawn by `ggdensity::geom_hdr_lines_fun()`, so HDR computation, probability labeling, and default aesthetics remain with \CRANpkg{ggdensity}. The density is supplied in \pkg{ggfunction}'s bivariate convention--`fun` receives a single vector $v = (x, y)$ and returns one density value, with parameters passed via `args`--and is adapted internally to \CRANpkg{ggdensity}'s vectorized two-argument interface. The `probs` parameter sets the HDR coverage levels, defaulting to 99%, 95%, 80%, and 50%, and is ignored by `type = "raster"`, which evaluates the density on a grid and renders a dark-gray raster with alpha mapped to the density value. For iso-density contours not calibrated to probability content, `geom_function_2d_1d()` remains the appropriate tool.
+The density family extends to bivariate distributions through `geom_pdf_2d()`, which visualizes a joint density $f(x, y)$ through its highest density regions (HDRs)--the smallest regions of the plane containing specified probability masses--or as a raw density raster. Rather than reimplement the HDR computation, the layer is a thin, probability-facing wrapper around \CRANpkg{ggdensity} [@otto2023ggdensity]: with `type = "hdr"` (the default), filled regions are drawn by `ggdensity::geom_hdr_fun()`, and with `type = "hdr_lines"` the region boundaries are drawn by `ggdensity::geom_hdr_lines_fun()`, so HDR computation, probability labeling, and default aesthetics remain with \CRANpkg{ggdensity}. The density is supplied in \pkg{ggfunction}'s bivariate convention--`fun` receives a single vector $v = (x, y)$ and returns one density value, with parameters passed via `args`--and is adapted internally to \CRANpkg{ggdensity}'s vectorized two-argument interface. The `probs` parameter sets the HDR coverage levels, defaulting to 99%, 95%, 80%, and 50%, and is ignored by `type = "raster"`, which evaluates the density on a grid using the alpha-raster mode of `geom_function_2d_1d()`: dark-gray fill with density scaled to literal 0--1 alpha values. For iso-density contours not calibrated to probability content, `geom_function_2d_1d()` remains the appropriate tool.
 
 ```{r pdf-2d, echo=TRUE, fig.width=12, fig.height=4}
-#| fig.cap: "Bivariate normal densities drawn by \\texttt{geom\\_pdf\\_2d()}: filled 50/80/95\\% HDRs of the standard bivariate normal (left), HDR boundary lines for a correlated bivariate normal with covariance supplied via \\texttt{args} (middle), and a raw density raster with alpha mapped to density (right)."
+#| fig.cap: "Bivariate normal densities drawn by \\texttt{geom\\_pdf\\_2d()}: filled 50/80/95\\% HDRs of the standard bivariate normal (left), HDR boundary lines for a correlated bivariate normal with covariance supplied via \\texttt{args} (middle), and a raw density raster with density scaled to literal alpha (right)."
 dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
   x <- matrix(v - mu, ncol = 1)
   Sinv <- solve(Sigma)

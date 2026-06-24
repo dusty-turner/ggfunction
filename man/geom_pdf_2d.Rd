@@ -114,7 +114,7 @@ range.}
 
 \item{type}{Character. \code{"hdr"} (default) draws filled highest density
 regions; \code{"hdr_lines"} draws HDR boundary contour lines; \code{"raster"} draws
-the evaluated density as a dark-gray raster with alpha mapped to density.}
+the evaluated density as a dark-gray raster with alpha scaled from 0 to 1.}
 }
 \value{
 A ggplot2 layer.
@@ -136,8 +136,10 @@ value. \pkg{ggdensity} expects a function of two vectorized arguments
 \code{fun(x, y)}; \code{geom_pdf_2d()} adapts between the two interfaces internally,
 closing over \code{args} in the process.
 
-Raw density rasters map \code{after_stat(z)} to \code{alpha} by default with a fixed
-dark gray fill; \code{probs} is ignored for \code{type = "raster"}.
+Raw density rasters use \code{\link[=geom_function_2d_1d]{geom_function_2d_1d()}} with
+\code{raster_aes = "alpha"}: the evaluated density is mapped to literal alpha
+values scaled from 0 to 1 by default, with a fixed dark gray fill. \code{probs}
+is ignored for \code{type = "raster"}.
 
 For arbitrary iso-density contours (level sets not calibrated to probability
 content), use \code{\link[=geom_function_2d_1d]{geom_function_2d_1d()}} with \code{type = "contour"} or
@@ -149,7 +151,7 @@ HDR computed variables and default aesthetics are those supplied by the
 delegated \pkg{ggdensity} stat. In particular, the built data includes an
 ordered factor \code{probs}, which is mapped to \code{alpha} by default for filled
 HDRs. Raster layers expose \code{after_stat(z)}, the evaluated density value,
-and map it to \code{alpha} by default.
+and scale it to literal 0--1 alpha values by default.
 }
 
 \examples{
