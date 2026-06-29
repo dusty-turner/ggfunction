@@ -534,7 +534,7 @@ times. The examples use this distinction deliberately.
 
 }
 
-\caption{Censored-data summaries from the same simulated sample. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with pointwise normal intervals.}\label{fig:survival-workflow}
+\caption{Censored-data summaries from the same simulated sample. The smooth orange curves show the generating Exp(0.45) survival and cumulative-hazard targets. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with pointwise normal intervals.}\label{fig:survival-workflow}
 \end{figure}
 
 \section{Implementation, numerical behavior, and performance}\label{implementation-numerical-behavior-and-performance}
@@ -871,10 +871,15 @@ within the same support-aware probability framework used by its ECDF and
 quantile layers; users who need a wider diagnostic-band or detrending menu
 should use \CRANpkg{qqplotr}. For right-censored data, \CRANpkg{survminer}
 \citep{survminer} and \CRANpkg{ggsurvfit} \citep{ggsurvfit} provide publication-oriented
-Kaplan--Meier figures with survival-analysis furniture such as risk tables and
-censoring summaries. \texttt{geom\_ecdf\_km()} is instead a composable layer that can
-share risk-set tabulation with \texttt{geom\_echf\_na()} and overlay theoretical survival
-curves in the ordinary grammar; it does not aim to replace those packages.
+time-to-event figures with survival-analysis furniture such as risk tables,
+censoring summaries, stratified comparisons, and ready-to-share themes;
+\CRANpkg{ggsurvfit} is itself modular and \CRANpkg{ggplot2}-compatible. The
+censored-data layers in \pkg{ggfunction} emphasize a lower-level role inside
+the same support-aware probability framework used by its other empirical geoms:
+\texttt{geom\_ecdf\_km()} and \texttt{geom\_echf\_na()} share one risk-set tabulation, use
+deliberately different confidence encodings for simultaneous and pointwise
+displays, and overlay theoretical survival or cumulative-hazard curves as
+ordinary layers. They do not aim to replace survival-workflow packages.
 
 This scope keeps the package lightweight. It does not define distribution
 objects, fit models, estimate bivariate densities from samples, or implement a

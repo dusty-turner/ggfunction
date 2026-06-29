@@ -397,7 +397,7 @@ sp_plot <- ggplot(diag_data, aes(x = x)) +
 qq_plot + sp_plot
 
 
-## ----survival-workflow, fig.width=7, fig.height=4.6, out.width="95%", fig.cap="Censored-data summaries from the same simulated sample. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with pointwise normal intervals."----
+## ----survival-workflow, fig.width=7, fig.height=4.6, out.width="95%", fig.cap="Censored-data summaries from the same simulated sample. The smooth orange curves show the generating Exp(0.45) survival and cumulative-hazard targets. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with pointwise normal intervals."----
 set.seed(3103)
 n_surv <- 90
 event_time <- rexp(n_surv, rate = 0.45)

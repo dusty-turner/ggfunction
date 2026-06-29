@@ -812,7 +812,7 @@ differ: the simultaneous Kaplan--Meier band is drawn as a ribbon, while the
 pointwise Nelson--Aalen intervals are drawn as thin vertical bars at event
 times. The examples use this distinction deliberately.
 
-```{r survival-workflow, fig.width=7, fig.height=4.6, out.width="95%", fig.cap="Censored-data summaries from the same simulated sample. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with pointwise normal intervals."}
+```{r survival-workflow, fig.width=7, fig.height=4.6, out.width="95%", fig.cap="Censored-data summaries from the same simulated sample. The smooth orange curves show the generating Exp(0.45) survival and cumulative-hazard targets. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with pointwise normal intervals."}
 set.seed(3103)
 n_surv <- 90
 event_time <- rexp(n_surv, rate = 0.45)
@@ -1195,10 +1195,15 @@ within the same support-aware probability framework used by its ECDF and
 quantile layers; users who need a wider diagnostic-band or detrending menu
 should use \CRANpkg{qqplotr}. For right-censored data, \CRANpkg{survminer}
 [@survminer] and \CRANpkg{ggsurvfit} [@ggsurvfit] provide publication-oriented
-Kaplan--Meier figures with survival-analysis furniture such as risk tables and
-censoring summaries. `geom_ecdf_km()` is instead a composable layer that can
-share risk-set tabulation with `geom_echf_na()` and overlay theoretical survival
-curves in the ordinary grammar; it does not aim to replace those packages.
+time-to-event figures with survival-analysis furniture such as risk tables,
+censoring summaries, stratified comparisons, and ready-to-share themes;
+\CRANpkg{ggsurvfit} is itself modular and \CRANpkg{ggplot2}-compatible. The
+censored-data layers in \pkg{ggfunction} emphasize a lower-level role inside
+the same support-aware probability framework used by its other empirical geoms:
+`geom_ecdf_km()` and `geom_echf_na()` share one risk-set tabulation, use
+deliberately different confidence encodings for simultaneous and pointwise
+displays, and overlay theoretical survival or cumulative-hazard curves as
+ordinary layers. They do not aim to replace survival-workflow packages.
 
 This scope keeps the package lightweight. It does not define distribution
 objects, fit models, estimate bivariate densities from samples, or implement a

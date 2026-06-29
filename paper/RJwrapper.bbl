@@ -58,8 +58,8 @@ E.~L. Kaplan and P.~Meier.
 \newblock \emph{Journal of the American Statistical Association}, 53\penalty0 (282):\penalty0 457--481, 1958.
 \newblock \doi{10.1080/01621459.1958.10501452}.
 
-\bibitem[Kassambara et~al.(2026)Kassambara, Kosinski, Biecek, and {Scheipl Fabian}]{survminer}
-A.~Kassambara, M.~Kosinski, P.~Biecek, and {Scheipl Fabian}.
+\bibitem[Kassambara et~al.(2026)Kassambara, Kosinski, Biecek, and Scheipl]{survminer}
+A.~Kassambara, M.~Kosinski, P.~Biecek, and F.~Scheipl.
 \newblock \emph{{survminer}: Drawing Survival Curves using {ggplot2}}, 2026.
 \newblock URL \url{https://CRAN.R-project.org/package=survminer}.
 \newblock R package version 0.5.2.
@@ -113,11 +113,11 @@ D.~D. Sjoberg, M.~Baillie, C.~Fruechtenicht, S.~Haesendonckx, and T.~Treis.
 \newblock URL \url{https://CRAN.R-project.org/package=ggsurvfit}.
 \newblock R package version 1.2.0.
 
-\bibitem[Turner et~al.(2025)Turner, Kahle, and Sturdivant]{ggvfields}
+\bibitem[Turner et~al.(2026)Turner, Kahle, and Sturdivant]{ggvfields}
 D.~Turner, D.~Kahle, and R.~X. Sturdivant.
-\newblock \emph{{ggvfields}: Vector Field Visualizations with {ggplot2}}, 2025.
+\newblock \emph{{ggvfields}: Vector Field Visualizations with {ggplot2}}, 2026.
 \newblock URL \url{https://CRAN.R-project.org/package=ggvfields}.
-\newblock R package version 1.0.0.
+\newblock R package version 1.0.1.
 
 \bibitem[Wickham(2010)]{wickham2010layered}
 H.~Wickham.
