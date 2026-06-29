@@ -18,6 +18,39 @@ test_that("geom_pmf builds a ggplot without error", {
   expect_silent(ggplot_build(p))
 })
 
+test_that("geom_pmf lollipop display trains y scale to include zero", {
+  p <- ggplot() +
+    geom_pmf(fun = function(x) rep(0.25, length(x)), support = 1:4)
+  yrng <- plot_y_range(p)
+  expect_lte(yrng[1], 0)
+  expect_gte(yrng[2], 0)
+})
+
+test_that("geom_pmf bar display builds and trains y scale to include zero", {
+  l_bar <- geom_pmf(
+    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+    type = "bar"
+  )
+  expect_s3_class(l_bar$geom, "GeomPMFBar")
+
+  p <- ggplot() +
+    geom_pmf(fun = function(x) rep(0.25, length(x)), support = 1:4, type = "bar")
+  yrng <- plot_y_range(p)
+  expect_lte(yrng[1], 0)
+  expect_gte(yrng[2], 0)
+  expect_silent(ggplot_build(p))
+})
+
+test_that("geom_pmf validates display type", {
+  expect_error(
+    geom_pmf(
+      fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+      type = "sticks"
+    ),
+    "'arg' should be one of"
+  )
+})
+
 test_that("geom_pmf with p shading builds without error", {
   p <- ggplot() + geom_pmf(
     fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5), p = 0.8
@@ -51,6 +84,17 @@ test_that("geom_pmf with shade_outside builds without error", {
   )
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
+})
+
+test_that("geom_pmf bar display preserves p-based shading", {
+  p <- ggplot() +
+    geom_pmf(
+      fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+      p = 0.5, type = "bar"
+    )
+  built <- ggplot_build(p)
+  expect_true(any(built$data[[1]]$in_shade))
+  expect_true(any(!built$data[[1]]$in_shade))
 })
 
 test_that("geom_pmf with shade_hdr builds without error", {

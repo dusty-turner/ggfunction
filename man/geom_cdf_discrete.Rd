@@ -167,7 +167,8 @@ maps to this variable.}
 source is supplied. It understands the following aesthetics:
 \describe{
 \item{Computed position aesthetics}{\code{x} and \code{y}, mapped by default to
-\code{after_stat(x)} and \code{after_stat(p)}.}
+\code{after_stat(x)} and \code{after_stat(p)}. \code{yend} and \code{ymax} are also mapped
+internally so the y scale includes 0 and 1.}
 \item{Drawing aesthetics}{\code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group},
 \code{linetype}, \code{linewidth}, \code{shape}, \code{size}, and \code{stroke} for steps,
 jump segments, and endpoints.}

@@ -22,6 +22,19 @@ test_that("geom_cdf_discrete builds without error", {
   expect_silent(ggplot_build(p))
 })
 
+test_that("geom_cdf_discrete trains y scale to include zero and one", {
+  p <- ggplot() +
+    geom_cdf_discrete(
+      pmf_fun = dbinom,
+      support = 0:10,
+      xlim = c(3, 7),
+      args = list(size = 10, prob = 0.5)
+    )
+  yrng <- plot_y_range(p)
+  expect_lte(yrng[1], 0)
+  expect_gte(yrng[2], 1)
+})
+
 test_that("geom_cdf_discrete uses x and p as default axis labels", {
   p <- ggplot() + geom_cdf_discrete(
     pmf_fun = dbinom, args = list(size = 10, prob = 0.5), xlim = c(0, 10)

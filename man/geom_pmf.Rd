@@ -4,7 +4,8 @@
 \alias{geom_pmf}
 \alias{StatPMF}
 \alias{GeomPMF}
-\title{Plot a Probability Mass Function as Lollipops}
+\alias{GeomPMFBar}
+\title{Plot a Probability Mass Function}
 \usage{
 geom_pmf(
   mapping = NULL,
@@ -18,6 +19,7 @@ geom_pmf(
   fun,
   xlim = NULL,
   support = NULL,
+  type = c("lollipop", "bar"),
   point_size = 2.5,
   stick_linewidth = 0.25,
   stick_linetype = "dashed",
@@ -34,6 +36,8 @@ geom_pmf(
 StatPMF
 
 GeomPMF
+
+GeomPMFBar
 }
 \arguments{
 \item{mapping}{Set of aesthetic mappings created by \code{\link[ggplot2:aes]{aes()}}. If specified and
@@ -112,6 +116,9 @@ is used.}
 \item{support}{An optional integer or numeric vector giving the exact support
 points to evaluate. When supplied, \code{xlim} is ignored.}
 
+\item{type}{Rendering type. \code{"lollipop"} (the default) draws vertical sticks
+capped with points. \code{"bar"} draws PMF values as bars.}
+
 \item{point_size}{Size of the points at the top of each lollipop (defaults to
 2.5).}
 
@@ -165,14 +172,14 @@ A ggplot2 layer.
 }
 \description{
 \code{geom_pmf()} creates a ggplot2 layer that plots a probability mass function
-(PMF) using a lollipop representation. Vertical segments extend from
-zero up to the probability value at each integer support value and a point is
-drawn at the top. Shading modes mirror those of \code{\link[=geom_pdf]{geom_pdf()}}: a cumulative
-threshold (\code{p}), a two-sided interval (\code{p_lower}/\code{p_upper}), or highest
-density regions (\code{shade_hdr}). Lollipops outside a \code{p}-based region are
-rendered at reduced opacity; \code{shade_hdr} maps each support point's smallest
-containing HDR to \code{alpha} as an ordered factor with a legend, mirroring
-\code{\link[=geom_pmf_2d]{geom_pmf_2d()}}.
+(PMF) using a lollipop representation by default, or bars with
+\code{type = "bar"}. Lollipops use vertical segments extending from zero up to
+the probability value at each integer support value, capped by a point.
+Shading modes mirror those of \code{\link[=geom_pdf]{geom_pdf()}}: a cumulative threshold (\code{p}), a
+two-sided interval (\code{p_lower}/\code{p_upper}), or highest density regions
+(\code{shade_hdr}). Marks outside a \code{p}-based region are rendered at reduced
+opacity; \code{shade_hdr} maps each support point's smallest containing HDR to
+\code{alpha} as an ordered factor with a legend, mirroring \code{\link[=geom_pmf_2d]{geom_pmf_2d()}}.
 }
 \section{Computed variables}{
 
@@ -194,10 +201,12 @@ requested regions.}
 It understands the following aesthetics:
 \describe{
 \item{Computed position aesthetics}{\code{x} and \code{y}, mapped by default to
-\code{after_stat(x)} and \code{after_stat(y)}.}
+\code{after_stat(x)} and \code{after_stat(y)}. For lollipops, \code{yend} is also mapped
+internally so the y scale includes zero.}
 \item{Drawing aesthetics}{\code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group},
 \code{linetype}, \code{linewidth}, \code{shape}, \code{size}, and \code{stroke} for the lollipop
-display.}
+display; bar displays use the usual rectangle aesthetics from
+\code{\link[ggplot2:geom_col]{ggplot2::geom_col()}}.}
 }
 The points use the fillable shape 21 by default, with \code{fill} following
 \code{colour} when unset, so default lollipops render solid. Mapping \code{fill}

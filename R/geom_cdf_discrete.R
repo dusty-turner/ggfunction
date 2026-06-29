@@ -57,7 +57,8 @@
 #' source is supplied. It understands the following aesthetics:
 #' \describe{
 #'   \item{Computed position aesthetics}{`x` and `y`, mapped by default to
-#'   `after_stat(x)` and `after_stat(p)`.}
+#'   `after_stat(x)` and `after_stat(p)`. `yend` and `ymax` are also mapped
+#'   internally so the y scale includes 0 and 1.}
 #'   \item{Drawing aesthetics}{`alpha`, `colour`/`color`, `fill`, `group`,
 #'   `linetype`, `linewidth`, `shape`, `size`, and `stroke` for steps,
 #'   jump segments, and endpoints.}
@@ -107,7 +108,12 @@ geom_cdf_discrete <- function(
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
 
-  default_mapping <- aes(x = after_stat(x), y = after_stat(p))
+  default_mapping <- aes(
+    x = after_stat(x),
+    y = after_stat(p),
+    yend = after_stat(p * 0),
+    ymax = after_stat(p * 0 + 1)
+  )
   if (is.null(mapping)) {
     mapping <- default_mapping
   } else {
@@ -194,6 +200,8 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
 GeomCDFDiscrete <- ggproto("GeomCDFDiscrete", Geom,
 
   required_aes = c("x", "y"),
+
+  optional_aes = c("yend", "ymax"),
 
   default_aes = aes(
     colour    = "black",

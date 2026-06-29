@@ -1,14 +1,14 @@
-#' Plot a Probability Mass Function as Lollipops
+#' Plot a Probability Mass Function
 #'
 #' `geom_pmf()` creates a ggplot2 layer that plots a probability mass function
-#' (PMF) using a lollipop representation. Vertical segments extend from
-#' zero up to the probability value at each integer support value and a point is
-#' drawn at the top. Shading modes mirror those of [geom_pdf()]: a cumulative
-#' threshold (`p`), a two-sided interval (`p_lower`/`p_upper`), or highest
-#' density regions (`shade_hdr`). Lollipops outside a `p`-based region are
-#' rendered at reduced opacity; `shade_hdr` maps each support point's smallest
-#' containing HDR to `alpha` as an ordered factor with a legend, mirroring
-#' [geom_pmf_2d()].
+#' (PMF) using a lollipop representation by default, or bars with
+#' `type = "bar"`. Lollipops use vertical segments extending from zero up to
+#' the probability value at each integer support value, capped by a point.
+#' Shading modes mirror those of [geom_pdf()]: a cumulative threshold (`p`), a
+#' two-sided interval (`p_lower`/`p_upper`), or highest density regions
+#' (`shade_hdr`). Marks outside a `p`-based region are rendered at reduced
+#' opacity; `shade_hdr` maps each support point's smallest containing HDR to
+#' `alpha` as an ordered factor with a legend, mirroring [geom_pmf_2d()].
 #'
 #' @inheritParams ggplot2::geom_point
 #' @param fun A function to compute the PMF (e.g. [dbinom] or [dpois]). The
@@ -20,6 +20,8 @@
 #'   is used.
 #' @param support An optional integer or numeric vector giving the exact support
 #'   points to evaluate. When supplied, `xlim` is ignored.
+#' @param type Rendering type. `"lollipop"` (the default) draws vertical sticks
+#'   capped with points. `"bar"` draws PMF values as bars.
 #' @param point_size Size of the points at the top of each lollipop (defaults to
 #'   2.5).
 #' @param stick_linewidth Linewidth of the vertical sticks (defaults to 0.25).
@@ -76,10 +78,12 @@
 #' It understands the following aesthetics:
 #' \describe{
 #'   \item{Computed position aesthetics}{`x` and `y`, mapped by default to
-#'   `after_stat(x)` and `after_stat(y)`.}
+#'   `after_stat(x)` and `after_stat(y)`. For lollipops, `yend` is also mapped
+#'   internally so the y scale includes zero.}
 #'   \item{Drawing aesthetics}{`alpha`, `colour`/`color`, `fill`, `group`,
 #'   `linetype`, `linewidth`, `shape`, `size`, and `stroke` for the lollipop
-#'   display.}
+#'   display; bar displays use the usual rectangle aesthetics from
+#'   [ggplot2::geom_col()].}
 #' }
 #' The points use the fillable shape 21 by default, with `fill` following
 #' `colour` when unset, so default lollipops render solid. Mapping `fill`
@@ -108,7 +112,7 @@
 #'     shade_hdr = c(0.5, 0.8, 0.95))
 #'
 #' @name geom_pmf
-#' @aliases StatPMF GeomPMF
+#' @aliases StatPMF GeomPMF GeomPMFBar
 #' @export
 geom_pmf <- function(mapping = NULL,
                      data = NULL,
@@ -121,6 +125,7 @@ geom_pmf <- function(mapping = NULL,
                      fun,
                      xlim = NULL,
                      support = NULL,
+                     type = c("lollipop", "bar"),
                      point_size = 2.5,
                      stick_linewidth = 0.25,
                      stick_linetype = "dashed",
@@ -132,10 +137,20 @@ geom_pmf <- function(mapping = NULL,
                      p_upper = NULL,
                      shade_outside = FALSE,
                      shade_hdr = NULL) {
+  type <- match.arg(type)
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
 
-  default_mapping <- aes(x = after_stat(x), y = after_stat(y))
+  if (identical(type, "lollipop")) {
+    geom <- GeomPMF
+    default_mapping <- aes(
+      x = after_stat(x), y = after_stat(y), yend = after_stat(y * 0)
+    )
+  } else {
+    geom <- GeomPMFBar
+    default_mapping <- aes(x = after_stat(x), y = after_stat(y))
+  }
+
   if (!is.null(shade_hdr)) {
     default_mapping <- modifyList(default_mapping, aes(alpha = after_stat(probs)))
   }
@@ -150,9 +165,6 @@ geom_pmf <- function(mapping = NULL,
     fun = fun,
     xlim = xlim,
     support = support,
-    point_size = point_size,
-    stick_linewidth = stick_linewidth,
-    stick_linetype = stick_linetype,
     args = args,
     na.rm = na.rm,
     p = p,
@@ -164,6 +176,12 @@ geom_pmf <- function(mapping = NULL,
     ...
   )
 
+  if (identical(type, "lollipop")) {
+    params$point_size <- point_size
+    params$stick_linewidth <- stick_linewidth
+    params$stick_linetype <- stick_linetype
+  }
+
   # Forward color as a fixed aesthetic only when explicitly supplied, so
   # mapped colour aesthetics are not silently overridden by the default.
   if (!missing(color)) {
@@ -174,7 +192,7 @@ geom_pmf <- function(mapping = NULL,
     data = data,
     mapping = mapping,
     stat = stat,
-    geom = GeomPMF,
+    geom = geom,
     position = position,
     show.legend = show.legend,
     inherit.aes = inherit.aes,
@@ -232,6 +250,8 @@ StatPMF <- ggproto("StatPMF", Stat,
 #' @export
 GeomPMF <- ggproto("GeomPMF", GeomPoint,
 
+  optional_aes = c("yend"),
+
   default_aes = modifyList(GeomPoint$default_aes, aes(shape = 21)),
 
   draw_key = function(data, params, size) {
@@ -276,5 +296,24 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
     )
 
     grid::grobTree(seg_grob, pt_grob)
+  }
+)
+
+#' @rdname geom_pmf
+#' @export
+GeomPMFBar <- ggproto("GeomPMFBar", ggplot2::GeomCol,
+
+  draw_panel = function(self, data, panel_params, coord, na.rm = FALSE,
+                        lineend = "butt", linejoin = "mitre") {
+    in_shade <- if (!is.null(data$in_shade)) {
+      data$in_shade
+    } else {
+      rep(TRUE, nrow(data))
+    }
+    data$alpha <- ifelse(in_shade, data$alpha, 0.3)
+
+    ggproto_parent(ggplot2::GeomCol, self)$draw_panel(
+      data, panel_params, coord, lineend = lineend, linejoin = linejoin
+    )
   }
 )

@@ -24,3 +24,7 @@ plot_axis_titles <- function(plot) {
 plot_x_range <- function(plot) {
   ggplot_build(plot)$layout$panel_params[[1]]$x.range
 }
+
+plot_y_range <- function(plot) {
+  ggplot_build(plot)$layout$panel_params[[1]]$y.range
+}
