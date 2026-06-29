@@ -7,7 +7,7 @@
 \maketitle
 
 \abstract{%
-The ggfunction package provides ggplot2 layers for plotting mathematical functions, probability distributions, empirical distribution summaries, and censored-data summaries directly from function definitions or samples. Its design has three parts. First, a small dimensional taxonomy covers scalar functions, parametric curves, scalar fields, and vector fields. Second, probability layers display density, mass, distribution, survival, quantile, hazard, and cumulative-hazard functions, with support-aware tail, interval, and highest-density-region shading. Third, empirical layers compute ECDFs, empirical quantiles, PP/QQ/SP diagnostics, empirical mass functions, empirical cumulative hazards, Kaplan--Meier survival curves, and censored-data cumulative hazards. The package implements these displays as standard ggplot2 stats and geoms, so they compose with scales, coordinates, themes, facets, and annotations. This article describes the layer design, the main workflows, numerical conversion routes among distribution functions, validation checks, and limitations. DKW/Massart bands are finite-sample simultaneous bands for complete samples and fully specified continuous diagnostic nulls; fitted-null diagnostic bands are exploratory guides rather than calibrated composite-null acceptance regions. For censored data, the Kaplan--Meier layer uses an asymptotic simultaneous Greenwood/Nair band; the Nelson--Aalen layer uses a pointwise normal band.
+The ggfunction package provides ggplot2 layers for plotting mathematical functions, probability distributions, empirical summaries, and censored-data summaries directly from function definitions or samples. Its design has three parts. First, a dimensional taxonomy covers scalar functions, parametric curves, scalar fields, and vector fields. Second, probability layers display density, mass, distribution, survival, quantile, hazard, and cumulative-hazard functions with support-aware shading and documented conversion routes among representations. Third, empirical layers compute ECDFs, empirical quantiles, PP/QQ/SP diagnostics, empirical mass functions, empirical cumulative hazards, Kaplan--Meier survival curves, and Nelson--Aalen cumulative hazards. The displays are standard ggplot2 stats and geoms, so they compose with scales, coordinates, themes, facets, and annotations. Confidence displays are documented per layer, and fitted-null diagnostic bands are exploratory rather than calibrated unless separately adjusted.
 }
 
 \section{Introduction}\label{introduction}
@@ -39,6 +39,17 @@ display.
 
 \caption{A motivating example: support-aware normal-density shading. The shaded upper tail is computed from the distribution, not by renormalizing over the displayed x range.}\label{fig:motivating}
 \end{figure}
+
+Two design choices distinguish \pkg{ggfunction} from small plotting wrappers.
+The probability layers share documented conversion routes among density or
+mass, distribution, survival, quantile, hazard, and cumulative-hazard
+representations, so one supplied characterization can drive several views of
+the same distribution. The package also separates statistical support from the
+display window: support governs normalization, integration, inversion, and
+probability shading, while \texttt{xlim} and coordinates govern what is visible.
+Together, theoretical curves, empirical summaries, censored-data estimators,
+and diagnostic plots use the same function-as-layer pattern while remaining
+ordinary \CRANpkg{ggplot2} layers.
 
 The package is available from CRAN and can be installed with
 \texttt{install.packages("ggfunction")}. Development versions and issue tracking are
@@ -416,12 +427,10 @@ inversion is visually useful but produces wide or partially uninformative tail
 regions when \(p\pm\varepsilon\) reaches 0 or 1, which is a property of the DKW
 bound rather than a plotting artifact.
 
-The previous version of this manuscript included a long simulation study of DKW
-coverage. That material is better suited to a validation vignette, where the
-number of simulations, distributions, and sample sizes can be varied without
-interrupting the package-paper narrative. The article therefore states the
-finite-sample guarantee and shows one representative workflow; the package
-vignette \texttt{coverage-simulation} contains the longer simulation record.
+The article states the finite-sample DKW/Massart guarantee and shows one
+representative workflow; the package vignette \texttt{coverage-simulation} reports a
+fuller simulation record across distributions, sample sizes, and replicate
+counts.
 
 \begin{figure}
 
@@ -478,8 +487,8 @@ confidence band uses Greenwood's variance estimator \citep{greenwood1926natural}
 the equal-precision construction of Nair \citeyearpar{nair1984confidence}, which is
 simultaneous and asymptotic. The companion \texttt{geom\_echf\_na()} layer computes
 the Nelson--Aalen cumulative hazard estimator \citep{nelson1972theory, aalen1978nonparametric} and uses the implemented pointwise normal confidence
-band. Figure \ref{fig:survival-workflow} shows the two estimators side by
-side.
+intervals. Figure \ref{fig:survival-workflow} shows the two estimators side
+by side.
 The package also includes \texttt{geom\_echf()} for complete, uncensored samples.
 That layer applies the monotone transform \(H(x)=-\log\{1-F(x)\}\) to the ECDF
 and to the DKW band. For censored observations, however, ECDF-based summaries
@@ -500,22 +509,24 @@ The package computes both from the same internal risk-set table. This shared
 tabulation keeps event counts, censoring counts, risk sets, and variance
 estimates consistent between the two censored-data layers.
 
-The confidence bands intentionally differ. The Kaplan--Meier band uses
+The confidence displays intentionally differ. The Kaplan--Meier band uses
 Greenwood's variance estimate and an equal-precision critical value following
 Nair's construction. The displayed limits are additive on the survival scale,
 \(\hat S(t) \pm c_{\mathrm{EP}}\mathrm{se}\{\hat S(t)\}\), and are clipped to
 \([0,1]\). The critical value is computed from Greenwood-scale endpoints at the
 first and last valid event times, so the band is a simultaneous large-sample
 band over the displayed event-time range, not an exact finite-sample band. The
-Nelson--Aalen band uses the Nelson variance estimate
+Nelson--Aalen intervals use the Nelson variance estimate
 \[
   \widehat{\mathrm{Var}}\{\hat H(t)\} =
   \sum_{t_j \le t} \frac{d_j}{n_j^2}
 \]
 and a normal critical value at each time point. Its intervals are symmetric on
 the cumulative-hazard scale before the lower limit is clipped at zero. It is
-therefore pointwise, not simultaneous. The abstract and examples use this
-distinction deliberately.
+therefore pointwise, not simultaneous. The visual encodings intentionally
+differ: the simultaneous Kaplan--Meier band is drawn as a ribbon, while the
+pointwise Nelson--Aalen intervals are drawn as thin vertical bars at event
+times. The examples use this distinction deliberately.
 
 \begin{figure}
 
@@ -523,7 +534,7 @@ distinction deliberately.
 
 }
 
-\caption{Censored-data summaries from the same simulated sample. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with a pointwise normal band.}\label{fig:survival-workflow}
+\caption{Censored-data summaries from the same simulated sample. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with pointwise normal intervals.}\label{fig:survival-workflow}
 \end{figure}
 
 \section{Implementation, numerical behavior, and performance}\label{implementation-numerical-behavior-and-performance}
@@ -569,7 +580,7 @@ discrete prob. & \code{x}, \code{y}, mass/HDR & lollipop/step\\
 \hline
 empirical & \code{x}, \code{y}, band limits & step/ribbon\\
 \hline
-censored & \code{x}, \code{y}, band/censor & step/ribbon/marks\\
+censored & \code{x}, \code{y}, band/interval/censor & step/ribbon/bars/marks\\
 \hline
 diagnostics & \code{x}, \code{y}, order/probs & points/ribbon/line\\
 \hline
@@ -775,38 +786,40 @@ supported in the ordinary grammar-of-graphics sense. Numerical conversions are
 approximations and can fail for difficult distributions. HDRs are grid-based,
 so their thresholds depend on the computational domain and grid resolution.
 Two-dimensional grids can become expensive at high resolution. Censored-data
-bands have the validity described in the implementation: Kaplan--Meier uses the
-implemented simultaneous EP Greenwood/Nair band, while Nelson--Aalen uses the
-implemented pointwise normal band.
+confidence displays have the validity described in the implementation:
+Kaplan--Meier uses the implemented simultaneous EP Greenwood/Nair band, while
+Nelson--Aalen uses implemented pointwise normal intervals.
 
 There are also statistical limits that no plotting interface can remove.
 Probability shading is only as meaningful as the distribution supplied to the
 layer. A diagnostic band for a fully specified null model has a different
 interpretation from the same band drawn after fitting parameters. A gridded HDR
 computed on too narrow a domain may have the wrong threshold. A survival curve
-with heavy censoring in the tail can have a visually wide band because the risk
-set is small. The package tries to make these situations visible, but the user
-remains responsible for choosing a model and interpreting the plot in context.
+with heavy censoring in the tail can have a visually wide confidence display
+because the risk set is small. The package tries to make these situations
+visible, but the user remains responsible for choosing a model and interpreting
+the plot in context.
 
 \section{Related work}\label{related-work}
 
 \pkg{ggfunction} is closest to tools that bridge statistical or mathematical
 objects and graphics. The compact summaries below describe the closest
-\CRANpkg{ggplot2} extensions and adjacent packages. The intent is
-complementarity rather than replacement: several packages solve different
-problems better than \pkg{ggfunction} does.
+\CRANpkg{ggplot2} extensions and adjacent packages. The first table emphasizes
+function-layer design; the second emphasizes empirical, diagnostic, and
+survival displays. The intent is complementarity rather than replacement:
+several packages solve different problems better than \pkg{ggfunction} does.
 
 \begin{tabular}{l|l|l}
 \hline
 Package & Focus & Relationship\\
 \hline
-\code{ggplot2::stat\_function()} & $\mathbb{R}\to\mathbb{R}$ & baseline curve layer\\
+\code{ggplot2::stat\_function()} & function curves & native univariate baseline\\
 \hline
-\CRANpkg{ggdist} & uncertainty & broader displays\\
+\CRANpkg{ggvfields} & vector/stream fields & delegated field rendering\\
 \hline
-\CRANpkg{ggdensity} & biv. HDRs & HDR engine used here\\
+\CRANpkg{metR} & gridded fields & stronger for precomputed fields\\
 \hline
-\CRANpkg{ggvfields} & fields & delegated rendering\\
+\CRANpkg{ggformula}/\CRANpkg{mosaicCalc} & teaching front ends & formula/calculus pedagogy\\
 \hline
 \end{tabular}
 
@@ -814,11 +827,15 @@ Package & Focus & Relationship\\
 \hline
 Package & Focus & Relationship\\
 \hline
-\CRANpkg{mosaic} & teaching & broader pedagogy\\
+\CRANpkg{ggdist} & uncertainty & broader distribution displays\\
 \hline
-\CRANpkg{metR} & weather fields & geophysical displays\\
+\CRANpkg{ggdensity} & biv. HDRs & HDR engine used here\\
 \hline
-\CRANpkg{hdrcde} & HDR/CDE & HDR objects\\
+\CRANpkg{hdrcde} & HDR/CDE & HDR objects outside layer taxonomy\\
+\hline
+\CRANpkg{qqplotr} & Q-Q/P-P diagnostics & wider band/detrend menu\\
+\hline
+\CRANpkg{survminer}/\CRANpkg{ggsurvfit} & survival figures & risk-table/test workflows\\
 \hline
 \end{tabular}
 
@@ -827,9 +844,13 @@ grammar \citep{wilkinson2005grammar} provide the conceptual and software foundat
 \CRANpkg{ggdist} \citep{kay2024ggdist} is broader for uncertainty visualization.
 \CRANpkg{ggdensity} \citep{otto2023ggdensity} supplies the bivariate HDR machinery
 used here. \CRANpkg{ggvfields} \citep{ggvfields} supplies vector-field and
-stream-field infrastructure. \CRANpkg{mosaic} \citep{pruim2017mosaic},
-\CRANpkg{metR} \citep{metR}, and \CRANpkg{hdrcde} \citep{hdrcde} cover adjacent
-pedagogical, meteorological, and HDR-focused use cases.
+stream-field infrastructure. \CRANpkg{metR} \citep{metR} and \CRANpkg{hdrcde}
+\citep{hdrcde} cover adjacent meteorological and HDR-focused use cases.
+\CRANpkg{ggformula} \citep{ggformula}, \CRANpkg{mosaic} \citep{pruim2017mosaic}, and
+\CRANpkg{mosaicCalc} \citep{mosaicCalc} provide formula-oriented front ends for
+functions, distributions, calculus, and introductory statistics; \pkg{ggfunction}
+instead emphasizes native stats/geoms, support-aware probability semantics, and
+conversion routes among distribution representations.
 
 The package boundaries are therefore partly philosophical. \CRANpkg{ggdist}
 starts from distributions and uncertainty summaries and provides a rich visual
@@ -841,6 +862,19 @@ focuses on bivariate density estimation and probability-calibrated contours;
 bivariate density. \CRANpkg{ggvfields} focuses on vector-field displays and
 integration; \pkg{ggfunction} exposes those displays through the dimensional
 taxonomy so scalar and vector-valued functions share a naming scheme.
+
+For diagnostic plots, \CRANpkg{qqplotr} \citep{almeida2018qqplotr, qqplotr} is the
+closest \CRANpkg{ggplot2} extension, providing Q-Q and P-P points, reference
+lines, confidence-band constructions, and detrended displays. \pkg{ggfunction}
+overlaps through \texttt{geom\_qqplot()} and \texttt{geom\_ppplot()}, and adds \texttt{geom\_spplot()}
+within the same support-aware probability framework used by its ECDF and
+quantile layers; users who need a wider diagnostic-band or detrending menu
+should use \CRANpkg{qqplotr}. For right-censored data, \CRANpkg{survminer}
+\citep{survminer} and \CRANpkg{ggsurvfit} \citep{ggsurvfit} provide publication-oriented
+Kaplan--Meier figures with survival-analysis furniture such as risk tables and
+censoring summaries. \texttt{geom\_ecdf\_km()} is instead a composable layer that can
+share risk-set tabulation with \texttt{geom\_echf\_na()} and overlay theoretical survival
+curves in the ordinary grammar; it does not aim to replace those packages.
 
 This scope keeps the package lightweight. It does not define distribution
 objects, fit models, estimate bivariate densities from samples, or implement a
@@ -860,7 +894,8 @@ confidence ribbons.
 Future work could add better support for collections of functions, richer
 interfaces for distribution objects, more user controls for numerical
 conversion tolerances, conditional distributions and HDRs, additional
-censored-data bands, and higher-level wrappers for common teaching workflows.
+censored-data confidence displays, and higher-level wrappers for common
+teaching workflows.
 The benchmark and accuracy scripts added during package hardening provide a
 starting point for tracking these changes over time.
 

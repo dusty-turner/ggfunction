@@ -1,4 +1,4 @@
-\begin{thebibliography}{16}
+\begin{thebibliography}{22}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -10,6 +10,18 @@ O.~Aalen.
 \newblock Nonparametric inference for a family of counting processes.
 \newblock \emph{The Annals of Statistics}, 6\penalty0 (4):\penalty0 701--726, 1978.
 \newblock \doi{10.1214/aos/1176344247}.
+
+\bibitem[Almeida et~al.(2018)Almeida, Loy, and Hofmann]{almeida2018qqplotr}
+A.~Almeida, A.~Loy, and H.~Hofmann.
+\newblock {ggplot2} compatible quantile-quantile plots in {R}.
+\newblock \emph{The R Journal}, 10\penalty0 (2):\penalty0 248--261, 2018.
+\newblock \doi{10.32614/RJ-2018-051}.
+
+\bibitem[Almeida et~al.(2025)Almeida, Loy, and Hofmann]{qqplotr}
+A.~Almeida, A.~Loy, and H.~Hofmann.
+\newblock \emph{{qqplotr}: Quantile-Quantile Plot Extensions for {ggplot2}}, 2025.
+\newblock URL \url{https://CRAN.R-project.org/package=qqplotr}.
+\newblock R package version 0.0.7.
 
 \bibitem[Campitelli(2024)]{metR}
 E.~Campitelli.
@@ -28,11 +40,29 @@ R.~J. Hyndman, J.~Einbeck, and M.~P. Wand.
 \newblock URL \url{https://CRAN.R-project.org/package=hdrcde}.
 \newblock R package.
 
+\bibitem[Kaplan and Pruim(2026)]{ggformula}
+D.~Kaplan and R.~Pruim.
+\newblock \emph{{ggformula}: Formula Interface to the Grammar of Graphics}, 2026.
+\newblock URL \url{https://CRAN.R-project.org/package=ggformula}.
+\newblock R package version 1.0.1.
+
+\bibitem[Kaplan et~al.(2024)Kaplan, Pruim, and Horton]{mosaicCalc}
+D.~T. Kaplan, R.~Pruim, and N.~J. Horton.
+\newblock \emph{{mosaicCalc}: {R}-Language Based Calculus Operations for Teaching}, 2024.
+\newblock URL \url{https://CRAN.R-project.org/package=mosaicCalc}.
+\newblock R package version 0.6.4.
+
 \bibitem[Kaplan and Meier(1958)]{kaplan1958nonparametric}
 E.~L. Kaplan and P.~Meier.
 \newblock Nonparametric estimation from incomplete observations.
 \newblock \emph{Journal of the American Statistical Association}, 53\penalty0 (282):\penalty0 457--481, 1958.
 \newblock \doi{10.1080/01621459.1958.10501452}.
+
+\bibitem[Kassambara et~al.(2026)Kassambara, Kosinski, Biecek, and {Scheipl Fabian}]{survminer}
+A.~Kassambara, M.~Kosinski, P.~Biecek, and {Scheipl Fabian}.
+\newblock \emph{{survminer}: Drawing Survival Curves using {ggplot2}}, 2026.
+\newblock URL \url{https://CRAN.R-project.org/package=survminer}.
+\newblock R package version 0.5.2.
 
 \bibitem[Kay(2024)]{kay2024ggdist}
 M.~Kay.
@@ -76,6 +106,12 @@ R.~Pruim, D.~T. Kaplan, and N.~J. Horton.
 \newblock The mosaic package: Helping students to ``think with data'' using \proglang{R}.
 \newblock \emph{The R Journal}, 9\penalty0 (1):\penalty0 77--102, 2017.
 \newblock \doi{10.32614/RJ-2017-024}.
+
+\bibitem[Sjoberg et~al.(2025)Sjoberg, Baillie, Fruechtenicht, Haesendonckx, and Treis]{ggsurvfit}
+D.~D. Sjoberg, M.~Baillie, C.~Fruechtenicht, S.~Haesendonckx, and T.~Treis.
+\newblock \emph{{ggsurvfit}: Flexible Time-to-Event Figures}, 2025.
+\newblock URL \url{https://CRAN.R-project.org/package=ggsurvfit}.
+\newblock R package version 1.2.0.
 
 \bibitem[Turner et~al.(2025)Turner, Kahle, and Sturdivant]{ggvfields}
 D.~Turner, D.~Kahle, and R.~X. Sturdivant.

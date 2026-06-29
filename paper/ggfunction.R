@@ -397,7 +397,7 @@ sp_plot <- ggplot(diag_data, aes(x = x)) +
 qq_plot + sp_plot
 
 
-## ----survival-workflow, fig.width=7, fig.height=4.6, out.width="95%", fig.cap="Censored-data summaries from the same simulated sample. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with a pointwise normal band."----
+## ----survival-workflow, fig.width=7, fig.height=4.6, out.width="95%", fig.cap="Censored-data summaries from the same simulated sample. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with pointwise normal intervals."----
 set.seed(3103)
 n_surv <- 90
 event_time <- rexp(n_surv, rate = 0.45)
@@ -414,7 +414,7 @@ km_plot <- ggplot(surv_data, aes(x = time, status = status)) +
   labs(title = "Kaplan-Meier", x = "time", y = "survival")
 
 na_plot <- ggplot(surv_data, aes(x = time, status = status)) +
-  geom_echf_na(conf_alpha = 0.18) +
+  geom_echf_na() +
   geom_chf(fun = function(x) 0.45 * x, xlim = c(0, max(surv_data$time)),
            color = "#D55E00", linewidth = 0.5) +
   labs(title = "Nelson-Aalen", x = "time", y = "cumulative hazard")
@@ -440,7 +440,7 @@ data_contract <- data.frame(
     "\\code{x}, \\code{y}, shade vars",
     "\\code{x}, \\code{y}, mass/HDR",
     "\\code{x}, \\code{y}, band limits",
-    "\\code{x}, \\code{y}, band/censor",
+    "\\code{x}, \\code{y}, band/interval/censor",
     "\\code{x}, \\code{y}, order/probs"
   ),
   Geom = c(
@@ -449,7 +449,7 @@ data_contract <- data.frame(
     "area/path/ribbon",
     "lollipop/step",
     "step/ribbon",
-    "step/ribbon/marks",
+    "step/ribbon/bars/marks",
     "points/ribbon/line"
   ),
   check.names = FALSE
@@ -511,21 +511,21 @@ knitr::kable(performance_table)
 related_core <- data.frame(
   Package = c(
     "\\code{ggplot2::stat\\_function()}",
-    "\\CRANpkg{ggdist}",
-    "\\CRANpkg{ggdensity}",
-    "\\CRANpkg{ggvfields}"
+    "\\CRANpkg{ggvfields}",
+    "\\CRANpkg{metR}",
+    "\\CRANpkg{ggformula}/\\CRANpkg{mosaicCalc}"
   ),
   Focus = c(
-    "$\\mathbb{R}\\to\\mathbb{R}$",
-    "uncertainty",
-    "biv. HDRs",
-    "fields"
+    "function curves",
+    "vector/stream fields",
+    "gridded fields",
+    "teaching front ends"
   ),
   Relationship = c(
-    "baseline curve layer",
-    "broader displays",
-    "HDR engine used here",
-    "delegated rendering"
+    "native univariate baseline",
+    "delegated field rendering",
+    "stronger for precomputed fields",
+    "formula/calculus pedagogy"
   ),
   check.names = FALSE
 )
@@ -535,19 +535,25 @@ knitr::kable(related_core, escape = FALSE)
 ## ----related-adjacent---------------------------------------------------------
 related_adjacent <- data.frame(
   Package = c(
-    "\\CRANpkg{mosaic}",
-    "\\CRANpkg{metR}",
-    "\\CRANpkg{hdrcde}"
+    "\\CRANpkg{ggdist}",
+    "\\CRANpkg{ggdensity}",
+    "\\CRANpkg{hdrcde}",
+    "\\CRANpkg{qqplotr}",
+    "\\CRANpkg{survminer}/\\CRANpkg{ggsurvfit}"
   ),
   Focus = c(
-    "teaching",
-    "weather fields",
-    "HDR/CDE"
+    "uncertainty",
+    "biv. HDRs",
+    "HDR/CDE",
+    "Q-Q/P-P diagnostics",
+    "survival figures"
   ),
   Relationship = c(
-    "broader pedagogy",
-    "geophysical displays",
-    "HDR objects"
+    "broader distribution displays",
+    "HDR engine used here",
+    "HDR objects outside layer taxonomy",
+    "wider band/detrend menu",
+    "risk-table/test workflows"
   ),
   check.names = FALSE
 )

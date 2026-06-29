@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.6.28)  28 JUN 2026 22:04
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.6.28)  29 JUN 2026 02:07
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -802,81 +802,81 @@ Package pdftex.def Info: ggfunction_files/figure-latex/motivating-1.pdf  used on
 
 {/Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/enc/dvips/inconsolata/i4-t1-0.enc}]
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
-(Font)              scaled to size 10.42007pt on input line 101.
+(Font)              scaled to size 10.42007pt on input line 112.
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
-(Font)              scaled to size 7.91925pt on input line 101.
+(Font)              scaled to size 7.91925pt on input line 112.
 LaTeX Font Info:    Font shape `U/msa/m/n' will be
-(Font)              scaled to size 6.25204pt on input line 101.
+(Font)              scaled to size 6.25204pt on input line 112.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
-(Font)              scaled to size 10.42007pt on input line 101.
+(Font)              scaled to size 10.42007pt on input line 112.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
-(Font)              scaled to size 7.91925pt on input line 101.
+(Font)              scaled to size 7.91925pt on input line 112.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
-(Font)              scaled to size 6.25204pt on input line 101.
+(Font)              scaled to size 6.25204pt on input line 112.
 LaTeX Font Info:    Font shape `T1/zi4/m/n' will be
-(Font)              scaled to size 10.20004pt on input line 101.
-<ggfunction_files/figure-latex/taxonomy-1.pdf, id=120, 505.89pt x 418.56375pt>
+(Font)              scaled to size 10.20004pt on input line 112.
+<ggfunction_files/figure-latex/taxonomy-1.pdf, id=121, 505.89pt x 418.56375pt>
 File: ggfunction_files/figure-latex/taxonomy-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/taxonomy-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/taxonomy-1.pdf  used on input line 114.
+Package pdftex.def Info: ggfunction_files/figure-latex/taxonomy-1.pdf  used on input line 125.
 (pdftex.def)             Requested size: 378.42043pt x 313.10452pt.
 [2 <./ggfunction_files/figure-latex/motivating-1.pdf>] [3 <./ggfunction_files/figure-latex/taxonomy-1.pdf>]
-<ggfunction_files/figure-latex/vector-stream-1.pdf, id=151, 505.89pt x 303.1325pt>
+<ggfunction_files/figure-latex/vector-stream-1.pdf, id=152, 505.89pt x 303.1325pt>
 File: ggfunction_files/figure-latex/vector-stream-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/vector-stream-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/vector-stream-1.pdf  used on input line 190.
+Package pdftex.def Info: ggfunction_files/figure-latex/vector-stream-1.pdf  used on input line 201.
 (pdftex.def)             Requested size: 378.42043pt x 226.75676pt.
 [4 <./ggfunction_files/figure-latex/vector-stream-1.pdf>]
-<ggfunction_files/figure-latex/gamma-views-1.pdf, id=175, 505.89pt x 418.56375pt>
+<ggfunction_files/figure-latex/gamma-views-1.pdf, id=176, 505.89pt x 418.56375pt>
 File: ggfunction_files/figure-latex/gamma-views-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/gamma-views-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/gamma-views-1.pdf  used on input line 293.
+Package pdftex.def Info: ggfunction_files/figure-latex/gamma-views-1.pdf  used on input line 304.
 (pdftex.def)             Requested size: 378.42043pt x 313.10452pt.
-<ggfunction_files/figure-latex/prob-shading-1.pdf, id=177, 505.89pt x 303.1325pt>
+<ggfunction_files/figure-latex/prob-shading-1.pdf, id=178, 505.89pt x 303.1325pt>
 File: ggfunction_files/figure-latex/prob-shading-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/prob-shading-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/prob-shading-1.pdf  used on input line 340.
-(pdftex.def)             Requested size: 378.42043pt x 226.75676pt.
-<ggfunction_files/figure-latex/hdr-examples-1.pdf, id=179, 505.89pt x 303.1325pt>
-File: ggfunction_files/figure-latex/hdr-examples-1.pdf Graphic file (type pdf)
-<use ggfunction_files/figure-latex/hdr-examples-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/hdr-examples-1.pdf  used on input line 360.
+Package pdftex.def Info: ggfunction_files/figure-latex/prob-shading-1.pdf  used on input line 351.
 (pdftex.def)             Requested size: 378.42043pt x 226.75676pt.
 [5] [6 <./ggfunction_files/figure-latex/gamma-views-1.pdf> <./ggfunction_files/figure-latex/prob-shading-1.pdf>]
-<ggfunction_files/figure-latex/pmf-2d-workflow-1.pdf, id=209, 505.89pt x 303.1325pt>
+<ggfunction_files/figure-latex/hdr-examples-1.pdf, id=208, 505.89pt x 303.1325pt>
+File: ggfunction_files/figure-latex/hdr-examples-1.pdf Graphic file (type pdf)
+<use ggfunction_files/figure-latex/hdr-examples-1.pdf>
+Package pdftex.def Info: ggfunction_files/figure-latex/hdr-examples-1.pdf  used on input line 371.
+(pdftex.def)             Requested size: 378.42043pt x 226.75676pt.
+<ggfunction_files/figure-latex/pmf-2d-workflow-1.pdf, id=210, 505.89pt x 303.1325pt>
 File: ggfunction_files/figure-latex/pmf-2d-workflow-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/pmf-2d-workflow-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/pmf-2d-workflow-1.pdf  used on input line 375.
+Package pdftex.def Info: ggfunction_files/figure-latex/pmf-2d-workflow-1.pdf  used on input line 386.
 (pdftex.def)             Requested size: 378.42043pt x 226.75676pt.
-<ggfunction_files/figure-latex/discrete-support-1.pdf, id=211, 505.89pt x 303.1325pt>
+<ggfunction_files/figure-latex/discrete-support-1.pdf, id=212, 505.89pt x 303.1325pt>
 File: ggfunction_files/figure-latex/discrete-support-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/discrete-support-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/discrete-support-1.pdf  used on input line 394.
+Package pdftex.def Info: ggfunction_files/figure-latex/discrete-support-1.pdf  used on input line 405.
 (pdftex.def)             Requested size: 378.42043pt x 226.75676pt.
-<ggfunction_files/figure-latex/ecdf-workflow-1.pdf, id=215, 433.62pt x 303.1325pt>
+<ggfunction_files/figure-latex/ecdf-workflow-1.pdf, id=216, 433.62pt x 303.1325pt>
 File: ggfunction_files/figure-latex/ecdf-workflow-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/ecdf-workflow-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/ecdf-workflow-1.pdf  used on input line 428.
+Package pdftex.def Info: ggfunction_files/figure-latex/ecdf-workflow-1.pdf  used on input line 437.
 (pdftex.def)             Requested size: 338.59021pt x 236.71066pt.
-<ggfunction_files/figure-latex/echf-complete-1.pdf, id=217, 433.62pt x 303.1325pt>
+<ggfunction_files/figure-latex/echf-complete-1.pdf, id=218, 433.62pt x 303.1325pt>
 File: ggfunction_files/figure-latex/echf-complete-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/echf-complete-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/echf-complete-1.pdf  used on input line 443.
+Package pdftex.def Info: ggfunction_files/figure-latex/echf-complete-1.pdf  used on input line 452.
 (pdftex.def)             Requested size: 338.59021pt x 236.71066pt.
-[7 <./ggfunction_files/figure-latex/hdr-examples-1.pdf>] [8 <./ggfunction_files/figure-latex/pmf-2d-workflow-1.pdf> <./ggfunction_files/figure-latex/discrete-support-1.pdf>] [9 <./ggfunction_files/figure-latex/ecdf-workflow-1.pdf> <./ggfunction_files/figure-latex/echf-complete-1.pdf>]
-<ggfunction_files/figure-latex/diagnostic-workflow-1.pdf, id=283, 505.89pt x 332.24126pt>
+[7 <./ggfunction_files/figure-latex/hdr-examples-1.pdf>] [8 <./ggfunction_files/figure-latex/pmf-2d-workflow-1.pdf> <./ggfunction_files/figure-latex/discrete-support-1.pdf>]
+<ggfunction_files/figure-latex/diagnostic-workflow-1.pdf, id=263, 505.89pt x 332.24126pt>
 File: ggfunction_files/figure-latex/diagnostic-workflow-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/diagnostic-workflow-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/diagnostic-workflow-1.pdf  used on input line 467.
+Package pdftex.def Info: ggfunction_files/figure-latex/diagnostic-workflow-1.pdf  used on input line 476.
 (pdftex.def)             Requested size: 378.42043pt x 248.5314pt.
-[10 <./ggfunction_files/figure-latex/diagnostic-workflow-1.pdf>]
-<ggfunction_files/figure-latex/survival-workflow-1.pdf, id=314, 505.89pt x 332.24126pt>
+[9 <./ggfunction_files/figure-latex/ecdf-workflow-1.pdf>] [10 <./ggfunction_files/figure-latex/echf-complete-1.pdf> <./ggfunction_files/figure-latex/diagnostic-workflow-1.pdf>]
+<ggfunction_files/figure-latex/survival-workflow-1.pdf, id=315, 505.89pt x 332.24126pt>
 File: ggfunction_files/figure-latex/survival-workflow-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/survival-workflow-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/survival-workflow-1.pdf  used on input line 522.
+Package pdftex.def Info: ggfunction_files/figure-latex/survival-workflow-1.pdf  used on input line 533.
 (pdftex.def)             Requested size: 378.42043pt x 248.5314pt.
 [11 <./ggfunction_files/figure-latex/survival-workflow-1.pdf>]
-LaTeX Font Info:    Trying to load font information for TS1+ppl on input line 596.
+LaTeX Font Info:    Trying to load font information for TS1+ppl on input line 607.
 (/Users/davidkahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ts1ppl.fd
 File: ts1ppl.fd 2001/06/04 font definitions for TS1/ppl.
 ) [12] [13] [14] (./RJwrapper.bbl (./RJwrapper.brf)
@@ -886,11 +886,11 @@ File: ts1ppl.fd 2001/06/04 font definitions for TS1/ppl.
 [15])
 
 LaTeX Font Warning: Font shape `T1/zi4/m/it' undefined
-(Font)              using `T1/zi4/m/n' instead on input line 900.
+(Font)              using `T1/zi4/m/n' instead on input line 935.
 
 LaTeX Font Info:    Font shape `T1/zi4/m/it' will be
-(Font)              scaled to size 9.18004pt on input line 910.
-) [16] (./RJwrapper.aux)
+(Font)              scaled to size 9.18004pt on input line 945.
+[16]) [17] (./RJwrapper.aux)
  ***********
 LaTeX2e <2026-06-01>
 L3 programming layer <2026-06-18>
@@ -901,21 +901,21 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 Package rerunfilecheck Info: File `RJwrapper.out' has not changed.
 (rerunfilecheck)             Checksum: D075AE91967AB3D69DBD9018C396A322;3532.
 Package rerunfilecheck Info: File `RJwrapper.brf' has not changed.
-(rerunfilecheck)             Checksum: 745E8312034E6FB42AE8D4A951589B99;1117.
+(rerunfilecheck)             Checksum: 9684CEAECEA258D53EEA77BE13D052BF;1396.
  ) 
 Here is how much of TeX's memory you used:
- 27563 strings out of 469158
- 507441 string characters out of 5459129
- 932442 words of memory out of 5000000
- 55642 multiletter control sequences out of 15000+600000
- 693679 words of font info for 371 fonts, out of 8000000 for 9000
+ 27633 strings out of 469158
+ 508362 string characters out of 5459129
+ 931834 words of memory out of 5000000
+ 55678 multiletter control sequences out of 15000+600000
+ 694724 words of font info for 389 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 117i,13n,131p,1491b,901s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 117i,13n,131p,1065b,926s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbb.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbi.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on RJwrapper.pdf (16 pages, 346942 bytes).
+Output written on RJwrapper.pdf (17 pages, 352296 bytes).
 PDF statistics:
- 512 PDF objects out of 1000 (max. 8388607)
- 436 compressed objects within 5 object streams
- 71 named destinations out of 1000 (max. 500000)
+ 561 PDF objects out of 1000 (max. 8388607)
+ 484 compressed objects within 5 object streams
+ 78 named destinations out of 1000 (max. 500000)
  79065 words of extra memory for PDF output out of 89155 (max. 10000000)
 

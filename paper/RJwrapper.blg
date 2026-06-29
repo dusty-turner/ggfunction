@@ -3,44 +3,44 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: RJwrapper.aux
 The style file: abbrvnat.bst
 Database file #1: RJreferences.bib
-You've used 16 entries,
+You've used 22 entries,
             2773 wiz_defined-function locations,
-            709 strings with 7104 characters,
-and the built_in function-call counts, 6364 in all, are:
-= -- 614
-> -- 242
-< -- 14
-+ -- 88
-- -- 72
-* -- 494
-:= -- 1004
-add.period$ -- 66
-call.type$ -- 16
-change.case$ -- 68
-chr.to.int$ -- 16
-cite$ -- 32
-duplicate$ -- 314
-empty$ -- 571
-format.name$ -- 92
-if$ -- 1317
+            747 strings with 8348 characters,
+and the built_in function-call counts, 9009 in all, are:
+= -- 850
+> -- 440
+< -- 15
++ -- 154
+- -- 132
+* -- 731
+:= -- 1432
+add.period$ -- 90
+call.type$ -- 22
+change.case$ -- 101
+chr.to.int$ -- 22
+cite$ -- 44
+duplicate$ -- 424
+empty$ -- 741
+format.name$ -- 160
+if$ -- 1843
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 16
-newline$ -- 105
-num.names$ -- 64
-pop$ -- 116
+missing$ -- 17
+newline$ -- 141
+num.names$ -- 88
+pop$ -- 174
 preamble$ -- 1
-purify$ -- 56
+purify$ -- 88
 quote$ -- 0
-skip$ -- 217
+skip$ -- 311
 stack$ -- 0
-substring$ -- 270
-swap$ -- 20
+substring$ -- 307
+swap$ -- 31
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 161
+type$ -- 227
 warning$ -- 0
-while$ -- 68
+while$ -- 88
 width$ -- 0
-write$ -- 247
+write$ -- 332

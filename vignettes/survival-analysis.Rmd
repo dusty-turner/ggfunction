@@ -299,8 +299,9 @@ cumulative hazard:
 
 $$\hat{H}(t) = \sum_{t_j \le t} \frac{d_j}{n_j}.$$
 
-`geom_echf_na()` renders this as an increasing step function with a pointwise
-normal confidence band based on the variance estimator
+`geom_echf_na()` renders this as an increasing step function with pointwise
+normal confidence intervals, drawn as thin vertical bars by default and based
+on the variance estimator
 $\widehat{\mathrm{Var}}[\hat{H}(t)] = \sum_{t_j \le t} d_j / n_j^2$.
 
 ```{r na-basic}

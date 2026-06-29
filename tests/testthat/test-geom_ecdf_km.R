@@ -426,6 +426,84 @@ test_that("geom_echf_na builds without error", {
   expect_silent(ggplot_build(p))
 })
 
+test_that("geom_echf_na draws interval bars by default", {
+  df <- data.frame(
+    time   = c(1, 2, 3, 4, 5, 6, 7, 8),
+    status = c(1, 1, 0, 1, 0, 1, 1, 0)
+  )
+  p <- ggplot(df, aes(x = time, status = status)) + geom_echf_na()
+
+  expect_equal(unname(vapply(p$layers, function(layer) class(layer$geom)[1], character(1))),
+               c("GeomErrorbar", "GeomCDFDiscrete"))
+
+  built <- ggplot_build(p)
+  interval_data <- built$data[[1]]
+  tab <- ggfunction:::.tabulate_km(df$time, df$status, na.rm = FALSE)
+
+  expect_equal(interval_data$x, tab$time)
+  expect_true(all(is.finite(interval_data$x)))
+  expect_true(all(is.finite(interval_data$ymin)))
+  expect_true(all(is.finite(interval_data$ymax)))
+  expect_true(all(interval_data$ymin >= 0))
+  expect_true(all(interval_data$ymin <= interval_data$ymax))
+})
+
+test_that("geom_echf_na interval bar style is configurable", {
+  df <- data.frame(
+    time   = c(1, 2, 3, 4, 5),
+    status = c(1, 1, 0, 1, 1)
+  )
+  p <- ggplot(df, aes(x = time, status = status)) +
+    geom_echf_na(
+      conf_colour = "grey50",
+      conf_linewidth = 0.6,
+      conf_alpha = 0.4,
+      conf_width = 0.1
+    )
+  interval_data <- ggplot_build(p)$data[[1]]
+
+  expect_equal(unique(interval_data$colour), "grey50")
+  expect_equal(unique(interval_data$linewidth), 0.6)
+  expect_equal(unique(interval_data$alpha), 0.4)
+  expect_equal(unique(interval_data$width), 0.1)
+})
+
+test_that("geom_echf_na ribbon display remains available", {
+  df <- data.frame(
+    time   = c(1, 2, 3, 4, 5),
+    status = c(1, 1, 0, 1, 1)
+  )
+  p <- ggplot(df, aes(x = time, status = status)) +
+    geom_echf_na(conf_geom = "ribbon")
+
+  expect_equal(unname(vapply(p$layers, function(layer) class(layer$geom)[1], character(1))),
+               c("GeomRibbon", "GeomCDFDiscrete"))
+
+  built_band <- ggplot_build(p)$data[[1]][, c("x", "ymin", "ymax")]
+  expected_band <- StatECHFNABand$compute_group(
+    data = data.frame(x = df$time, status = df$status),
+    scales = list(),
+    na.rm = FALSE,
+    level = 0.95
+  )
+  row.names(built_band) <- NULL
+  row.names(expected_band) <- NULL
+
+  expect_equal(built_band, expected_band, tolerance = 1e-10)
+})
+
+test_that("geom_echf_na can suppress confidence display via conf_geom", {
+  df <- data.frame(
+    time   = c(1, 2, 3, 4, 5),
+    status = c(1, 1, 0, 1, 1)
+  )
+  p <- ggplot(df, aes(x = time, status = status)) +
+    geom_echf_na(conf_geom = "none")
+
+  expect_length(p$layers, 1L)
+  expect_equal(class(p$layers[[1]]$geom)[1], "GeomCDFDiscrete")
+})
+
 test_that("geom_echf_na builds without conf_int", {
   df <- data.frame(
     time   = c(1, 2, 3, 4, 5),
@@ -435,6 +513,24 @@ test_that("geom_echf_na builds without conf_int", {
     geom_echf_na(conf_int = FALSE)
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
+})
+
+test_that("other empirical confidence displays keep ribbon geoms", {
+  km_df <- data.frame(
+    time   = c(1, 2, 3, 4, 5),
+    status = c(1, 1, 0, 1, 1)
+  )
+  echf_df <- data.frame(x = c(0.3, 1.1, 1.7, 2.2, 3.4))
+  diag_df <- data.frame(x = c(-1.2, -0.4, 0.2, 0.8, 1.6))
+
+  km_plot <- ggplot(km_df, aes(x = time, status = status)) + geom_ecdf_km()
+  echf_plot <- ggplot(echf_df, aes(x = x)) + geom_echf()
+  pp_plot <- ggplot(diag_df, aes(x = x)) + geom_ppplot(fun = pnorm)
+
+  expect_equal(class(km_plot$layers[[1]]$geom)[1], "GeomRibbon")
+  expect_equal(class(echf_plot$layers[[1]]$geom)[1], "GeomRibbon")
+  expect_true(any(vapply(pp_plot$layers, function(layer) class(layer$geom)[1],
+                         character(1)) == "GeomRibbon"))
 })
 
 test_that("geom_echf_na builds with grouped data", {

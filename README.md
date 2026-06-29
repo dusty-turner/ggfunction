@@ -29,6 +29,8 @@ install.packages("ggfunction")
 
 Development versions and issue tracking are available at
 <https://github.com/dusty-turner/ggfunction>.
+<!-- TODO-CRAN: If README is regenerated before CRAN acceptance, switch this
+paragraph back to development-install wording. -->
 
 ## Start here
 
@@ -110,7 +112,7 @@ The package is organized around four families of geoms:
 |  | `geom_epmf()` |  | Empirical PMF (lollipop) |
 |  | `geom_echf()` |  | Empirical cumulative hazard with DKW confidence band |
 | **Censored Data** | `geom_ecdf_km()` |  | Kaplan-Meier survival curve with Greenwood EP band |
-|  | `geom_echf_na()` |  | Nelson-Aalen cumulative hazard with pointwise band |
+|  | `geom_echf_na()` |  | Nelson-Aalen cumulative hazard with pointwise intervals |
 
 ## Dimensional Taxonomy
 
@@ -271,10 +273,10 @@ ggplot() +
 
 `geom_function_2d_2d()` visualizes a vector field
 $\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2$ via
-[**ggvfields**](https://CRAN.R-project.org/package=ggvfields). The function
-should accept a length-2 vector and return a length-2 vector. By default
-(`type = "vector"`) it draws short arrows at each grid point colored by
-field magnitude; `type = "stream"` switches to integral-curve
+[**ggvfields**](https://CRAN.R-project.org/package=ggvfields). The
+function should accept a length-2 vector and return a length-2 vector.
+By default (`type = "vector"`) it draws short arrows at each grid point
+colored by field magnitude; `type = "stream"` switches to integral-curve
 streamlines. The following example shows the rotation field
 $\mathbf{F}(x,y) = (-y,\, x)$.
 
@@ -1178,7 +1180,8 @@ ggplot(df_cens, aes(x = time, status = status)) +
 
 `geom_echf_na()` computes the Nelson-Aalen cumulative hazard estimator
 from right-censored data and renders it as an increasing step function
-with a pointwise normal confidence band.
+with pointwise normal confidence intervals drawn as thin vertical bars
+by default.
 
 ``` r
 ggplot(df_cens, aes(x = time, status = status)) +

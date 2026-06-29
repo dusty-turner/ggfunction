@@ -21,7 +21,11 @@ geom_echf_na(
   show_vert = NULL,
   conf_int = TRUE,
   level = 0.95,
-  conf_alpha = 0.4
+  conf_alpha = 0.65,
+  conf_geom = c("errorbar", "ribbon", "none"),
+  conf_colour = "grey70",
+  conf_linewidth = 0.25,
+  conf_width = 0
 )
 
 StatECHFNA
@@ -132,23 +136,40 @@ points and hidden otherwise.}
 If \code{NULL} (the default), segments are shown when there are 50 or fewer
 points and hidden otherwise.}
 
-\item{conf_int}{Logical. If \code{TRUE} (the default), draws a pointwise normal
-confidence band around the Nelson-Aalen estimate.}
+\item{conf_int}{Logical. If \code{TRUE} (the default), draws pointwise normal
+confidence intervals for the Nelson-Aalen estimate.}
 
-\item{level}{Confidence level for the band. Defaults to \code{0.95}.}
+\item{level}{Confidence level for the intervals. Defaults to \code{0.95}.}
 
-\item{conf_alpha}{Alpha (transparency) of the confidence ribbon. Defaults
-to \code{0.4}.}
+\item{conf_alpha}{Alpha (transparency) of the confidence display. Defaults
+to \code{0.65}.}
+
+\item{conf_geom}{Confidence display to use when \code{conf_int = TRUE}.
+\code{"errorbar"} (the default) draws thin pointwise interval bars at event
+times. \code{"ribbon"} preserves the previous continuous ribbon display.
+\code{"none"} suppresses the confidence display.}
+
+\item{conf_colour}{Colour or fill for the confidence display. Defaults
+to \code{"grey70"}.}
+
+\item{conf_linewidth}{Line width for \code{conf_geom = "errorbar"}. Defaults
+to \code{0.25}.}
+
+\item{conf_width}{Width of the error-bar caps when \code{conf_geom = "errorbar"}.
+Defaults to \code{0}.}
 }
 \value{
-A ggplot2 layer, or a list of two layers when \code{conf_int = TRUE}.
+A ggplot2 layer, or a list of two layers when a confidence display
+is drawn.
 }
 \description{
 \code{geom_echf_na()} computes the Nelson-Aalen cumulative hazard estimator from
 right-censored data and renders it as an increasing step function starting
 at 0, using the same visual conventions as \code{\link[=geom_cdf_discrete]{geom_cdf_discrete()}}. An
-optional pointwise normal confidence band (defaulting to 95\%) is drawn around
-the curve using the Nelson variance estimator.
+optional pointwise normal interval display (defaulting to 95\%) is drawn at
+event times using the Nelson variance estimator. These pointwise intervals
+are drawn as thin gray error bars by default to distinguish them visually
+from simultaneous confidence bands.
 }
 \details{
 The Nelson-Aalen estimator at event time \eqn{t_j} is
@@ -156,7 +177,7 @@ The Nelson-Aalen estimator at event time \eqn{t_j} is
 where \eqn{d_j} is the number of events and \eqn{n_j} is the number at risk
 just before \eqn{t_j}.
 
-The pointwise confidence band uses the Nelson variance estimator
+The pointwise confidence intervals use the Nelson variance estimator
 \deqn{\widehat{\mathrm{Var}}[\hat{H}(t)] = \sum_{t_j \le t}
 \frac{d_j}{n_j^2}}
 with the normal critical value, giving pointwise bounds
@@ -171,7 +192,7 @@ with \code{\link[ggplot2:after_stat]{ggplot2::after_stat()}}.
 \item{\code{after_stat(x)}}{Event times.}
 \item{\code{after_stat(y)}}{Nelson-Aalen cumulative hazard estimates.}
 \item{\code{after_stat(ymin)} and \code{after_stat(ymax)}}{Lower and upper confidence
-band limits when \code{conf_int = TRUE}.}
+interval limits when \code{conf_int = TRUE}.}
 }
 }
 
@@ -208,6 +229,10 @@ ggplot(df, aes(x = time, status = status)) +
 # Without confidence band
 ggplot(df, aes(x = time, status = status)) +
   geom_echf_na(conf_int = FALSE)
+
+# Previous ribbon-style confidence display
+ggplot(df, aes(x = time, status = status)) +
+  geom_echf_na(conf_geom = "ribbon")
 
 # Grouped data
 df2 <- data.frame(
