@@ -14,541 +14,542 @@ knitr::opts_chunk$set(
   message = FALSE
 )
 
+library("ggplot2")
+library("ggfunction")
+library("patchwork")
+
 options(
   ggplot2.continuous.colour = NULL,
   ggplot2.continuous.fill = NULL
 )
 
-
-## ----eval=FALSE, echo=TRUE----------------------------------------------------
-# # instead of wrapping in an anonymous function:
-# ggplot() + geom_pdf(fun = function(x) dnorm(x, mean = 5, sd = 2), xlim = c(0, 10))
-# 
-# # users can write:
-# ggplot() + geom_pdf(fun = dnorm, xlim = c(0, 10), args = list(mean = 5, sd = 2))
+theme_set(theme_minimal(base_size = 10))
 
 
-## ----sin-curve, echo=TRUE-----------------------------------------------------
-#| fig.cap: "The sine function over one full period."
-library("ggfunction")
-
+## ----motivating, fig.height=4.2, fig.cap="A motivating example: support-aware normal-density shading. The shaded upper tail is computed from the distribution, not by renormalizing over the displayed x range."----
 ggplot() +
-  geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi))
+  geom_pdf(
+    fun = dnorm,
+    xlim = c(-3.5, 3.5),
+    p = 0.975,
+    lower.tail = FALSE,
+    fill = "#4C78A8",
+    alpha = 0.45
+  ) +
+  labs(x = "x", y = "density")
 
 
-## ----shaded-cosine, echo=TRUE-------------------------------------------------
-#| fig.cap: "The cosine function over $[0, 2\\pi]$ with the interval $[0, \\pi/2]$ shaded; the shaded area equals $\\int_0^{\\pi/2} \\cos(x)\\,dx = 1$."
-ggplot() +
-  geom_function_1d_1d(fun = cos, xlim = c(0, 2 * pi), shade_from = 0, shade_to = pi/2)
+## ----args-example, eval=FALSE, echo=TRUE--------------------------------------
+# ggplot() +
+#   geom_pdf(
+#     fun = dnorm,
+#     args = list(mean = 5, sd = 2),
+#     xlim = c(0, 10)
+#   )
 
 
-## ----lemniscate, echo=TRUE----------------------------------------------------
-#| fig.cap: "The lemniscate of Bernoulli $\\boldsymbol{\\gamma}(t) = (\\cos t\\,/\\,(1+\\sin^2 t),\\; \\sin t\\cos t\\,/\\,(1+\\sin^2 t))$--a figure-eight curve along which the product of distances to the two foci is constant--with color encoding the parameter $t$."
-lemniscate <- function(t) c(cos(t) / (1 + sin(t)^2), sin(t) * cos(t) / (1 + sin(t)^2))
-
-ggplot() +
-  geom_function_1d_2d(fun = lemniscate, tlim = c(0, 1.9 * pi), tail_point = TRUE)
-
-
-## ----lissajous, echo=TRUE, fig.width=10, fig.height=4-------------------------
-#| fig.cap: "Lissajous figures $\\boldsymbol{\\gamma}(t) = (\\sin(at + \\pi/2),\\,\\sin(bt))$ for three frequency ratios $a/b$. Each ratio produces a qualitatively distinct closed curve; the same function definition is reused across all three panels via the \\texttt{args} parameter."
-lissajous <- function(t, a = 3, b = 2, delta = pi/2) {
-  c(sin(a * t + delta), sin(b * t))
-}
-
-p1 <- ggplot() +
-  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 1, b = 1)) + 
-  ggtitle("a = 1, b = 1")
-
-p2 <- ggplot() +
-  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 2, b = 1)) + 
-  ggtitle("a = 2, b = 1")
-
-p3 <- ggplot() +
-  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 3, b = 2)) +
-  ggtitle("a = 3, b = 2")
-
-library("patchwork")
-
-(p1 | p2 | p3) + plot_layout(guides = "collect")
-
-
-## ----sincos-raster, echo=TRUE-------------------------------------------------
-#| fig.cap: "The function $f(x, y) = \\sin(x)\\cos(y)$ over $[-\\pi, \\pi]^2$ rendered as a raster heatmap."
-f_sc <- function(u) {
-  x <- u[1]; y <- u[2]
-  sin(x) * cos(y)
-}
-
-ggplot() +
-  geom_function_2d_1d(fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi))
-
-
-## ----sincos-contour, echo=TRUE, fig.width=10, fig.height=4--------------------
-#| fig.cap: "The same function rendered as contour lines (left) and filled contours (right)."
-p_contour <- ggplot() +
-  geom_function_2d_1d(
-    fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi), type = "contour"
-  ) + ggtitle("type = 'contour'")
-
-p_filled <- ggplot() +
-  geom_function_2d_1d(
-    fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi), type = "contour_filled"
-  ) + ggtitle("type = 'contour_filled'")
-
-p_contour | p_filled
-
-
-## ----rotation-field, echo=TRUE------------------------------------------------
-#| fig.cap: "The rotation field $\\mathbf{F}(x, y) = (-y, x)$ displayed as short arrows at each grid point."
-f_rotation <- function(u) {
-  x <- u[1]; y <- u[2]
-  c(-y, x)
-}
-
-ggplot() +
-  geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1))
-
-
-## ----rotation-stream, echo=TRUE-----------------------------------------------
-#| fig.cap: "The same rotation field rendered as streamlines, each following the counterclockwise flow induced by the field."
-ggplot() +
-  geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1),
-    type = "stream")
-
-
-## ----cross-conversion, echo=FALSE---------------------------------------------
-#| tab.cap: "Cross-conversion routes for distribution geoms. Each geom accepts its native function type via \\texttt{fun} and one or more alternate types via the listed parameters."
-cc <- data.frame(
-  Geom = c(
-    "\\texttt{geom\\_pdf()}", "\\texttt{geom\\_cdf()}",
-    "\\texttt{geom\\_survival()}", "\\texttt{geom\\_qf()}",
-    "\\texttt{geom\\_hf()}", "\\texttt{geom\\_chf()}",
-    "\\texttt{geom\\_cdf\\_discrete()}",
-    "\\texttt{geom\\_survival\\_discrete()}", "\\texttt{geom\\_qf\\_discrete()}"
+## ----taxonomy-table-----------------------------------------------------------
+#| tab.cap: "Dimensional taxonomy for mathematical-function layers."
+taxonomy <- data.frame(
+  Signature = c(
+    "$f:\\mathbb{R}\\to\\mathbb{R}$",
+    "$\\boldsymbol{\\gamma}:\\mathbb{R}\\to\\mathbb{R}^2$",
+    "$f:\\mathbb{R}^2\\to\\mathbb{R}$",
+    "$\\mathbf{F}:\\mathbb{R}^2\\to\\mathbb{R}^2$"
   ),
-  Native = c("PDF", "CDF", "Survival", "Quantile", "Hazard",
-             "Cumulative hazard", "CDF", "Survival", "Quantile"),
-  Alternates = c(
-    "\\texttt{cdf\\_fun}, \\texttt{survival\\_fun}, \\texttt{qf\\_fun}, \\texttt{hf\\_fun}",
-    "\\texttt{pdf\\_fun}, \\texttt{survival\\_fun}, \\texttt{qf\\_fun}, \\texttt{hf\\_fun}",
-    "\\texttt{cdf\\_fun}, \\texttt{pdf\\_fun}, \\texttt{qf\\_fun}",
-    "\\texttt{cdf\\_fun}, \\texttt{pdf\\_fun}, \\texttt{survival\\_fun}",
-    "\\texttt{pdf\\_fun}, \\texttt{cdf\\_fun}, \\texttt{survival\\_fun}, \\texttt{qf\\_fun}",
-    "\\texttt{hf\\_fun}, \\texttt{cdf\\_fun}, \\texttt{survival\\_fun}, \\texttt{pdf\\_fun}, \\texttt{qf\\_fun}",
-    "\\texttt{pmf\\_fun}, \\texttt{survival\\_fun}",
-    "\\texttt{cdf\\_fun}, \\texttt{pmf\\_fun}",
-    "\\texttt{pmf\\_fun}, \\texttt{cdf\\_fun}, \\texttt{survival\\_fun}"
+  Layer = c(
+    "\\code{geom\\_function\\_1d\\_1d()}",
+    "\\code{geom\\_function\\_1d\\_2d()}",
+    "\\code{geom\\_function\\_2d\\_1d()}",
+    "\\code{geom\\_function\\_2d\\_2d()}"
+  ),
+  Display = c(
+    "curve, optionally shaded",
+    "parametric path with parameter colour",
+    "raster, contours, or filled contours",
+    "arrows or streamlines"
   ),
   check.names = FALSE
 )
-knitr::kable(cc, escape = FALSE, col.names = c("Geom", "Native (\\texttt{fun})", "Alternate inputs"))
+knitr::kable(taxonomy, escape = FALSE)
 
 
-## ----pdf-shading-modes, echo=TRUE, fig.width=10, fig.height=4-----------------
-#| fig.cap: "Three shading modes for \\texttt{geom\\_pdf()}: lower tail ($p = 0.975$, left), central 95\\% interval (center), and two-tailed rejection region at $\\alpha = 0.05$ (right)."
-p1 <- ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975) +
-  ggtitle("p = 0.975")
+## ----taxonomy, fig.width=7, fig.height=5.8, out.width="95%", fig.cap="The four mathematical-function signatures supported by the ggfunction dimensional taxonomy: scalar functions, parametric curves, scalar fields, and vector fields."----
+scalar_plot <- ggplot() +
+  geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi), color = "#4C78A8") +
+  labs(title = "R -> R", x = "x", y = "sin(x)")
 
-p2 <- ggplot() +
+circle <- function(t) c(cos(t), sin(t))
+curve_plot <- ggplot() +
+  geom_function_1d_2d(fun = circle, tlim = c(0, 2 * pi), tail_point = TRUE) +
+  coord_equal() +
+  labs(title = "R -> R^2", x = "x(t)", y = "y(t)")
+
+field <- function(v) sin(v[1]) * cos(v[2])
+scalar_field_plot <- ggplot() +
+  geom_function_2d_1d(
+    fun = field,
+    xlim = c(-pi, pi),
+    ylim = c(-pi, pi),
+    n = 60,
+    type = "contour_filled"
+  ) +
+  labs(title = "R^2 -> R", x = "x", y = "y", fill = "f")
+
+rotation <- function(v) c(-v[2], v[1])
+vector_plot <- ggplot() +
+  geom_function_2d_2d(
+    fun = rotation,
+    xlim = c(-1, 1),
+    ylim = c(-1, 1),
+    n = 9,
+    type = "vector"
+  ) +
+  coord_equal() +
+  labs(title = "R^2 -> R^2", x = "x", y = "y")
+
+(scalar_plot + curve_plot) / (scalar_field_plot + vector_plot)
+
+
+## ----dimension-args-example, eval=FALSE, echo=TRUE----------------------------
+# lissajous <- function(t, a = 3, b = 2, delta = pi / 2) {
+#   c(sin(a * t + delta), sin(b * t))
+# }
+# 
+# ggplot() +
+#   geom_function_1d_2d(
+#     fun = lissajous,
+#     tlim = c(0, 2 * pi),
+#     args = list(a = 5, b = 4)
+#   )
+
+
+## ----vector-stream, fig.width=7, fig.height=4.2, out.width="95%", fig.cap="The same rotation field rendered as local arrows and as streamlines. ggfunction supplies the function interface and delegates vector-field rendering to ggvfields."----
+rotation_field <- function(v) c(-v[2], v[1])
+
+arrow_field <- ggplot() +
+  geom_function_2d_2d(
+    fun = rotation_field,
+    xlim = c(-1, 1),
+    ylim = c(-1, 1),
+    n = 9,
+    type = "vector"
+  ) +
+  coord_equal() +
+  labs(title = "vector field", x = "x", y = "y")
+
+stream_field <- ggplot() +
+  geom_function_2d_2d(
+    fun = rotation_field,
+    xlim = c(-1, 1),
+    ylim = c(-1, 1),
+    n = 9,
+    type = "stream",
+    T = 0.9
+  ) +
+  coord_equal() +
+  labs(title = "stream field", x = "x", y = "y")
+
+arrow_field + stream_field
+
+
+## ----conversion-continuous----------------------------------------------------
+#| tab.cap: "Continuous distribution-function inputs and conversion routes. Native inputs are used directly; derived routes may require numerical integration, finite differences, interpolation, or root finding."
+conversion_continuous <- data.frame(
+  Target = c(
+    "PDF $f$",
+    "CDF $F$",
+    "survival $S$",
+    "quantile $Q$",
+    "hazard $h$",
+    "cum. hazard $H$"
+  ),
+  Native = rep("\\code{fun}", 6),
+  "Other sources" = c(
+    "$F$, $S$, $Q$, or $h$",
+    "$f$, $S$, $Q$, or $h$",
+    "$F$, $f$, $Q$, or $h$",
+    "$F$, $f$, $S$, or $h$",
+    "$f$, $F$, $S$, or $Q$",
+    "$h$, $F$, $S$, $f$, or $Q$"
+  ),
+  Route = c(
+    "finite diff., interpolation, or $hS$",
+    "integration or identity",
+    "$1-F$",
+    "root-find $F$",
+    "$f/S$; $f+F$ accepted",
+    "$-\\log S$ or integrate $h$"
+  ),
+  check.names = FALSE
+)
+knitr::kable(conversion_continuous, escape = FALSE)
+
+
+## ----conversion-discrete------------------------------------------------------
+#| tab.cap: "Discrete distribution-function inputs and conversion routes. Computations are performed over the declared support."
+conversion_discrete <- data.frame(
+  Target = c("PMF", "CDF", "survival", "quantile"),
+  Native = c("\\code{fun}", "\\code{fun}", "\\code{fun}", "\\code{fun}"),
+  "Other sources" = c(
+    "CDF or survival",
+    "PMF or survival",
+    "PMF or CDF",
+    "PMF or CDF"
+  ),
+  Route = c(
+    "support differences",
+    "cumulative sums",
+    "$1-F$ on support",
+    "generalized inverse"
+  ),
+  check.names = FALSE
+)
+knitr::kable(conversion_discrete, escape = FALSE)
+
+
+## ----gamma-views, fig.width=7, fig.height=5.8, out.width="95%", fig.cap="One gamma distribution viewed through four related functions. The PDF panel uses a native density; the CDF and survival panels derive from the density; the hazard panel uses the documented PDF + CDF bundle."----
+gamma_args <- list(shape = 2, scale = 1.5)
+
+gamma_pdf <- ggplot() +
   geom_pdf(
-    fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975
-  ) + ggtitle("Central 95%")
+    fun = dgamma,
+    args = gamma_args,
+    xlim = c(0, 10),
+    support = c(0, Inf),
+    fill = "#4C78A8",
+    alpha = 0.35
+  ) +
+  labs(title = "PDF", x = "x", y = "f(x)")
 
-p3 <- ggplot() +
-  geom_pdf(
-    fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE
-  ) + ggtitle(expression(alpha == 0.05 ~ "rejection region"))
+gamma_cdf <- ggplot() +
+  geom_cdf(
+    pdf_fun = dgamma,
+    args = gamma_args,
+    xlim = c(0, 10),
+    support = c(0, Inf),
+    color = "#4C78A8"
+  ) +
+  labs(title = "CDF from PDF", x = "x", y = "F(x)")
 
-p1 | p2 | p3
+gamma_surv <- ggplot() +
+  geom_survival(
+    pdf_fun = dgamma,
+    args = gamma_args,
+    xlim = c(0, 10),
+    support = c(0, Inf),
+    color = "#4C78A8"
+  ) +
+  labs(title = "Survival from PDF", x = "x", y = "S(x)")
+
+gamma_hazard <- ggplot() +
+  geom_hf(
+    pdf_fun = dgamma,
+    cdf_fun = pgamma,
+    args = gamma_args,
+    xlim = c(0.01, 10),
+    support = c(0, Inf),
+    color = "#4C78A8"
+  ) +
+  labs(title = "Hazard from PDF + CDF", x = "x", y = "h(x)")
+
+(gamma_pdf + gamma_cdf) / (gamma_surv + gamma_hazard)
 
 
-## ----pdf-hdr, echo=TRUE-------------------------------------------------------
-#| fig.cap: "The 80\\% highest density region of an asymmetric bimodal density ($0.6\\,\\mathcal{N}(-2,\\,0.6^2) + 0.4\\,\\mathcal{N}(2,\\,1.2^2)$), shading both modes as two disjoint intervals with more area allocated to the taller, narrower component."
-f_mix <- function(x) 0.6 * dnorm(x, mean = -2, sd = 0.6) + 0.4 * dnorm(x, mean = 2, sd = 1.2)
-ggplot() +
-  geom_pdf(fun = f_mix, xlim = c(-5, 6), shade_hdr = 0.8)
+## ----prob-shading, fig.width=7, fig.height=4.2, out.width="95%", fig.cap="Three probability-shading requests for the standard normal distribution: a lower-tail probability, a central interval, and two tails outside a central interval."----
+base_pdf <- function(...) {
+  ggplot() +
+    geom_pdf(fun = dnorm, xlim = c(-3.5, 3.5), fill = "#4C78A8", alpha = 0.45, ...) +
+    labs(x = "x", y = "density")
+}
+
+p_lower <- base_pdf(p = 0.9) + ggtitle("F(x) <= 0.90")
+p_central <- base_pdf(p_lower = 0.025, p_upper = 0.975) + ggtitle("central 95%")
+p_outside <- base_pdf(p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE) +
+  ggtitle("two tails")
+
+p_lower + p_central + p_outside
 
 
-## ----pdf-2d, echo=TRUE, fig.width=12, fig.height=4----------------------------
-#| fig.cap: "Bivariate normal densities drawn by \\texttt{geom\\_pdf\\_2d()}: filled 50/80/95\\% HDRs of the standard bivariate normal (left), HDR boundary lines for a correlated bivariate normal with covariance supplied via \\texttt{args} (middle), and a raw density raster with density scaled to literal alpha (right)."
-dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
+## ----hdr-examples, fig.width=7, fig.height=4.2, out.width="95%", fig.cap="Approximate highest density regions. Left: a disconnected 80% grid-based HDR for a bimodal univariate density. Right: bivariate normal HDRs delegated to ggdensity."----
+bimodal <- function(x) {
+  0.6 * dnorm(x, mean = -2, sd = 0.6) +
+    0.4 * dnorm(x, mean = 2, sd = 1.2)
+}
+
+dbvn <- function(v, mu = c(0, 0), Sigma = matrix(c(1, 0.6, 0.6, 1), 2, 2)) {
   x <- matrix(v - mu, ncol = 1)
   Sinv <- solve(Sigma)
   1 / (2 * pi * sqrt(det(Sigma))) * exp(-0.5 * as.numeric(t(x) %*% Sinv %*% x))
 }
 
-p1 <- ggplot() +
-  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3),
-    probs = c(0.5, 0.8, 0.95)) +
-  coord_equal() + ggtitle('type = "hdr"')
+hdr_1d <- ggplot() +
+  geom_pdf(
+    fun = bimodal,
+    xlim = c(-5, 5),
+    hdr_xlim = c(-7, 7),
+    shade_hdr = 0.8,
+    fill = "#59A14F",
+    alpha = 0.45
+  ) +
+  labs(x = "x", y = "density")
 
-Sigma <- matrix(c(1, 0.6, 0.6, 1), 2, 2)
-p2 <- ggplot() +
-  geom_pdf_2d(fun = dbvn, args = list(Sigma = Sigma),
-    xlim = c(-3, 3), ylim = c(-3, 3),
-    probs = c(0.5, 0.8, 0.95), type = "hdr_lines") +
-  coord_equal() + ggtitle('type = "hdr_lines"')
+hdr_2d <- ggplot() +
+  geom_pdf_2d(
+    fun = dbvn,
+    xlim = c(-3, 3),
+    ylim = c(-3, 3),
+    probs = c(0.5, 0.8, 0.95),
+    n = 60
+  ) +
+  coord_equal() +
+  labs(x = "x", y = "y")
 
-p3 <- ggplot() +
-  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3),
-    type = "raster") +
-  coord_equal() + ggtitle('type = "raster"')
-
-p1 | p2 | p3
-
-
-## ----pmf-binomial, echo=TRUE--------------------------------------------------
-#| fig.cap: "The PMF of a $\\mathrm{Binomial}(10, 0.3)$ distribution, rendered as a lollipop chart."
-ggplot() +
-  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
-
-
-## ----pmf-clt, echo=TRUE-------------------------------------------------------
-#| fig.cap: "Exact distribution of the sample mean of 10 i.i.d.~Bernoulli(0.3) draws (lollipops) with the CLT normal approximation overlaid as a scaled density curve."
-p <- 0.3; n <- 10
-sd_mean <- sqrt(p * (1 - p) / n)
-f_mean  <- function(x) dbinom(round(x * n), size = n, prob = p)
-max_pmf <- max(f_mean(seq(0, 1, by = 1/n)))
-scale   <- max_pmf / dnorm(p, mean = p, sd = sd_mean)
-f_clt   <- function(x) scale * dnorm(x, mean = p, sd = sd_mean)
-
-ggplot() +
-  geom_pmf(fun = f_mean, support = seq(0, 1, by = 1/n)) +
-  geom_pdf(fun = f_clt, xlim = c(0, 1))
+hdr_1d + hdr_2d
 
 
-## ----pmf-shading, echo=TRUE---------------------------------------------------
-#| fig.cap: "Shading modes for \\texttt{geom\\_pmf()}: the lower 80\\% by cumulative probability, with unshaded lollipops rendered at reduced opacity (left), and the 50/80/95\\% HDRs of a $\\mathrm{Binomial}(10, 0.3)$ distribution, with each support point's smallest containing HDR mapped to alpha (right)."
-p1 <- ggplot() +
-  geom_pmf(fun = dbinom, xlim = c(0, 10),
-    args = list(size = 10, prob = 0.5), p = 0.8) +
-  ggtitle("p = 0.8")
-
-p2 <- ggplot() +
-  geom_pmf(fun = dbinom, xlim = c(0, 10),
-    args = list(size = 10, prob = 0.3), shade_hdr = c(0.5, 0.8, 0.95)) +
-  ggtitle("shade_hdr = c(0.5, 0.8, 0.95)")
-
-p1 | p2
-
-
-## ----pmf-2d, echo=TRUE, fig.width=10, fig.height=4----------------------------
-#| fig.cap: "Bivariate PMFs rendered by \\texttt{geom\\_pmf\\_2d()}: the 50/80/95\\% highest density regions of a product $\\mathrm{Binomial}(10, 0.3) \\times \\mathrm{Binomial}(10, 0.7)$ distribution in the default balloon rendering, with each lattice point's smallest containing HDR mapped to alpha (left), and a trinomial distribution with $n = 8$ evaluated over a bounding lattice in the tile rendering, showing only its simplex support (right)."
-dbinom2 <- function(v, sizes = c(10, 10), probs = c(0.5, 0.5)) {
+## ----pmf-2d-workflow, fig.width=7, fig.height=4.2, out.width="95%", fig.cap="A bivariate probability mass function displayed as a balloon plot and as a tile heatmap."----
+dbinom2 <- function(v, sizes = c(10, 10), probs = c(0.35, 0.65)) {
   dbinom(v[1], sizes[1], probs[1]) * dbinom(v[2], sizes[2], probs[2])
 }
 
-p1 <- ggplot() +
-  geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-    args = list(probs = c(0.3, 0.7)), shade_hdr = c(0.5, 0.8, 0.95)) +
-  scale_size_area() +
-  ggtitle("Product binomial, 50/80/95% HDRs")
+pmf2_point <- ggplot() +
+  geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10)) +
+  scale_size_area(max_size = 7) +
+  coord_equal() +
+  labs(title = "point", x = "x", y = "y", size = "mass")
 
-dtrinom <- function(v, size = 8, prob = c(0.3, 0.3, 0.4)) {
-  if (sum(v) > size) return(0)
-  dmultinom(c(v, size - sum(v)), prob = prob)
+pmf2_tile <- ggplot() +
+  geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10), type = "tile") +
+  coord_equal() +
+  labs(title = "tile", x = "x", y = "y", fill = "mass")
+
+pmf2_point + pmf2_tile
+
+
+## ----discrete-support, fig.width=7, fig.height=4.2, out.width="95%", fig.cap="A discrete distribution on a nonconsecutive support. The PMF layer shades the lower cumulative region; the discrete CDF is derived from the same PMF by cumulative summation over the declared support."----
+disc_support <- c(0, 1, 3, 4, 8)
+disc_mass <- c(0.12, 0.28, 0.20, 0.25, 0.15)
+disc_pmf <- function(x) {
+  out <- numeric(length(x))
+  idx <- match(x, disc_support)
+  out[!is.na(idx)] <- disc_mass[idx[!is.na(idx)]]
+  out
 }
 
-p2 <- ggplot() +
-  geom_pmf_2d(fun = dtrinom, xlim = c(0, 8), ylim = c(0, 8),
-    type = "tile") +
-  coord_equal() + ggtitle("Trinomial on a simplex")
+pmf_plot <- ggplot() +
+  geom_pmf(
+    fun = disc_pmf,
+    support = disc_support,
+    p = 0.8,
+    color = "#4C78A8"
+  ) +
+  scale_x_continuous(breaks = disc_support) +
+  labs(title = "PMF", x = "support", y = "mass")
 
-p1 | p2
-
-
-## ----cdf-shaded, echo=TRUE----------------------------------------------------
-#| fig.cap: "The standard normal CDF."
-ggplot() +
-  geom_cdf(fun = pnorm, xlim = c(-3, 3))
-
-
-## ----discrete-cdf, echo=TRUE--------------------------------------------------
-#| fig.cap: "The discrete CDF of a $\\mathrm{Binomial}(10, 0.5)$ distribution."
-ggplot() +
+cdf_plot <- ggplot() +
   geom_cdf_discrete(
-    pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
-  )
+    pmf_fun = disc_pmf,
+    support = disc_support
+  ) +
+  scale_x_continuous(breaks = disc_support) +
+  labs(title = "CDF from PMF", x = "support", y = "cumulative mass")
+
+pmf_plot + cdf_plot
 
 
-## ----survival-exp, echo=TRUE--------------------------------------------------
-#| fig.cap: "The survival function of an $\\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$."
-ggplot() +
-  geom_survival(cdf_fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
-
-
-## ----discrete-survival, echo=TRUE---------------------------------------------
-#| fig.cap: "The discrete survival function of a $\\mathrm{Binomial}(10, 0.5)$ distribution, descending from 1 to 0."
-ggplot() +
-  geom_survival_discrete(
-    pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
-  )
-
-
-## ----qf-normal, echo=TRUE-----------------------------------------------------
-#| fig.cap: "The quantile function of the standard normal distribution."
-ggplot() +
-  geom_qf(fun = qnorm)
-
-
-## ----discrete-qf, echo=TRUE---------------------------------------------------
-#| fig.cap: "The discrete quantile function of a $\\mathrm{Binomial}(10, 0.5)$ distribution as a left-continuous step function on $[0, 1]$."
-ggplot() +
-  geom_qf_discrete(
-    pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
-  )
-
-
-## ----hazard-shapes, echo=TRUE, fig.width=10, fig.height=4---------------------
-#| fig.cap: "Three canonical hazard shapes: decreasing ($\\mathrm{Weibull}(\\mathrm{shape}{=}0.5,\\,\\mathrm{scale}{=}2)$, left), constant ($\\mathrm{Exponential}(0.5)$, center), and increasing ($\\mathcal{N}(0,1)$, right)."
-p_decr <- ggplot() +
-  geom_hf(
-    pdf_fun = dweibull, cdf_fun = pweibull,
-    xlim = c(0.01, 5), args = list(shape = 0.5, scale = 2)
-  ) + ggtitle("Decreasing (Weibull)")
-
-p_flat <- ggplot() +
-  geom_hf(
-    pdf_fun = dexp, cdf_fun = pexp,
-    xlim = c(0.01, 10), args = list(rate = 0.5)
-  ) + ggtitle("Flat (Exponential)")
-
-p_incr <- ggplot() +
-  geom_hf(
-    pdf_fun = dnorm, cdf_fun = pnorm,
-    xlim = c(-3, 3), args = list(mean = 0, sd = 1)
-  ) + ggtitle("Increasing (Normal)")
-
-p_decr | p_flat | p_incr
-
-
-## ----chf-example, echo=TRUE, fig.width=10, fig.height=4-----------------------
-#| fig.cap: "Cumulative hazard functions for three distributions: $\\mathrm{Exponential}(0.5)$ (left, linear), $\\mathrm{Weibull}(2, 1)$ (center, convex), and $\\mathcal{N}(0,1)$ (right, eventually superlinear). For the exponential, $H(x) = 0.5x$ confirms the constant hazard rate."
-p1 <- ggplot() +
-  geom_chf(cdf_fun = pexp, xlim = c(0, 10), args = list(rate = 0.5)) +
-  ggtitle("Exponential(0.5)")
-
-p2 <- ggplot() +
-  geom_chf(cdf_fun = pweibull, xlim = c(0, 3), args = list(shape = 2, scale = 1)) +
-  ggtitle("Weibull(2, 1)")
-
-p3 <- ggplot() +
-  geom_chf(cdf_fun = pnorm, xlim = c(-3, 3)) +
-  ggtitle("Normal(0, 1)")
-
-p1 | p2 | p3
-
-
-## ----ecdf-basic, echo=TRUE----------------------------------------------------
-#| fig.cap: "Empirical CDFs for two groups from populations $\\mathcal{N}(0,1)$ and $\\mathcal{N}(2,1)$, with simultaneous 95\\% DKW confidence bands. The bands are narrower for larger samples."
-set.seed(1)
-df_ecdf <- data.frame(
-  x     = c(rnorm(60), rnorm(40, mean = 2)),
-  group = rep(c("N(0,1), n=60", "N(2,1), n=40"), c(60, 40))
+## ----ecdf-workflow, fig.width=6, fig.height=4.2, fig.cap="Grouped ECDFs with DKW/Massart confidence bands. Each group receives a separate band computed from its own sample size."----
+set.seed(3101)
+ecdf_data <- data.frame(
+  x = c(rnorm(80, 0, 1), rnorm(120, 1.2, 1)),
+  group = rep(c("A", "B"), c(80, 120))
 )
 
-ggplot(df_ecdf, aes(x = x, colour = group)) +
-  geom_ecdf(show_points = FALSE, show_vert = FALSE) +
-  labs(x = "x", y = expression(hat(F)[n](x)), colour = NULL)
+ggplot(ecdf_data, aes(x = x, colour = group, fill = group)) +
+  geom_ecdf(conf_alpha = 0.18) +
+  labs(x = "x", y = "empirical CDF", colour = "group", fill = "group")
 
 
-## ----ppqq-gof, echo=TRUE, fig.width=10, fig.height=6--------------------------
-#| fig.cap: "PP, QQ, and SP diagnostics for samples compared with a fully specified $\\mathcal{N}(0,1)$ null. The normal sample (top row) follows the identity line and remains within the DKW bands, whereas the shifted exponential sample (bottom row) shows the curvature and tail departures expected from skewness; the SP panels show the same comparison on the variance-stabilized scale."
-set.seed(3)
+## ----echf-complete, fig.width=6, fig.height=4.2, fig.cap="Complete-data empirical cumulative hazard with a transformed DKW band and the theoretical cumulative hazard for an exponential model."----
+set.seed(3104)
+haz_data <- data.frame(x = rexp(100, rate = 0.6))
 
-df_normal <- data.frame("x" = rnorm(50))
-df_exp <- data.frame("x" = rexp(50) - 1)
+ggplot(haz_data, aes(x = x)) +
+  geom_echf(conf_alpha = 0.18, band_max = 5) +
+  geom_chf(fun = function(x) 0.6 * x, xlim = c(0, max(haz_data$x)), color = "#D55E00") +
+  labs(x = "x", y = "cumulative hazard")
 
-ppqq_theme <- theme_gray(base_size = 8) +
-  theme(
-    plot.title = element_text(size = 8),
-    axis.title = element_text(size = 8),
-    axis.text = element_text(size = 7)
+
+## ----diagnostic-workflow, fig.width=7, fig.height=4.6, out.width="95%", fig.cap="QQ and stabilized probability plots for one sample against a fully specified standard normal null. Fitted-null diagnostics use the same visual band but require separate calibration for formal testing."----
+set.seed(3102)
+diag_data <- data.frame(x = rt(90, df = 4) / sqrt(2))
+
+qq_plot <- ggplot(diag_data, aes(x = x)) +
+  geom_qqplot(fun = qnorm, colour = "black", size = 1.3, conf_alpha = 0.18) +
+  coord_equal() +
+  labs(title = "QQ", x = "theoretical quantile", y = "sample quantile")
+
+sp_plot <- ggplot(diag_data, aes(x = x)) +
+  geom_spplot(fun = pnorm, colour = "black", size = 1.3, conf_alpha = 0.18) +
+  coord_equal() +
+  labs(title = "SP", x = "theoretical", y = "observed")
+
+qq_plot + sp_plot
+
+
+## ----survival-workflow, fig.width=7, fig.height=4.6, out.width="95%", fig.cap="Censored-data summaries from the same simulated sample. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with a pointwise normal band."----
+set.seed(3103)
+n_surv <- 90
+event_time <- rexp(n_surv, rate = 0.45)
+censor_time <- rexp(n_surv, rate = 0.25)
+surv_data <- data.frame(
+  time = pmin(event_time, censor_time),
+  status = as.integer(event_time <= censor_time)
+)
+
+km_plot <- ggplot(surv_data, aes(x = time, status = status)) +
+  geom_ecdf_km(conf_alpha = 0.18, censor_size = 1.5) +
+  geom_survival(fun = function(x) exp(-0.45 * x), xlim = c(0, max(surv_data$time)),
+                color = "#D55E00", linewidth = 0.5) +
+  labs(title = "Kaplan-Meier", x = "time", y = "survival")
+
+na_plot <- ggplot(surv_data, aes(x = time, status = status)) +
+  geom_echf_na(conf_alpha = 0.18) +
+  geom_chf(fun = function(x) 0.45 * x, xlim = c(0, max(surv_data$time)),
+           color = "#D55E00", linewidth = 0.5) +
+  labs(title = "Nelson-Aalen", x = "time", y = "cumulative hazard")
+
+km_plot + na_plot
+
+
+## ----data-contract------------------------------------------------------------
+#| tab.cap: "Representative computed variables returned by ggfunction stats."
+data_contract <- data.frame(
+  Family = c(
+    "curves",
+    "fields",
+    "continuous prob.",
+    "discrete prob.",
+    "empirical",
+    "censored",
+    "diagnostics"
+  ),
+  Variables = c(
+    "\\code{x}, \\code{y}",
+    "\\code{x}, \\code{y}, \\code{z}",
+    "\\code{x}, \\code{y}, shade vars",
+    "\\code{x}, \\code{y}, mass/HDR",
+    "\\code{x}, \\code{y}, band limits",
+    "\\code{x}, \\code{y}, band/censor",
+    "\\code{x}, \\code{y}, order/probs"
+  ),
+  Geom = c(
+    "path/area",
+    "raster/contour",
+    "area/path/ribbon",
+    "lollipop/step",
+    "step/ribbon",
+    "step/ribbon/marks",
+    "points/ribbon/line"
+  ),
+  check.names = FALSE
+)
+knitr::kable(data_contract, escape = FALSE)
+
+
+## ----validation-results-setup, include=FALSE----------------------------------
+find_result_file <- function(prefix) {
+  candidates <- c(
+    file.path("..", "inst", "benchmarks", "results"),
+    file.path("inst", "benchmarks", "results")
   )
-
-p_norm_pp <- ggplot(df_normal, aes(x = x)) +
-  geom_ppplot(fun = pnorm, colour = "black", size = 1.2) +
-  coord_equal() +
-  ggtitle("Normal data: PP")
-
-p_norm_qq <- ggplot(df_normal, aes(x = x)) +
-  geom_qqplot(fun = qnorm, colour = "black", size = 1.2) +
-  coord_equal() +
-  ggtitle("Normal data: QQ")
-
-p_norm_sp <- ggplot(df_normal, aes(x = x)) +
-  geom_spplot(fun = pnorm, colour = "black", size = 1.2) +
-  coord_equal() +
-  ggtitle("Normal data: SP")
-
-p_exp_pp <- ggplot(df_exp, aes(x = x)) +
-  geom_ppplot(fun = pnorm, colour = "black", size = 1.2) +
-  coord_equal() +
-  ggtitle("Exponential data: PP")
-
-p_exp_qq <- ggplot(df_exp, aes(x = x)) +
-  geom_qqplot(fun = qnorm, colour = "black", size = 1.2) +
-  coord_equal() +
-  ggtitle("Exponential data: QQ")
-
-p_exp_sp <- ggplot(df_exp, aes(x = x)) +
-  geom_spplot(fun = pnorm, colour = "black", size = 1.2) +
-  coord_equal() +
-  ggtitle("Exponential data: SP")
-
-(p_norm_pp | p_norm_qq | p_norm_sp) / (p_exp_pp | p_exp_qq | p_exp_sp) & ppqq_theme
-
-
-## ----epmf-grouped, echo=TRUE--------------------------------------------------
-#| fig.cap: "Empirical PMFs for two groups of 40 observations each from $\\mathcal{N}(0,1)$ and $\\mathcal{N}(2,1)$, colored by group."
-set.seed(2)
-df_pmf <- data.frame(
-  x     = round(c(rnorm(40), rnorm(40, mean = 2)), 1),
-  group = rep(c("A", "B"), each = 40)
-)
-
-ggplot(df_pmf, aes(x = x, colour = group)) +
-  geom_epmf() +
-  labs(x = "x", y = "Empirical probability", colour = "Group")
-
-
-## ----echf-gof, echo=TRUE, fig.width=8, fig.height=4---------------------------
-#| fig.cap: "Empirical cumulative hazard functions for simulated exponential data. An $\\text{Exp}(0.5)$ sample (left) is overlaid with the theoretical $H(x) = 0.5x$ (red line), which lies within the 95\\% confidence band. An $\\text{Exp}(1)$ sample (right) is tested against the wrong model $H(x) = 0.5x$, which departs from the band."
-set.seed(5)
-
-df_correct <- data.frame(x = rexp(80, rate = 0.5))
-p_correct <- ggplot(df_correct, aes(x = x)) +
-  geom_echf(show_points = FALSE, show_vert = FALSE) +
-  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_correct$x)),
-           args = list(rate = 0.5), colour = "red") +
-  labs(x = "x", y = expression(hat(H)[n](x))) +
-  ggtitle("Correct model") +
-  theme_minimal()
-
-df_wrong <- data.frame(x = rexp(80, rate = 1))
-p_wrong <- ggplot(df_wrong, aes(x = x)) +
-  geom_echf(show_points = FALSE, show_vert = FALSE) +
-  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_wrong$x)),
-           args = list(rate = 0.5), colour = "red") +
-  labs(x = "x", y = expression(hat(H)[n](x))) +
-  ggtitle("Wrong model") +
-  theme_minimal()
-
-p_correct | p_wrong
-
-
-## ----km-censored, echo=TRUE, fig.width=8, fig.height=4------------------------
-#| fig.cap: "Kaplan--Meier survival curves for simulated censored data. Event times follow $\\text{Exp}(0.5)$ and censoring times follow $\\text{Exp}(0.2)$. The left panel shows the KM estimate with a Greenwood 95\\% simultaneous equal-precision band and censoring marks; the right panel overlays the true survival curve (red)."
-set.seed(42)
-n_km <- 60
-true_time <- rexp(n_km, rate = 0.5)
-cens_time <- rexp(n_km, rate = 0.2)
-df_km <- data.frame(
-  time   = pmin(true_time, cens_time),
-  status = as.integer(true_time <= cens_time)
-)
-
-p_km <- ggplot(df_km, aes(x = time, status = status)) +
-  geom_ecdf_km() +
-  labs(x = "Time", y = expression(hat(S)(t))) +
-  ggtitle("Kaplan-Meier estimate") +
-  theme_minimal()
-
-p_km_gof <- ggplot(df_km, aes(x = time, status = status)) +
-  geom_ecdf_km(show_points = FALSE, show_vert = FALSE) +
-  geom_survival(cdf_fun = pexp, xlim = c(0, max(df_km$time)),
-                args = list(rate = 0.5), colour = "red") +
-  labs(x = "Time", y = expression(hat(S)(t))) +
-  ggtitle("KM vs. Exp(0.5) theory") +
-  theme_minimal()
-
-p_km | p_km_gof
-
-
-## ----na-censored, echo=TRUE, fig.width=8, fig.height=4------------------------
-#| fig.cap: "Nelson--Aalen cumulative hazard estimates. The same censored data as in the KM figure. The left panel shows the Nelson--Aalen estimate with a 95\\% pointwise normal confidence band; the right panel overlays the theoretical $H(x) = 0.5x$ (red)."
-p_na <- ggplot(df_km, aes(x = time, status = status)) +
-  geom_echf_na() +
-  labs(x = "Time", y = expression(hat(H)(t))) +
-  ggtitle("Nelson-Aalen estimate") +
-  theme_minimal()
-
-p_na_gof <- ggplot(df_km, aes(x = time, status = status)) +
-  geom_echf_na(show_points = FALSE, show_vert = FALSE) +
-  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_km$time)),
-           args = list(rate = 0.5), colour = "red") +
-  labs(x = "Time", y = expression(hat(H)(t))) +
-  ggtitle("NA vs. Exp(0.5) theory") +
-  theme_minimal()
-
-p_na | p_na_gof
-
-
-## ----sim-coverage, echo=TRUE, fig.width=8, fig.height=3.5, cache=FALSE--------
-#| fig.cap: "Empirical simultaneous coverage of the KS confidence band over 10,000 simulations from $\\mathcal{N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal for all $n$, confirming the finite-sample validity of the DKW bound \\citep{massart1990tight}. The slight conservatism at small $n$ diminishes as $n$ grows because the bound's constant is asymptotically tight."
-set.seed(20240101)
-B      <- 10000
-ns     <- c(10, 20, 50, 100, 200, 500, 1000)
-levels <- c(0.90, 0.95, 0.99)
-eps_fn <- function(n, lv) sqrt(log(2 / (1 - lv)) / (2 * n))
-
-sim_res <- do.call(rbind, lapply(ns, function(n) {
-  do.call(rbind, lapply(levels, function(lv) {
-    eps <- eps_fn(n, lv)
-    dn  <- replicate(B,
-      suppressWarnings(ks.test(rnorm(n), "pnorm", exact = FALSE)$statistic))
-    data.frame(n = n, level = lv, empirical = mean(dn <= eps))
-  }))
-}))
-
-ggplot(sim_res, aes(x = n, y = empirical,
-                    colour = factor(level), group = factor(level))) +
-  geom_hline(aes(yintercept = level, colour = factor(level)),
-             linetype = "dashed", linewidth = 0.4) +
-  geom_line(linewidth = 0.8) +
-  geom_point(size = 2) +
-  scale_x_log10(breaks = ns) +
-  scale_y_continuous(
-    labels = scales::percent_format(accuracy = 0.1),
-    limits = c(0.88, 1.0)
-  ) +
-  scale_colour_manual(
-    values = c("0.9" = "steelblue", "0.95" = "firebrick", "0.99" = "forestgreen"),
-    labels = c("0.9" = "90%", "0.95" = "95%", "0.99" = "99%"),
-    name   = "Nominal"
-  ) +
-  labs(x = "Sample size n (log scale)", y = "Empirical coverage") +
-  theme_minimal()
-
-
-## ----eval=FALSE, echo=TRUE----------------------------------------------------
-# fun_injected <- function(x) {
-#   rlang::inject(fun(x, !!!args))
-# }
-
-
-## ----composability, echo=TRUE-------------------------------------------------
-#| fig.cap: "Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics."
-ggplot() +
-  geom_pdf(
-    fun = dnorm, xlim = c(-5, 8),
-    args = list(mean = 0, sd = 1), alpha = 0.4
-  ) +
-  geom_pdf(
-    fun = dnorm, xlim = c(-5, 8),
-    args = list(mean = 3, sd = 1.5), alpha = 0.4
-  ) +
-  labs(x = "x", y = "f(x)", title = "Comparing two normal densities") +
-  theme_minimal()
-
-
-## ----echo=FALSE, results="asis"-----------------------------------------------
-pkg_list <- c("ggplot2", "rlang", "cli")
-for (pkg in pkg_list) {
-  if (requireNamespace(pkg, quietly = TRUE)) invisible(NULL)
+  for (dir in candidates) {
+    files <- list.files(dir, pattern = paste0("^", prefix, ".*\\.csv$"),
+                        full.names = TRUE)
+    if (length(files) > 0L) {
+      return(sort(files, decreasing = TRUE)[1L])
+    }
+  }
+  stop("No saved benchmark result file found for prefix: ", prefix, call. = FALSE)
 }
+
+accuracy_results <- utils::read.csv(find_result_file("accuracy-"), check.names = FALSE)
+benchmark_results <- utils::read.csv(find_result_file("benchmark-"), check.names = FALSE)
+validation_context <- accuracy_results[1L, c(
+  "run_time", "platform", "r_version", "ggfunction_version",
+  "ggplot2_version", "ggdensity_version", "ggvfields_version",
+  "bench_version"
+)]
+
+
+## ----technical-accuracy-------------------------------------------------------
+#| tab.cap: "Representative numerical conversion accuracy from saved validation output. Errors are maximum absolute differences on the fixed grids described in the text."
+accuracy_table <- data.frame(
+  Route = accuracy_results$route,
+  Distribution = accuracy_results$distribution,
+  Grid = accuracy_results$n_grid,
+  "Max error" = formatC(accuracy_results$max_abs_error, format = "e", digits = 2),
+  Note = ifelse(nchar(accuracy_results$notes) == 0, "--", accuracy_results$notes),
+  check.names = FALSE
+)
+knitr::kable(accuracy_table, escape = FALSE)
+
+
+## ----technical-performance----------------------------------------------------
+#| tab.cap: "Representative local performance checks from saved benchmark output. Timings are medians over 10 iterations of plot construction, not full device rendering."
+performance_table <- data.frame(
+  Case = benchmark_results$case,
+  Domain = benchmark_results$grid_domain,
+  Median = trimws(benchmark_results$median),
+  Iterations = benchmark_results$n_itr,
+  check.names = FALSE
+)
+knitr::kable(performance_table)
+
+
+## ----related-core-------------------------------------------------------------
+related_core <- data.frame(
+  Package = c(
+    "\\code{ggplot2::stat\\_function()}",
+    "\\CRANpkg{ggdist}",
+    "\\CRANpkg{ggdensity}",
+    "\\CRANpkg{ggvfields}"
+  ),
+  Focus = c(
+    "$\\mathbb{R}\\to\\mathbb{R}$",
+    "uncertainty",
+    "biv. HDRs",
+    "fields"
+  ),
+  Relationship = c(
+    "baseline curve layer",
+    "broader displays",
+    "HDR engine used here",
+    "delegated rendering"
+  ),
+  check.names = FALSE
+)
+knitr::kable(related_core, escape = FALSE)
+
+
+## ----related-adjacent---------------------------------------------------------
+related_adjacent <- data.frame(
+  Package = c(
+    "\\CRANpkg{mosaic}",
+    "\\CRANpkg{metR}",
+    "\\CRANpkg{hdrcde}"
+  ),
+  Focus = c(
+    "teaching",
+    "weather fields",
+    "HDR/CDE"
+  ),
+  Relationship = c(
+    "broader pedagogy",
+    "geophysical displays",
+    "HDR objects"
+  ),
+  check.names = FALSE
+)
+knitr::kable(related_adjacent, escape = FALSE)
 

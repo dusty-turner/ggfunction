@@ -1,4 +1,4 @@
-\begin{thebibliography}{18}
+\begin{thebibliography}{16}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -17,21 +17,16 @@ E.~Campitelli.
 \newblock URL \url{https://CRAN.R-project.org/package=metR}.
 \newblock R package.
 
-\bibitem[Casella and Berger(2002)]{casella2002statistical}
-G.~Casella and R.~L. Berger.
-\newblock \emph{Statistical Inference}.
-\newblock Duxbury, 2nd edition, 2002.
-
-\bibitem[Cs{\'a}rdi(2024)]{cli}
-G.~Cs{\'a}rdi.
-\newblock \emph{{cli}: Helpers for Developing Command Line Interfaces}, 2024.
-\newblock URL \url{https://CRAN.R-project.org/package=cli}.
-\newblock R package.
-
 \bibitem[Greenwood(1926)]{greenwood1926natural}
 M.~Greenwood.
 \newblock \emph{A Report on the Natural Duration of Cancer}.
 \newblock Number~33 in Reports on Public Health and Medical Subjects. His Majesty's Stationery Office, London, 1926.
+
+\bibitem[Hyndman et~al.(2024)Hyndman, Einbeck, and Wand]{hdrcde}
+R.~J. Hyndman, J.~Einbeck, and M.~P. Wand.
+\newblock \emph{{hdrcde}: Highest Density Regions and Conditional Density Estimation}, 2024.
+\newblock URL \url{https://CRAN.R-project.org/package=hdrcde}.
+\newblock R package.
 
 \bibitem[Kaplan and Meier(1958)]{kaplan1958nonparametric}
 E.~L. Kaplan and P.~Meier.
@@ -82,18 +77,11 @@ R.~Pruim, D.~T. Kaplan, and N.~J. Horton.
 \newblock \emph{The R Journal}, 9\penalty0 (1):\penalty0 77--102, 2017.
 \newblock \doi{10.32614/RJ-2017-024}.
 
-\bibitem[Sarkar(2008)]{lattice}
-D.~Sarkar.
-\newblock \emph{Lattice: Multivariate Data Visualization with \proglang{R}}.
-\newblock Springer, New York, 2008.
-\newblock ISBN 978-0-387-75968-5.
-\newblock URL \url{https://lmdvr.r-forge.r-project.org}.
-
-\bibitem[Turner et~al.(2026)Turner, Kahle, and Sturdivant]{ggvfields}
+\bibitem[Turner et~al.(2025)Turner, Kahle, and Sturdivant]{ggvfields}
 D.~Turner, D.~Kahle, and R.~X. Sturdivant.
-\newblock \emph{{ggvfields}: Vector Field Visualizations with {ggplot2}}, 2026.
-\newblock URL \url{https://github.com/dusty-turner/ggvfields}.
-\newblock R package version 0.1.0.
+\newblock \emph{{ggvfields}: Vector Field Visualizations with {ggplot2}}, 2025.
+\newblock URL \url{https://CRAN.R-project.org/package=ggvfields}.
+\newblock R package version 1.0.0.
 
 \bibitem[Wickham(2010)]{wickham2010layered}
 H.~Wickham.

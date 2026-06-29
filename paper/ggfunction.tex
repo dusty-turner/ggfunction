@@ -1,5 +1,5 @@
 % !TeX root = RJwrapper.tex
-\title{ggfunction: A Grammar of Graphics for Mathematical Functions and Probability Distributions}
+\title{ggfunction: Functions and Distributions in ggplot2}
 
 
 \author{by Dusty Turner, David Kahle, Rodney X. Sturdivant, and James Otto}
@@ -7,1293 +7,885 @@
 \maketitle
 
 \abstract{%
-The \pkg{ggfunction} R package extends \CRANpkg{ggplot2} by providing a principled, unified interface for visualizing mathematical functions, probability distributions, and empirical data distributions. It is organized around three complementary families. The first is a dimensional taxonomy classifying functions by their input and output dimensions: scalar functions \(f\colon \mathbb{R} \to \mathbb{R}\), parametric curves \(\boldsymbol{\gamma}\colon \mathbb{R} \to \mathbb{R}^2\), scalar fields \(f\colon \mathbb{R}^2 \to \mathbb{R}\), and vector fields \(\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2\). The second family provides specialized geoms for theoretical probability distributions--density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions, together with bivariate density and mass functions--each with built-in support for region shading central to hypothesis testing and interval estimation. The third family provides geoms for empirical distributions computed from samples: the empirical CDF with a simultaneous Dvoretzky--Kiefer--Wolfowitz (DKW) confidence band, the empirical quantile function with the inverted DKW band, one-sample PP, QQ, and stabilized probability (SP) diagnostic plots with DKW bands under a fully specified null distribution, the empirical PMF as a lollipop chart, and the empirical cumulative hazard function with a transformed DKW confidence band. For right-censored survival data, \code{geom\_ecdf\_km()} and \code{geom\_echf\_na()} provide the Kaplan--Meier survival estimator \citep{kaplan1958nonparametric} and Nelson--Aalen cumulative hazard estimator \citep{nelson1972theory, aalen1978nonparametric}, respectively, each with simultaneous equal-precision confidence bands \citep{nair1984confidence}. By embedding function evaluation, numerical integration, and validation directly into the \CRANpkg{ggplot2} layer system, \pkg{ggfunction} lets users move from a mathematical definition to a publication-quality visualization in a single, composable call.
+The ggfunction package provides ggplot2 layers for plotting mathematical functions, probability distributions, empirical distribution summaries, and censored-data summaries directly from function definitions or samples. Its design has three parts. First, a small dimensional taxonomy covers scalar functions, parametric curves, scalar fields, and vector fields. Second, probability layers display density, mass, distribution, survival, quantile, hazard, and cumulative-hazard functions, with support-aware tail, interval, and highest-density-region shading. Third, empirical layers compute ECDFs, empirical quantiles, PP/QQ/SP diagnostics, empirical mass functions, empirical cumulative hazards, Kaplan--Meier survival curves, and censored-data cumulative hazards. The package implements these displays as standard ggplot2 stats and geoms, so they compose with scales, coordinates, themes, facets, and annotations. This article describes the layer design, the main workflows, numerical conversion routes among distribution functions, validation checks, and limitations. DKW/Massart bands are finite-sample simultaneous bands for complete samples and fully specified continuous diagnostic nulls; fitted-null diagnostic bands are exploratory guides rather than calibrated composite-null acceptance regions. For censored data, the Kaplan--Meier layer uses an asymptotic simultaneous Greenwood/Nair band; the Nelson--Aalen layer uses a pointwise normal band.
 }
 
 \section{Introduction}\label{introduction}
 
-Visualizing mathematical functions is one of the most common tasks in applied mathematics and statistics--and one of the most under-supported in the grammar of graphics. Whether an instructor is shading a rejection region under a normal curve, a researcher is inspecting a scalar field over a spatial domain, or a student is tracing a parametric spiral, the need to move quickly from a function's definition to its graphical representation arises constantly. In R, \CRANpkg{ggplot2} \citep{wickham2010layered, wickham2016ggplot2} has become the dominant visualization framework, yet its native support for plotting functions remains narrow. The built-in \texttt{stat\_function()} evaluates a univariate function over a range and draws it as a path--perfectly adequate for \(f\colon \mathbb{R} \to \mathbb{R}\), but offering nothing for parametric curves, scalar fields, vector fields, or the rich family of functions associated with probability distributions.
+Many statistical graphics begin with a function rather than a data frame. An
+instructor shades the upper tail of a \(t\) distribution, a student compares an
+empirical CDF with a fitted model, or an analyst checks whether a censored
+sample is consistent with an exponential survival curve. In base \proglang{R},
+these tasks are straightforward but often require hand-built grids, numerical
+integration, and ad hoc annotations. In \CRANpkg{ggplot2}
+\citep{wickham2010layered, wickham2016ggplot2}, the built-in
+\texttt{stat\_function()} covers only the univariate case \(f:\mathbb{R}\to
+\mathbb{R}\) and leaves probability-specific calculations to the user.
 
-Several packages address pieces of this gap. \CRANpkg{ggdist} \citep{kay2024ggdist} provides sophisticated distribution visualizations oriented toward Bayesian uncertainty communication. \CRANpkg{mosaic} \citep{pruim2017mosaic} offers \texttt{plotDist()} for pedagogical work, but it is built on the \CRANpkg{lattice} \citep{lattice} framework rather than the grammar of graphics. \CRANpkg{metR} provides contour and vector-field displays for meteorological data, though it requires precomputed grids rather than function objects. None of these packages offers a unified treatment of functions organized by their dimensional structure.
-
-\pkg{ggfunction} fills this gap by extending \CRANpkg{ggplot2} with a principled taxonomy of function types, classified by the dimensions of their domain and codomain. It provides three complementary families of geoms:
-
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\tightlist
-\item
-  A \textbf{dimensional taxonomy} covering four function types: \(\mathbb{R} \to \mathbb{R}\), \(\mathbb{R} \to \mathbb{R}^2\), \(\mathbb{R}^2 \to \mathbb{R}\), and \(\mathbb{R}^2 \to \mathbb{R}^2\).
-\item
-  A \textbf{probability distribution family} providing specialized layers for density, cumulative distribution, mass, quantile, discrete cumulative distribution, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions, as well as bivariate density and mass functions visualized through highest density regions and lattice displays.
-\item
-  An \textbf{empirical data family} providing layers for the empirical CDF, empirical quantile function, one-sample PP, QQ, and stabilized probability (SP) diagnostic plots, empirical PMF, and empirical cumulative hazard function, each computed directly from a sample and accompanied by simultaneous DKW/Massart confidence bands where appropriate. For right-censored survival data, the family additionally provides the Kaplan--Meier survival estimator \citep{kaplan1958nonparametric} with a simultaneous equal-precision Greenwood band \citep{greenwood1926natural, nair1984confidence} and the Nelson--Aalen cumulative hazard estimator \citep{nelson1972theory, aalen1978nonparametric} with pointwise normal bands.
-\end{enumerate}
-
-Each layer follows the \CRANpkg{ggplot2} extension pattern: a \texttt{Stat} object evaluates the user-supplied function on a grid or sequence (or tabulates a sample), and a corresponding \texttt{Geom} renders the result. Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the full ecosystem of scales, coordinates, themes, and facets.
-
-The remainder of this article is organized as follows. We describe the design principles underlying the package in Section 2. Sections 3 and 4 present the dimensional taxonomy and probability distribution family, respectively, illustrating each with examples. Section 5 introduces the empirical data family. Section 6 addresses implementation details, Section 7 demonstrates composability with the broader grammar, Section 8 surveys related packages, and Section 9 concludes.
-
-\section{Design principles}\label{design-principles}
-
-\subsection{A taxonomy grounded in dimension}\label{a-taxonomy-grounded-in-dimension}
-
-The central organizing principle of \pkg{ggfunction} is that any function visualizable in two-dimensional space belongs to one of four classes, determined by the dimensions of its domain \(m\) and codomain \(n\):
-
-\begin{equation}
-\begin{aligned}
-f &\colon \mathbb{R} \to \mathbb{R}        & \quad & (m = 1,\; n = 1) \\
-\boldsymbol{\gamma} &\colon \mathbb{R} \to \mathbb{R}^2  & \quad & (m = 1,\; n = 2) \\
-f &\colon \mathbb{R}^2 \to \mathbb{R}      & \quad & (m = 2,\; n = 1) \\
-\mathbf{F} &\colon \mathbb{R}^2 \to \mathbb{R}^2 & \quad & (m = 2,\; n = 2)
-\end{aligned}
-\label{eq:taxonomy}
-\end{equation}
-
-Each class admits a natural visual encoding:
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Scalar functions} (\(\mathbb{R} \to \mathbb{R}\)): curves in the Cartesian plane, optionally with region shading between the curve and the \(x\)-axis.
-\item
-  \textbf{Parametric curves} (\(\mathbb{R} \to \mathbb{R}^2\)): directed paths with color encoding the time parameter.
-\item
-  \textbf{Scalar fields} (\(\mathbb{R}^2 \to \mathbb{R}\)): raster heatmaps, contour lines colored by level value, or filled contour regions.
-\item
-  \textbf{Vector fields} (\(\mathbb{R}^2 \to \mathbb{R}^2\)): short arrows at grid points (default) or streamlines computed by numerical integration of the field.
-\end{itemize}
-
-The naming convention--\texttt{geom\_function\_1d\_1d()}, \texttt{geom\_function\_1d\_2d()}, \texttt{geom\_function\_2d\_1d()}, and \texttt{geom\_function\_2d\_2d()}--encodes the dimensional signature directly, making the function's type explicit at the point of use.
-
-\subsection{Integration with the grammar of graphics}\label{integration-with-the-grammar-of-graphics}
-
-The grammar of graphics \citep{wilkinson2005grammar} decomposes a graphic into orthogonal components: data, aesthetic mappings, geometric objects, statistical transformations, scales, coordinate systems, and facets. \CRANpkg{ggplot2} implements this decomposition through the \texttt{ggproto} object system, which allows new \texttt{Stat} and \texttt{Geom} classes to be defined and composed with existing infrastructure.
-
-Every \pkg{ggfunction} layer follows this pattern. The user supplies a function object via the \texttt{fun} parameter and domain bounds via \texttt{xlim} and, where appropriate, \texttt{ylim}. The \texttt{Stat} evaluates the function on a suitable grid and returns a data frame whose columns correspond to the aesthetic variables expected by the \texttt{Geom}. Because the result is a standard \CRANpkg{ggplot2} layer, it composes with \texttt{+} alongside any other layer, scale, or theme.
-
-A key design choice is the use of \texttt{rlang::inject()} to splice additional function arguments supplied through the \texttt{args} parameter. This allows users to parameterize functions without closures or anonymous wrappers:
-
-\begin{verbatim}
-# instead of wrapping in an anonymous function:
-ggplot() + geom_pdf(fun = function(x) dnorm(x, mean = 5, sd = 2), xlim = c(0, 10))
-
-# users can write:
-ggplot() + geom_pdf(fun = dnorm, xlim = c(0, 10), args = list(mean = 5, sd = 2))
-\end{verbatim}
-
-This pattern is consistent across all \pkg{ggfunction} layers and mirrors the \texttt{args} parameter already familiar from \texttt{ggplot2::stat\_function()}.
-
-\section{The dimensional taxonomy}\label{the-dimensional-taxonomy}
-
-\subsection{\texorpdfstring{Scalar functions: \(\mathbb{R} \to \mathbb{R}\)}{Scalar functions: \textbackslash mathbb\{R\} \textbackslash to \textbackslash mathbb\{R\}}}\label{sec-1d-1d}
-
-The simplest case is a univariate function rendered as a curve in the plane. \texttt{geom\_function\_1d\_1d()} generalizes \texttt{ggplot2::stat\_function()} by adding support for region shading. The function is evaluated at \(n\) equally-spaced points (default \(n = 101\)) over the specified \texttt{xlim}, and the resulting \((x, y)\) pairs are drawn as a path.
-
-\begin{verbatim}
-library("ggfunction")
-
-ggplot() +
-  geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi))
-\end{verbatim}
+\pkg{ggfunction} addresses this gap by making functions layer-level objects in
+\CRANpkg{ggplot2}. Users supply an \proglang{R} function, optional parameters in
+\texttt{args}, and a domain. The layer evaluates the function, performs any
+requested statistical transformation, and returns ordinary \CRANpkg{ggplot2}
+data for rendering. Figure \ref{fig:motivating} illustrates the motivating
+case: the user asks for a distributional tail probability, and the layer
+handles the quantile lookup, support-aware shading, and \CRANpkg{ggplot2}
+display.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/sin-curve-1} 
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/motivating-1} 
 
 }
 
-\caption{The sine function over one full period.}\label{fig:sin-curve}
+\caption{A motivating example: support-aware normal-density shading. The shaded upper tail is computed from the distribution, not by renormalizing over the displayed x range.}\label{fig:motivating}
 \end{figure}
 
-The \texttt{shade\_from} and \texttt{shade\_to} parameters fill the region between the curve and the \(x\)-axis over a specified interval \([a, b]\). Boundary values are computed by linear interpolation via \texttt{stats::approxfun()}, so the shaded region aligns precisely with the requested interval even when \(a\) or \(b\) fall between evaluation points.
+The package is available from CRAN and can be installed with
+\texttt{install.packages("ggfunction")}. Development versions and issue tracking are
+available from \url{https://github.com/dusty-turner/ggfunction}. The package
+depends on \CRANpkg{ggplot2}; bivariate highest-density regions are delegated
+to \CRANpkg{ggdensity} \citep{otto2023ggdensity}, and vector-field and stream-field
+layers delegate to \CRANpkg{ggvfields} \citep{ggvfields}.
+
+The rest of the article is organized around package design and workflows rather
+than around a complete reference list. Section 2 describes the layer design and
+dimensional taxonomy. Section 3 presents three core workflows: mathematical
+functions, probability distributions, and empirical or censored data summaries.
+Section 4 summarizes implementation, numerical behavior, validation, and
+performance. Sections 5--7 discuss composability, related work, limitations, and
+future directions.
+
+\section{Design}\label{design}
+
+\subsection{Functions as layer-level objects}\label{functions-as-layer-level-objects}
+
+\pkg{ggfunction} does not change the grammar of graphics itself. It supplies new
+\texttt{ggplot2::layer()} constructors. Each constructor combines a \texttt{Stat}
+that evaluates a function or computes an empirical summary with a \texttt{Geom}
+that renders the returned data. This follows the \CRANpkg{ggplot2} extension
+model: the result is a standard layer that can be added with \texttt{+}, trained
+by ordinary scales, clipped by coordinates, faceted, themed, and annotated.
+
+The key interface choice is that functions are layer parameters, not aesthetics.
+This is deliberate. A function such as \texttt{dnorm} or a bivariate density is
+not a column in the plot data; it is the object the stat evaluates to create
+plot data. Additional function parameters are supplied through \texttt{args},
+mirroring \texttt{ggplot2::stat\_function()} and avoiding anonymous wrappers:
 
 \begin{verbatim}
 ggplot() +
-  geom_function_1d_1d(fun = cos, xlim = c(0, 2 * pi), shade_from = 0, shade_to = pi/2)
+  geom_pdf(
+    fun = dnorm,
+    args = list(mean = 5, sd = 2),
+    xlim = c(0, 10)
+  )
 \end{verbatim}
 
-\begin{figure}
+This design keeps the common case short while preserving explicit control over
+the domain, grid resolution, and rendering choices.
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/shaded-cosine-1} 
+\subsection{Dimensional taxonomy}\label{dimensional-taxonomy}
 
-}
-
-\caption{The cosine function over $[0, 2\pi]$ with the interval $[0, \pi/2]$ shaded; the shaded area equals $\int_0^{\pi/2} \cos(x)\,dx = 1$.}\label{fig:shaded-cosine}
-\end{figure}
-
-\subsection{\texorpdfstring{Parametric curves: \(\mathbb{R} \to \mathbb{R}^2\)}{Parametric curves: \textbackslash mathbb\{R\} \textbackslash to \textbackslash mathbb\{R\}\^{}2}}\label{sec-parametric}
-
-A parametric curve \(\boldsymbol{\gamma}(t) = (x(t),\, y(t))\) maps a scalar parameter--typically time--to a trajectory in the plane. \texttt{geom\_function\_1d\_2d()} evaluates the user-supplied function over the range specified by \texttt{tlim} with step size \texttt{dt}, producing columns \texttt{t}, \texttt{x}, and \texttt{y}. By default, color is mapped to \texttt{after\_stat(t)} to encode progression along the curve.
-
-\begin{verbatim}
-lemniscate <- function(t) c(cos(t) / (1 + sin(t)^2), sin(t) * cos(t) / (1 + sin(t)^2))
-
-ggplot() +
-  geom_function_1d_2d(fun = lemniscate, tlim = c(0, 1.9 * pi), tail_point = TRUE)
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/lemniscate-1} 
-
-}
-
-\caption{The lemniscate of Bernoulli $\boldsymbol{\gamma}(t) = (\cos t\,/\,(1+\sin^2 t),\; \sin t\cos t\,/\,(1+\sin^2 t))$--a figure-eight curve along which the product of distances to the two foci is constant--with color encoding the parameter $t$.}\label{fig:lemniscate}
-\end{figure}
-
-The \texttt{tail\_point} parameter adds a marker at the starting position, useful for indicating an initial condition. The \texttt{args} parameter supports parameterized curve families. Lissajous figures \(\boldsymbol{\gamma}(t) = (\sin(at + \delta),\; \sin(bt))\) are a natural example: the frequency ratio \(a/b\) governs the curve's topology, while a single function definition handles all cases via \texttt{args}:
-
-\begin{verbatim}
-lissajous <- function(t, a = 3, b = 2, delta = pi/2) {
-  c(sin(a * t + delta), sin(b * t))
-}
-
-p1 <- ggplot() +
-  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 1, b = 1)) + 
-  ggtitle("a = 1, b = 1")
-
-p2 <- ggplot() +
-  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 2, b = 1)) + 
-  ggtitle("a = 2, b = 1")
-
-p3 <- ggplot() +
-  geom_function_1d_2d(fun = lissajous, tlim = c(0, 1.9*pi), args = list(a = 3, b = 2)) +
-  ggtitle("a = 3, b = 2")
-
-library("patchwork")
-
-(p1 | p2 | p3) + plot_layout(guides = "collect")
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/lissajous-1} 
-
-}
-
-\caption{Lissajous figures $\boldsymbol{\gamma}(t) = (\sin(at + \pi/2),\,\sin(bt))$ for three frequency ratios $a/b$. Each ratio produces a qualitatively distinct closed curve; the same function definition is reused across all three panels via the \texttt{args} parameter.}\label{fig:lissajous}
-\end{figure}
-
-\subsection{\texorpdfstring{Scalar fields: \(\mathbb{R}^2 \to \mathbb{R}\)}{Scalar fields: \textbackslash mathbb\{R\}\^{}2 \textbackslash to \textbackslash mathbb\{R\}}}\label{sec-scalar-fields}
-
-A scalar field assigns a real value to each point in a two-dimensional domain. \texttt{geom\_function\_2d\_1d()} evaluates the user-supplied function on a regular \(n \times n\) grid (default \(n = 50\)) over \texttt{xlim} \(\times\) \texttt{ylim}. The function must accept a numeric vector of length two and return a scalar; internally, a helper applies it row-wise over the grid. Three visualization modes are available through the \texttt{type} argument:
-
-\begin{itemize}
-\tightlist
-\item
-  \texttt{"raster"} (default): a heatmap with fill mapped to \texttt{after\_stat(z)}.
-\item
-  \texttt{"contour"}: iso-level curves with \texttt{colour} mapped to \texttt{after\_stat(level)}, producing a colored legend automatically.
-\item
-  \texttt{"contour\_filled"}: filled regions between contour levels rendered by \texttt{ggplot2::GeomContourFilled}.
-\end{itemize}
-
-For raster layers, \texttt{raster\_aes\ =\ "fill"} keeps the default heatmap representation and continuous fill legend, while \texttt{raster\_aes\ =\ "alpha"} fixes the fill at dark gray and rescales finite function values to literal 0--1 alpha values.
-
-\begin{verbatim}
-f_sc <- function(u) {
-  x <- u[1]; y <- u[2]
-  sin(x) * cos(y)
-}
-
-ggplot() +
-  geom_function_2d_1d(fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi))
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/sincos-raster-1} 
-
-}
-
-\caption{The function $f(x, y) = \sin(x)\cos(y)$ over $[-\pi, \pi]^2$ rendered as a raster heatmap.}\label{fig:sincos-raster}
-\end{figure}
-
-The contour modes are selected simply by changing \texttt{type}:
-
-\begin{verbatim}
-p_contour <- ggplot() +
-  geom_function_2d_1d(
-    fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi), type = "contour"
-  ) + ggtitle("type = 'contour'")
-
-p_filled <- ggplot() +
-  geom_function_2d_1d(
-    fun = f_sc, xlim = c(-pi, pi), ylim = c(-pi, pi), type = "contour_filled"
-  ) + ggtitle("type = 'contour_filled'")
-
-p_contour | p_filled
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/sincos-contour-1} 
-
-}
-
-\caption{The same function rendered as contour lines (left) and filled contours (right).}\label{fig:sincos-contour}
-\end{figure}
-
-For the contour variants, the \texttt{StatFunction2dContour} and \texttt{StatFunction2dContourFilled} classes extend the corresponding \CRANpkg{ggplot2} stats. The \texttt{setup\_params()} method pre-computes the function grid so that \texttt{z.range} is available for automatic break computation before any data is rendered.
-
-\subsection{\texorpdfstring{Vector fields: \(\mathbb{R}^2 \to \mathbb{R}^2\)}{Vector fields: \textbackslash mathbb\{R\}\^{}2 \textbackslash to \textbackslash mathbb\{R\}\^{}2}}\label{sec-vector-fields}
-
-A vector field \(\mathbf{F}(x, y) = (F_1(x, y),\; F_2(x, y))\) assigns a direction and magnitude to each point in the plane. \texttt{geom\_function\_2d\_2d()} delegates to \pkg{ggvfields} \citep{ggvfields} and supports two display modes through the \texttt{type} argument.
-
-\textbf{Vector arrows (default).} With \texttt{type\ =\ "vector"} (the default), short arrows are drawn at each grid point, oriented according to the field direction and scaled relative to the grid spacing.
-
-\begin{verbatim}
-f_rotation <- function(u) {
-  x <- u[1]; y <- u[2]
-  c(-y, x)
-}
-
-ggplot() +
-  geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1))
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/rotation-field-1} 
-
-}
-
-\caption{The rotation field $\mathbf{F}(x, y) = (-y, x)$ displayed as short arrows at each grid point.}\label{fig:rotation-field}
-\end{figure}
-
-\textbf{Streamlines.} With \texttt{type\ =\ "stream"}, integral curves are computed by numerical integration of the field using a fourth-order Runge--Kutta method \citep{ggvfields} and rendered as directed paths seeded on a regular grid.
-
-\begin{verbatim}
-ggplot() +
-  geom_function_2d_2d(fun = f_rotation, xlim = c(-1, 1), ylim = c(-1, 1),
-    type = "stream")
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/rotation-stream-1} 
-
-}
-
-\caption{The same rotation field rendered as streamlines, each following the counterclockwise flow induced by the field.}\label{fig:rotation-stream}
-\end{figure}
-
-Users whose primary interest is vector fields will find that \pkg{ggvfields} provides a richer collection of tools, including gradient fields, stream plots, and potential functions.
-
-\section{The probability distribution family}\label{the-probability-distribution-family}
-
-Statistics education depends heavily on the visual language of probability distributions. Instructors shade tail areas to illustrate \(p\)-values, draw CDFs to connect probabilities with quantiles, and mark central regions to delineate confidence intervals. \pkg{ggfunction} provides a family of geoms--univariate and bivariate, continuous and discrete--that map directly onto the standard functions associated with a probability distribution, each with built-in shading support. Throughout, the user supplies an R function (e.g., \texttt{dnorm}, \texttt{pnorm}, \texttt{qnorm}) and a range; \pkg{ggfunction} handles evaluation, shading, and validation automatically.
-
-Each geom accepts its native function type through the \texttt{fun} parameter (e.g., a PDF for \texttt{geom\_pdf()}, a CDF for \texttt{geom\_cdf()}), but most also accept alternate function types that are converted internally. In each case the missing characterization is derived numerically: PDFs are obtained by differentiation or hazard integration, CDFs by integration or interpolation, survival functions by the identity \(S = 1 - F\), and quantile functions by root-finding. Finite-support hazards can specify their integration origin with \texttt{hf\_lower}. This cross-conversion feature lets users work with whichever characterization of a distribution is most natural--the PDF, CDF, survival function, quantile function, or hazard function--regardless of which geom they wish to plot. Exactly one function source must be provided; supplying more than one is an error. The bivariate layers \texttt{geom\_pdf\_2d()} and \texttt{geom\_pmf\_2d()}, introduced below, accept only their native function type via \texttt{fun}. Table \ref{tab:cross-conversion} summarizes the available routes; the \texttt{cross-conversion} vignette documents the numerical methods and expected accuracy in detail.
+The mathematical-function family is organized by domain and codomain dimension.
+Table \ref{tab:taxonomy-table} gives the taxonomy and Figure
+\ref{fig:taxonomy} shows the corresponding displays.
 
 \begin{table}
 
-\caption{\label{tab:cross-conversion}Cross-conversion routes for distribution geoms. Each geom accepts its native function type via \texttt{fun} and one or more alternate types via the listed parameters.}
+\caption{\label{tab:taxonomy-table}Dimensional taxonomy for mathematical-function layers.}
 \centering
 \begin{tabular}[t]{l|l|l}
 \hline
-Geom & Native (\texttt{fun}) & Alternate inputs\\
+Signature & Layer & Display\\
 \hline
-\texttt{geom\_pdf()} & PDF & \texttt{cdf\_fun}, \texttt{survival\_fun}, \texttt{qf\_fun}, \texttt{hf\_fun}\\
+$f:\mathbb{R}\to\mathbb{R}$ & \code{geom\_function\_1d\_1d()} & curve, optionally shaded\\
 \hline
-\texttt{geom\_cdf()} & CDF & \texttt{pdf\_fun}, \texttt{survival\_fun}, \texttt{qf\_fun}, \texttt{hf\_fun}\\
+$\boldsymbol{\gamma}:\mathbb{R}\to\mathbb{R}^2$ & \code{geom\_function\_1d\_2d()} & parametric path with parameter colour\\
 \hline
-\texttt{geom\_survival()} & Survival & \texttt{cdf\_fun}, \texttt{pdf\_fun}, \texttt{qf\_fun}\\
+$f:\mathbb{R}^2\to\mathbb{R}$ & \code{geom\_function\_2d\_1d()} & raster, contours, or filled contours\\
 \hline
-\texttt{geom\_qf()} & Quantile & \texttt{cdf\_fun}, \texttt{pdf\_fun}, \texttt{survival\_fun}\\
-\hline
-\texttt{geom\_hf()} & Hazard & \texttt{pdf\_fun}, \texttt{cdf\_fun}, \texttt{survival\_fun}, \texttt{qf\_fun}\\
-\hline
-\texttt{geom\_chf()} & Cumulative hazard & \texttt{hf\_fun}, \texttt{cdf\_fun}, \texttt{survival\_fun}, \texttt{pdf\_fun}, \texttt{qf\_fun}\\
-\hline
-\texttt{geom\_cdf\_discrete()} & CDF & \texttt{pmf\_fun}, \texttt{survival\_fun}\\
-\hline
-\texttt{geom\_survival\_discrete()} & Survival & \texttt{cdf\_fun}, \texttt{pmf\_fun}\\
-\hline
-\texttt{geom\_qf\_discrete()} & Quantile & \texttt{pmf\_fun}, \texttt{cdf\_fun}, \texttt{survival\_fun}\\
+$\mathbf{F}:\mathbb{R}^2\to\mathbb{R}^2$ & \code{geom\_function\_2d\_2d()} & arrows or streamlines\\
 \hline
 \end{tabular}
 \end{table}
 
-\subsection{\texorpdfstring{Density functions: \texttt{geom\_pdf()}}{Density functions: geom\_pdf()}}\label{density-functions-geom_pdf}
-
-The probability density function (PDF) of a continuous random variable \(X\) satisfies
-
-\begin{equation}
-f(x) \geq 0 \quad \text{and} \quad \int_{-\infty}^{\infty} f(x)\, dx = 1.
-\label{eq:pdf}
-\end{equation}
-
-\texttt{geom\_pdf()} evaluates a user-supplied density and renders it as a filled area with an overlaid outline. Alternatively, a CDF can be supplied via \texttt{cdf\_fun} (differentiated numerically), a survival function via \texttt{survival\_fun} (converted to a CDF via \(F = 1 - S\) and then differentiated), a quantile function via \texttt{qf\_fun} (inverted via interpolation to obtain a CDF, then differentiated), or a hazard function via \texttt{hf\_fun} (converted directly using the identity \(f(x) = h(x) \cdot e^{-H(x)}\)). For finite-support hazards, \texttt{hf\_lower} sets the lower integration limit for \(H\). The underlying \texttt{StatPDF} validates the normalization property \eqref{eq:pdf} using \texttt{stats::integrate()}, issuing a diagnostic via \CRANpkg{cli} \citep{cli} if the integral departs from unity by more than a specified tolerance--a guard against accidentally passing an unnormalized function.
-
-Four shading modes are supported, corresponding to common pedagogical operations.
-
-\textbf{Single threshold.} The \texttt{p} parameter specifies a cumulative probability. When \texttt{lower.tail\ =\ TRUE} (the default), the region from the left boundary to the \(p\)-quantile is shaded, representing \(P(X \leq x_p) = p\). Setting \texttt{lower.tail\ =\ FALSE} shades the complementary upper tail.
-
-\textbf{Two-sided interval.} The \texttt{p\_lower} and \texttt{p\_upper} parameters define a central region--the natural representation for a \((1 - \alpha)\) confidence interval.
-
-\textbf{Tail shading.} Setting \texttt{shade\_outside\ =\ TRUE} inverts the two-sided region, shading both tails. This directly represents the rejection region of a two-sided hypothesis test at level \(\alpha\).
-
-\begin{verbatim}
-p1 <- ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3, 3), p = 0.975) +
-  ggtitle("p = 0.975")
-
-p2 <- ggplot() +
-  geom_pdf(
-    fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975
-  ) + ggtitle("Central 95%")
-
-p3 <- ggplot() +
-  geom_pdf(
-    fun = dnorm, xlim = c(-3, 3),
-    p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE
-  ) + ggtitle(expression(alpha == 0.05 ~ "rejection region"))
-
-p1 | p2 | p3
-\end{verbatim}
-
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/pdf-shading-modes-1} 
+{\centering \includegraphics[width=0.95\linewidth]{ggfunction_files/figure-latex/taxonomy-1} 
 
 }
 
-\caption{Three shading modes for \texttt{geom\_pdf()}: lower tail ($p = 0.975$, left), central 95\% interval (center), and two-tailed rejection region at $\alpha = 0.05$ (right).}\label{fig:pdf-shading-modes}
+\caption{The four mathematical-function signatures supported by the ggfunction dimensional taxonomy: scalar functions, parametric curves, scalar fields, and vector fields.}\label{fig:taxonomy}
 \end{figure}
 
-\textbf{Highest density region.} The \texttt{shade\_hdr} parameter specifies a coverage probability and shades the corresponding highest density region (HDR)--the smallest subset of the domain containing the specified probability mass. For multimodal densities the HDR may be disconnected, producing multiple disjoint shaded intervals. The algorithm follows \citet{otto2023ggdensity}: evaluate the density on an equally spaced grid, normalize the values to sum to one, sort in descending order, accumulate until the target coverage is reached, and shade all grid intervals at or above the resulting density threshold. The normalized cumulative sum equals the integrated probability mass under the equal-spacing assumption, so the grid is taken uniform.
+The names encode the function signature. That convention is more verbose than
+\texttt{geom\_function()}, but it makes the dimensional assumptions visible at the
+call site. Probability and empirical layers use statistical names instead:
+\texttt{geom\_pdf()}, \texttt{geom\_ecdf()}, \texttt{geom\_ecdf\_km()}, and so on.
+
+\section{Three workflows}\label{three-workflows}
+
+\subsection{Mathematical functions by dimension}\label{mathematical-functions-by-dimension}
+
+For mathematical functions, the user's main decisions are the signature, the
+domain, and the visual encoding. A scalar function is evaluated on an equally
+spaced sequence over \texttt{xlim}. A parametric curve is evaluated over \texttt{tlim}; the
+returned length-two vector supplies the path coordinates. A
+scalar field is evaluated on an \(n_x \times n_y\) grid and then handed to the
+corresponding \CRANpkg{ggplot2} raster or contour machinery. A vector field is
+evaluated at seed points and then drawn by \CRANpkg{ggvfields}; stream fields also
+delegate integration settings such as \texttt{method}, \texttt{max\_it}, \texttt{T},
+and \texttt{L}.
+
+This workflow is useful when the data of interest are generated by a known
+mathematical rule. It also gives probability and diagnostic layers a common
+implementation pattern: create the grid, evaluate a function or summary, and
+return ordinary plot data.
+
+The taxonomy is intentionally small. It covers the function signatures that can
+be displayed naturally in a two-dimensional plotting window without a separate
+three-dimensional graphics system. A scalar field, for example, can be
+displayed by mapping its output to colour or contour level while retaining the
+two input coordinates as the horizontal and vertical axes. A vector field can
+be displayed by drawing short vectors or streamlines at selected seed points.
+Higher-dimensional functions require additional choices--conditioning,
+projection, slicing, animation, or interactivity--that fall outside this
+package's current scope.
+
+Two implementation details matter in this workflow. First, evaluation is
+grid-based. Increasing \texttt{n} improves smoothness and contour resolution, but it
+also increases computation, especially for two-dimensional grids. Second,
+\texttt{args} is spliced into the user's function at evaluation time. This lets a
+single function represent a parametric family without redefining closures:
 
 \begin{verbatim}
-f_mix <- function(x) 0.6 * dnorm(x, mean = -2, sd = 0.6) + 0.4 * dnorm(x, mean = 2, sd = 1.2)
-ggplot() +
-  geom_pdf(fun = f_mix, xlim = c(-5, 6), shade_hdr = 0.8)
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/pdf-hdr-1} 
-
+lissajous <- function(t, a = 3, b = 2, delta = pi / 2) {
+  c(sin(a * t + delta), sin(b * t))
 }
-
-\caption{The 80\% highest density region of an asymmetric bimodal density ($0.6\,\mathcal{N}(-2,\,0.6^2) + 0.4\,\mathcal{N}(2,\,1.2^2)$), shading both modes as two disjoint intervals with more area allocated to the taller, narrower component.}\label{fig:pdf-hdr}
-\end{figure}
-
-The shading boundaries for the interval-based modes are determined by trapezoidal accumulation. For \(n\) evaluation points \(x_1, \ldots, x_n\) with density values \(y_1, \ldots, y_n\), the cumulative area at the \(k\)-th point is
-
-\begin{equation}
-A_k = \sum_{i=1}^{k-1} \frac{y_i + y_{i+1}}{2} \, (x_{i+1} - x_i).
-\label{eq:trapezoid}
-\end{equation}
-
-The normalized values \(A_k / A_n\) are then compared against the specified probability thresholds to determine the shading boundaries.
-
-\subsection{\texorpdfstring{Bivariate density functions: \texttt{geom\_pdf\_2d()}}{Bivariate density functions: geom\_pdf\_2d()}}\label{bivariate-density-functions-geom_pdf_2d}
-
-The density family extends to bivariate distributions through \texttt{geom\_pdf\_2d()}, which visualizes a joint density \(f(x, y)\) through its highest density regions (HDRs)--the smallest regions of the plane containing specified probability masses--or as a raw density raster. Rather than reimplement the HDR computation, the layer is a thin, probability-facing wrapper around \CRANpkg{ggdensity} \citep{otto2023ggdensity}: with \texttt{type\ =\ "hdr"} (the default), filled regions are drawn by \texttt{ggdensity::geom\_hdr\_fun()}, and with \texttt{type\ =\ "hdr\_lines"} the region boundaries are drawn by \texttt{ggdensity::geom\_hdr\_lines\_fun()}, so HDR computation, probability labeling, and default aesthetics remain with \CRANpkg{ggdensity}. The density is supplied in \pkg{ggfunction}'s bivariate convention--\texttt{fun} receives a single vector \(v = (x, y)\) and returns one density value, with parameters passed via \texttt{args}--and is adapted internally to \CRANpkg{ggdensity}'s vectorized two-argument interface. The \texttt{probs} parameter sets the HDR coverage levels, defaulting to 99\%, 95\%, 80\%, and 50\%, and is ignored by \texttt{type\ =\ "raster"}, which evaluates the density on a grid using the alpha-raster mode of \texttt{geom\_function\_2d\_1d()}: dark-gray fill with density scaled to literal 0--1 alpha values. For iso-density contours not calibrated to probability content, \texttt{geom\_function\_2d\_1d()} remains the appropriate tool.
-
-\begin{verbatim}
-dbvn <- function(v, mu = c(0, 0), Sigma = diag(2)) {
-  x <- matrix(v - mu, ncol = 1)
-  Sinv <- solve(Sigma)
-  1 / (2 * pi * sqrt(det(Sigma))) * exp(-0.5 * as.numeric(t(x) %*% Sinv %*% x))
-}
-
-p1 <- ggplot() +
-  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3),
-    probs = c(0.5, 0.8, 0.95)) +
-  coord_equal() + ggtitle('type = "hdr"')
-
-Sigma <- matrix(c(1, 0.6, 0.6, 1), 2, 2)
-p2 <- ggplot() +
-  geom_pdf_2d(fun = dbvn, args = list(Sigma = Sigma),
-    xlim = c(-3, 3), ylim = c(-3, 3),
-    probs = c(0.5, 0.8, 0.95), type = "hdr_lines") +
-  coord_equal() + ggtitle('type = "hdr_lines"')
-
-p3 <- ggplot() +
-  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3),
-    type = "raster") +
-  coord_equal() + ggtitle('type = "raster"')
-
-p1 | p2 | p3
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/pdf-2d-1} 
-
-}
-
-\caption{Bivariate normal densities drawn by \texttt{geom\_pdf\_2d()}: filled 50/80/95\% HDRs of the standard bivariate normal (left), HDR boundary lines for a correlated bivariate normal with covariance supplied via \texttt{args} (middle), and a raw density raster with density scaled to literal alpha (right).}\label{fig:pdf-2d}
-\end{figure}
-
-\subsection{\texorpdfstring{Probability mass functions: \texttt{geom\_pmf()}}{Probability mass functions: geom\_pmf()}}\label{probability-mass-functions-geom_pmf}
-
-For a discrete random variable with integer support, the PMF \(p(k) = P(X = k)\) satisfies \(\sum_k p(k) = 1\). \texttt{geom\_pmf()} evaluates the PMF at each integer in \texttt{xlim} and renders the result as a lollipop chart--vertical segments from the \(x\)-axis to the probability value, capped with points. The underlying \texttt{StatPMF} validates normalization by summing the computed probabilities and issues a warning if they depart significantly from unity. When the support is not a sequence of consecutive integers, the \texttt{support} argument accepts an explicit numeric vector that overrides \texttt{xlim}.
-
-\begin{verbatim}
-ggplot() +
-  geom_pmf(fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.3))
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/pmf-binomial-1} 
-
-}
-
-\caption{The PMF of a $\mathrm{Binomial}(10, 0.3)$ distribution, rendered as a lollipop chart.}\label{fig:pmf-binomial}
-\end{figure}
-
-The \texttt{support} argument enables distributions whose mass points are not consecutive integers. Figure\textasciitilde{}\ref{fig:pmf-clt} illustrates this with the exact distribution of the sample mean \(\bar X_n = n^{-1}\sum_{i=1}^n X_i\) of \(n = 10\) i.i.d.~\(\mathrm{Bernoulli}(0.3)\) draws. The support is \(\{0, 0.1, 0.2, \ldots, 1\}\) and \(P(\bar X_n = k/n) = \binom{n}{k}0.3^k 0.7^{n-k}\). The Central Limit Theorem approximation \(\bar X_n \approx \mathcal{N}(0.3,\, 0.3 \times 0.7 / 10)\) is overlaid as a scaled density curve whose peak matches the tallest lollipop, facilitating direct visual comparison of shape without a secondary axis.
-
-\begin{verbatim}
-p <- 0.3; n <- 10
-sd_mean <- sqrt(p * (1 - p) / n)
-f_mean  <- function(x) dbinom(round(x * n), size = n, prob = p)
-max_pmf <- max(f_mean(seq(0, 1, by = 1/n)))
-scale   <- max_pmf / dnorm(p, mean = p, sd = sd_mean)
-f_clt   <- function(x) scale * dnorm(x, mean = p, sd = sd_mean)
 
 ggplot() +
-  geom_pmf(fun = f_mean, support = seq(0, 1, by = 1/n)) +
-  geom_pdf(fun = f_clt, xlim = c(0, 1))
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/pmf-clt-1} 
-
-}
-
-\caption{Exact distribution of the sample mean of 10 i.i.d.~Bernoulli(0.3) draws (lollipops) with the CLT normal approximation overlaid as a scaled density curve.}\label{fig:pmf-clt}
-\end{figure}
-
-\texttt{geom\_pmf()} supports the same shading modes as \texttt{geom\_pdf()}. The \texttt{p} parameter shades lollipops up to the \(p\)-quantile; \texttt{p\_lower} and \texttt{p\_upper} define a two-sided interval; \texttt{shade\_outside\ =\ TRUE} inverts it; and \texttt{shade\_hdr} accepts one or more coverage levels, shading the smallest sets of mass points whose total probability meets or exceeds each target. Lollipops outside a \texttt{p}-based region are rendered at reduced opacity to preserve the distributional context, while \texttt{shade\_hdr} maps each support point's smallest containing HDR to \texttt{alpha} as an ordered factor (\texttt{after\_stat(probs)}), producing the same legend convention as the bivariate layers. Because a discrete distribution may not achieve the exact target coverages, \texttt{shade\_hdr} finds the smallest HDR with coverage \(\geq\) each requested level---a probability-threshold set \(\{x : p(x) \geq c\}\) that includes all mass points tied at the cutoff, so ties are never split and the achieved coverage almost always overshoots the target---and issues a diagnostic via \CRANpkg{cli} when an actual coverage differs from its target by more than 0.5 percentage points.
-
-\begin{verbatim}
-p1 <- ggplot() +
-  geom_pmf(fun = dbinom, xlim = c(0, 10),
-    args = list(size = 10, prob = 0.5), p = 0.8) +
-  ggtitle("p = 0.8")
-
-p2 <- ggplot() +
-  geom_pmf(fun = dbinom, xlim = c(0, 10),
-    args = list(size = 10, prob = 0.3), shade_hdr = c(0.5, 0.8, 0.95)) +
-  ggtitle("shade_hdr = c(0.5, 0.8, 0.95)")
-
-p1 | p2
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/pmf-shading-1} 
-
-}
-
-\caption{Shading modes for \texttt{geom\_pmf()}: the lower 80\% by cumulative probability, with unshaded lollipops rendered at reduced opacity (left), and the 50/80/95\% HDRs of a $\mathrm{Binomial}(10, 0.3)$ distribution, with each support point's smallest containing HDR mapped to alpha (right).}\label{fig:pmf-shading}
-\end{figure}
-
-\subsection{\texorpdfstring{Bivariate mass functions: \texttt{geom\_pmf\_2d()}}{Bivariate mass functions: geom\_pmf\_2d()}}\label{bivariate-mass-functions-geom_pmf_2d}
-
-\texttt{geom\_pmf\_2d()} is the discrete counterpart: it evaluates a bivariate PMF over a lattice and renders the masses either as a balloon plot of points (\texttt{type\ =\ "point"}, the default, with size mapped to \texttt{after\_stat(prob)}; \texttt{ggplot2::scale\_size\_area()} is recommended so that mass is proportional to point area) or as a heatmap of tiles (\texttt{type\ =\ "tile"}, with fill mapped to \texttt{after\_stat(prob)}). The lattice is the product of per-axis supports--integers spanning \texttt{xlim} \(\times\) \texttt{ylim}, or exact values supplied via \texttt{support\_x} and \texttt{support\_y}--and the mass function follows the same \texttt{fun(c(x,\ y))} convention as \texttt{geom\_pdf\_2d()}. As in \texttt{geom\_pmf()}, the total lattice mass is validated. The \texttt{shade\_hdr} parameter accepts one or more coverage levels and highlights the corresponding highest density regions: each lattice point is assigned the smallest requested HDR that contains it, and the assignment is exposed as an ordered factor (\texttt{after\_stat(probs)}) mapped to \texttt{alpha} by default, reproducing the legend convention of \texttt{geom\_pdf\_2d()}; points outside all requested regions render nearly transparent. Because a discrete distribution generally cannot achieve a target coverage exactly, the smallest HDR with coverage at least each target is used---with lattice points of exactly equal mass always assigned together, never split---and the actual, typically overshooting, coverages are reported. Distributions with non-product support are accommodated by evaluating over a bounding lattice and returning zero off the support: zero-mass cells are dropped by default (\texttt{drop\_zeros\ =\ TRUE}), so a trinomial distribution, for example, renders only its simplex support.
-
-\begin{verbatim}
-dbinom2 <- function(v, sizes = c(10, 10), probs = c(0.5, 0.5)) {
-  dbinom(v[1], sizes[1], probs[1]) * dbinom(v[2], sizes[2], probs[2])
-}
-
-p1 <- ggplot() +
-  geom_pmf_2d(fun = dbinom2, xlim = c(0, 10), ylim = c(0, 10),
-    args = list(probs = c(0.3, 0.7)), shade_hdr = c(0.5, 0.8, 0.95)) +
-  scale_size_area() +
-  ggtitle("Product binomial, 50/80/95% HDRs")
-
-dtrinom <- function(v, size = 8, prob = c(0.3, 0.3, 0.4)) {
-  if (sum(v) > size) return(0)
-  dmultinom(c(v, size - sum(v)), prob = prob)
-}
-
-p2 <- ggplot() +
-  geom_pmf_2d(fun = dtrinom, xlim = c(0, 8), ylim = c(0, 8),
-    type = "tile") +
-  coord_equal() + ggtitle("Trinomial on a simplex")
-
-p1 | p2
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/pmf-2d-1} 
-
-}
-
-\caption{Bivariate PMFs rendered by \texttt{geom\_pmf\_2d()}: the 50/80/95\% highest density regions of a product $\mathrm{Binomial}(10, 0.3) \times \mathrm{Binomial}(10, 0.7)$ distribution in the default balloon rendering, with each lattice point's smallest containing HDR mapped to alpha (left), and a trinomial distribution with $n = 8$ evaluated over a bounding lattice in the tile rendering, showing only its simplex support (right).}\label{fig:pmf-2d}
-\end{figure}
-
-\subsection{Cumulative distribution and survival functions}\label{cumulative-distribution-and-survival-functions}
-
-The CDF \(F(x) = P(X \leq x)\) and survival function \(S(x) = 1 - F(x) = P(X > x)\) are complementary summaries of a distribution. \pkg{ggfunction} provides continuous and discrete variants of both.
-
-\textbf{Continuous CDF (\texttt{geom\_cdf()}).} \texttt{geom\_cdf()} evaluates a user-supplied CDF (e.g., \texttt{pnorm}) and renders it as a line. Alternatively, a PDF can be supplied via \texttt{pdf\_fun} (integrated numerically), a survival function via \texttt{survival\_fun} (converted via \(F = 1 - S\)), a quantile function via \texttt{qf\_fun} (inverted via interpolation), or a hazard function via \texttt{hf\_fun} (the cumulative hazard is integrated from \texttt{hf\_lower} and then \(F = 1 - e^{-H}\)). It supports the same \texttt{p}, \texttt{p\_lower}/\texttt{p\_upper}, and \texttt{shade\_outside} shading parameters as \texttt{geom\_pdf()}.
-
-\begin{verbatim}
-ggplot() +
-  geom_cdf(fun = pnorm, xlim = c(-3, 3))
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/cdf-shaded-1} 
-
-}
-
-\caption{The standard normal CDF.}\label{fig:cdf-shaded}
-\end{figure}
-
-\textbf{Discrete CDF (\texttt{geom\_cdf\_discrete()}).} For discrete distributions, the CDF is a right-continuous step function. \texttt{geom\_cdf\_discrete()} accepts a CDF directly via \texttt{fun} (e.g., \texttt{pbinom}), a PMF via \texttt{pmf\_fun} (from which the CDF is computed by cumulative summation), or a discrete survival function via \texttt{survival\_fun} (converted via \(F = 1 - S\)), and renders the result with horizontal segments, dashed vertical jumps, open circles at the pre-jump value (the left limit), and closed circles at the achieved value. The \texttt{show\_points} and \texttt{show\_vert} parameters independently suppress the endpoint circles or vertical jump segments. The \texttt{support} argument accepts the full vector of mass points for distributions with non-integer or non-consecutive support; \texttt{xlim} filters the displayed range after cumulative quantities are computed.
-
-\begin{verbatim}
-ggplot() +
-  geom_cdf_discrete(
-    pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
+  geom_function_1d_2d(
+    fun = lissajous,
+    tlim = c(0, 2 * pi),
+    args = list(a = 5, b = 4)
   )
 \end{verbatim}
 
-\begin{figure}
+For scalar and vector fields, the same convention means that model parameters,
+physical constants, or tuning values can remain explicit in the plotting call.
+This is especially helpful in teaching settings, where the relationship between
+parameters and shape is often the point of the graphic. It also helps avoid
+subtle reproducibility problems: the plot source records both the mathematical
+function and the parameter values used to evaluate it.
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/discrete-cdf-1} 
-
-}
-
-\caption{The discrete CDF of a $\mathrm{Binomial}(10, 0.5)$ distribution.}\label{fig:discrete-cdf}
-\end{figure}
-
-\textbf{Continuous survival (\texttt{geom\_survival()}).} In reliability theory and biostatistics, \(S(x) = 1 - F(x) = P(X > x)\) gives the probability that the event of interest has not yet occurred by time \(x\). \texttt{geom\_survival()} accepts a survival function directly via \texttt{fun}, or derives \(S\) from a CDF via \texttt{cdf\_fun} (computing \(1 - F(x)\)), a PDF via \texttt{pdf\_fun} (integrating to obtain \(F\), then computing \(1 - F(x)\)), or a quantile function via \texttt{qf\_fun} (interpolating to obtain \(F\), then computing \(1 - F(x)\)).
-
-\begin{verbatim}
-ggplot() +
-  geom_survival(cdf_fun = pexp, xlim = c(0, 10), args = list(rate = 0.5))
-\end{verbatim}
+Vector fields can be rendered either as local arrows or as streamlines. Both
+views start from the same vector-valued function, but they answer different
+visual questions. Arrows emphasize local direction and magnitude at selected
+grid points; streamlines emphasize integral curves of the field. In
+\pkg{ggfunction}, both displays are delegated to \CRANpkg{ggvfields}, as shown in
+Figure \ref{fig:vector-stream}.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/survival-exp-1} 
+{\centering \includegraphics[width=0.95\linewidth]{ggfunction_files/figure-latex/vector-stream-1} 
 
 }
 
-\caption{The survival function of an $\mathrm{Exponential}(0.5)$ distribution, $S(x) = e^{-0.5x}$.}\label{fig:survival-exp}
+\caption{The same rotation field rendered as local arrows and as streamlines. ggfunction supplies the function interface and delegates vector-field rendering to ggvfields.}\label{fig:vector-stream}
 \end{figure}
 
-\textbf{Discrete survival (\texttt{geom\_survival\_discrete()}).} For discrete distributions, \(S(x) = 1 - F(x)\) is itself a right-continuous step function. \texttt{geom\_survival\_discrete()} accepts a discrete survival function directly via \texttt{fun}, or derives \(S\) from a CDF via \texttt{cdf\_fun} or a PMF via \texttt{pmf\_fun} (computing cumulative sums and then \(1 - F\)). It renders the result with the same visual conventions as \texttt{geom\_cdf\_discrete()}. PMF-derived survival curves use \texttt{support} as the full computational support and \texttt{xlim} as a display filter.
+\subsection{Probability distributions}\label{probability-distributions}
 
-\begin{verbatim}
-ggplot() +
-  geom_survival_discrete(
-    pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
-  )
-\end{verbatim}
+The probability workflow starts from one characterization of a distribution and
+asks for another visual representation. For example, users may have a density
+but want a CDF, a CDF but want a quantile function, or a hazard function but
+want a density. Native inputs are preferred when available. When a native input
+is absent, \pkg{ggfunction} can derive the needed function through the routes
+shown in Tables \ref{tab:conversion-continuous} and
+\ref{tab:conversion-discrete}.
+
+The continuous one-dimensional layers use the standard identities among
+distribution functions. If \(f\) is a density and \(F\) is the CDF, then
+\[
+  F(x) = \int_{-\infty}^{x} f(t)\,dt,\qquad
+  S(x) = 1-F(x),\qquad
+  Q(p) = F^{-1}(p).
+\]
+For survival and reliability displays, the hazard and cumulative hazard are
+\[
+  h(x) = \frac{f(x)}{S(x)},\qquad
+  H(x) = -\log S(x),\qquad
+  S(x) = \exp\{-H(x)\}.
+\]
+The package does not rederive these relationships for the reader each time a
+geom is used. Instead, it encodes them in conversion helpers that are shared by
+the distribution layers. This keeps the user-facing API small while making the
+route explicit in documentation and validation tests.
+
+Discrete distributions use analogous operations on support points. A PMF is
+accumulated by summation rather than integration, and a quantile function is a
+generalized inverse over the ordered support. Because discrete supports can be
+finite, infinite, integer-valued, or explicitly supplied, the support argument
+is more than a plotting convenience. It defines the order in which cumulative
+mass is accumulated, determines where step functions jump, and controls how
+probability shading is resolved when multiple support points share the same
+mass.
+
+The bivariate probability layers have a narrower scope. \texttt{geom\_pdf\_2d()} draws
+theoretical bivariate densities as HDRs or rasters, and \texttt{geom\_pmf\_2d()} draws
+bivariate mass functions on a lattice. The package does not estimate bivariate
+densities from samples; that task belongs to \CRANpkg{ggdensity}. It also does
+not provide arbitrary three-dimensional rendering of density surfaces. The goal
+is to display probability content in the same two-dimensional grammar used by
+the rest of \CRANpkg{ggplot2}.
+
+\begin{table}
+
+\caption{\label{tab:conversion-continuous}Continuous distribution-function inputs and conversion routes. Native inputs are used directly; derived routes may require numerical integration, finite differences, interpolation, or root finding.}
+\centering
+\begin{tabular}[t]{l|l|l|l}
+\hline
+Target & Native & Other sources & Route\\
+\hline
+PDF $f$ & \code{fun} & $F$, $S$, $Q$, or $h$ & finite diff., interpolation, or $hS$\\
+\hline
+CDF $F$ & \code{fun} & $f$, $S$, $Q$, or $h$ & integration or identity\\
+\hline
+survival $S$ & \code{fun} & $F$, $f$, $Q$, or $h$ & $1-F$\\
+\hline
+quantile $Q$ & \code{fun} & $F$, $f$, $S$, or $h$ & root-find $F$\\
+\hline
+hazard $h$ & \code{fun} & $f$, $F$, $S$, or $Q$ & $f/S$; $f+F$ accepted\\
+\hline
+cum. hazard $H$ & \code{fun} & $h$, $F$, $S$, $f$, or $Q$ & $-\log S$ or integrate $h$\\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}
+
+\caption{\label{tab:conversion-discrete}Discrete distribution-function inputs and conversion routes. Computations are performed over the declared support.}
+\centering
+\begin{tabular}[t]{l|l|l|l}
+\hline
+Target & Native & Other sources & Route\\
+\hline
+PMF & \code{fun} & CDF or survival & support differences\\
+\hline
+CDF & \code{fun} & PMF or survival & cumulative sums\\
+\hline
+survival & \code{fun} & PMF or CDF & $1-F$ on support\\
+\hline
+quantile & \code{fun} & PMF or CDF & generalized inverse\\
+\hline
+\end{tabular}
+\end{table}
+
+A single source can therefore drive several views of the same distribution.
+Figure \ref{fig:gamma-views} starts from the gamma density and then asks
+\pkg{ggfunction} to draw related functions. Two of the panels use native
+functions, while the CDF and survival panels demonstrate PDF-derived routes.
+In a manuscript or analysis script, this makes the distributional relationship
+explicit in the plotting code.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/discrete-survival-1} 
+{\centering \includegraphics[width=0.95\linewidth]{ggfunction_files/figure-latex/gamma-views-1} 
 
 }
 
-\caption{The discrete survival function of a $\mathrm{Binomial}(10, 0.5)$ distribution, descending from 1 to 0.}\label{fig:discrete-survival}
+\caption{One gamma distribution viewed through four related functions. The PDF panel uses a native density; the CDF and survival panels derive from the density; the hazard panel uses the documented PDF + CDF bundle.}\label{fig:gamma-views}
 \end{figure}
 
-\subsection{Quantile functions}\label{quantile-functions}
+The distinction between support and display window is important. The
+\texttt{xlim} argument controls what is drawn. The \texttt{support} argument
+controls distributional calculations: normalization checks, PDF-to-CDF
+integration, CDF-to-quantile inversion, and probability shading. Thus a 97.5\%
+normal upper-tail request is interpreted with respect to the full normal
+distribution even if the visible window is narrower. Figure
+\ref{fig:prob-shading} shows lower-tail, central-interval, and two-tail
+requests.
 
-The quantile function \(Q(p) = \inf\{x : F(x) \geq p\}\) inverts the CDF. \pkg{ggfunction} provides continuous and discrete variants.
+This separation is easy to miss because ordinary plotting code often treats
+the x-axis limits as the whole domain. For probability displays, that would
+change the meaning of shaded area. Suppose a density has support
+\((-\infty,\infty)\) and the user displays only \([-2,2]\). If a lower-tail request
+with \(p=0.95\) were normalized over the visible window, the shaded boundary
+would mark 95\% of the mass inside \([-2,2]\), not the 95th percentile of the
+distribution. That is rarely what a statistical diagram intends. In
+\pkg{ggfunction}, quantiles, tail probabilities, and central intervals are
+computed on the declared support; the coordinate system then determines which
+part of the result is visible.
 
-\textbf{Continuous (\texttt{geom\_qf()}).} \texttt{geom\_qf()} evaluates a user-supplied quantile function (e.g., \texttt{qnorm}) over the unit interval \((0, 1)\). Alternatively, a CDF can be supplied via \texttt{cdf\_fun} (inverted numerically by root-finding), a PDF via \texttt{pdf\_fun} (integrated to obtain the CDF, then inverted), or a survival function via \texttt{survival\_fun} (converted to a CDF via \(F = 1 - S\), then inverted). Evaluation points are placed at Chebyshev nodes of the first kind, \(p_k = (1 - \cos((2k-1)\pi / 2n))/2\) for \(k = 1, \ldots, n\), which cluster near 0 and 1 where quantile functions are typically most curved and avoid evaluating at the exact endpoints, preventing \(\pm\infty\) for unbounded distributions.
+The same distinction matters for bounded supports. A beta density should be
+integrated over \([0,1]\), not over the displayed portion of that interval. A
+Weibull or exponential hazard should accumulate from time zero unless the user
+specifies another origin. A custom distribution with support on a nonstandard
+finite interval should declare that interval so numerical integration and
+root-finding do not waste effort outside the distribution's domain or return
+misleading boundary behavior. The support argument is therefore a statistical
+parameter of the layer, not a cosmetic axis setting.
 
-\begin{verbatim}
-ggplot() +
-  geom_qf(fun = qnorm)
-\end{verbatim}
+Display windows still have an important role. They let the user focus on the
+region where a comparison is readable, crop extreme tails, or align several
+plots with a common x-axis. The recommended pattern is to compute on the
+distributional support and use the plotting window only for visual emphasis.
+For bivariate HDRs, the analogous pattern is to compute over
+\texttt{hdr\_xlim}/\texttt{hdr\_ylim} and use \texttt{coord\_cartesian()} if a narrower view is desired.
+This is the same principle in two dimensions: probability content belongs to
+the computation domain, while readability belongs to the display domain.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/qf-normal-1} 
+{\centering \includegraphics[width=0.95\linewidth]{ggfunction_files/figure-latex/prob-shading-1} 
 
 }
 
-\caption{The quantile function of the standard normal distribution.}\label{fig:qf-normal}
+\caption{Three probability-shading requests for the standard normal distribution: a lower-tail probability, a central interval, and two tails outside a central interval.}\label{fig:prob-shading}
 \end{figure}
 
-\textbf{Discrete (\texttt{geom\_qf\_discrete()}).} The quantile function of a discrete distribution is a left-continuous step function on \([0, 1]\). \texttt{geom\_qf\_discrete()} accepts a quantile function directly via \texttt{fun} (e.g., \texttt{qbinom}), or derives it from a PMF via \texttt{pmf\_fun} (computing cumulative sums over the full support and inverting), a CDF via \texttt{cdf\_fun} (evaluated on the integer support and inverted), or a discrete survival function via \texttt{survival\_fun} (converted to a CDF via \(F = 1 - S\) and then inverted). It renders the result with horizontal segments on \([0, 1]\), dashed vertical jumps, closed circles at the bottom of each jump (the value is achieved), and open circles at the top (the next value is not yet reached). The \texttt{support} argument behaves as in \texttt{geom\_cdf\_discrete()}.
-
-\begin{verbatim}
-ggplot() +
-  geom_qf_discrete(
-    pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5)
-  )
-\end{verbatim}
+Highest density regions (HDRs) are threshold-based regions of largest density
+containing a requested probability. In one dimension, \pkg{ggfunction} computes
+an approximate threshold on a grid over \texttt{hdr\_xlim}. In two dimensions,
+\texttt{geom\_pdf\_2d()} adapts the package's vector-argument density interface to
+\CRANpkg{ggdensity}'s \texttt{geom\_hdr\_fun()} and
+\texttt{geom\_hdr\_lines\_fun()} interfaces. These bivariate HDRs are therefore
+gridded approximations whose accuracy depends on the computational domain and
+grid resolution. For a narrower view after computing on a wider domain, users
+should compute over the larger \texttt{hdr\_xlim}/\texttt{hdr\_ylim} and use
+\texttt{coord\_cartesian()} for display.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/discrete-qf-1} 
+{\centering \includegraphics[width=0.95\linewidth]{ggfunction_files/figure-latex/hdr-examples-1} 
 
 }
 
-\caption{The discrete quantile function of a $\mathrm{Binomial}(10, 0.5)$ distribution as a left-continuous step function on $[0, 1]$.}\label{fig:discrete-qf}
+\caption{Approximate highest density regions. Left: a disconnected 80\% grid-based HDR for a bimodal univariate density. Right: bivariate normal HDRs delegated to ggdensity.}\label{fig:hdr-examples}
 \end{figure}
 
-\subsection{\texorpdfstring{Hazard functions: \texttt{geom\_hf()}}{Hazard functions: geom\_hf()}}\label{hazard-functions-geom_hf}
-
-The hazard function
-
-\begin{equation}
-h(x) = \frac{f(x)}{S(x)} = \frac{f(x)}{1 - F(x)}
-\label{eq:hazard}
-\end{equation}
-
-represents the instantaneous rate of failure at time \(x\), conditional on survival to that point \citep{casella2002statistical}. \texttt{geom\_hf()} accepts a hazard function directly via \texttt{fun}, or derives \(h\) from a PDF and CDF supplied via \texttt{pdf\_fun} and \texttt{cdf\_fun}. When only one of \texttt{pdf\_fun} or \texttt{cdf\_fun} is provided, the missing component is derived numerically (by integration or differentiation, respectively). A survival function can also be supplied via \texttt{survival\_fun} (converted to a CDF via \(F = 1 - S\), then differentiated to obtain \(f\)), or a quantile function via \texttt{qf\_fun} (interpolated to obtain \(F\), then differentiated). The \texttt{args} parameter applies to all supplied functions; \texttt{pdf\_args} and \texttt{cdf\_args} provide overrides where the PDF and CDF require different parameterizations.
-
-Division by \(S(x)\) can cause numerical instability in the tail as \(S(x) \to 0\). \texttt{StatHF} guards against this by replacing values where \(S(x) \leq 0\) with \texttt{NaN}, and \texttt{GeomHF} filters these before rendering.
-
-Three canonical hazard shapes arise in reliability modeling: decreasing (infant mortality, where early failures dominate), constant (the memoryless Exponential distribution), and increasing (wear-out failure, where older units fail at higher rates).
-
-\begin{verbatim}
-p_decr <- ggplot() +
-  geom_hf(
-    pdf_fun = dweibull, cdf_fun = pweibull,
-    xlim = c(0.01, 5), args = list(shape = 0.5, scale = 2)
-  ) + ggtitle("Decreasing (Weibull)")
-
-p_flat <- ggplot() +
-  geom_hf(
-    pdf_fun = dexp, cdf_fun = pexp,
-    xlim = c(0.01, 10), args = list(rate = 0.5)
-  ) + ggtitle("Flat (Exponential)")
-
-p_incr <- ggplot() +
-  geom_hf(
-    pdf_fun = dnorm, cdf_fun = pnorm,
-    xlim = c(-3, 3), args = list(mean = 0, sd = 1)
-  ) + ggtitle("Increasing (Normal)")
-
-p_decr | p_flat | p_incr
-\end{verbatim}
+The bivariate PMF layer uses the same vector-argument convention as the
+bivariate PDF layer, but evaluates on a lattice. Figure
+\ref{fig:pmf-2d-workflow} shows the same independent product-binomial mass
+function in point and tile modes. Point mode maps probability to area, while
+tile mode maps probability to fill.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/hazard-shapes-1} 
+{\centering \includegraphics[width=0.95\linewidth]{ggfunction_files/figure-latex/pmf-2d-workflow-1} 
 
 }
 
-\caption{Three canonical hazard shapes: decreasing ($\mathrm{Weibull}(\mathrm{shape}{=}0.5,\,\mathrm{scale}{=}2)$, left), constant ($\mathrm{Exponential}(0.5)$, center), and increasing ($\mathcal{N}(0,1)$, right).}\label{fig:hazard-shapes}
+\caption{A bivariate probability mass function displayed as a balloon plot and as a tile heatmap.}\label{fig:pmf-2d-workflow}
 \end{figure}
 
-\subsection{\texorpdfstring{Cumulative hazard functions: \texttt{geom\_chf()}}{Cumulative hazard functions: geom\_chf()}}\label{cumulative-hazard-functions-geom_chf}
-
-The cumulative hazard function
-
-\begin{equation}
-H(x) = \int_{\ell}^{x} h(t)\, dt = -\log S(x)
-\label{eq:chf}
-\end{equation}
-
-accumulates the instantaneous hazard over time, where \(\ell\) denotes the lower endpoint of the support so that \(S(\ell) = 1\); the identity \(\int_{\ell}^{x} h(t)\,dt = -\log S(x)\) holds under this convention. It is a monotonically non-decreasing function starting at zero that rises without bound for distributions with unbounded support. In reliability analysis, \(H(x)\) is often more convenient than \(h(x)\) because it is monotone and avoids the division by \(S(x)\) that can cause numerical instability in the hazard function's tail.
-
-\texttt{geom\_chf()} renders \(H(x)\) as a curve. It accepts a cumulative hazard function directly via \texttt{fun}, or derives \(H\) from any other standard characterization: a hazard function via \texttt{hf\_fun} (integrated numerically from \texttt{hf\_lower}), a CDF via \texttt{cdf\_fun} (\(H = -\log(1 - F)\)), a survival function via \texttt{survival\_fun} (\(H = -\log S\)), a PDF via \texttt{pdf\_fun} (integrated to obtain \(F\), then transformed), or a quantile function via \texttt{qf\_fun} (interpolated to obtain \(F\), then transformed).
-
-\begin{verbatim}
-p1 <- ggplot() +
-  geom_chf(cdf_fun = pexp, xlim = c(0, 10), args = list(rate = 0.5)) +
-  ggtitle("Exponential(0.5)")
-
-p2 <- ggplot() +
-  geom_chf(cdf_fun = pweibull, xlim = c(0, 3), args = list(shape = 2, scale = 1)) +
-  ggtitle("Weibull(2, 1)")
-
-p3 <- ggplot() +
-  geom_chf(cdf_fun = pnorm, xlim = c(-3, 3)) +
-  ggtitle("Normal(0, 1)")
-
-p1 | p2 | p3
-\end{verbatim}
+Discrete distributions follow the same ideas on a finite or integer support.
+The PMF layer uses lollipops, discrete CDF/quantile/survival layers use step
+functions, and discrete HDRs include all support points tied at an HDR cutoff.
+Figure \ref{fig:discrete-support} uses a deliberately nonconsecutive support
+to show why the support itself is part of the statistical object: cumulative
+sums and inverse lookups must be performed on the declared support, not on all
+integers between the minimum and maximum. For examples involving ties and
+bivariate mass functions, see the probability and numerical-conversion
+vignettes.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/chf-example-1} 
+{\centering \includegraphics[width=0.95\linewidth]{ggfunction_files/figure-latex/discrete-support-1} 
 
 }
 
-\caption{Cumulative hazard functions for three distributions: $\mathrm{Exponential}(0.5)$ (left, linear), $\mathrm{Weibull}(2, 1)$ (center, convex), and $\mathcal{N}(0,1)$ (right, eventually superlinear). For the exponential, $H(x) = 0.5x$ confirms the constant hazard rate.}\label{fig:chf-example}
+\caption{A discrete distribution on a nonconsecutive support. The PMF layer shades the lower cumulative region; the discrete CDF is derived from the same PMF by cumulative summation over the declared support.}\label{fig:discrete-support}
 \end{figure}
 
-\section{The empirical data family}\label{the-empirical-data-family}
+\subsection{Empirical distributions and censored summaries}\label{empirical-distributions-and-censored-summaries}
 
-Data analysis frequently requires visualizing not a theoretical distribution but the
-distribution of an observed sample. \pkg{ggfunction}'s empirical data family applies
-the same visual language as the probability distribution family to sample data. The
-empirical CDF, quantile function, PMF, and cumulative hazard geoms tabulate the
-empirical distribution via a shared helper that places mass \(c_k / n\) at each
-distinct observed value \(x_k\), where \(c_k\) is the count of occurrences and \(n\) is
-the total sample size; ties are handled correctly. The PP, QQ, and SP diagnostic geoms
-use the related order-statistic representation of the same sample. Because the geoms
-are standard \CRANpkg{ggplot2} layers, multiple groups can be overlaid by mapping the
-\texttt{colour} aesthetic in the enclosing \texttt{ggplot()} call.
+The empirical workflow compares sample summaries with distributional structure.
+For complete samples, \texttt{geom\_ecdf()} and \texttt{geom\_eqf()} draw empirical
+distribution and quantile functions. Their confidence bands use the
+Dvoretzky--Kiefer--Wolfowitz inequality with Massart's sharp constant
+\citep{massart1990tight}. For a fully specified distribution \(F\), the ECDF band
+\[
+  \hat F_n(x) \pm
+  \sqrt{\frac{\log(2/\alpha)}{2n}}
+\]
+has simultaneous coverage at least \(1-\alpha\), clipped to \([0,1]\). Grouped
+ECDFs receive group-specific bands, as in Figure \ref{fig:ecdf-workflow}.
+The empirical quantile band is obtained by inverting these CDF limits. This
+inversion is visually useful but produces wide or partially uninformative tail
+regions when \(p\pm\varepsilon\) reaches 0 or 1, which is a property of the DKW
+bound rather than a plotting artifact.
 
-\subsection{\texorpdfstring{Empirical CDF: \texttt{geom\_ecdf()}}{Empirical CDF: geom\_ecdf()}}\label{empirical-cdf-geom_ecdf}
-
-The empirical cumulative distribution function
-
-\begin{equation}
-\hat{F}_n(x) = \frac{1}{n}\sum_{i=1}^n \mathbf{1}(X_i \leq x)
-\label{eq:ecdf}
-\end{equation}
-
-is the natural nonparametric estimate of the true CDF. \texttt{geom\_ecdf()} renders
-\(\hat{F}_n\) as a right-continuous step function--horizontal segments, dashed vertical
-jumps, and open/closed endpoint circles--matching the visual conventions of
-\texttt{geom\_cdf\_discrete()}. When the sample is large (more than 50 distinct values), the
-vertical jump segments and endpoint circles are suppressed automatically to avoid
-visual clutter; this threshold can be overridden by setting \texttt{show\_vert} and
-\texttt{show\_points} explicitly.
-
-An optional simultaneous DKW/Massart confidence band is drawn around
-the step function by default. The DKW inequality \citep{massart1990tight} is a
-finite-sample result that implies
-
-\begin{equation}
-P\!\left(\sup_x |\hat{F}_n(x) - F(x)| \leq \varepsilon\right) \geq 1 - \alpha,
-\quad \varepsilon = \sqrt{\frac{\log(2/\alpha)}{2n}},
-\label{eq:dkw-band}
-\end{equation}
-
-so the ribbon \([\hat{F}_n(x) - \varepsilon,\, \hat{F}_n(x) + \varepsilon]\) (clipped to
-\([0, 1]\)) covers the true CDF \(F\) simultaneously at all \(x\) with probability at least
-\(1 - \alpha\). The confidence level is controlled by the \texttt{level} parameter (default
-0.95), and the ribbon's transparency by \texttt{conf\_alpha} (default 0.4).
-
-\begin{verbatim}
-set.seed(1)
-df_ecdf <- data.frame(
-  x     = c(rnorm(60), rnorm(40, mean = 2)),
-  group = rep(c("N(0,1), n=60", "N(2,1), n=40"), c(60, 40))
-)
-
-ggplot(df_ecdf, aes(x = x, colour = group)) +
-  geom_ecdf(show_points = FALSE, show_vert = FALSE) +
-  labs(x = "x", y = expression(hat(F)[n](x)), colour = NULL)
-\end{verbatim}
+The previous version of this manuscript included a long simulation study of DKW
+coverage. That material is better suited to a validation vignette, where the
+number of simulations, distributions, and sample sizes can be varied without
+interrupting the package-paper narrative. The article therefore states the
+finite-sample guarantee and shows one representative workflow; the package
+vignette \texttt{coverage-simulation} contains the longer simulation record.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/ecdf-basic-1} 
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/ecdf-workflow-1} 
 
 }
 
-\caption{Empirical CDFs for two groups from populations $\mathcal{N}(0,1)$ and $\mathcal{N}(2,1)$, with simultaneous 95\% DKW confidence bands. The bands are narrower for larger samples.}\label{fig:ecdf-basic}
+\caption{Grouped ECDFs with DKW/Massart confidence bands. Each group receives a separate band computed from its own sample size.}\label{fig:ecdf-workflow}
 \end{figure}
 
-\subsection{\texorpdfstring{Empirical quantile function: \texttt{geom\_eqf()}}{Empirical quantile function: geom\_eqf()}}\label{empirical-quantile-function-geom_eqf}
-
-The empirical quantile function is the left-continuous inverse of the empirical CDF:
-
-\begin{equation}
-Q_n(p) = \inf\{x : \hat{F}_n(x) \geq p\},\quad p \in (0,1).
-\label{eq:eqf}
-\end{equation}
-
-\texttt{geom\_eqf()} renders \(Q_n\) as a left-continuous step function on \([0,1]\) using the
-same visual conventions as \texttt{geom\_qf\_discrete()}. The same auto-suppression rule
-applies: jump segments and endpoint circles are hidden when the sample has more than
-50 distinct values.
-
-The confidence band for the quantile function follows directly from inverting
-\eqref{eq:dkw-band}: since \(\hat{F}_n(x) - \varepsilon \leq F(x) \leq \hat{F}_n(x) +
-\varepsilon\) simultaneously, applying \(Q\) to all three sides yields
-\(Q_n(p - \varepsilon) \leq Q(p) \leq Q_n(p + \varepsilon)\).
-
-This same probability-scale band is the basis for the PP, QQ, and SP diagnostic layers.
-
-\subsection{\texorpdfstring{PP, QQ, and SP diagnostic plots: \texttt{geom\_ppplot()}, \texttt{geom\_qqplot()}, and \texttt{geom\_spplot()}}{PP, QQ, and SP diagnostic plots: geom\_ppplot(), geom\_qqplot(), and geom\_spplot()}}\label{pp-qq-and-sp-diagnostic-plots-geom_ppplot-geom_qqplot-and-geom_spplot}
-
-Suppose \(X_1,\ldots,X_n\) are to be compared with a fully specified null
-distribution \(F_0\), with quantile function \(Q_0 = F_0^{\leftarrow}\). Let
-\(x_{(1)} \leq \cdots \leq x_{(n)}\) denote the order statistics and define plotting
-positions
-
-\begin{equation}
-p_i = \frac{i - 1/2}{n},\quad i = 1,\ldots,n.
-\label{eq:ppoints}
-\end{equation}
-
-A probability-probability (PP) plot displays the null probabilities
-\(F_0(x_{(i)})\) against \(p_i\). A quantile-quantile (QQ) plot displays the observed
-quantiles \(x_{(i)}\) against the null quantiles \(Q_0(p_i)\). A stabilized probability
-(SP) plot applies the arcsine-square-root variance-stabilizing transform
-
-\begin{equation}
-g(p) = \frac{2}{\pi} \sin^{-1} \sqrt{p}
-\label{eq:sp-transform}
-\end{equation}
-
-to both PP coordinates, displaying \(g\{F_0(x_{(i)})\}\) against \(g(p_i)\); under the
-null the transformed points have approximately equal variance across the entire unit
-interval, so departures in the tails are as visually prominent as departures in the
-middle. In each case, agreement with the null distribution corresponds to points
-falling close to the identity line. Michael \citeyearpar{michael1983stabilized} discusses
-acceptance regions for PP, QQ, and stabilized probability plots. The PP and SP
-layers expect a CDF by default, while the QQ layer expects a quantile function;
-alternate function sources are converted internally using the same CDF/QF helpers
-used by the theoretical distribution geoms.
-
-Under \(H_0: F = F_0\), the probability integral transform gives
-\(F_0(X_i) \stackrel{\mathrm{iid}}{\sim} \mathrm{Unif}(0,1)\). Therefore
-\eqref{eq:dkw-band} gives a simultaneous DKW band on the probability scale. For PP
-plots, the ribbon is simply
-
-\begin{equation}
-\max(0, p_i - \varepsilon) \leq F_0(x_{(i)}) \leq \min(1, p_i + \varepsilon).
-\label{eq:pp-band}
-\end{equation}
-
-For SP plots, the monotone transform \(g\) of \eqref{eq:sp-transform} is applied to
-both sides of \eqref{eq:pp-band}, carrying the same simultaneous band to the
-stabilized scale. For QQ plots, the probability limits are transformed back to the
-data scale:
-
-\begin{equation}
-Q_0\{\max(0, p_i - \varepsilon)\} \leq x_{(i)}
-\leq Q_0\{\min(1, p_i + \varepsilon)\}.
-\label{eq:qq-band}
-\end{equation}
-
-Thus the three diagnostics show the same comparison on different scales: PP bands
-are parallel probability bands, QQ bands widen or narrow according to the shape of
-\(Q_0\), and SP bands carry the parallel probability bands to the variance-stabilized
-scale. The bands are finite-sample and distribution-free for a fully
-specified null. When parameters are estimated from the data, the plots remain useful
-visual diagnostics, but the DKW bands are conservative rather than Lilliefors-adjusted.
-
-\begin{verbatim}
-set.seed(3)
-
-df_normal <- data.frame("x" = rnorm(50))
-df_exp <- data.frame("x" = rexp(50) - 1)
-
-ppqq_theme <- theme_gray(base_size = 8) +
-  theme(
-    plot.title = element_text(size = 8),
-    axis.title = element_text(size = 8),
-    axis.text = element_text(size = 7)
-  )
-
-p_norm_pp <- ggplot(df_normal, aes(x = x)) +
-  geom_ppplot(fun = pnorm, colour = "black", size = 1.2) +
-  coord_equal() +
-  ggtitle("Normal data: PP")
-
-p_norm_qq <- ggplot(df_normal, aes(x = x)) +
-  geom_qqplot(fun = qnorm, colour = "black", size = 1.2) +
-  coord_equal() +
-  ggtitle("Normal data: QQ")
-
-p_norm_sp <- ggplot(df_normal, aes(x = x)) +
-  geom_spplot(fun = pnorm, colour = "black", size = 1.2) +
-  coord_equal() +
-  ggtitle("Normal data: SP")
-
-p_exp_pp <- ggplot(df_exp, aes(x = x)) +
-  geom_ppplot(fun = pnorm, colour = "black", size = 1.2) +
-  coord_equal() +
-  ggtitle("Exponential data: PP")
-
-p_exp_qq <- ggplot(df_exp, aes(x = x)) +
-  geom_qqplot(fun = qnorm, colour = "black", size = 1.2) +
-  coord_equal() +
-  ggtitle("Exponential data: QQ")
-
-p_exp_sp <- ggplot(df_exp, aes(x = x)) +
-  geom_spplot(fun = pnorm, colour = "black", size = 1.2) +
-  coord_equal() +
-  ggtitle("Exponential data: SP")
-
-(p_norm_pp | p_norm_qq | p_norm_sp) / (p_exp_pp | p_exp_qq | p_exp_sp) & ppqq_theme
-\end{verbatim}
+The same complete-data sample can be viewed on the cumulative-hazard scale.
+This is useful when the theoretical hazard has a simpler visual form than the
+CDF. For exponential data, the cumulative hazard is linear, so departures from
+linearity are easy to see. Figure \ref{fig:echf-complete} overlays a complete
+sample empirical cumulative hazard with the theoretical target.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/ppqq-gof-1} 
+{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/echf-complete-1} 
 
 }
 
-\caption{PP, QQ, and SP diagnostics for samples compared with a fully specified $\mathcal{N}(0,1)$ null. The normal sample (top row) follows the identity line and remains within the DKW bands, whereas the shifted exponential sample (bottom row) shows the curvature and tail departures expected from skewness; the SP panels show the same comparison on the variance-stabilized scale.}\label{fig:ppqq-gof}
+\caption{Complete-data empirical cumulative hazard with a transformed DKW band and the theoretical cumulative hazard for an exponential model.}\label{fig:echf-complete}
 \end{figure}
 
-\subsection{\texorpdfstring{Empirical PMF: \texttt{geom\_epmf()}}{Empirical PMF: geom\_epmf()}}\label{empirical-pmf-geom_epmf}
-
-For observed data that are discrete or treated as such, the empirical PMF places
-mass \(c_k / n\) at each distinct observed value \(x_k\) and renders the result as a
-lollipop chart using the same conventions as \texttt{geom\_pmf()}.
-
-\begin{verbatim}
-set.seed(2)
-df_pmf <- data.frame(
-  x     = round(c(rnorm(40), rnorm(40, mean = 2)), 1),
-  group = rep(c("A", "B"), each = 40)
-)
-
-ggplot(df_pmf, aes(x = x, colour = group)) +
-  geom_epmf() +
-  labs(x = "x", y = "Empirical probability", colour = "Group")
-\end{verbatim}
+Diagnostic layers use the same probability-scale argument. \texttt{geom\_ppplot()}
+compares theoretical and empirical probabilities, \texttt{geom\_qqplot()} compares
+theoretical and sample quantiles, and \texttt{geom\_spplot()} applies Michael's
+arcsine-square-root stabilization \citep{michael1983stabilized} to the PP plot.
+When the null distribution is fully specified, the DKW/Massart band is a
+finite-sample simultaneous band for the probability integral transform. When
+parameters are estimated from the same data being plotted, that argument no
+longer gives the stated finite-sample simultaneous calibration. This distinction
+is important in practice. In teaching, it is common to compare a sample with
+\texttt{pnorm} after estimating mean and standard deviation from the same data.
+\pkg{ggfunction} will draw the requested visual band, but it does not perform a
+Lilliefors or other composite-null adjustment. The plotted band can still be a
+useful exploratory diagnostic; users who need a calibrated composite-null
+goodness-of-fit procedure should use a method designed for that setting.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/epmf-grouped-1} 
+{\centering \includegraphics[width=0.95\linewidth]{ggfunction_files/figure-latex/diagnostic-workflow-1} 
 
 }
 
-\caption{Empirical PMFs for two groups of 40 observations each from $\mathcal{N}(0,1)$ and $\mathcal{N}(2,1)$, colored by group.}\label{fig:epmf-grouped}
+\caption{QQ and stabilized probability plots for one sample against a fully specified standard normal null. Fitted-null diagnostics use the same visual band but require separate calibration for formal testing.}\label{fig:diagnostic-workflow}
 \end{figure}
 
-\subsection{\texorpdfstring{Empirical cumulative hazard: \texttt{geom\_echf()}}{Empirical cumulative hazard: geom\_echf()}}\label{empirical-cumulative-hazard-geom_echf}
+For right-censored data, \texttt{geom\_ecdf\_km()} computes the Kaplan--Meier
+product-limit estimator \citep{kaplan1958nonparametric} from observed times and an
+event indicator. It uses risk sets and displays censoring marks by default. Its
+confidence band uses Greenwood's variance estimator \citep{greenwood1926natural} and
+the equal-precision construction of Nair \citeyearpar{nair1984confidence}, which is
+simultaneous and asymptotic. The companion \texttt{geom\_echf\_na()} layer computes
+the Nelson--Aalen cumulative hazard estimator \citep{nelson1972theory, aalen1978nonparametric} and uses the implemented pointwise normal confidence
+band. Figure \ref{fig:survival-workflow} shows the two estimators side by
+side.
+The package also includes \texttt{geom\_echf()} for complete, uncensored samples.
+That layer applies the monotone transform \(H(x)=-\log\{1-F(x)\}\) to the ECDF
+and to the DKW band. For censored observations, however, ECDF-based summaries
+are no longer appropriate; the risk-set calculations in the Kaplan--Meier and
+Nelson--Aalen estimators are essential.
 
-The empirical cumulative hazard function transforms the ECDF to the hazard scale:
+At each distinct event time \(t_j\), let \(d_j\) denote the number of events and
+\(n_j\) the number at risk immediately before \(t_j\). The Kaplan--Meier estimator
+displayed by \texttt{geom\_ecdf\_km()} is
+\[
+  \hat S(t) = \prod_{t_j \le t} \left(1-\frac{d_j}{n_j}\right),
+\]
+and the Nelson--Aalen estimator displayed by \texttt{geom\_echf\_na()} is
+\[
+  \hat H(t) = \sum_{t_j \le t} \frac{d_j}{n_j}.
+\]
+The package computes both from the same internal risk-set table. This shared
+tabulation keeps event counts, censoring counts, risk sets, and variance
+estimates consistent between the two censored-data layers.
 
-\begin{equation}
-\hat{H}_n(x) = -\log\bigl(1 - \hat{F}_n(x)\bigr).
-\label{eq:echf}
-\end{equation}
-
-At the largest observation, \(\hat{F}_n(x) = 1\) and \(\hat{H}_n(x) = \infty\);
-this boundary is dropped automatically and the step function extends to the
-right panel edge at the last finite value.
-
-The simultaneous confidence band is obtained by applying the monotone
-transformation \(H = -\log(1 - F)\) to the DKW bounds \eqref{eq:dkw-band}. Because
-the DKW inequality guarantees \(\hat{F}_n(x) - \varepsilon \leq F(x) \leq
-\hat{F}_n(x) + \varepsilon\) simultaneously at all \(x\), applying \(H = -\log(1 -
-F)\) to both sides (and clipping the CDF bounds to \([0, 1)\)) yields a
-simultaneous band for \(H(x)\) with the same coverage guarantee.
-
-\begin{verbatim}
-set.seed(5)
-
-df_correct <- data.frame(x = rexp(80, rate = 0.5))
-p_correct <- ggplot(df_correct, aes(x = x)) +
-  geom_echf(show_points = FALSE, show_vert = FALSE) +
-  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_correct$x)),
-           args = list(rate = 0.5), colour = "red") +
-  labs(x = "x", y = expression(hat(H)[n](x))) +
-  ggtitle("Correct model") +
-  theme_minimal()
-
-df_wrong <- data.frame(x = rexp(80, rate = 1))
-p_wrong <- ggplot(df_wrong, aes(x = x)) +
-  geom_echf(show_points = FALSE, show_vert = FALSE) +
-  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_wrong$x)),
-           args = list(rate = 0.5), colour = "red") +
-  labs(x = "x", y = expression(hat(H)[n](x))) +
-  ggtitle("Wrong model") +
-  theme_minimal()
-
-p_correct | p_wrong
-\end{verbatim}
+The confidence bands intentionally differ. The Kaplan--Meier band uses
+Greenwood's variance estimate and an equal-precision critical value following
+Nair's construction. The displayed limits are additive on the survival scale,
+\(\hat S(t) \pm c_{\mathrm{EP}}\mathrm{se}\{\hat S(t)\}\), and are clipped to
+\([0,1]\). The critical value is computed from Greenwood-scale endpoints at the
+first and last valid event times, so the band is a simultaneous large-sample
+band over the displayed event-time range, not an exact finite-sample band. The
+Nelson--Aalen band uses the Nelson variance estimate
+\[
+  \widehat{\mathrm{Var}}\{\hat H(t)\} =
+  \sum_{t_j \le t} \frac{d_j}{n_j^2}
+\]
+and a normal critical value at each time point. Its intervals are symmetric on
+the cumulative-hazard scale before the lower limit is clipped at zero. It is
+therefore pointwise, not simultaneous. The abstract and examples use this
+distinction deliberately.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/echf-gof-1} 
+{\centering \includegraphics[width=0.95\linewidth]{ggfunction_files/figure-latex/survival-workflow-1} 
 
 }
 
-\caption{Empirical cumulative hazard functions for simulated exponential data. An $\text{Exp}(0.5)$ sample (left) is overlaid with the theoretical $H(x) = 0.5x$ (red line), which lies within the 95\% confidence band. An $\text{Exp}(1)$ sample (right) is tested against the wrong model $H(x) = 0.5x$, which departs from the band.}\label{fig:echf-gof}
+\caption{Censored-data summaries from the same simulated sample. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with a pointwise normal band.}\label{fig:survival-workflow}
 \end{figure}
 
-The theoretical cumulative hazard (red) threads through the band for the
-correct model (left panel) but departs visibly for the misspecified model (right
-panel), where the true rate is twice the hypothesized value.
+\section{Implementation, numerical behavior, and performance}\label{implementation-numerical-behavior-and-performance}
 
-\subsection{\texorpdfstring{Kaplan--Meier survival curves: \texttt{geom\_ecdf\_km()}}{Kaplan--Meier survival curves: geom\_ecdf\_km()}}\label{kaplanmeier-survival-curves-geom_ecdf_km}
+\subsection{ggplot2 stat-geom architecture}\label{ggplot2-stat-geom-architecture}
 
-The empirical geoms above assume complete (uncensored) data. In practice,
-survival data are often right-censored: some subjects leave the study before
-the event is observed. The Kaplan--Meier product-limit estimator
-\citep{kaplan1958nonparametric} handles this by adjusting the risk set at each
-event time:
+Each user-facing layer constructs one or more \CRANpkg{ggplot2} layers. The
+stat component validates inputs, evaluates functions or tabulates empirical
+summaries, and returns a data frame with computed variables such as
+\texttt{x}, \texttt{y}, \texttt{ymin}, \texttt{ymax}, or \texttt{probs}. The geom
+component draws those data using existing \CRANpkg{ggplot2} infrastructure when
+possible: paths and ribbons for curves and bands, rasters and contours for
+scalar fields, and step-like geoms for discrete and empirical functions.
 
-\begin{equation}
-\hat{S}(t) = \prod_{t_j \le t} \left(1 - \frac{d_j}{n_j}\right),
-\label{eq:km}
-\end{equation}
+The two main delegated components are explicit. Vector and stream fields are
+wrappers around \CRANpkg{ggvfields} vector-field and stream-field layers. Bivariate
+PDF HDR displays are thin wrappers around \CRANpkg{ggdensity}'s functional HDR
+geoms; the raster mode for \texttt{geom\_pdf\_2d()} uses the scalar-field machinery
+instead. This delegation keeps \pkg{ggfunction} focused on function interfaces,
+probability semantics, and validation.
 
-where \(d_j\) is the number of events at time \(t_j\) and \(n_j\) is the number at
-risk just before \(t_j\). \texttt{geom\_ecdf\_km()} renders this as a decreasing step
-function, with a simultaneous equal-precision Greenwood confidence band \citep{greenwood1926natural, nair1984confidence} and censoring marks at
-observations where the event was not observed. The data require two aesthetics:
-\texttt{x} (the observed time) and \texttt{status} (1 = event, 0 = censored).
+The layer constructors also provide a predictable data contract. Most users do
+not inspect the built data, but doing so is useful for tests, extensions, and
+debugging. Table \ref{tab:data-contract} summarizes representative computed
+variables. These are not new aesthetics that users must supply; they are values
+created by the stat and then consumed by the geom.
 
-\begin{verbatim}
-set.seed(42)
-n_km <- 60
-true_time <- rexp(n_km, rate = 0.5)
-cens_time <- rexp(n_km, rate = 0.2)
-df_km <- data.frame(
-  time   = pmin(true_time, cens_time),
-  status = as.integer(true_time <= cens_time)
-)
+\begin{table}
 
-p_km <- ggplot(df_km, aes(x = time, status = status)) +
-  geom_ecdf_km() +
-  labs(x = "Time", y = expression(hat(S)(t))) +
-  ggtitle("Kaplan-Meier estimate") +
-  theme_minimal()
+\caption{\label{tab:data-contract}Representative computed variables returned by ggfunction stats.}
+\centering
+\begin{tabular}[t]{l|l|l}
+\hline
+Family & Variables & Geom\\
+\hline
+curves & \code{x}, \code{y} & path/area\\
+\hline
+fields & \code{x}, \code{y}, \code{z} & raster/contour\\
+\hline
+continuous prob. & \code{x}, \code{y}, shade vars & area/path/ribbon\\
+\hline
+discrete prob. & \code{x}, \code{y}, mass/HDR & lollipop/step\\
+\hline
+empirical & \code{x}, \code{y}, band limits & step/ribbon\\
+\hline
+censored & \code{x}, \code{y}, band/censor & step/ribbon/marks\\
+\hline
+diagnostics & \code{x}, \code{y}, order/probs & points/ribbon/line\\
+\hline
+\end{tabular}
+\end{table}
 
-p_km_gof <- ggplot(df_km, aes(x = time, status = status)) +
-  geom_ecdf_km(show_points = FALSE, show_vert = FALSE) +
-  geom_survival(cdf_fun = pexp, xlim = c(0, max(df_km$time)),
-                args = list(rate = 0.5), colour = "red") +
-  labs(x = "Time", y = expression(hat(S)(t))) +
-  ggtitle("KM vs. Exp(0.5) theory") +
-  theme_minimal()
+This contract is also how the package is tested. Unit tests build plots with
+\texttt{ggplot\_build()}, inspect the computed data frames, and compare
+band limits, support handling, route accuracy, and error messages with expected
+values. The tests therefore exercise the same data that a downstream extension
+would see.
 
-p_km | p_km_gof
-\end{verbatim}
+\subsection{Numerical conversions}\label{numerical-conversions}
 
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/km-censored-1} 
-
-}
-
-\caption{Kaplan--Meier survival curves for simulated censored data. Event times follow $\text{Exp}(0.5)$ and censoring times follow $\text{Exp}(0.2)$. The left panel shows the KM estimate with a Greenwood 95\% simultaneous equal-precision band and censoring marks; the right panel overlays the true survival curve (red).}\label{fig:km-censored}
-\end{figure}
-
-The theoretical survival curve (red) lies within the Greenwood EP confidence band,
-confirming consistency with the \(\text{Exp}(0.5)\) model.
-
-\subsection{\texorpdfstring{Nelson--Aalen cumulative hazard: \texttt{geom\_echf\_na()}}{Nelson--Aalen cumulative hazard: geom\_echf\_na()}}\label{nelsonaalen-cumulative-hazard-geom_echf_na}
-
-The Nelson--Aalen estimator \citep{nelson1972theory, aalen1978nonparametric} is the
-censored-data analogue of the empirical cumulative hazard:
-
-\begin{equation}
-\hat{H}(t) = \sum_{t_j \le t} \frac{d_j}{n_j},
-\label{eq:na}
-\end{equation}
-
-with variance estimated by \(\widehat{\mathrm{Var}}[\hat{H}(t)] = \sum_{t_j
-\le t} d_j / n_j^2\). \texttt{geom\_echf\_na()} renders this as an increasing step
-function with a pointwise normal confidence band.
-
-\begin{verbatim}
-p_na <- ggplot(df_km, aes(x = time, status = status)) +
-  geom_echf_na() +
-  labs(x = "Time", y = expression(hat(H)(t))) +
-  ggtitle("Nelson-Aalen estimate") +
-  theme_minimal()
-
-p_na_gof <- ggplot(df_km, aes(x = time, status = status)) +
-  geom_echf_na(show_points = FALSE, show_vert = FALSE) +
-  geom_chf(cdf_fun = pexp, xlim = c(0, max(df_km$time)),
-           args = list(rate = 0.5), colour = "red") +
-  labs(x = "Time", y = expression(hat(H)(t))) +
-  ggtitle("NA vs. Exp(0.5) theory") +
-  theme_minimal()
-
-p_na | p_na_gof
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/na-censored-1} 
-
-}
-
-\caption{Nelson--Aalen cumulative hazard estimates. The same censored data as in the KM figure. The left panel shows the Nelson--Aalen estimate with a 95\% pointwise normal confidence band; the right panel overlays the theoretical $H(x) = 0.5x$ (red).}\label{fig:na-censored}
-\end{figure}
-
-The theoretical cumulative hazard (red) threads through the confidence band,
-consistent with the generating model.
-
-\subsection{Validity of the confidence band}\label{validity-of-the-confidence-band}
-
-The DKW inequality \eqref{eq:dkw-band} is a \emph{finite-sample} result: it
-holds for every \(n \geq 1\), not merely asymptotically. It guarantees that the
-simultaneous confidence band contains the true CDF everywhere with probability
-at least \(1 - \alpha\) at any sample size. Because the KS statistic
-\(D_n = \sup_x |\hat{F}_n(x) - F(x)|\) has a distribution-free null distribution
-for continuous \(F\), the coverage guarantee holds regardless of the shape of the
-true distribution.
-
-We verify the guarantee by simulation. For each combination of sample size \(n\)
-and nominal level \(1 - \alpha\), we draw \(B = 10{,}000\) independent samples from
-\(\mathcal{N}(0,1)\), compute \(D_n\) via \texttt{ks.test()}, and record the fraction of
-replications for which \(D_n \leq \varepsilon_n\), where \(\varepsilon_n\) is the
-half-width used by \texttt{geom\_ecdf()}.
-
-\begin{verbatim}
-set.seed(20240101)
-B      <- 10000
-ns     <- c(10, 20, 50, 100, 200, 500, 1000)
-levels <- c(0.90, 0.95, 0.99)
-eps_fn <- function(n, lv) sqrt(log(2 / (1 - lv)) / (2 * n))
-
-sim_res <- do.call(rbind, lapply(ns, function(n) {
-  do.call(rbind, lapply(levels, function(lv) {
-    eps <- eps_fn(n, lv)
-    dn  <- replicate(B,
-      suppressWarnings(ks.test(rnorm(n), "pnorm", exact = FALSE)$statistic))
-    data.frame(n = n, level = lv, empirical = mean(dn <= eps))
-  }))
-}))
-
-ggplot(sim_res, aes(x = n, y = empirical,
-                    colour = factor(level), group = factor(level))) +
-  geom_hline(aes(yintercept = level, colour = factor(level)),
-             linetype = "dashed", linewidth = 0.4) +
-  geom_line(linewidth = 0.8) +
-  geom_point(size = 2) +
-  scale_x_log10(breaks = ns) +
-  scale_y_continuous(
-    labels = scales::percent_format(accuracy = 0.1),
-    limits = c(0.88, 1.0)
-  ) +
-  scale_colour_manual(
-    values = c("0.9" = "steelblue", "0.95" = "firebrick", "0.99" = "forestgreen"),
-    labels = c("0.9" = "90%", "0.95" = "95%", "0.99" = "99%"),
-    name   = "Nominal"
-  ) +
-  labs(x = "Sample size n (log scale)", y = "Empirical coverage") +
-  theme_minimal()
-\end{verbatim}
-
-\begin{figure}
-
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/sim-coverage-1} 
-
-}
-
-\caption{Empirical simultaneous coverage of the KS confidence band over 10,000 simulations from $\mathcal{N}(0,1)$. Dashed lines show the nominal levels; solid curves show empirical coverage. Coverage is everywhere at or above nominal for all $n$, confirming the finite-sample validity of the DKW bound \citep{massart1990tight}. The slight conservatism at small $n$ diminishes as $n$ grows because the bound's constant is asymptotically tight.}\label{fig:sim-coverage}
-\end{figure}
-
-Empirical coverage (solid lines) lies above each dashed nominal threshold
-across all tested sample sizes, confirming that the DKW bound is a
-\emph{finite-sample} guarantee: it holds for every \(n \geq 1\), not merely in
-the limit. The slight conservatism at small \(n\) reflects that the bound is an
-inequality; the constant \(C = 2\) is tight \citep{massart1990tight} in the sense that
-it cannot be universally reduced, and the conservatism diminishes as \(n\) grows
-because the KS distribution converges to the Kolmogorov distribution.
-
-\section{Implementation}\label{implementation}
-
-\subsection{Architecture}\label{architecture}
-
-Each \pkg{ggfunction} layer is implemented as a pair of \texttt{ggproto} objects--a \texttt{Stat} and a \texttt{Geom}--wired together by a constructor function. The constructor creates a standard \CRANpkg{ggplot2} \texttt{layer()} call, threading the user-supplied function and its parameters through to the stat's \texttt{compute\_group()} method. That method performs the core computation: evaluating the function on a grid or sequence and returning a data frame whose columns correspond to the aesthetic variables expected by the geom.
-
-The separation of computation (stat) from rendering (geom) is not merely organizational. It allows users to substitute alternative geoms or compose multiple layers from the same stat. The \texttt{StatFunction2d} object, for instance, computes a grid of scalar-field values that can be rendered by \texttt{GeomRaster}, \texttt{GeomContour}, or \texttt{GeomContourFilled}, selected at construction time through the \texttt{type} parameter.
-
-\subsection{Function injection}\label{function-injection}
-
-R's \texttt{...} mechanism does not compose well when a function is called inside a stat's \texttt{compute\_group()} method, which must simultaneously receive \CRANpkg{ggplot2}-internal parameters. \pkg{ggfunction} adopts the approach used by \texttt{ggplot2::stat\_function()}: additional arguments are collected in a named list (\texttt{args}) and injected at the call site via \texttt{rlang::inject()}:
-
-\begin{verbatim}
-fun_injected <- function(x) {
-  rlang::inject(fun(x, !!!args))
-}
-\end{verbatim}
-
-This pattern is simple, composable, and avoids the ambiguity of routing function arguments through \texttt{...}.
-
-\subsection{Numerical considerations}\label{numerical-considerations}
-
-Several layers involve numerical integration or accumulation:
+The conversion code is intentionally conservative. Native functions are used
+directly. Derived functions are tagged internally as approximate, and their
+accuracy depends on smoothness, support, tail behavior, grid resolution, and
+whether the supplied function is numerically stable. The main conversion methods
+are:
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{PDF validation} uses \texttt{stats::integrate()} with adaptive quadrature to verify that the supplied function integrates to one over the specified domain.
+  PDF to CDF: numerical integration over the declared support.
 \item
-  \textbf{Cross-conversion} between function types is handled by internal helpers. \texttt{pdf\_to\_cdf()} obtains a CDF by numerically integrating the PDF via \texttt{stats::integrate()} at each evaluation point. \texttt{cdf\_to\_pdf()} obtains a PDF by central finite differences of the CDF, \((F(x+h) - F(x-h)) / 2h\) with \(h = 10^{-5}\). \texttt{cdf\_to\_qf()} inverts the CDF by root-finding via \texttt{stats::uniroot()}, with adaptive bound widening to accommodate distributions whose support is not known in advance. \texttt{hf\_to\_cdf()} integrates a hazard function from \texttt{hf\_lower} to obtain the cumulative hazard \(H(x)\) and returns \(F(x) = 1 - e^{-H(x)}\). \texttt{hf\_to\_pdf()} uses the identity \(f(x) = h(x) \cdot e^{-H(x)}\) directly, avoiding the numerical instability that would arise from chaining \texttt{hf\_to\_cdf} with \texttt{cdf\_to\_pdf}. These conversions are approximate; for distributions where analytic forms are available, supplying the native function type directly will be more accurate.
+  CDF to PDF: central finite differences with support-aware endpoint handling.
 \item
-  \textbf{Shading boundaries} are computed by trapezoidal accumulation \eqref{eq:trapezoid}, which is efficient and sufficient for the smooth densities encountered in practice.
+  CDF to quantile: bracketing and \texttt{stats::uniroot()}.
 \item
-  \textbf{Boundary interpolation} in \texttt{GeomFunction1d} uses \texttt{stats::approxfun()} to compute exact \(y\)-values at shade endpoints that fall between evaluation points.
+  Quantile to CDF: monotone interpolation on a probability grid.
 \item
-  \textbf{Quantile function evaluation} in \texttt{geom\_qf()} uses Chebyshev nodes of the first kind rather than a uniform grid, concentrating evaluation points near \(p = 0\) and \(p = 1\) where the function is most curved and avoiding evaluation at the exact endpoints.
+  Survival to CDF or cumulative hazard: algebraic transformations.
 \item
-  \textbf{PP, QQ, and SP diagnostics} sort finite observations, compute plotting positions with \texttt{stats::ppoints(n,\ a\ =\ 1/2)}, and derive their DKW bands from the same half-width as \texttt{geom\_ecdf()}. The QQ ribbon transforms the probability-scale band through the supplied or derived quantile function, and the SP layer applies the arcsine-square-root transform \eqref{eq:sp-transform} to both the plotted coordinates and the band limits.
+  Hazard to cumulative hazard: numerical integration from the hazard origin.
 \item
-  \textbf{Vector field integration} (via \pkg{ggvfields}) uses a fourth-order Runge--Kutta method with configurable step size and maximum iterations.
+  Hazard to PDF: \(f(x) = h(x)\exp\{-H(x)\}\) after deriving \(H\).
+\item
+  Discrete conversions: cumulative sums and generalized inverse lookup.
 \end{itemize}
 
-The default resolution of \(n = 101\) for one-dimensional functions and \(n = 50\) for two-dimensional grids (yielding 2500 evaluation points) balances visual fidelity against computational cost. Users may increase \(n\) for functions with fine-scale structure.
+These routes are meant to support plotting, diagnostics, and teaching examples,
+not to replace distribution-specific numerical libraries. The numerical CDF
+derived from a smooth bounded density can be extremely accurate on a moderate
+grid. The same default settings may be inadequate for a density with sharp
+spikes near a boundary or for a heavy-tailed distribution whose visually
+interesting mass lies outside the displayed window. The API therefore exposes
+the most important controls--the declared support, the display window, the grid
+resolution, and the hazard integration origin--instead of hiding all numerical
+choices behind a single plotting call.
+
+For hazards, the lower integration endpoint deserves special mention. If the
+support has a finite lower endpoint and \texttt{hf\_lower} is left at its default of
+\texttt{-Inf}, the package uses the lower support endpoint. This makes common
+nonnegative lifetime distributions behave naturally when users write
+\texttt{support\ =\ c(0,\ Inf)}. If neither the support nor the hazard origin is finite,
+integrating a hazard can be ill-posed; the layer then warns or fails rather
+than silently drawing a misleading curve.
+
+Tables \ref{tab:technical-accuracy} and \ref{tab:technical-performance}
+report representative local validation results from the accuracy and benchmark
+scripts in \texttt{inst/benchmarks/}. These scripts are manual validation
+aids rather than CRAN tests. They install the local package, compare fixed-grid
+function values, or time \texttt{ggplot\_build()} for representative plots. The saved
+outputs used here are in \texttt{inst/benchmarks/results/} and record the run date,
+platform, \proglang{R} version, package versions, grid details, and benchmark
+iteration counts.
+
+The reported run (2026-06-28 22:03:56 CDT) was on
+Darwin 25.5.0 arm64 using
+\proglang{R} 4.6.0 (2026-04-24),
+\pkg{ggfunction} 0.1.0,
+\CRANpkg{ggplot2} 4.0.3,
+\CRANpkg{ggdensity} 1.0.1, and
+\CRANpkg{ggvfields} 1.0.0. The benchmark
+script used \CRANpkg{bench} 1.1.4. Accuracy
+grids used 401 x-values for the normal, exponential, Weibull, and beta checks,
+199 probabilities for quantile checks, and the 21-point binomial support.
+
+\begin{table}
+
+\caption{\label{tab:technical-accuracy}Representative numerical conversion accuracy from saved validation output. Errors are maximum absolute differences on the fixed grids described in the text.}
+\centering
+\begin{tabular}[t]{l|l|r|l|l}
+\hline
+Route & Distribution & Grid & Max error & Note\\
+\hline
+pdf->cdf & normal & 401 & 5.82e-07 & --\\
+\hline
+cdf->pdf & normal & 401 & 1.29e-11 & finite differences\\
+\hline
+cdf->qf & normal & 199 & 3.49e-09 & adaptive uniroot\\
+\hline
+hf->pdf & exponential & 401 & 0.00e+00 & support lower endpoint 0\\
+\hline
+hf->pdf & weibull & 401 & 5.90e-08 & support lower endpoint 0\\
+\hline
+pdf->cdf & beta(2,5) & 401 & 3.33e-16 & finite support\\
+\hline
+pmf->cdf & binomial(20,0.35) & 21 & 5.55e-16 & --\\
+\hline
+pmf->qf & binomial(20,0.35) & 199 & 0.00e+00 & --\\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}
+
+\caption{\label{tab:technical-performance}Representative local performance checks from saved benchmark output. Timings are medians over 10 iterations of plot construction, not full device rendering.}
+\centering
+\begin{tabular}[t]{l|l|l|r}
+\hline
+Case & Domain & Median & Iterations\\
+\hline
+geom\_pdf(fun = dnorm) & 101 x values on [-4, 4] & 29.1ms & 10\\
+\hline
+geom\_pdf(cdf\_fun = pnorm) & 101 x values on [-4, 4] & 28.1ms & 10\\
+\hline
+geom\_cdf(pdf\_fun = dnorm) & 101 x values on [-4, 4] & 28.5ms & 10\\
+\hline
+geom\_function\_2d\_1d() & 80 x 80 grid on [-pi, pi]\textasciicircum{}2 & 60.1ms & 10\\
+\hline
+geom\_pdf\_2d(), ggdensity HDR & 60 x 60 grid on [-3, 3]\textasciicircum{}2 & 140.6ms & 10\\
+\hline
+\end{tabular}
+\end{table}
+
+The tables should be read as reproducibility checks, not universal guarantees.
+Heavy tails, discontinuities, bounded supports, singular hazards, and nearly
+flat CDF regions are harder cases. Users can improve behavior by supplying the
+native distribution function, declaring finite \texttt{support}, increasing
+\texttt{n}, or setting a finite \texttt{hf\_lower} for hazards whose origin is known.
+
+\subsection{Performance and scaling}\label{performance-and-scaling}
+
+For native one-dimensional functions, build time is dominated by evaluating the
+function at \texttt{n} grid points and by \CRANpkg{ggplot2} layer construction, so
+the cost scales roughly linearly in \texttt{n}. Scalar fields and bivariate
+density displays evaluate an \(n_x \times n_y\) grid, so their computational cost
+scales like \(n^2\). Conversions involving integration or root-finding are more
+expensive than native evaluations because they call numerical routines at many
+grid points. Stream fields depend additionally on ODE settings and the behavior
+of the vector field; rendering time can dominate for dense contours, HDRs, and
+streamlines.
+
+\subsection{Validation and warnings}\label{validation-and-warnings}
+
+The package validates common failure modes before plotting. Densities are
+checked for approximate normalization over their declared support, PMFs are
+checked for non-negative finite mass and approximate summation, CDF-like inputs
+are checked for monotonicity where the route requires it, and support/window
+diagnostics warn when an HDR computation domain omits substantial probability
+mass. Invalid source combinations are rejected. Most distribution geoms require
+exactly one source function, but hazard layers also accept the documented
+bundle \texttt{pdf\_fun} + \texttt{cdf\_fun}, which avoids deriving either component
+numerically.
+
+The validation policy aims to catch mistakes that are easy to make in plotting
+code. Examples include using the displayed window as if it were the full
+support, supplying an unnamed \texttt{args} list, drawing a density that integrates far
+from one, evaluating a CDF-derived PDF outside the support, or asking for a
+quantile route without finite bracketing information. When the package can
+continue safely, it warns and returns missing values for failed points. When
+the requested route is logically ambiguous, it errors before building the plot.
+
+The checks are deliberately lightweight enough for interactive plotting. They
+do not prove that an arbitrary user-supplied function is a valid distribution
+function. In particular, they cannot rescue a discontinuous CDF from finite
+differencing artifacts, identify every singular hazard, or choose a universally
+appropriate HDR grid. The documentation and numerical-conversion vignette
+therefore emphasize native distribution functions and explicit support
+declarations whenever accuracy matters.
+
+The package also includes supporting infrastructure for submission and
+maintenance. Roxygen documentation records the accepted source combinations,
+approximation routes, support/window distinction, and warning behavior for each
+user-facing layer. Vignettes move longer teaching examples and validation
+stories out of the article: probability geoms, empirical geoms, numerical
+conversions, survival analysis, and DKW coverage simulation each have a focused
+home. Manual benchmark scripts in \texttt{inst/benchmarks/} provide reproducible
+accuracy and timing checks without running during \texttt{R\ CMD\ check}. This separation
+keeps CRAN checks fast while preserving evidence for manuscript claims.
 
 \section{Composability and limitations}\label{composability-and-limitations}
 
-Because every \pkg{ggfunction} layer is a standard \CRANpkg{ggplot2} layer, it composes freely with the rest of the grammar. Layers can be overlaid, scaled, themed, annotated, and faceted exactly as one would with any other geom. The following example superimposes two normal densities with different means and spreads, demonstrating that function visualization and standard \CRANpkg{ggplot2} idioms are fully interoperable:
+Because \pkg{ggfunction} returns standard \CRANpkg{ggplot2} layers, its outputs
+compose with scales, coordinates, themes, facets, and annotations. A theoretical
+curve can be overlaid on an ECDF, a survival curve can be added to a
+Kaplan--Meier estimate, and a scalar field can be recolored with ordinary fill
+scales. This composability is the main practical benefit of implementing
+functions inside the \CRANpkg{ggplot2} layer system.
 
-\begin{verbatim}
-ggplot() +
-  geom_pdf(
-    fun = dnorm, xlim = c(-5, 8),
-    args = list(mean = 0, sd = 1), alpha = 0.4
-  ) +
-  geom_pdf(
-    fun = dnorm, xlim = c(-5, 8),
-    args = list(mean = 3, sd = 1.5), alpha = 0.4
-  ) +
-  labs(x = "x", y = "f(x)", title = "Comparing two normal densities") +
-  theme_minimal()
-\end{verbatim}
+Composability also makes the package useful in documents and teaching material.
+A probability layer can sit next to a simulation layer in a \CRANpkg{patchwork}
+layout, use the same theme as the surrounding analysis, or inherit a coordinate
+system that zooms the display without changing the distributional calculation.
+The support/window distinction is especially important here: a plot can compute
+probability content over the full support while using \texttt{coord\_cartesian()} to
+focus on the region where the visual comparison matters.
 
-\begin{figure}
+The same design also defines the limits. Functions are layer parameters, not
+aesthetics, so faceting over a data-frame column of function objects is not
+supported in the ordinary grammar-of-graphics sense. Numerical conversions are
+approximations and can fail for difficult distributions. HDRs are grid-based,
+so their thresholds depend on the computational domain and grid resolution.
+Two-dimensional grids can become expensive at high resolution. Censored-data
+bands have the validity described in the implementation: Kaplan--Meier uses the
+implemented simultaneous EP Greenwood/Nair band, while Nelson--Aalen uses the
+implemented pointwise normal band.
 
-{\centering \includegraphics[width=0.85\linewidth]{ggfunction_files/figure-latex/composability-1} 
+There are also statistical limits that no plotting interface can remove.
+Probability shading is only as meaningful as the distribution supplied to the
+layer. A diagnostic band for a fully specified null model has a different
+interpretation from the same band drawn after fitting parameters. A gridded HDR
+computed on too narrow a domain may have the wrong threshold. A survival curve
+with heavy censoring in the tail can have a visually wide band because the risk
+set is small. The package tries to make these situations visible, but the user
+remains responsible for choosing a model and interpreting the plot in context.
 
-}
+\section{Related work}\label{related-work}
 
-\caption{Two normal densities with different means and spreads overlaid in a single plot, demonstrating composability with the ggplot2 grammar of graphics.}\label{fig:composability}
-\end{figure}
+\pkg{ggfunction} is closest to tools that bridge statistical or mathematical
+objects and graphics. The compact summaries below describe the closest
+\CRANpkg{ggplot2} extensions and adjacent packages. The intent is
+complementarity rather than replacement: several packages solve different
+problems better than \pkg{ggfunction} does.
 
-This composability is the primary advantage of embedding function visualization within the grammar of graphics, rather than providing standalone plotting functions.
+\begin{tabular}{l|l|l}
+\hline
+Package & Focus & Relationship\\
+\hline
+\code{ggplot2::stat\_function()} & $\mathbb{R}\to\mathbb{R}$ & baseline curve layer\\
+\hline
+\CRANpkg{ggdist} & uncertainty & broader displays\\
+\hline
+\CRANpkg{ggdensity} & biv. HDRs & HDR engine used here\\
+\hline
+\CRANpkg{ggvfields} & fields & delegated rendering\\
+\hline
+\end{tabular}
 
-While \pkg{ggfunction} composes naturally with the grammar, it is worth noting what it does \emph{not} do: it does not extend the grammar of graphics itself. In Wilkinson's formulation and its \CRANpkg{ggplot2} implementation, aesthetics are visual properties of geometric objects---position, color, size, shape, and so on. A function such as \(f(x)\) is not such a property; rather, it \emph{references} aesthetics, mapping one visual dimension to another. It is therefore unclear whether functions can serve as aesthetics in any principled sense, since they occupy a different conceptual role than the data-to-visual mappings the grammar was designed around.
+\begin{tabular}{l|l|l}
+\hline
+Package & Focus & Relationship\\
+\hline
+\CRANpkg{mosaic} & teaching & broader pedagogy\\
+\hline
+\CRANpkg{metR} & weather fields & geophysical displays\\
+\hline
+\CRANpkg{hdrcde} & HDR/CDE & HDR objects\\
+\hline
+\end{tabular}
 
-This distinction has practical consequences. \proglang{R} is a vectorized language, but not everything in \proglang{R} is a vector of elementary objects, and functions form the prime example. A function cannot be a column of a data frame, and it cannot be mapped within an \code{aes()} call. As a result, some grammar operations that users take for granted---faceting across levels of a variable, for instance---do not transfer directly to function visualization. \pkg{ggfunction} works within these constraints by accepting function objects as layer-level parameters rather than as mapped aesthetics, an approach that is plainly useful but inherently limited. This suggests that further research into the grammar of graphics, and correspondingly into the implementation of \CRANpkg{ggplot2} or an extension package, could enable richer treatment of functions as first-class objects in statistical visualization.
+\CRANpkg{ggplot2} \citep{wickham2010layered, wickham2016ggplot2} and Wilkinson's
+grammar \citep{wilkinson2005grammar} provide the conceptual and software foundation.
+\CRANpkg{ggdist} \citep{kay2024ggdist} is broader for uncertainty visualization.
+\CRANpkg{ggdensity} \citep{otto2023ggdensity} supplies the bivariate HDR machinery
+used here. \CRANpkg{ggvfields} \citep{ggvfields} supplies vector-field and
+stream-field infrastructure. \CRANpkg{mosaic} \citep{pruim2017mosaic},
+\CRANpkg{metR} \citep{metR}, and \CRANpkg{hdrcde} \citep{hdrcde} cover adjacent
+pedagogical, meteorological, and HDR-focused use cases.
 
-\section{Related packages}\label{sec:related}
+The package boundaries are therefore partly philosophical. \CRANpkg{ggdist}
+starts from distributions and uncertainty summaries and provides a rich visual
+vocabulary for communicating posterior draws, intervals, slabs, and dots.
+\pkg{ggfunction} starts from ordinary \proglang{R} functions and asks how they
+should be evaluated inside a \CRANpkg{ggplot2} layer. \CRANpkg{ggdensity}
+focuses on bivariate density estimation and probability-calibrated contours;
+\pkg{ggfunction} uses that machinery when the user supplies a theoretical
+bivariate density. \CRANpkg{ggvfields} focuses on vector-field displays and
+integration; \pkg{ggfunction} exposes those displays through the dimensional
+taxonomy so scalar and vector-valued functions share a naming scheme.
 
-Several existing packages overlap with \pkg{ggfunction} in purpose, and understanding their scope helps clarify where \pkg{ggfunction} fits.
+This scope keeps the package lightweight. It does not define distribution
+objects, fit models, estimate bivariate densities from samples, or implement a
+general symbolic mathematics system. Instead it provides a bridge from function
+definitions and empirical summaries to ordinary \CRANpkg{ggplot2} layers. That
+bridge is useful precisely because it leaves the rest of the graphics system
+unchanged.
 
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\item
-  \CRANpkg{ggplot2} \citep{wickham2016ggplot2}. The \texttt{stat\_function()} layer handles scalar functions \(\mathbb{R} \to \mathbb{R}\) competently, and \texttt{geom\_function\_1d\_1d()} builds directly on this foundation. \CRANpkg{ggplot2} provides no analogues for parametric curves, scalar fields, vector fields, or probability-specific shading operations.
-\item
-  \CRANpkg{ggdist} \citep{kay2024ggdist}. This package excels at visualizing distributional uncertainty in Bayesian workflows: posterior distributions, predictive intervals, and uncertainty estimates from fitted models. Its geoms work primarily with samples or distributional objects rather than the \texttt{d}/\texttt{p}/\texttt{q}/\texttt{h} function families that \pkg{ggfunction} targets.
-\item
-  \CRANpkg{ggdensity} \citep{otto2023ggdensity}. This package improves bivariate density visualization in \CRANpkg{ggplot2}, with a particular focus on highest density regions (HDRs). \pkg{ggfunction}'s \texttt{shade\_hdr} parameter in \texttt{geom\_pdf()} follows the HDR computation approach introduced there: normalizing density values, sorting in descending order, and accumulating until the target coverage is reached. More directly, \texttt{geom\_pdf\_2d()} delegates HDR computation and rendering to \CRANpkg{ggdensity}'s \texttt{geom\_hdr\_fun()} and \texttt{geom\_hdr\_lines\_fun()}, adapting the \texttt{fun(c(x,\ y))} convention shared by \pkg{ggfunction}'s bivariate layers to \CRANpkg{ggdensity}'s vectorized two-argument interface; its raster mode evaluates the same bivariate density convention directly on a grid.
-\item
-  \CRANpkg{mosaic} \citep{pruim2017mosaic}. The \texttt{plotDist()} function provides quick plots of named distributions and supports shading, but it is built on the \CRANpkg{lattice} \citep{lattice} graphics framework rather than \CRANpkg{ggplot2}, and therefore cannot be composed with \CRANpkg{ggplot2} layers.
-\item
-  \CRANpkg{metR} \citep{metR}. This package provides contour and vector-field geoms designed for meteorological data, requiring precomputed grids as inputs rather than function objects. Users who already have gridded data may find \CRANpkg{metR} more convenient; users who want to visualize a function directly will find \pkg{ggfunction} more natural.
-\item
-  \pkg{ggvfields} \citep{ggvfields}. \pkg{ggfunction}'s \texttt{geom\_function\_2d\_2d()} delegates to \pkg{ggvfields} for streamline computation. For users whose primary interest is vector fields--including stream plots, gradient fields, and potential functions--\pkg{ggvfields} offers a substantially richer collection of tools built on the same \CRANpkg{ggplot2} extension architecture.
-\end{enumerate}
+\section{Discussion and future directions}\label{discussion-and-future-directions}
 
-Taken together, these packages reflect the breadth of interest in function visualization within the R ecosystem. \pkg{ggfunction} is distinguished by its unified dimensional taxonomy and its integration of the full probability distribution function family--capabilities that, to our knowledge, no other single package provides within the grammar of graphics.
+\pkg{ggfunction} makes a narrow commitment: take a mathematical or statistical
+function, evaluate it safely enough for plotting, and return a standard
+\CRANpkg{ggplot2} layer. That commitment covers common teaching and diagnostic
+tasks without asking users to build grids, integrate densities, or hand-code
+confidence ribbons.
 
-\section{Summary}\label{summary}
+Future work could add better support for collections of functions, richer
+interfaces for distribution objects, more user controls for numerical
+conversion tolerances, conditional distributions and HDRs, additional
+censored-data bands, and higher-level wrappers for common teaching workflows.
+The benchmark and accuracy scripts added during package hardening provide a
+starting point for tracking these changes over time.
 
-\pkg{ggfunction} extends \CRANpkg{ggplot2} with a principled framework for visualizing mathematical functions, theoretical probability distributions, and empirical data distributions. Its organizing taxonomy--classifying functions by the dimensions of their domain and codomain--yields a small, memorable API that covers the function types most commonly encountered in mathematics and statistics. The probability distribution family spans continuous and discrete distributions--density, CDF, PMF, quantile, discrete CDF, discrete quantile, discrete survival, survival, hazard, and cumulative hazard functions--and extends to bivariate densities and mass functions through highest density regions and lattice displays. Each supports the shading operations central to statistical pedagogy---marking quantiles, delineating confidence regions, highlighting rejection areas, and shading highest density regions. The empirical data family complements these theoretical geoms by computing the empirical CDF, quantile function, PP, QQ, and SP diagnostic plots, PMF, and cumulative hazard function directly from samples, each paired with a simultaneous DKW/Massart confidence band where appropriate.
+The most natural next step is support for function collections. Many classroom
+and applied examples compare a family of functions--normal densities with
+different scales, hazard functions under several parameter settings, or
+solution curves from different initial conditions. Today these can be overlaid
+by adding multiple layers manually. A future interface could make such
+collections more data-like while respecting the fact that functions are not
+ordinary aesthetics.
 
-By implementing each layer as a \texttt{ggproto} stat--geom pair, the package inherits the full composability of the grammar of graphics. Functions and empirical summaries can be overlaid, themed, faceted, and annotated using the same tools that \CRANpkg{ggplot2} users already know. The \texttt{args} injection pattern provides a clean interface for parameterized function families, and built-in validation catches common errors--such as unnormalized densities--before they produce misleading graphics.
-
-\pkg{ggfunction} is available at \url{https://github.com/dusty-turner/ggfunction} and can be installed via \texttt{pak::pak("dusty-turner/ggfunction")}.
+Another direction is more explicit numerical control. The defaults are chosen
+for readable interactive graphics, but some users will want tighter integration
+tolerances, adaptive grids, or route-specific diagnostics. Exposing those
+controls without turning simple plots into numerical-analysis exercises is a
+design challenge. The validation scripts introduced here give the package a
+baseline against which such changes can be checked.
 
 \section{Acknowledgments}\label{acknowledgments}
 
-This package and manuscript were made possible by agentic coding platforms, primarily OpenAI's Codex (GPT 5.3 Codex Extra High) and Anthropic's Claude (Sonneta and Opus 4.6). Early drafts of stats and geoms associated with CDFs, in particular the empirical CDF, were done by James Otto and were his contribution to the work. The package and manuscript were written by Dusty Turner and David Kahle, and early reflections on the design of the package were provided by Rodney Sturdivant.
+James Otto contributed early drafts of the CDF and ECDF-related stats and
+geoms. Rodney Sturdivant contributed early design feedback. The authors used
+OpenAI Codex and Anthropic Claude as programming and drafting assistants during
+package development and manuscript revision; the authors reviewed and are
+responsible for the package code, examples, and manuscript claims.
 
 \bibliography{RJreferences.bib}
 
@@ -1303,7 +895,7 @@ United States Military Academy\\%
 West Point, NY\\
 %
 %
-\textit{ORCiD: \href{https://orcid.org/0000-0000-0000-0000}{0000-0000-0000-0000}}\\%
+%
 \href{mailto:dusty.s.turner@gmail.com}{\nolinkurl{dusty.s.turner@gmail.com}}%
 }
 
@@ -1334,5 +926,5 @@ Fort Worth, TX\\
 %
 %
 %
-\href{mailto:james.otto@alcon.com}{\nolinkurl{james.otto@alcon.com}}%
+\href{mailto:jamesotto852@gmail.com}{\nolinkurl{jamesotto852@gmail.com}}%
 }

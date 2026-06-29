@@ -1,46 +1,46 @@
-This is BibTeX, Version 0.99d (TeX Live 2025)
+This is BibTeX, Version 0.99e (TeX Live 2026)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: RJwrapper.aux
 The style file: abbrvnat.bst
 Database file #1: RJreferences.bib
-You've used 18 entries,
+You've used 16 entries,
             2773 wiz_defined-function locations,
-            721 strings with 7259 characters,
-and the built_in function-call counts, 6937 in all, are:
-= -- 665
-> -- 253
-< -- 17
-+ -- 93
-- -- 75
-* -- 519
-:= -- 1099
-add.period$ -- 74
-call.type$ -- 18
-change.case$ -- 74
-chr.to.int$ -- 18
-cite$ -- 36
-duplicate$ -- 353
-empty$ -- 634
-format.name$ -- 99
-if$ -- 1440
+            709 strings with 7104 characters,
+and the built_in function-call counts, 6364 in all, are:
+= -- 614
+> -- 242
+< -- 14
++ -- 88
+- -- 72
+* -- 494
+:= -- 1004
+add.period$ -- 66
+call.type$ -- 16
+change.case$ -- 68
+chr.to.int$ -- 16
+cite$ -- 32
+duplicate$ -- 314
+empty$ -- 571
+format.name$ -- 92
+if$ -- 1317
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 20
-newline$ -- 117
-num.names$ -- 72
-pop$ -- 134
+missing$ -- 16
+newline$ -- 105
+num.names$ -- 64
+pop$ -- 116
 preamble$ -- 1
-purify$ -- 61
+purify$ -- 56
 quote$ -- 0
-skip$ -- 242
+skip$ -- 217
 stack$ -- 0
-substring$ -- 274
-swap$ -- 22
+substring$ -- 270
+swap$ -- 20
 text.length$ -- 1
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 173
+type$ -- 161
 warning$ -- 0
-while$ -- 74
+while$ -- 68
 width$ -- 0
-write$ -- 277
+write$ -- 247
