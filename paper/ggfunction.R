@@ -24,28 +24,18 @@ options(
 )
 
 theme_set(theme_minimal(base_size = 10))
+theme_update(panel.grid.minor = element_blank())
 
 
 ## ----motivating, fig.height=4.2, fig.cap="A motivating example: support-aware normal-density shading. The shaded upper tail is computed from the distribution, not by renormalizing over the displayed x range."----
 ggplot() +
-  geom_pdf(
-    fun = dnorm,
-    xlim = c(-3.5, 3.5),
-    p = 0.975,
-    lower.tail = FALSE,
-    fill = "#4C78A8",
-    alpha = 0.45
-  ) +
+  geom_pdf(fun = dnorm, xlim = c(-3.5, 3.5), p = 0.975, lower.tail = FALSE) +
   labs(x = "x", y = "density")
 
 
 ## ----args-example, eval=FALSE, echo=TRUE--------------------------------------
 # ggplot() +
-#   geom_pdf(
-#     fun = dnorm,
-#     args = list(mean = 5, sd = 2),
-#     xlim = c(0, 10)
-#   )
+#   geom_pdf(fun = dnorm, args = list(mean = 5, sd = 2), xlim = c(0, 10))
 
 
 ## ----taxonomy-table-----------------------------------------------------------
@@ -76,37 +66,25 @@ knitr::kable(taxonomy, escape = FALSE)
 
 ## ----taxonomy, fig.width=7, fig.height=5.8, out.width="95%", fig.cap="The four mathematical-function signatures supported by the ggfunction dimensional taxonomy: scalar functions, parametric curves, scalar fields, and vector fields."----
 scalar_plot <- ggplot() +
-  geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi), color = "#4C78A8") +
-  labs(title = "R -> R", x = "x", y = "sin(x)")
+  geom_function_1d_1d(fun = sin, xlim = c(0, 2 * pi)) +
+  labs(title = expression(R %->% R), x = "x", y = "sin(x)")
 
 circle <- function(t) c(cos(t), sin(t))
 curve_plot <- ggplot() +
   geom_function_1d_2d(fun = circle, tlim = c(0, 2 * pi), tail_point = TRUE) +
   coord_equal() +
-  labs(title = "R -> R^2", x = "x(t)", y = "y(t)")
+  labs(title = expression(R %->% R^2), x = "x(t)", y = "y(t)")
 
 field <- function(v) sin(v[1]) * cos(v[2])
 scalar_field_plot <- ggplot() +
-  geom_function_2d_1d(
-    fun = field,
-    xlim = c(-pi, pi),
-    ylim = c(-pi, pi),
-    n = 60,
-    type = "contour_filled"
-  ) +
-  labs(title = "R^2 -> R", x = "x", y = "y", fill = "f")
+  geom_function_2d_1d(fun = field, xlim = c(-pi, pi), ylim = c(-pi, pi), n = 60, type = "contour_filled") +
+  labs(title = expression(R^2 %->% R), x = "x", y = "y", fill = "f")
 
 rotation <- function(v) c(-v[2], v[1])
 vector_plot <- ggplot() +
-  geom_function_2d_2d(
-    fun = rotation,
-    xlim = c(-1, 1),
-    ylim = c(-1, 1),
-    n = 9,
-    type = "vector"
-  ) +
+  geom_function_2d_2d(fun = rotation, xlim = c(-1, 1), ylim = c(-1, 1), n = 9, type = "vector") +
   coord_equal() +
-  labs(title = "R^2 -> R^2", x = "x", y = "y")
+  labs(title = expression(R^2 %->% R^2), x = "x", y = "y")
 
 (scalar_plot + curve_plot) / (scalar_field_plot + vector_plot)
 
@@ -212,45 +190,19 @@ knitr::kable(conversion_discrete, escape = FALSE)
 gamma_args <- list(shape = 2, scale = 1.5)
 
 gamma_pdf <- ggplot() +
-  geom_pdf(
-    fun = dgamma,
-    args = gamma_args,
-    xlim = c(0, 10),
-    support = c(0, Inf),
-    fill = "#4C78A8",
-    alpha = 0.35
-  ) +
+  geom_pdf(fun = dgamma, args = gamma_args, xlim = c(0, 10), support = c(0, Inf)) +
   labs(title = "PDF", x = "x", y = "f(x)")
 
 gamma_cdf <- ggplot() +
-  geom_cdf(
-    pdf_fun = dgamma,
-    args = gamma_args,
-    xlim = c(0, 10),
-    support = c(0, Inf),
-    color = "#4C78A8"
-  ) +
+  geom_cdf(pdf_fun = dgamma, args = gamma_args, xlim = c(0, 10), support = c(0, Inf)) +
   labs(title = "CDF from PDF", x = "x", y = "F(x)")
 
 gamma_surv <- ggplot() +
-  geom_survival(
-    pdf_fun = dgamma,
-    args = gamma_args,
-    xlim = c(0, 10),
-    support = c(0, Inf),
-    color = "#4C78A8"
-  ) +
+  geom_survival(pdf_fun = dgamma, args = gamma_args, xlim = c(0, 10), support = c(0, Inf)) +
   labs(title = "Survival from PDF", x = "x", y = "S(x)")
 
 gamma_hazard <- ggplot() +
-  geom_hf(
-    pdf_fun = dgamma,
-    cdf_fun = pgamma,
-    args = gamma_args,
-    xlim = c(0.01, 10),
-    support = c(0, Inf),
-    color = "#4C78A8"
-  ) +
+  geom_hf(pdf_fun = dgamma, cdf_fun = pgamma, args = gamma_args, xlim = c(0.01, 10), support = c(0, Inf)) +
   labs(title = "Hazard from PDF + CDF", x = "x", y = "h(x)")
 
 (gamma_pdf + gamma_cdf) / (gamma_surv + gamma_hazard)
@@ -259,11 +211,11 @@ gamma_hazard <- ggplot() +
 ## ----prob-shading, fig.width=7, fig.height=4.2, out.width="95%", fig.cap="Three probability-shading requests for the standard normal distribution: a lower-tail probability, a central interval, and two tails outside a central interval."----
 base_pdf <- function(...) {
   ggplot() +
-    geom_pdf(fun = dnorm, xlim = c(-3.5, 3.5), fill = "#4C78A8", alpha = 0.45, ...) +
+    geom_pdf(fun = dnorm, xlim = c(-3.5, 3.5), ...) +
     labs(x = "x", y = "density")
 }
 
-p_lower <- base_pdf(p = 0.9) + ggtitle("F(x) <= 0.90")
+p_lower <- base_pdf(p = 0.9) + ggtitle(expression(F(x) <= "0.90"))
 p_central <- base_pdf(p_lower = 0.025, p_upper = 0.975) + ggtitle("central 95%")
 p_outside <- base_pdf(p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE) +
   ggtitle("two tails")
@@ -284,24 +236,11 @@ dbvn <- function(v, mu = c(0, 0), Sigma = matrix(c(1, 0.6, 0.6, 1), 2, 2)) {
 }
 
 hdr_1d <- ggplot() +
-  geom_pdf(
-    fun = bimodal,
-    xlim = c(-5, 5),
-    hdr_xlim = c(-7, 7),
-    shade_hdr = 0.8,
-    fill = "#59A14F",
-    alpha = 0.45
-  ) +
+  geom_pdf(fun = bimodal, xlim = c(-5, 5), hdr_xlim = c(-7, 7), shade_hdr = 0.8) +
   labs(x = "x", y = "density")
 
 hdr_2d <- ggplot() +
-  geom_pdf_2d(
-    fun = dbvn,
-    xlim = c(-3, 3),
-    ylim = c(-3, 3),
-    probs = c(0.5, 0.8, 0.95),
-    n = 60
-  ) +
+  geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(-3, 3), probs = c(0.5, 0.8, 0.95), n = 60) +
   coord_equal() +
   labs(x = "x", y = "y")
 
@@ -338,20 +277,12 @@ disc_pmf <- function(x) {
 }
 
 pmf_plot <- ggplot() +
-  geom_pmf(
-    fun = disc_pmf,
-    support = disc_support,
-    p = 0.8,
-    color = "#4C78A8"
-  ) +
+  geom_pmf(fun = disc_pmf, support = disc_support, p = 0.8) +
   scale_x_continuous(breaks = disc_support) +
   labs(title = "PMF", x = "support", y = "mass")
 
 cdf_plot <- ggplot() +
-  geom_cdf_discrete(
-    pmf_fun = disc_pmf,
-    support = disc_support
-  ) +
+  geom_cdf_discrete(pmf_fun = disc_pmf, support = disc_support) +
   scale_x_continuous(breaks = disc_support) +
   labs(title = "CDF from PMF", x = "support", y = "cumulative mass")
 
@@ -366,17 +297,18 @@ ecdf_data <- data.frame(
 )
 
 ggplot(ecdf_data, aes(x = x, colour = group, fill = group)) +
-  geom_ecdf(conf_alpha = 0.18) +
+  geom_ecdf() +
   labs(x = "x", y = "empirical CDF", colour = "group", fill = "group")
 
 
-## ----echf-complete, fig.width=6, fig.height=4.2, fig.cap="Complete-data empirical cumulative hazard with a transformed DKW band and the theoretical cumulative hazard for an exponential model."----
+## ----echf-complete, fig.width=6, fig.height=4.2, fig.cap="Complete-data empirical cumulative hazard with a transformed DKW band and the theoretical cumulative hazard for an exponential model. The displayed upper edge is clipped at the top of the plotting window where the transformed upper DKW bound saturates."----
 set.seed(3104)
 haz_data <- data.frame(x = rexp(100, rate = 0.6))
 
 ggplot(haz_data, aes(x = x)) +
-  geom_echf(conf_alpha = 0.18, band_max = 5) +
+  geom_echf(band_max = 6) +
   geom_chf(fun = function(x) 0.6 * x, xlim = c(0, max(haz_data$x)), color = "#D55E00") +
+  coord_cartesian(ylim = c(0, 6)) +
   labs(x = "x", y = "cumulative hazard")
 
 
@@ -385,12 +317,12 @@ set.seed(3102)
 diag_data <- data.frame(x = rt(90, df = 4) / sqrt(2))
 
 qq_plot <- ggplot(diag_data, aes(x = x)) +
-  geom_qqplot(fun = qnorm, colour = "black", size = 1.3, conf_alpha = 0.18) +
+  geom_qqplot(fun = qnorm, colour = "black", size = 1.3) +
   coord_equal() +
   labs(title = "QQ", x = "theoretical quantile", y = "sample quantile")
 
 sp_plot <- ggplot(diag_data, aes(x = x)) +
-  geom_spplot(fun = pnorm, colour = "black", size = 1.3, conf_alpha = 0.18) +
+  geom_spplot(fun = pnorm, colour = "black", size = 1.3) +
   coord_equal() +
   labs(title = "SP", x = "theoretical", y = "observed")
 
@@ -408,7 +340,7 @@ surv_data <- data.frame(
 )
 
 km_plot <- ggplot(surv_data, aes(x = time, status = status)) +
-  geom_ecdf_km(conf_alpha = 0.18, censor_size = 1.5) +
+  geom_ecdf_km(censor_size = 1.5) +
   geom_survival(fun = function(x) exp(-0.45 * x), xlim = c(0, max(surv_data$time)),
                 color = "#D55E00", linewidth = 0.5) +
   labs(title = "Kaplan-Meier", x = "time", y = "survival")

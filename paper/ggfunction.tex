@@ -85,11 +85,7 @@ mirroring \texttt{ggplot2::stat\_function()} and avoiding anonymous wrappers:
 
 \begin{verbatim}
 ggplot() +
-  geom_pdf(
-    fun = dnorm,
-    args = list(mean = 5, sd = 2),
-    xlim = c(0, 10)
-  )
+  geom_pdf(fun = dnorm, args = list(mean = 5, sd = 2), xlim = c(0, 10))
 \end{verbatim}
 
 This design keeps the common case short while preserving explicit control over
@@ -453,7 +449,7 @@ sample empirical cumulative hazard with the theoretical target.
 
 }
 
-\caption{Complete-data empirical cumulative hazard with a transformed DKW band and the theoretical cumulative hazard for an exponential model.}\label{fig:echf-complete}
+\caption{Complete-data empirical cumulative hazard with a transformed DKW band and the theoretical cumulative hazard for an exponential model. The displayed upper edge is clipped at the top of the plotting window where the transformed upper DKW bound saturates.}\label{fig:echf-complete}
 \end{figure}
 
 Diagnostic layers use the same probability-scale argument. \texttt{geom\_ppplot()}
