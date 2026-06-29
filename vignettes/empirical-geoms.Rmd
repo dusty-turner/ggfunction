@@ -1,0 +1,74 @@
+---
+title: "Empirical Geoms"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Empirical Geoms}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+)
+```
+
+```{r setup}
+library(ggplot2)
+library(ggfunction)
+```
+
+Empirical layers visualize samples and fitted distribution diagnostics without
+requiring precomputed summaries.
+
+```{r data}
+set.seed(42)
+x <- c(rnorm(80), rnorm(20, mean = 2))
+df <- data.frame(x = x)
+```
+
+The empirical CDF can include DKW/Massart simultaneous bands for a fully
+specified distribution-free ECDF band.
+
+```{r ecdf}
+ggplot(df, aes(x = x)) +
+  geom_ecdf(conf_int = TRUE, level = 0.95)
+```
+
+The empirical quantile function uses the same sample but swaps the axes to show
+sample quantiles against plotting positions.
+
+```{r eqf}
+ggplot(df, aes(x = x)) +
+  geom_eqf(conf_int = TRUE, level = 0.95)
+```
+
+PP, QQ, and stabilized probability plots compare data with a fully specified
+null distribution. Bands are DKW-based; when parameters are estimated from the
+same data, interpret them as informal diagnostics.
+
+```{r qq}
+ggplot(df, aes(x = x)) +
+  geom_qqplot(fun = qnorm, colour = "black") +
+  coord_equal()
+```
+
+Censored survival summaries are available through Kaplan-Meier and
+Nelson-Aalen-style empirical cumulative hazard layers.
+
+```{r survival}
+surv_df <- data.frame(
+  time = c(1, 2, 2, 3, 4, 4, 5, 7),
+  status = c(1, 1, 0, 1, 0, 1, 1, 0)
+)
+
+ggplot(surv_df, aes(x = time, status = status)) +
+  geom_ecdf_km(conf_int = TRUE)
+
+ggplot(surv_df, aes(x = time, status = status)) +
+  geom_echf_na(conf_int = TRUE)
+```
+

@@ -14,5 +14,12 @@ paper/articles/
 .positai
 
 paper/render.log
+paper/*.log
 paper/*.knit.md
 paper/*.utf8.md
+
+revision-specs/
+tmp/
+*.Rcheck/
+CRAN-SUBMISSION
+revdep/

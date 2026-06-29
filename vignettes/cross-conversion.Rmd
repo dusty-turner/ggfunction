@@ -409,19 +409,19 @@ Suppose you only have the hazard function of a Weibull distribution:
 
 ```{r hf-example, fig.width = 10, fig.height = 4}
 h_weibull <- function(x, shape, scale) {
-  dweibull(x, shape = shape, scale = scale) / pweibull(x, shape = shape, scale = scale, lower.tail = FALSE)
+  ifelse(x >= 0, (shape / scale) * (x / scale)^(shape - 1), 0)
 }
 
 p1 <- ggplot() +
-  geom_pdf(hf_fun = h_weibull, hf_lower = 0, xlim = c(0.01, 5), args = list(shape = 2, scale = 1)) +
+  geom_pdf(hf_fun = h_weibull, support = c(0, Inf), xlim = c(0.01, 5), args = list(shape = 2, scale = 1)) +
   ggtitle("PDF (from hazard)")
 
 p2 <- ggplot() +
-  geom_cdf(hf_fun = h_weibull, hf_lower = 0, xlim = c(0.01, 5), args = list(shape = 2, scale = 1)) +
+  geom_cdf(hf_fun = h_weibull, support = c(0, Inf), xlim = c(0.01, 5), args = list(shape = 2, scale = 1)) +
   ggtitle("CDF (from hazard)")
 
 p3 <- ggplot() +
-  geom_chf(hf_fun = h_weibull, hf_lower = 0, xlim = c(0.01, 5), args = list(shape = 2, scale = 1)) +
+  geom_chf(hf_fun = h_weibull, support = c(0, Inf), xlim = c(0.01, 5), args = list(shape = 2, scale = 1)) +
   ggtitle("Cumulative hazard (from hazard)")
 
 p1 | p2 | p3

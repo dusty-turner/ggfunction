@@ -12,14 +12,73 @@ developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.re
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![License:
 MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Codecov test
-coverage](https://codecov.io/gh/dusty-turner/ggfunction/graph/badge.svg)](https://codecov.io/gh/dusty-turner/ggfunction)
 <!-- badges: end -->
 
 **ggfunction** extends [**ggplot2**](https://ggplot2.tidyverse.org/)
-with geoms and stats for plotting mathematical functions and probability
-distributions directly from function objects. Supply a function and a
-domain; **ggfunction** handles evaluation, rendering, and shading.
+with geoms and stats for plotting mathematical functions, theoretical
+distributions, empirical distribution summaries, and censored survival
+estimators directly from function objects or sample data.
+
+## Installation
+
+Install the stable release from CRAN with:
+
+``` r
+install.packages("ggfunction")
+```
+
+Development versions and issue tracking are available at
+<https://github.com/dusty-turner/ggfunction>.
+
+## Start here
+
+For focused workflows, see:
+
+- `vignette("probability-geoms", package = "ggfunction")` for PDFs,
+  PMFs, CDFs, support-aware probability shading, and HDRs.
+- `vignette("empirical-geoms", package = "ggfunction")` for ECDF, EQF,
+  PP/QQ/SP diagnostics, Kaplan-Meier, and Nelson-Aalen layers.
+- `vignette("numerical-conversions", package = "ggfunction")` for
+  conversion routes, `support` versus `xlim`, and approximation caveats.
+
+Three compact examples:
+
+``` r
+library("ggfunction")
+
+ggplot() +
+  geom_pdf(
+    fun = dbeta,
+    xlim = c(0, 1),
+    support = c(0, 1),
+    args = list(shape1 = 2, shape2 = 5),
+    p_lower = 0.1,
+    p_upper = 0.9
+  )
+```
+
+<img src="man/figures/readme-readme-pdf-support-1.png" alt="" width="60%" />
+
+``` r
+ggplot() +
+  geom_cdf(
+    pdf_fun = dnorm,
+    xlim = c(-4, 4),
+    support = c(-Inf, Inf)
+  )
+```
+
+<img src="man/figures/readme-readme-cross-cdf-from-pdf-1.png" alt="" width="60%" />
+
+``` r
+set.seed(1)
+df <- data.frame(x = rnorm(80))
+
+ggplot(df, aes(x = x)) +
+  geom_ecdf(conf_int = TRUE)
+```
+
+<img src="man/figures/readme-readme-ecdf-1.png" alt="" width="60%" />
 
 ## Overview
 
@@ -212,7 +271,7 @@ ggplot() +
 
 `geom_function_2d_2d()` visualizes a vector field
 $\mathbf{F}\colon \mathbb{R}^2 \to \mathbb{R}^2$ via
-[**ggvfields**](https://github.com/dusty-turner/ggvfields). The function
+[**ggvfields**](https://CRAN.R-project.org/package=ggvfields). The function
 should accept a length-2 vector and return a length-2 vector. By default
 (`type = "vector"`) it draws short arrows at each grid point colored by
 field magnitude; `type = "stream"` switches to integral-curve
@@ -1134,10 +1193,3 @@ ggplot(df_cens, aes(x = time, status = status)) +
   walkthrough
 - File bugs or feature requests at
   <https://github.com/dusty-turner/ggfunction/issues>
-
-## Installation
-
-``` r
-# install.packages("pak")
-pak::pak("dusty-turner/ggfunction")
-```

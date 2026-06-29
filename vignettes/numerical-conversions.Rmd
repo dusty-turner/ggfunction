@@ -1,0 +1,77 @@
+---
+title: "Numerical Conversions"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Numerical Conversions}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+)
+```
+
+```{r setup}
+library(ggplot2)
+library(ggfunction)
+```
+
+Theoretical distribution geoms accept several equivalent characterizations:
+PDFs, CDFs, survival functions, quantile functions, hazards, and cumulative
+hazards. When a requested layer is not supplied directly, `ggfunction` derives
+it numerically using a shared set of conversion helpers.
+
+The most important argument for numerical routes is `support`. It tells the
+package where the distribution lives; `xlim` only controls the visible drawing
+window.
+
+```{r cdf-from-pdf}
+ggplot() +
+  geom_cdf(
+    pdf_fun = dbeta,
+    support = c(0, 1),
+    xlim = c(0, 1),
+    args = list(shape1 = 2, shape2 = 5)
+  )
+```
+
+CDF-to-PDF routes use finite differences, with one-sided differences near
+finite support boundaries.
+
+```{r pdf-from-cdf}
+ggplot() +
+  geom_pdf(
+    cdf_fun = pbeta,
+    support = c(0, 1),
+    xlim = c(0, 1),
+    args = list(shape1 = 2, shape2 = 5)
+  )
+```
+
+Hazard routes integrate from `hf_lower`; when `support` begins at a finite
+lower endpoint, that endpoint is used as the default hazard origin.
+
+```{r hazard}
+h_weibull <- function(x, shape, scale) {
+  ifelse(x >= 0, (shape / scale) * (x / scale)^(shape - 1), 0)
+}
+
+ggplot() +
+  geom_pdf(
+    hf_fun = h_weibull,
+    support = c(0, Inf),
+    xlim = c(0, 5),
+    args = list(shape = 1.8, scale = 2)
+  )
+```
+
+Numerical conversions are approximations. Accuracy depends on smoothness,
+tail behavior, support bounds, and grid resolution. The manual script
+`inst/benchmarks/accuracy-distribution-conversions.R` computes fixed-grid
+errors for the conversion routes used in examples and manuscript claims.
+

@@ -1,0 +1,76 @@
+---
+title: "Probability Geoms"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Probability Geoms}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+)
+```
+
+```{r setup}
+library(ggplot2)
+library(ggfunction)
+```
+
+`ggfunction` separates the visible plotting window from the computational
+support of a probability distribution. The `xlim` argument controls what is
+drawn, while `support` controls numerical integration, inversion, validation,
+and probability shading.
+
+```{r normal-tail}
+ggplot() +
+  geom_pdf(fun = dnorm, xlim = c(-1, 1), p = 0.975) +
+  labs(title = "The visible window clips a distributional tail probability")
+```
+
+For finite-support distributions, supply the support explicitly.
+
+```{r beta-support}
+ggplot() +
+  geom_pdf(
+    fun = dbeta,
+    xlim = c(0, 1),
+    support = c(0, 1),
+    args = list(shape1 = 2, shape2 = 5),
+    p_lower = 0.1,
+    p_upper = 0.9
+  )
+```
+
+Highest-density regions are grid approximations. Use `hdr_xlim` when the HDR
+threshold should be computed on a wider interval than the visible window.
+
+```{r hdr}
+f_mix <- function(x) 0.55 * dnorm(x, -1.8, 0.45) + 0.45 * dnorm(x, 1.6, 0.35)
+
+ggplot() +
+  geom_pdf(
+    fun = f_mix,
+    xlim = c(-3, 3),
+    hdr_xlim = c(-5, 5),
+    shade_hdr = 0.8
+  )
+```
+
+Discrete distributions use exact support points. For HDRs, tied masses at the
+cutoff are included, so achieved coverage can exceed the requested value.
+
+```{r discrete}
+ggplot() +
+  geom_pmf(
+    fun = dbinom,
+    support = 0:12,
+    args = list(size = 12, prob = 0.35),
+    shade_hdr = c(0.5, 0.8, 0.95)
+  )
+```
+

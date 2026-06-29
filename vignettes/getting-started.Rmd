@@ -20,9 +20,11 @@ library(ggfunction)
 ## Installation
 
 ```r
-# Install from GitHub
-pak::pak("dusty-turner/ggfunction")
+install.packages("ggfunction")
 ```
+
+Development versions and issue tracking are available from the package
+repository.
 
 ## Your first plot
 

@@ -16,6 +16,14 @@
 ^Meta$
 ^paper$
 ^data-raw$
+^revision-specs$
+^inst/benchmarks/results$
 ^vignettes/.*\.html$
 Rplots\.pdf$
 dusty_files*
+^cran-comments\.md$
+^CHANGES-SUMMARY\.md$
+^CRAN-SUBMISSION$
+^revdep$
+^.*\.Rcheck$
+^tmp$
