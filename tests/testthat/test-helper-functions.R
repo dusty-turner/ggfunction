@@ -122,7 +122,10 @@ test_that("pdf_to_cdf converts dexp to pexp", {
 test_that("pdf_to_cdf returns NA on integration failure", {
   bad_pdf <- function(x) stop("broken")
   cdf_derived <- pdf_to_cdf(bad_pdf)
-  expect_true(is.na(cdf_derived(0)))
+  expect_warning(
+    expect_true(is.na(cdf_derived(0))),
+    "Numerical integration failed"
+  )
 })
 
 test_that("cdf_to_pdf converts pnorm to dnorm", {

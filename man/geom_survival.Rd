@@ -20,6 +20,7 @@ geom_survival(
   pdf_fun = NULL,
   qf_fun = NULL,
   xlim = NULL,
+  support = c(-Inf, Inf),
   n = 101,
   args = list(),
   color = "black"
@@ -99,6 +100,10 @@ interpolation and the survival function is computed as \code{1 - F(x)}.
 Exactly one of \code{fun}, \code{cdf_fun}, \code{pdf_fun}, or \code{qf_fun} must be provided.}
 
 \item{xlim}{A numeric vector of length 2 giving the x-range.}
+
+\item{support}{A numeric vector of length 2 giving the computational support
+of the distribution. Defaults to \code{c(-Inf, Inf)}. It is used when deriving
+survival values from a PDF or quantile function.}
 
 \item{n}{Number of points at which to evaluate. Defaults to 101.}
 

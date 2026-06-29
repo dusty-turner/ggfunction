@@ -32,6 +32,7 @@ Description: A 'ggplot2' extension for visualizing mathematical functions and
     highest-density-region shading.
 License: MIT + file LICENSE
 Encoding: UTF-8
+Language: en-US
 Roxygen: list(markdown = TRUE)
 Depends:
     R (>= 3.5.0),
@@ -47,6 +48,7 @@ Imports:
 URL: https://github.com/dusty-turner/ggfunction
 BugReports: https://github.com/dusty-turner/ggfunction/issues
 Suggests:
+    bench,
     knitr,
     patchwork,
     rmarkdown,
@@ -56,4 +58,4 @@ VignetteBuilder: knitr
 Date: 2026-06-18
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
-RoxygenNote: 7.3.3
+RoxygenNote: 8.0.0

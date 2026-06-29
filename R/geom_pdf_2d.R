@@ -16,6 +16,12 @@
 #' `fun(x, y)`; `geom_pdf_2d()` adapts between the two interfaces internally,
 #' closing over `args` in the process.
 #'
+#' For HDR layers, `hdr_xlim` and `hdr_ylim` define the domain sent to
+#' \pkg{ggdensity} for the gridded HDR approximation. Because the delegated
+#' HDR stat also evaluates and draws over that domain, use
+#' [ggplot2::coord_cartesian()] when you want to compute HDR thresholds on a
+#' wider domain but display a narrower view.
+#'
 #' Raw density rasters use [geom_function_2d_1d()] with
 #' `raster_aes = "alpha"`: the evaluated density is mapped to literal alpha
 #' values scaled from 0 to 1 by default, with a fixed dark gray fill. `probs`
@@ -34,6 +40,10 @@
 #' @param args A named list of additional arguments passed to `fun`.
 #' @param probs HDR probabilities passed to ggdensity. Defaults to
 #'   `c(0.99, 0.95, 0.8, 0.5)`. Ignored when `type = "raster"`.
+#' @param hdr_xlim,hdr_ylim Optional numeric vectors of length 2 giving the
+#'   bivariate HDR computation domain for `type = "hdr"` and
+#'   `type = "hdr_lines"`. They default to `xlim` and `ylim`, respectively.
+#'   For raster layers they are ignored.
 #' @param type Character. `"hdr"` (default) draws filled highest density
 #'   regions; `"hdr_lines"` draws HDR boundary contour lines; `"raster"` draws
 #'   the evaluated density as a dark-gray raster with alpha scaled from 0 to 1.
@@ -111,6 +121,8 @@ geom_pdf_2d <- function(
     n = 100,
     args = list(),
     probs = c(0.99, 0.95, 0.8, 0.5),
+    hdr_xlim = xlim,
+    hdr_ylim = ylim,
     type = c("hdr", "hdr_lines", "raster")
 ) {
   type <- match.arg(type)
@@ -138,6 +150,13 @@ geom_pdf_2d <- function(
     ))
 
   } else if (identical(type, "hdr")) {
+    if ((!is.null(xlim) && !identical(hdr_xlim, xlim)) ||
+        (!is.null(ylim) && !identical(hdr_ylim, ylim))) {
+      cli::cli_warn(c(
+        "Bivariate HDRs are computed and evaluated over {.arg hdr_xlim}/{.arg hdr_ylim}.",
+        "i" = "Use {.fn ggplot2::coord_cartesian} to display a narrower window after computing on a wider HDR domain."
+      ))
+    }
     fun_xy <- pdf2d_vector_fun_to_xy_fun(fun, args)
     ggdensity::geom_hdr_fun(
       mapping = mapping,
@@ -146,8 +165,8 @@ geom_pdf_2d <- function(
       fun = fun_xy,
       args = list(),
       probs = probs,
-      xlim = xlim,
-      ylim = ylim,
+      xlim = hdr_xlim,
+      ylim = hdr_ylim,
       n = n,
       na.rm = na.rm,
       show.legend = show.legend,
@@ -155,6 +174,13 @@ geom_pdf_2d <- function(
       ...
     )
   } else {
+    if ((!is.null(xlim) && !identical(hdr_xlim, xlim)) ||
+        (!is.null(ylim) && !identical(hdr_ylim, ylim))) {
+      cli::cli_warn(c(
+        "Bivariate HDR lines are computed and evaluated over {.arg hdr_xlim}/{.arg hdr_ylim}.",
+        "i" = "Use {.fn ggplot2::coord_cartesian} to display a narrower window after computing on a wider HDR domain."
+      ))
+    }
     fun_xy <- pdf2d_vector_fun_to_xy_fun(fun, args)
     ggdensity::geom_hdr_lines_fun(
       mapping = mapping,
@@ -163,8 +189,8 @@ geom_pdf_2d <- function(
       fun = fun_xy,
       args = list(),
       probs = probs,
-      xlim = xlim,
-      ylim = ylim,
+      xlim = hdr_xlim,
+      ylim = hdr_ylim,
       n = n,
       na.rm = na.rm,
       show.legend = show.legend,

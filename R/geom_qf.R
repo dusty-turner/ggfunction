@@ -32,6 +32,9 @@
 #'   the exact endpoints (avoiding \eqn{\pm\infty} for unbounded distributions).
 #' @param args A named list of additional arguments to pass to `fun`, `cdf_fun`,
 #'   `pdf_fun`, or `survival_fun`.
+#' @param support A numeric vector of length 2 giving the computational support
+#'   of the distribution. Defaults to `c(-Inf, Inf)`. It is used when a
+#'   quantile function is derived by integrating a PDF or inverting a CDF.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
@@ -82,6 +85,7 @@ geom_qf <- function(mapping = NULL,
                     cdf_fun = NULL,
                     pdf_fun = NULL,
                     survival_fun = NULL,
+                    support = c(-Inf, Inf),
                     n = 101,
                     args = list()) {
 
@@ -107,6 +111,7 @@ geom_qf <- function(mapping = NULL,
       cdf_fun = cdf_fun,
       pdf_fun = pdf_fun,
       survival_fun = survival_fun,
+      support = support,
       n = n,
       args = args,
       na.rm = na.rm,
@@ -123,6 +128,7 @@ StatQF <- ggproto("StatQF", Stat,
 
   compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
                            pdf_fun = NULL, survival_fun = NULL,
+                           support = c(-Inf, Inf),
                            n = 101, args = NULL, ...) {
 
     # Validate: exactly one source
@@ -138,20 +144,14 @@ StatQF <- ggproto("StatQF", Stat,
     k <- seq_len(n)
     p_vals <- (1 - cos((2 * k - 1) * pi / (2 * n))) / 2
 
-    if (!is.null(fun)) {
-      fun_injected <- function(p) rlang::inject(fun(p, !!!args))
-    } else if (!is.null(cdf_fun)) {
-      cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
-      fun_injected <- cdf_to_qf(cdf_injected)
-    } else if (!is.null(pdf_fun)) {
-      pdf_injected <- function(x) rlang::inject(pdf_fun(x, !!!args))
-      cdf_derived <- pdf_to_cdf(pdf_injected)
-      fun_injected <- cdf_to_qf(cdf_derived)
-    } else {
-      surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
-      cdf_derived <- survival_to_cdf(surv_injected)
-      fun_injected <- cdf_to_qf(cdf_derived)
-    }
+    fun_injected <- make_qf_function(
+      fun = fun,
+      cdf_fun = cdf_fun,
+      pdf_fun = pdf_fun,
+      survival_fun = survival_fun,
+      args = args,
+      support = support
+    )
 
     q_vals <- fun_injected(p_vals)
 

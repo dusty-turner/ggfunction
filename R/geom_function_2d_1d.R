@@ -69,16 +69,16 @@
 #' }
 #'
 #' ggplot() +
-#'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5))
+#'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), n = 25)
 #'
 #' ggplot() +
-#'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), raster_aes = "alpha")
+#'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), n = 25, raster_aes = "alpha")
 #'
 #' ggplot() +
-#'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), type = "contour")
+#'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), n = 25, type = "contour")
 #'
 #' ggplot() +
-#'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), type = "contour_filled")
+#'   geom_function_2d_1d(fun = f, xlim = c(-5, 5), ylim = c(-5, 5), n = 25, type = "contour_filled")
 #'
 #' # Sinusoidal combination of sine and cosine
 #' f_sin_cos <- function(v) {
@@ -88,7 +88,7 @@
 #' }
 #'
 #' ggplot() +
-#'   geom_function_2d_1d(fun = f_sin_cos, xlim = c(-5, 5), ylim = c(-5, 5))
+#'   geom_function_2d_1d(fun = f_sin_cos, xlim = c(-5, 5), ylim = c(-5, 5), n = 25)
 #'
 #' # Gaussian bump function
 #' f_gaussian <- function(v) {
@@ -98,7 +98,7 @@
 #' }
 #'
 #' ggplot() +
-#'   geom_function_2d_1d(fun = f_gaussian, xlim = c(-5, 5), ylim = c(-5, 5))
+#'   geom_function_2d_1d(fun = f_gaussian, xlim = c(-5, 5), ylim = c(-5, 5), n = 25)
 #'
 #' # Radial sine wave function
 #' f_radial_wave <- function(v) {
@@ -110,7 +110,7 @@
 #'
 #' # Some functions need more resolution for clarity
 #' ggplot() +
-#'   geom_function_2d_1d(fun = f_radial_wave, xlim = c(-50, 50), ylim = c(-50, 50), n = 100)
+#'   geom_function_2d_1d(fun = f_radial_wave, xlim = c(-12, 12), ylim = c(-12, 12), n = 40)
 #'
 #' # Complex combination of radial and angular components
 #' f_complex <- function(v) {
@@ -122,7 +122,7 @@
 #' }
 #'
 #' ggplot() +
-#'   geom_function_2d_1d(fun = f_complex, xlim = c(-50, 50), ylim = c(-50, 50), n = 500)
+#'   geom_function_2d_1d(fun = f_complex, xlim = c(-12, 12), ylim = c(-12, 12), n = 40)
 #'
 #' # Spiral pattern function
 #' f_spiral <- function(v) {
@@ -134,7 +134,7 @@
 #' }
 #'
 #' ggplot() +
-#'   geom_function_2d_1d(fun = f_spiral, xlim = c(-50, 50), ylim = c(-50, 50), n = 500)
+#'   geom_function_2d_1d(fun = f_spiral, xlim = c(-12, 12), ylim = c(-12, 12), n = 40)
 #'
 #' # Parameterized scalar field via `args`
 #' f <- function(v, a = 1, b = 1) {
@@ -146,6 +146,7 @@
 #'     fun = f,
 #'     xlim = c(-5, 5),
 #'     ylim = c(-5, 5),
+#'     n = 25,
 #'     args = list(a = 2, b = 0.5)
 #'   )
 #'
@@ -155,6 +156,7 @@
 #'     fun = f_gaussian,
 #'     xlim = c(-5, 5),
 #'     ylim = c(-5, 5),
+#'     n = 25,
 #'     raster_aes = "alpha"
 #'   )
 

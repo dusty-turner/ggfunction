@@ -18,6 +18,8 @@ geom_pdf_2d(
   n = 100,
   args = list(),
   probs = c(0.99, 0.95, 0.8, 0.5),
+  hdr_xlim = xlim,
+  hdr_ylim = ylim,
   type = c("hdr", "hdr_lines", "raster")
 )
 }
@@ -112,6 +114,11 @@ range.}
 \item{probs}{HDR probabilities passed to ggdensity. Defaults to
 \code{c(0.99, 0.95, 0.8, 0.5)}. Ignored when \code{type = "raster"}.}
 
+\item{hdr_xlim, hdr_ylim}{Optional numeric vectors of length 2 giving the
+bivariate HDR computation domain for \code{type = "hdr"} and
+\code{type = "hdr_lines"}. They default to \code{xlim} and \code{ylim}, respectively.
+For raster layers they are ignored.}
+
 \item{type}{Character. \code{"hdr"} (default) draws filled highest density
 regions; \code{"hdr_lines"} draws HDR boundary contour lines; \code{"raster"} draws
 the evaluated density as a dark-gray raster with alpha scaled from 0 to 1.}
@@ -135,6 +142,12 @@ receives a single numeric vector \code{v = c(x, y)} and returns one density
 value. \pkg{ggdensity} expects a function of two vectorized arguments
 \code{fun(x, y)}; \code{geom_pdf_2d()} adapts between the two interfaces internally,
 closing over \code{args} in the process.
+
+For HDR layers, \code{hdr_xlim} and \code{hdr_ylim} define the domain sent to
+\pkg{ggdensity} for the gridded HDR approximation. Because the delegated
+HDR stat also evaluates and draws over that domain, use
+\code{\link[ggplot2:coord_cartesian]{ggplot2::coord_cartesian()}} when you want to compute HDR thresholds on a
+wider domain but display a narrower view.
 
 Raw density rasters use \code{\link[=geom_function_2d_1d]{geom_function_2d_1d()}} with
 \code{raster_aes = "alpha"}: the evaluated density is mapped to literal alpha

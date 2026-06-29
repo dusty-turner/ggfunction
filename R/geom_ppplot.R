@@ -61,8 +61,8 @@
 #' are visual evidence against the specified null distribution. The band is
 #' finite-sample and distribution-free for a fully specified \eqn{F_0}; if
 #' parameters are estimated from the same data, the display is best interpreted
-#' as an informal diagnostic. The DKW bands are known to be conservative, so
-#' power can be expected to be low.
+#' as an informal diagnostic. Under the fully specified-null assumptions, DKW
+#' bands can be conservative, so power can be low.
 #'
 #' @inheritParams ggplot2::geom_point
 #' @param fun Null distribution function. For `geom_ppplot()` and
@@ -132,8 +132,7 @@
 #'
 #' @references
 #' Michael, J. R. (1983). The stabilized probability plot. *Biometrika*,
-#' 70(1), 11--17. \doi{10.1093/biomet/70.1.11};
-#' \url{https://www.jstor.org/stable/2335939}.
+#' 70(1), 11--17. \doi{10.1093/biomet/70.1.11}.
 #'
 #' @examples
 #' set.seed(1)

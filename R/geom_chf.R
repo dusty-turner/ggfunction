@@ -41,6 +41,9 @@
 #' @param args A named list of additional arguments to pass to `fun`,
 #'   `hf_fun`, `cdf_fun`, `pdf_fun`, `survival_fun`, or `qf_fun`.
 #' @param xlim A numeric vector of length 2 giving the x-range.
+#' @param support A numeric vector of length 2 giving the computational support
+#'   of the distribution. Defaults to `c(-Inf, Inf)`. It is used for
+#'   PDF-to-CDF and hazard integrations.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
@@ -100,6 +103,7 @@ geom_chf <- function(
     qf_fun = NULL,
     hf_lower = -Inf,
     xlim = NULL,
+    support = c(-Inf, Inf),
     n = 101,
     args = list()
     ) {
@@ -132,6 +136,7 @@ geom_chf <- function(
       hf_lower = hf_lower,
       n = n,
       xlim = xlim,
+      support = support,
       args = args,
       na.rm = na.rm,
       ...
@@ -148,7 +153,8 @@ StatCHF <- ggproto("StatCHF", Stat,
                            cdf_fun = NULL, pdf_fun = NULL,
                            survival_fun = NULL, qf_fun = NULL,
                            hf_lower = -Inf,
-                           xlim = NULL, n = 101, args = NULL) {
+                           xlim = NULL, support = c(-Inf, Inf),
+                           n = 101, args = NULL) {
 
     # Validate: exactly one source
     n_provided <- (!is.null(fun)) + (!is.null(hf_fun)) + (!is.null(cdf_fun)) +
@@ -172,28 +178,18 @@ StatCHF <- ggproto("StatCHF", Stat,
 
     xseq <- seq(range[1], range[2], length.out = n)
 
-    if (!is.null(fun)) {
-      fun_injected <- function(x) rlang::inject(fun(x, !!!args))
-      y_out <- fun_injected(xseq)
-    } else if (!is.null(hf_fun)) {
-      hf_injected <- function(x) rlang::inject(hf_fun(x, !!!args))
-      chf_derived <- hf_to_chf(hf_injected, lower = hf_lower)
-      y_out <- chf_derived(xseq)
-    } else if (!is.null(survival_fun)) {
-      surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
-      y_out <- -log(surv_injected(xseq))
-    } else if (!is.null(cdf_fun)) {
-      cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
-      y_out <- -log(1 - cdf_injected(xseq))
-    } else if (!is.null(pdf_fun)) {
-      pdf_injected <- function(x) rlang::inject(pdf_fun(x, !!!args))
-      cdf_derived <- pdf_to_cdf(pdf_injected)
-      y_out <- -log(1 - cdf_derived(xseq))
-    } else {
-      qf_injected <- function(p) rlang::inject(qf_fun(p, !!!args))
-      cdf_derived <- qf_to_cdf(qf_injected)
-      y_out <- -log(1 - cdf_derived(xseq))
-    }
+    fun_injected <- as_chf_1d(
+      fun = fun,
+      hf_fun = hf_fun,
+      cdf_fun = cdf_fun,
+      pdf_fun = pdf_fun,
+      survival_fun = survival_fun,
+      qf_fun = qf_fun,
+      hf_lower = hf_lower,
+      args = args,
+      support = support
+    )
+    y_out <- fun_injected(xseq)
 
     data.frame(x = xseq, y = y_out)
   }

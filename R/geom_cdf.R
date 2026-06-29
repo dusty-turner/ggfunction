@@ -25,12 +25,18 @@
 #'   \eqn{F(x) = 1 - \exp(-H(x))}. Exactly one of `fun`, `pdf_fun`,
 #'   `survival_fun`, `qf_fun`, or `hf_fun` must be provided.
 #' @param hf_lower Lower limit for integrating `hf_fun`. Defaults to `-Inf`.
-#'   For finite-support hazards, set this to the lower support point (for
-#'   example, `0` for Weibull or exponential hazards); values below `hf_lower`
-#'   return CDF `0`.
+#'   When `support` has a finite lower endpoint and `hf_lower` is left at
+#'   `-Inf`, the lower support endpoint is used. For finite-support hazards,
+#'   set `support` or `hf_lower` to the lower support point (for example, `0`
+#'   for Weibull or exponential hazards); values below the hazard origin return
+#'   CDF `0`.
 #' @param n Number of points at which to evaluate `fun`.
 #' @param args A named list of additional arguments passed on to `fun`.
-#' @param xlim A numeric vector of length 2 specifying the x-range over which to evaluate the CDF.
+#' @param xlim A numeric vector of length 2 specifying the visible x-range over
+#'   which to draw the CDF.
+#' @param support A numeric vector of length 2 giving the computational support
+#'   of the distribution. Defaults to `c(-Inf, Inf)`. It is used for numerical
+#'   PDF-to-CDF integration, CDF-to-quantile inversion, and endpoint checks.
 #' @param fill Fill color for the shaded area.
 #' @param color Line color for the CDF curve.
 #' @param p (Optional) A numeric value between 0 and 1 specifying the threshold value of the CDF.
@@ -102,6 +108,7 @@ geom_cdf <- function(
     hf_fun = NULL,
     hf_lower = -Inf,
     xlim = NULL,
+    support = c(-Inf, Inf),
     n = 101,
     args = list(),
     fill = "grey20",
@@ -139,6 +146,7 @@ geom_cdf <- function(
       hf_lower = hf_lower,
       n = n,
       xlim = xlim,
+      support = support,
       args = args,
       na.rm = na.rm,
       fill = fill,
@@ -169,24 +177,18 @@ check_cdf_sources <- function(fun, pdf_fun, survival_fun, qf_fun, hf_fun) {
 #' @noRd
 make_cdf_function <- function(fun = NULL, pdf_fun = NULL, survival_fun = NULL,
                               qf_fun = NULL, hf_fun = NULL, hf_lower = -Inf,
-                              args = NULL) {
+                              args = NULL, support = c(-Inf, Inf)) {
   args <- args %||% list()
-
-  if (!is.null(pdf_fun)) {
-    pdf_injected <- function(x) rlang::inject(pdf_fun(x, !!!args))
-    pdf_to_cdf(pdf_injected)
-  } else if (!is.null(survival_fun)) {
-    surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
-    survival_to_cdf(surv_injected)
-  } else if (!is.null(qf_fun)) {
-    qf_injected <- function(p) rlang::inject(qf_fun(p, !!!args))
-    qf_to_cdf(qf_injected)
-  } else if (!is.null(hf_fun)) {
-    hf_injected <- function(x) rlang::inject(hf_fun(x, !!!args))
-    hf_to_cdf(hf_injected, lower = hf_lower)
-  } else {
-    function(x) rlang::inject(fun(x, !!!args))
-  }
+  as_cdf_1d(
+    fun = fun,
+    pdf_fun = pdf_fun,
+    survival_fun = survival_fun,
+    qf_fun = qf_fun,
+    hf_fun = hf_fun,
+    hf_lower = hf_lower,
+    args = args,
+    support = support
+  )
 }
 
 #' @noRd
@@ -254,16 +256,18 @@ StatCDF <- ggproto("StatCDF", Stat,
                            survival_fun = NULL, qf_fun = NULL,
                            hf_fun = NULL,
                            hf_lower = -Inf,
-                           xlim = NULL, n = 101, args = NULL,
+                           xlim = NULL, support = c(-Inf, Inf),
+                           n = 101, args = NULL,
                            check = TRUE, check_tol = 1e-2) {
 
     # Validate: exactly one source
     check_cdf_sources(fun, pdf_fun, survival_fun, qf_fun, hf_fun)
+    support <- validate_support_1d(support)
 
     range <- cdf_stat_range(scales, xlim, n)
     fun_injected <- make_cdf_function(
       fun, pdf_fun, survival_fun, qf_fun, hf_fun,
-      hf_lower = hf_lower, args = args
+      hf_lower = hf_lower, args = args, support = support
     )
 
     y_out <- fun_injected(range$x_eval)
@@ -282,6 +286,7 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
                         p_lower = NULL, p_upper = NULL, fun = NULL,
                         pdf_fun = NULL, survival_fun = NULL, qf_fun = NULL,
                         hf_fun = NULL, hf_lower = -Inf, xlim = NULL,
+                        support = c(-Inf, Inf),
                         n = 101, args = NULL,
                         check = TRUE, check_tol = 1e-2
                         ) {
@@ -289,15 +294,15 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
     if (is.null(xlim)) {
       fun_injected <- make_cdf_function(
         fun, pdf_fun, survival_fun, qf_fun, hf_fun,
-        hf_lower = hf_lower, args = args
+        hf_lower = hf_lower, args = args, support = support
       )
       data <- cdf_panel_data(data, panel_params, fun_injected, n)
     }
     if (ggfunction_check_enabled(check)) {
-      check_range <- cdf_eval_range(data$x, panel_params$x)
+      check_range <- validate_support_1d(support)
       fun_injected <- make_cdf_function(
         fun, pdf_fun, survival_fun, qf_fun, hf_fun,
-        hf_lower = hf_lower, args = args
+        hf_lower = hf_lower, args = args, support = support
       )
       invisible(check_cdf_normalization(
         fun_injected,
@@ -346,7 +351,7 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
       clip_range <- NULL
     }
 
-    # Create the line grob for the entire function using GeomPath’s draw_panel.
+    # Create the line grob for the entire function using GeomPath's draw_panel.
     line_grob <- ggproto_parent(GeomPath, self)$draw_panel(
       data, panel_params, coord, arrow = arrow, lineend = lineend,
       linejoin = linejoin, linemitre = linemitre, na.rm = na.rm
@@ -365,7 +370,7 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
 
     poly_data$colour <- NA
 
-    # Draw the filled area using GeomArea’s draw_panel.
+    # Draw the filled area using GeomArea's draw_panel.
     area_grob <- ggproto_parent(GeomArea, self)$draw_panel(
       poly_data, panel_params, coord, na.rm = na.rm
     )

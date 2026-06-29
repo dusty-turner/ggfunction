@@ -40,10 +40,30 @@ test_that("geom_pdf with p shading builds without error", {
   expect_silent(ggplot_build(p))
 })
 
+test_that("geom_pdf p shading uses distribution support, not visible xlim", {
+  p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-1, 1), p = 0.975, n = 201)
+  b <- ggplot_build(p)$data[[1]]
+
+  expect_equal(unique(stats::na.omit(b$shade_upper)), qnorm(0.975), tolerance = 1e-5)
+  expect_true(all(b$in_shade))
+})
+
 test_that("geom_pdf with p_lower/p_upper builds without error", {
   p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3), p_lower = 0.025, p_upper = 0.975)
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
+})
+
+test_that("geom_pdf p_lower and p_upper use central distributional quantiles", {
+  p <- ggplot() +
+    geom_pdf(fun = dnorm, xlim = c(-3, 3), n = 201, p_lower = 0.025, p_upper = 0.975)
+  b <- ggplot_build(p)$data[[1]]
+
+  expect_equal(unique(stats::na.omit(b$shade_lower)), qnorm(0.025), tolerance = 1e-5)
+  expect_equal(unique(stats::na.omit(b$shade_upper)), qnorm(0.975), tolerance = 1e-5)
+  tol <- 1e-5
+  expect_true(all(b$in_shade[b$x_eval >= qnorm(0.025) - tol & b$x_eval <= qnorm(0.975) + tol]))
+  expect_false(any(b$in_shade[b$x_eval < qnorm(0.025) - tol | b$x_eval > qnorm(0.975) + tol]))
 })
 
 test_that("geom_pdf with args builds without error", {
@@ -89,6 +109,16 @@ test_that("geom_pdf with shade_outside builds without error", {
   expect_silent(ggplot_build(p))
 })
 
+test_that("geom_pdf shade_outside marks the complement of central interval", {
+  p <- ggplot() +
+    geom_pdf(fun = dnorm, xlim = c(-3, 3), n = 201,
+      p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE)
+  b <- ggplot_build(p)$data[[1]]
+
+  expect_true(all(b$in_shade[b$x_eval <= qnorm(0.025) | b$x_eval >= qnorm(0.975)]))
+  expect_false(any(b$in_shade[b$x_eval > qnorm(0.025) & b$x_eval < qnorm(0.975)]))
+})
+
 test_that("geom_pdf with shade_hdr builds without error (unimodal)", {
   p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3), shade_hdr = 0.95)
   expect_s3_class(p, "gg")
@@ -100,6 +130,20 @@ test_that("geom_pdf with shade_hdr builds without error (bimodal, disconnected H
   p <- ggplot() + geom_pdf(fun = f_bim, xlim = c(-4, 4), shade_hdr = 0.9)
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
+})
+
+test_that("geom_pdf shade_hdr creates disconnected intervals for a bimodal density", {
+  f_bim <- function(x) 0.5 * dnorm(x, -2, 0.3) + 0.5 * dnorm(x, 2, 0.3)
+  p <- ggplot() + geom_pdf(fun = f_bim, xlim = c(-4, 4), n = 501, shade_hdr = 0.5)
+  b <- ggplot_build(p)$data[[1]]
+  runs <- rle(b$in_shade)
+
+  expect_gte(sum(runs$values), 2)
+})
+
+test_that("geom_pdf warns when HDR computation window omits substantial mass", {
+  p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-1, 1), n = 201, shade_hdr = 0.8)
+  expect_warning(ggplot_build(p), "omits substantial probability mass")
 })
 
 test_that("shade_hdr takes precedence over p shading", {

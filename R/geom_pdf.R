@@ -26,24 +26,31 @@
 #'   PDF is derived via numerical integration of the cumulative hazard. Exactly
 #'   one of `fun`, `cdf_fun`, `survival_fun`, `qf_fun`, or `hf_fun` must be
 #'   provided.
-#' @param hf_lower Lower limit for integrating `hf_fun`. Defaults to `-Inf`.
-#'   For finite-support hazards, set this to the lower support point (for
-#'   example, `0` for Weibull or exponential hazards); values below `hf_lower`
-#'   return density `0`.
+#' @param hf_lower Lower limit for integrating `hf_fun`. Defaults to `-Inf`;
+#'   when `support` has a finite lower endpoint and `hf_lower` is left at
+#'   `-Inf`, the lower support endpoint is used. For finite-support hazards,
+#'   set `support` or `hf_lower` to the lower support point (for example, `0`
+#'   for Weibull or exponential hazards); values below the hazard origin return
+#'   density `0`.
 #' @param n Number of points at which to evaluate the density. Defaults to 101.
 #' @param args A named list of additional arguments to pass to `fun`.
-#' @param xlim A numeric vector of length 2 giving the x-range over which to evaluate the PDF.
+#' @param xlim A numeric vector of length 2 giving the visible x-range over
+#'   which to draw the PDF. Probability calculations use `support`, not the
+#'   displayed interval.
+#' @param support A numeric vector of length 2 giving the computational support
+#'   of the distribution. Defaults to `c(-Inf, Inf)`. It is used for
+#'   normalization checks, PDF-to-CDF integration, CDF-to-quantile inversion,
+#'   and support-aware probability shading.
 #' @param fill Fill color for the shaded area.
 #' @param color Line color for the outline of the density curve.
 #' @param linewidth Line width for the outline of the density curve.
 #' @param alpha Alpha transparency for the shaded area.
 #' @param p (Optional) A numeric value between 0 and 1 specifying the cumulative probability
 #'   threshold. The area will be shaded up until the point where the cumulative density reaches
-#'   this value. The cumulative density is measured relative to the mass within the drawn
-#'   `xlim` window (the density is renormalized over `xlim`), so when `xlim` is narrower than
-#'   the support, `p` refers to the conditional probability within `xlim` rather than the
-#'   unconditional CDF. Widen `xlim` to cover the full support for `p` to match the
-#'   unconditional CDF.
+#'   this value. The probability is distributional: it is computed over
+#'   `support`, not renormalized over `xlim`. If the corresponding quantile
+#'   lies outside `xlim`, the visible shading is simply clipped by the plotted
+#'   window.
 #' @param lower.tail Logical; if `TRUE` (the default) the shaded area extends from the left end
 #'   of the density up to the threshold. If `FALSE`, the shading extends from the threshold to the
 #'   right end.
@@ -57,12 +64,18 @@
 #'   [highest density region](https://en.wikipedia.org/wiki/Credible_interval#Highest_density_interval)
 #'   (HDR) to shade. The HDR is the smallest region of the domain containing the specified
 #'   probability mass; for multimodal densities it may be disconnected, producing multiple
-#'   shaded intervals. Computed following the approach of \doi{10.32614/RJ-2023-048}: density
-#'   values are evaluated on the grid, normalized to sum to 1, sorted in descending order, and
-#'   cumulated until the target coverage is reached; the density at that threshold determines
-#'   which regions are shaded. Takes precedence over `p`, `p_lower`, and `p_upper` if specified.
+#'   shaded intervals. The threshold is approximated on an equally spaced grid
+#'   over `hdr_xlim` (or over `xlim` when `hdr_xlim = NULL`), so HDRs are
+#'   grid-based approximations rather than analytic regions. Takes precedence
+#'   over `p`, `p_lower`, and `p_upper` if specified.
+#' @param hdr_xlim Optional numeric vector of length 2 giving the computational
+#'   interval for the gridded HDR approximation. When `NULL`, the visible
+#'   `xlim` is used. Supplying a wider `hdr_xlim` lets the HDR threshold be
+#'   computed over more of the distribution while only the portion intersecting
+#'   `xlim` is displayed.
 #' @param check Logical; if `TRUE`, issue a diagnostic when the density does not
-#'   integrate to 1 over the drawn x-range. Use `FALSE` to suppress this check.
+#'   integrate to 1 over `support`, or when an HDR computation interval omits
+#'   substantial probability mass. Use `FALSE` to suppress these checks.
 #' @param check_tol Numeric tolerance used by the normalization check.
 #'
 #' @section Computed variables:
@@ -71,6 +84,11 @@
 #' \describe{
 #'   \item{`after_stat(x)`}{Points at which the density is evaluated.}
 #'   \item{`after_stat(y)`}{Density values.}
+#'   \item{`after_stat(in_shade)`}{Logical indicator for grid points inside
+#'   the requested probability or HDR shading region.}
+#'   \item{`after_stat(shade_lower)` and `after_stat(shade_upper)`}{The
+#'   distributional shading boundaries for `p`/`p_lower`/`p_upper` requests,
+#'   when applicable.}
 #' }
 #'
 #' @section Aesthetics:
@@ -92,10 +110,15 @@
 #' ggplot() +
 #'   geom_pdf(fun = dnorm, xlim = c(-3, 3), p = .975, lower.tail = TRUE)
 #'
+#' ggplot() +
+#'   geom_pdf(fun = dbeta, xlim = c(0, 1), support = c(0, 1),
+#'     args = list(shape1 = 2, shape2 = 5))
+#'
 #' # Highest density region of a bimodal density
 #' f_bim <- function(x) 0.5 * dnorm(x, -2, 0.5) + 0.5 * dnorm(x, 2, 0.5)
 #' ggplot() +
-#'   geom_pdf(fun = f_bim, xlim = c(-4, 4), shade_hdr = 0.9)
+#'   geom_pdf(fun = f_bim, xlim = c(-3, 3), hdr_xlim = c(-5, 5),
+#'     shade_hdr = 0.9)
 #'
 #' @name geom_pdf
 #' @aliases StatPDF GeomPDF
@@ -116,6 +139,7 @@ geom_pdf <- function(
     hf_fun = NULL,
     hf_lower = -Inf,
     xlim = NULL,
+    support = c(-Inf, Inf),
     n = 101,
     args = list(),
     fill = "grey20",
@@ -128,6 +152,7 @@ geom_pdf <- function(
     p_upper = NULL,
     shade_outside = FALSE,
     shade_hdr = NULL,
+    hdr_xlim = NULL,
     check = TRUE,
     check_tol = 1e-2
     ) {
@@ -168,6 +193,7 @@ geom_pdf <- function(
         hf_lower = hf_lower,
         n = n,
         xlim = xlim,
+        support = support,
         args = args,
         na.rm = na.rm,
         fill = fill,
@@ -179,6 +205,7 @@ geom_pdf <- function(
         p_upper = p_upper,
         shade_outside = shade_outside,
         shade_hdr = shade_hdr,
+        hdr_xlim = hdr_xlim,
         check = check,
         check_tol = check_tol
       ),
@@ -203,26 +230,59 @@ check_pdf_sources <- function(fun, cdf_fun, survival_fun, qf_fun, hf_fun) {
 #' @noRd
 make_pdf_function <- function(fun = NULL, cdf_fun = NULL, survival_fun = NULL,
                               qf_fun = NULL, hf_fun = NULL, hf_lower = -Inf,
-                              args = NULL) {
+                              args = NULL, support = c(-Inf, Inf)) {
+  args <- args %||% list()
+  as_pdf_1d(
+    fun = fun,
+    cdf_fun = cdf_fun,
+    survival_fun = survival_fun,
+    qf_fun = qf_fun,
+    hf_fun = hf_fun,
+    hf_lower = hf_lower,
+    args = args,
+    support = support
+  )
+}
+
+#' @noRd
+make_pdf_cdf_function <- function(fun = NULL, cdf_fun = NULL,
+                                  survival_fun = NULL, qf_fun = NULL,
+                                  hf_fun = NULL, hf_lower = -Inf,
+                                  args = NULL, support = c(-Inf, Inf)) {
   args <- args %||% list()
 
   if (!is.null(cdf_fun)) {
-    cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
-    cdf_to_pdf(cdf_injected)
-  } else if (!is.null(survival_fun)) {
-    surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
-    cdf_derived <- survival_to_cdf(surv_injected)
-    cdf_to_pdf(cdf_derived)
-  } else if (!is.null(qf_fun)) {
-    qf_injected <- function(p) rlang::inject(qf_fun(p, !!!args))
-    cdf_derived <- qf_to_cdf(qf_injected)
-    cdf_to_pdf(cdf_derived)
-  } else if (!is.null(hf_fun)) {
-    hf_injected <- function(x) rlang::inject(hf_fun(x, !!!args))
-    hf_to_pdf(hf_injected, lower = hf_lower)
+    as_cdf_1d(fun = cdf_fun, args = args, support = support)
   } else {
-    function(x) rlang::inject(fun(x, !!!args))
+    as_cdf_1d(
+      pdf_fun = fun,
+      survival_fun = survival_fun,
+      qf_fun = qf_fun,
+      hf_fun = hf_fun,
+      hf_lower = hf_lower,
+      args = args,
+      support = support
+    )
   }
+}
+
+#' @noRd
+make_pdf_qf_function <- function(fun = NULL, cdf_fun = NULL,
+                                 survival_fun = NULL, qf_fun = NULL,
+                                 hf_fun = NULL, hf_lower = -Inf,
+                                 args = NULL, support = c(-Inf, Inf)) {
+  args <- args %||% list()
+
+  as_qf_1d(
+    fun = qf_fun,
+    cdf_fun = cdf_fun,
+    pdf_fun = fun,
+    survival_fun = survival_fun,
+    hf_fun = hf_fun,
+    hf_lower = hf_lower,
+    args = args,
+    support = support
+  )
 }
 
 #' @noRd
@@ -238,9 +298,17 @@ pdf_scale_transform <- function(y_scale, y) {
 }
 
 #' @noRd
-pdf_stat_range <- function(scales, xlim = NULL, n = 101) {
+pdf_x_scale_transform <- function(x_scale, x) {
+  if (is.null(x_scale) || x_scale$is_discrete()) return(x)
+  x_scale$get_transformation()$transform(x)
+}
+
+#' @noRd
+pdf_stat_range <- function(scales, xlim = NULL, n = 101,
+                           support = c(-Inf, Inf)) {
+  support <- validate_support_1d(support)
   if (is.null(scales$x)) {
-    x_range <- xlim %||% c(0, 1)
+    x_range <- xlim %||% if (all(is.finite(support))) support else c(0, 1)
     xseq <- seq(x_range[1], x_range[2], length.out = n)
     x_eval <- xseq
   } else {
@@ -270,15 +338,184 @@ pdf_panel_data <- function(data, panel_params, fun, n = 101) {
   }
 
   xseq <- seq(panel_range[1], panel_range[2], length.out = n)
-  y_out <- fun(pdf_scale_inverse(panel_params$x, xseq))
+  x_eval <- pdf_scale_inverse(panel_params$x, xseq)
+  y_out <- fun(x_eval)
   y_out <- pdf_scale_transform(panel_params$y, y_out)
 
   out <- data[rep(1L, n), , drop = FALSE]
   out$x <- xseq
+  out$x_eval <- x_eval
   out$y <- y_out
   if ("ymin" %in% names(out)) out$ymin <- 0
   if ("ymax" %in% names(out)) out$ymax <- y_out
   out
+}
+
+#' @noRd
+validate_probability_shading <- function(p = NULL, p_lower = NULL,
+                                         p_upper = NULL,
+                                         shade_hdr = NULL) {
+  probs <- c(p = p, p_lower = p_lower, p_upper = p_upper, shade_hdr = shade_hdr)
+  if (length(probs) > 0L &&
+      any(!is.finite(probs) | probs <= 0 | probs >= 1)) {
+    cli::cli_abort("Probability shading arguments must be strictly between 0 and 1.")
+  }
+  if ((is.null(p_lower) && !is.null(p_upper)) ||
+      (!is.null(p_lower) && is.null(p_upper))) {
+    cli::cli_abort("{.arg p_lower} and {.arg p_upper} must be supplied together.")
+  }
+  if (!is.null(p_lower) && p_lower >= p_upper) {
+    cli::cli_abort("{.arg p_lower} must be less than {.arg p_upper}.")
+  }
+}
+
+#' @noRd
+insert_pdf_boundary_rows <- function(data, boundaries, fun, scales) {
+  boundaries <- unique(boundaries[is.finite(boundaries)])
+  if (length(boundaries) == 0L) return(data)
+
+  display_range <- range(data$x_eval, na.rm = TRUE)
+  boundaries <- boundaries[boundaries >= display_range[1] & boundaries <= display_range[2]]
+  if (length(boundaries) == 0L) return(data)
+
+  rows <- data[rep(1L, length(boundaries)), , drop = FALSE]
+  rows$x_eval <- boundaries
+  rows$x <- pdf_x_scale_transform(scales$x, boundaries)
+  rows$y <- fun(boundaries)
+
+  out <- rbind(data, rows)
+  out[order(out$x), , drop = FALSE]
+}
+
+#' @noRd
+pdf_probability_intervals <- function(qf, support = c(-Inf, Inf),
+                                      p = NULL, lower.tail = TRUE,
+                                      p_lower = NULL, p_upper = NULL,
+                                      shade_outside = FALSE) {
+  support <- validate_support_1d(support)
+  if (!is.null(p_lower) && !is.null(p_upper)) {
+    q_lower <- qf(p_lower)
+    q_upper <- qf(p_upper)
+    if (isTRUE(shade_outside)) {
+      return(list(
+        intervals = rbind(c(support[1], q_lower), c(q_upper, support[2])),
+        boundaries = c(q_lower, q_upper),
+        shade_lower = q_lower,
+        shade_upper = q_upper
+      ))
+    }
+    return(list(
+      intervals = rbind(c(q_lower, q_upper)),
+      boundaries = c(q_lower, q_upper),
+      shade_lower = q_lower,
+      shade_upper = q_upper
+    ))
+  }
+
+  if (!is.null(p)) {
+    if (isTRUE(lower.tail)) {
+      q <- qf(p)
+      return(list(
+        intervals = rbind(c(support[1], q)),
+        boundaries = q,
+        shade_lower = support[1],
+        shade_upper = q
+      ))
+    }
+    q <- qf(1 - p)
+    return(list(
+      intervals = rbind(c(q, support[2])),
+      boundaries = q,
+      shade_lower = q,
+      shade_upper = support[2]
+    ))
+  }
+
+  list(
+    intervals = rbind(support),
+    boundaries = numeric(0),
+    shade_lower = support[1],
+    shade_upper = support[2]
+  )
+}
+
+#' @noRd
+pdf_mark_intervals <- function(x, intervals) {
+  in_region <- rep(FALSE, length(x))
+  for (i in seq_len(nrow(intervals))) {
+    in_region <- in_region | (x >= intervals[i, 1] & x <= intervals[i, 2])
+  }
+  in_region
+}
+
+#' @noRd
+pdf_hdr_cutoff <- function(fun, hdr_xlim, n = 101) {
+  hdr_grid <- seq(hdr_xlim[1], hdr_xlim[2], length.out = n)
+  y <- fun(hdr_grid)
+  if (any(!is.finite(y) | y < 0)) {
+    cli::cli_abort("HDR shading requires finite, non-negative density values over {.arg hdr_xlim}.")
+  }
+  if (sum(y) <= 0) {
+    cli::cli_abort("HDR shading requires positive density somewhere over {.arg hdr_xlim}.")
+  }
+  ord <- order(y, decreasing = TRUE)
+  weights <- y / sum(y)
+  cutoff_idx <- which(cumsum(weights[ord]) >= attr(hdr_xlim, "shade_hdr"))[1L]
+  if (is.na(cutoff_idx)) cutoff_idx <- length(y)
+  y[ord[cutoff_idx]]
+}
+
+#' @noRd
+pdf_add_shading_columns <- function(data, scales, fun, cdf, qf,
+                                    support = c(-Inf, Inf), xlim = NULL,
+                                    p = NULL, lower.tail = TRUE,
+                                    p_lower = NULL, p_upper = NULL,
+                                    shade_outside = FALSE, shade_hdr = NULL,
+                                    hdr_xlim = NULL, n = 101,
+                                    check = TRUE, check_tol = 1e-2) {
+  validate_probability_shading(p, p_lower, p_upper, shade_hdr)
+  support <- validate_support_1d(support)
+  data$in_shade <- TRUE
+  data$shade_lower <- NA_real_
+  data$shade_upper <- NA_real_
+  data$hdr_cutoff <- NA_real_
+
+  if (!is.null(shade_hdr)) {
+    hdr_xlim <- validate_support_1d(hdr_xlim %||% xlim %||% range(data$x_eval, na.rm = TRUE), "hdr_xlim")
+    attr(hdr_xlim, "shade_hdr") <- shade_hdr
+    cutoff <- pdf_hdr_cutoff(fun, hdr_xlim, n = n)
+    data$in_shade <- data$y >= cutoff
+    data$hdr_cutoff <- cutoff
+
+    if (ggfunction_check_enabled(check)) {
+      mass_inside <- cdf(hdr_xlim[2]) - cdf(hdr_xlim[1])
+      if (is.finite(mass_inside) && 1 - mass_inside > check_tol) {
+        cli::cli_warn(c(
+          "The HDR computation interval omits substantial probability mass.",
+          "i" = "Estimated mass inside {.arg hdr_xlim} is {round(mass_inside, 4)}; set a wider {.arg hdr_xlim} or {.arg check = FALSE}."
+        ))
+      }
+    }
+    return(data)
+  }
+
+  if (!is.null(p) || (!is.null(p_lower) && !is.null(p_upper))) {
+    region <- pdf_probability_intervals(
+      qf = qf,
+      support = support,
+      p = p,
+      lower.tail = lower.tail,
+      p_lower = p_lower,
+      p_upper = p_upper,
+      shade_outside = shade_outside
+    )
+    data <- insert_pdf_boundary_rows(data, region$boundaries, fun, scales)
+    data$in_shade <- pdf_mark_intervals(data$x_eval, region$intervals)
+    data$shade_lower <- region$shade_lower
+    data$shade_upper <- region$shade_upper
+  }
+
+  data
 }
 
 #' @rdname geom_pdf
@@ -290,21 +527,64 @@ StatPDF <- ggproto("StatPDF", Stat,
                            survival_fun = NULL, qf_fun = NULL,
                            hf_fun = NULL,
                            hf_lower = -Inf,
-                           xlim = NULL, n = 101, args = NULL,
+                           xlim = NULL, support = c(-Inf, Inf),
+                           n = 101, args = NULL,
+                           p = NULL, lower.tail = TRUE,
+                           p_lower = NULL, p_upper = NULL,
+                           shade_outside = FALSE, shade_hdr = NULL,
+                           hdr_xlim = NULL,
                            check = TRUE, check_tol = 1e-2) {
 
     # Validate: exactly one source
     check_pdf_sources(fun, cdf_fun, survival_fun, qf_fun, hf_fun)
+    support <- validate_support_1d(support)
 
-    range <- pdf_stat_range(scales, xlim, n)
+    range <- pdf_stat_range(scales, xlim, n, support = support)
     fun_injected <- make_pdf_function(
       fun, cdf_fun, survival_fun, qf_fun, hf_fun,
-      hf_lower = hf_lower, args = args
+      hf_lower = hf_lower, args = args, support = support
+    )
+    cdf_injected <- make_pdf_cdf_function(
+      fun, cdf_fun, survival_fun, qf_fun, hf_fun,
+      hf_lower = hf_lower, args = args, support = support
+    )
+    qf_injected <- make_pdf_qf_function(
+      fun, cdf_fun, survival_fun, qf_fun, hf_fun,
+      hf_lower = hf_lower, args = args, support = support
     )
 
     y_out <- fun_injected(range$x_eval)
 
-    data.frame(x = range$x, y = y_out)
+    out <- data.frame(x = range$x, x_eval = range$x_eval, y = y_out)
+
+    if (ggfunction_check_enabled(check)) {
+      invisible(check_pdf_normalization(
+        fun_injected,
+        lower = support[1],
+        upper = support[2],
+        tol = check_tol
+      ))
+    }
+
+    pdf_add_shading_columns(
+      out,
+      scales = scales,
+      fun = fun_injected,
+      cdf = cdf_injected,
+      qf = qf_injected,
+      support = support,
+      xlim = xlim %||% range(range$x_eval, na.rm = TRUE),
+      p = p,
+      lower.tail = lower.tail,
+      p_lower = p_lower,
+      p_upper = p_upper,
+      shade_outside = shade_outside,
+      shade_hdr = shade_hdr,
+      hdr_xlim = hdr_xlim,
+      n = n,
+      check = check,
+      check_tol = check_tol
+    )
   }
 )
 
@@ -317,43 +597,47 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
                         p_lower = NULL, p_upper = NULL, shade_outside = FALSE,
                         shade_hdr = NULL, fun = NULL, cdf_fun = NULL,
                         survival_fun = NULL, qf_fun = NULL, hf_fun = NULL,
-                        hf_lower = -Inf, xlim = NULL, n = 101,
-                        args = NULL, check = TRUE, check_tol = 1e-2
+                        hf_lower = -Inf, xlim = NULL,
+                        support = c(-Inf, Inf), n = 101,
+                        args = NULL, hdr_xlim = NULL,
+                        check = TRUE, check_tol = 1e-2
                         ) {
 
     if (is.null(xlim)) {
+      support <- validate_support_1d(support)
       fun_injected <- make_pdf_function(
         fun, cdf_fun, survival_fun, qf_fun, hf_fun,
-        hf_lower = hf_lower, args = args
+        hf_lower = hf_lower, args = args, support = support
+      )
+      cdf_injected <- make_pdf_cdf_function(
+        fun, cdf_fun, survival_fun, qf_fun, hf_fun,
+        hf_lower = hf_lower, args = args, support = support
+      )
+      qf_injected <- make_pdf_qf_function(
+        fun, cdf_fun, survival_fun, qf_fun, hf_fun,
+        hf_lower = hf_lower, args = args, support = support
       )
       data <- pdf_panel_data(data, panel_params, fun_injected, n)
-    }
-    if (ggfunction_check_enabled(check)) {
-      check_range <- pdf_eval_range(data$x, panel_params$x)
-      check_lower <- if (is.finite(check_range[1])) check_range[1] else -Inf
-      check_upper <- if (is.finite(check_range[2])) check_range[2] else Inf
-      fun_injected <- make_pdf_function(
-        fun, cdf_fun, survival_fun, qf_fun, hf_fun,
-        hf_lower = hf_lower, args = args
+      data <- pdf_add_shading_columns(
+        data,
+        scales = list(x = panel_params$x),
+        fun = fun_injected,
+        cdf = cdf_injected,
+        qf = qf_injected,
+        support = support,
+        xlim = range(data$x_eval, na.rm = TRUE),
+        p = p,
+        lower.tail = lower.tail,
+        p_lower = p_lower,
+        p_upper = p_upper,
+        shade_outside = shade_outside,
+        shade_hdr = shade_hdr,
+        hdr_xlim = hdr_xlim,
+        n = n,
+        check = FALSE,
+        check_tol = check_tol
       )
-      invisible(check_pdf_normalization(
-        fun_injected,
-        lower = check_lower,
-        upper = check_upper,
-        tol = check_tol
-      ))
     }
-
-    x_vals <- data$x
-    y_vals <- data$y
-
-    # Compute cumulative area using the trapezoidal rule.
-    dx <- diff(x_vals)
-    seg_area <- (y_vals[-length(y_vals)] + y_vals[-1]) / 2 * dx
-    cum_area <- c(0, cumsum(seg_area))
-
-    total_area <- max(cum_area)
-    norm_cum <- cum_area / total_area  # normalized cumulative area
 
     # Helper to build a closed polygon from clipped data
     build_poly <- function(clip_data, clip_range) {
@@ -368,103 +652,25 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
 
     area_grobs <- list()
 
-    # Determine the clipping range based on shade_hdr, p_lower/p_upper, or p.
-    if (!is.null(shade_hdr)) {
-      # Highest density region (HDR) shading, following ggdensity's approach:
-      # normalize f(x) values to sum to 1, sort descending, cumsum until
-      # coverage is reached, shade all connected intervals above the cutoff.
-      fhat_discretized <- y_vals / sum(y_vals)
-      ord <- order(y_vals, decreasing = TRUE)
-      cumprob <- cumsum(fhat_discretized[ord])
-      cutoff_idx <- which(cumprob >= shade_hdr)[1]
-      if (is.na(cutoff_idx)) cutoff_idx <- length(y_vals)
-      cutoff <- y_vals[ord[cutoff_idx]]
-
-      # Identify connected runs of grid points at or above the cutoff
-      above <- y_vals >= cutoff
-      runs <- rle(above)
+    in_shade <- if ("in_shade" %in% names(data)) data$in_shade else rep(TRUE, nrow(data))
+    if (any(in_shade, na.rm = TRUE)) {
+      runs <- rle(in_shade)
       idx_end <- cumsum(runs$lengths)
       idx_start <- c(1L, head(idx_end, -1L) + 1L)
 
       for (i in seq_along(runs$values)) {
-        if (runs$values[i]) {
-          clip_data  <- data[idx_start[i]:idx_end[i], , drop = FALSE]
-          clip_range <- c(x_vals[idx_start[i]], x_vals[idx_end[i]])
-          area_grobs <- c(area_grobs, list(
-            ggproto_parent(GeomArea, self)$draw_panel(
-              build_poly(clip_data, clip_range), panel_params, coord, na.rm = na.rm
-            )
-          ))
-        }
-      }
-    } else if (!is.null(p_lower) && !is.null(p_upper)) {
-      idx_lower <- which(norm_cum >= p_lower)[1]
-      if (is.na(idx_lower)) idx_lower <- length(norm_cum)
-      idx_upper <- which(norm_cum >= p_upper)[1]
-      if (is.na(idx_upper)) idx_upper <- length(norm_cum)
-      threshold_lower <- x_vals[idx_lower]
-      threshold_upper <- x_vals[idx_upper]
-
-      if (shade_outside) {
-        # Shade both tails: left of p_lower and right of p_upper
-        left_data <- data[data$x <= threshold_lower, , drop = FALSE]
-        if (nrow(left_data) > 0) {
-          left_range <- c(min(x_vals), threshold_lower)
-          area_grobs <- c(area_grobs, list(
-            ggproto_parent(GeomArea, self)$draw_panel(
-              build_poly(left_data, left_range), panel_params, coord, na.rm = na.rm
-            )
-          ))
-        }
-        right_data <- data[data$x >= threshold_upper, , drop = FALSE]
-        if (nrow(right_data) > 0) {
-          right_range <- c(threshold_upper, max(x_vals))
-          area_grobs <- c(area_grobs, list(
-            ggproto_parent(GeomArea, self)$draw_panel(
-              build_poly(right_data, right_range), panel_params, coord, na.rm = na.rm
-            )
-          ))
-        }
-      } else {
-        # Shade between p_lower and p_upper
-        clip_data <- data[data$x >= threshold_lower & data$x <= threshold_upper, , drop = FALSE]
-        clip_range <- c(threshold_lower, threshold_upper)
+        if (!runs$values[i]) next
+        clip_data <- data[idx_start[i]:idx_end[i], , drop = FALSE]
+        clip_range <- range(clip_data$x, na.rm = TRUE)
         area_grobs <- c(area_grobs, list(
           ggproto_parent(GeomArea, self)$draw_panel(
             build_poly(clip_data, clip_range), panel_params, coord, na.rm = na.rm
           )
         ))
       }
-    } else if (!is.null(p)) {
-      if (lower.tail) {
-        idx <- which(norm_cum >= p)[1]
-        if (is.na(idx)) idx <- length(norm_cum)
-        threshold_x <- x_vals[idx]
-        clip_data <- data[data$x <= threshold_x, , drop = FALSE]
-        clip_range <- c(min(x_vals), threshold_x)
-      } else {
-        idx <- which(norm_cum >= (1 - p))[1]
-        if (is.na(idx)) idx <- 1
-        threshold_x <- x_vals[idx]
-        clip_data <- data[data$x >= threshold_x, , drop = FALSE]
-        clip_range <- c(threshold_x, max(x_vals))
-      }
-      area_grobs <- c(area_grobs, list(
-        ggproto_parent(GeomArea, self)$draw_panel(
-          build_poly(clip_data, clip_range), panel_params, coord, na.rm = na.rm
-        )
-      ))
-    } else {
-      clip_range <- range(x_vals, na.rm = TRUE)
-      clip_data <- data[data$x >= clip_range[1] & data$x <= clip_range[2], , drop = FALSE]
-      area_grobs <- c(area_grobs, list(
-        ggproto_parent(GeomArea, self)$draw_panel(
-          build_poly(clip_data, clip_range), panel_params, coord, na.rm = na.rm
-        )
-      ))
     }
 
-    # Create the line grob for the entire function using GeomPath’s draw_panel.
+    # Create the line grob for the entire function using GeomPath's draw_panel.
     line_grob <- ggproto_parent(GeomPath, self)$draw_panel(
       data, panel_params, coord,
       arrow = arrow,

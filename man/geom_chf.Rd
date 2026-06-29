@@ -23,6 +23,7 @@ geom_chf(
   qf_fun = NULL,
   hf_lower = -Inf,
   xlim = NULL,
+  support = c(-Inf, Inf),
   n = 101,
   args = list()
 )
@@ -119,6 +120,10 @@ example, \code{0} for Weibull or exponential hazards); values below \code{hf_low
 return cumulative hazard \code{0}.}
 
 \item{xlim}{A numeric vector of length 2 giving the x-range.}
+
+\item{support}{A numeric vector of length 2 giving the computational support
+of the distribution. Defaults to \code{c(-Inf, Inf)}. It is used for
+PDF-to-CDF and hazard integrations.}
 
 \item{n}{Number of points at which to evaluate. Defaults to 101.}
 

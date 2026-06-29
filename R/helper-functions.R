@@ -98,6 +98,13 @@ check_pdf_normalization <- function(f, lower, upper, tol = 1e-3) {
   if (!ggfunction_check_enabled()) return(invisible(NA_real_))
   res <- try(integrate(f, lower, upper), silent = TRUE)
   if (inherits(res, "try-error")) {
+    if (!is.finite(lower) || !is.finite(upper)) {
+      cli::cli_alert(sprintf(
+        "The provided function could not be confirmed; it integrates to an unknown value over the support [%g, %g]. Set `support` to the distribution's finite domain when appropriate.",
+        lower, upper
+      ))
+      return(invisible(NA_real_))
+    }
     stop(sprintf("Error integrating the function over the range [%g, %g]. Please check your function definition.", lower, upper))
   }
   if (abs(res$value - 1) > tol) {
@@ -116,7 +123,12 @@ check_cdf_normalization <- function(f, lower, upper, tol = 1e-2) {
     stop(sprintf("Error evaluating the function over the range [%g, %g]. Please check your function definition.", lower, upper))
   }
 
-  if (abs(vals[["lower"]]) > tol || abs(vals[["upper"]] - 1) > tol) {
+  if (any(is.na(vals))) {
+    cli::cli_alert(sprintf(
+      "The provided function could not be fully checked as a CDF over the range [%g, %g]: it returns %g at the lower bound and %g at the upper bound.",
+      lower, upper, vals[["lower"]], vals[["upper"]]
+    ))
+  } else if (abs(vals[["lower"]]) > tol || abs(vals[["upper"]] - 1) > tol) {
     cli::cli_alert(sprintf("The provided function appears not to be a valid CDF over the range [%g, %g]: it returns %g at the lower bound and %g at the upper bound.",
                            lower, upper, vals[["lower"]], vals[["upper"]]))
   }
@@ -249,9 +261,9 @@ discrete_hdr_probs <- function(mass, shade_hdr) {
 
 #' Soft validity check for a discrete CDF over its computational support.
 #'
-#' Warns (without aborting) when the derived CDF leaves [0, 1], is not
+#' Warns (without aborting) when the derived CDF leaves `[0, 1]`, is not
 #' monotonically non-decreasing, or does not approach 1 at the top of the
-#' support (e.g. a truncated support). Mirrors [check_cdf_normalization()] for
+#' support (e.g. a truncated support). Mirrors `check_cdf_normalization()` for
 #' the discrete `fun`/`cdf_fun`/`survival_fun` paths, which otherwise accept
 #' malformed input silently.
 #' @noRd
@@ -342,75 +354,6 @@ build_step_polygon <- function(x, y) {
   data.frame(x = px, y = py)
 }
 
-#' Convert a PDF function to a CDF function via numerical integration
-#' @noRd
-pdf_to_cdf <- function(pdf_fun, lower = -Inf) {
-  function(x) {
-    vapply(x, function(xi) {
-      res <- try(
-        stats::integrate(pdf_fun, lower = lower, upper = xi, stop.on.error = FALSE),
-        silent = TRUE
-      )
-      if (inherits(res, "try-error")) NA_real_ else res$value
-    }, numeric(1))
-  }
-}
-
-#' Convert a CDF function to a PDF function via central finite differences
-#' @noRd
-cdf_to_pdf <- function(cdf_fun, h = 1e-5) {
-  function(x) {
-    (cdf_fun(x + h) - cdf_fun(x - h)) / (2 * h)
-  }
-}
-
-#' Convert a CDF function to a quantile function via root-finding
-#' @noRd
-cdf_to_qf <- function(cdf_fun, search_lower = -10, search_upper = 10) {
-  function(p) {
-    vapply(p, function(pi) {
-      if (pi <= 0) return(-Inf)
-      if (pi >= 1) return(Inf)
-
-      lo <- search_lower
-      hi <- search_upper
-
-      # Adaptively widen bounds until they bracket the target
-      for (i in 1:25) {
-        f_lo <- cdf_fun(lo)
-        if (!is.na(f_lo) && f_lo <= pi) break
-        lo <- lo * 2
-      }
-      for (i in 1:25) {
-        f_hi <- cdf_fun(hi)
-        if (!is.na(f_hi) && f_hi >= pi) break
-        hi <- hi * 2
-      }
-
-      res <- try(
-        stats::uniroot(function(x) cdf_fun(x) - pi, lower = lo, upper = hi,
-                       tol = .Machine$double.eps^0.5),
-        silent = TRUE
-      )
-      if (inherits(res, "try-error")) NA_real_ else res$root
-    }, numeric(1))
-  }
-}
-
-#' Convert a survival function to a CDF function via exact arithmetic
-#' @noRd
-survival_to_cdf <- function(survival_fun) {
-  function(x) 1 - survival_fun(x)
-}
-
-#' Convert a quantile function to a CDF function via interpolation
-#' @noRd
-qf_to_cdf <- function(qf_fun, n = 10000) {
-  p_grid <- seq(1 / (n + 1), n / (n + 1), length.out = n)
-  x_grid <- qf_fun(p_grid)
-  stats::approxfun(x_grid, p_grid, rule = 2)
-}
-
 #' @noRd
 check_qf_sources <- function(fun, cdf_fun, pdf_fun, survival_fun,
                              hf_fun = NULL) {
@@ -427,25 +370,16 @@ check_qf_sources <- function(fun, cdf_fun, pdf_fun, survival_fun,
 #' @noRd
 make_qf_function <- function(fun = NULL, cdf_fun = NULL, pdf_fun = NULL,
                              survival_fun = NULL, hf_fun = NULL,
-                             hf_lower = -Inf, args = NULL) {
+                             hf_lower = -Inf, args = NULL,
+                             support = c(-Inf, Inf)) {
   args <- args %||% list()
   check_qf_sources(fun, cdf_fun, pdf_fun, survival_fun, hf_fun)
 
-  if (!is.null(cdf_fun)) {
-    cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
-    cdf_to_qf(cdf_injected)
-  } else if (!is.null(pdf_fun)) {
-    pdf_injected <- function(x) rlang::inject(pdf_fun(x, !!!args))
-    cdf_to_qf(pdf_to_cdf(pdf_injected))
-  } else if (!is.null(survival_fun)) {
-    surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
-    cdf_to_qf(survival_to_cdf(surv_injected))
-  } else if (!is.null(hf_fun)) {
-    hf_injected <- function(x) rlang::inject(hf_fun(x, !!!args))
-    cdf_to_qf(hf_to_cdf(hf_injected, lower = hf_lower))
-  } else {
-    function(p) rlang::inject(fun(p, !!!args))
-  }
+  as_qf_1d(
+    fun = fun, cdf_fun = cdf_fun, pdf_fun = pdf_fun,
+    survival_fun = survival_fun, hf_fun = hf_fun, args = args,
+    support = support, hf_lower = hf_lower
+  )
 }
 
 #' @noRd
@@ -470,59 +404,6 @@ order_stat_sample <- function(x, na.rm = FALSE, a = 1 / 2) {
   }
 
   data.frame(sample = x, p = stats::ppoints(n, a = a), n = n)
-}
-
-#' Convert a hazard function to a cumulative hazard function via numerical integration
-#'
-#' Computes the cumulative hazard H(x) = integral of h(t) from lower to x,
-#' @noRd
-hf_to_chf <- function(hf_fun, lower = -Inf) {
-  if (!is.numeric(lower) || length(lower) != 1L || is.na(lower) || lower == Inf) {
-    cli::cli_abort("{.arg lower} must be a finite number or {.code -Inf}.")
-  }
-  function(x) {
-    vapply(x, function(xi) {
-      if (is.finite(lower) && xi <= lower) {
-        return(0)
-      }
-      res <- try(
-        stats::integrate(hf_fun, lower = lower, upper = xi, stop.on.error = FALSE),
-        silent = TRUE
-      )
-      if (inherits(res, "try-error")) NA_real_ else res$value
-    }, numeric(1))
-  }
-}
-
-#' Convert a hazard function to a CDF function via numerical integration
-#'
-#' Computes the cumulative hazard H(x) = integral of h(t) from lower to x,
-#' then returns F(x) = 1 - exp(-H(x)).
-#' @noRd
-hf_to_cdf <- function(hf_fun, lower = -Inf) {
-  chf_fun <- hf_to_chf(hf_fun, lower = lower)
-  function(x) 1 - exp(-chf_fun(x))
-}
-
-#' Convert a hazard function to a PDF function
-#'
-#' Uses the relationship f(x) = h(x) * exp(-H(x)) where H(x) is the
-#' cumulative hazard. More accurate than hf_to_cdf + cdf_to_pdf since
-#' it avoids nested numerical differentiation.
-#' @noRd
-hf_to_pdf <- function(hf_fun, lower = -Inf) {
-  chf_fun <- hf_to_chf(hf_fun, lower = lower)
-  function(x) {
-    vapply(x, function(xi) {
-      if (is.finite(lower) && xi < lower) {
-        return(0)
-      }
-      h_x <- hf_fun(xi)
-      H_x <- chf_fun(xi)
-      if (is.na(H_x)) return(NA_real_)
-      h_x * exp(-H_x)
-    }, numeric(1))
-  }
 }
 
 #' Resolve open_fill for discrete step-function geoms

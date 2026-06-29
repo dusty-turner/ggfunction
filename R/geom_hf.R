@@ -39,6 +39,12 @@
 #' @param cdf_args A named list of additional arguments specific to `cdf_fun`
 #'   (overrides `args`). Ignored when using the direct hazard interface.
 #' @param xlim A numeric vector of length 2 giving the x-range.
+#' @param support A numeric vector of length 2 giving the computational support
+#'   of the distribution. Defaults to `c(-Inf, Inf)`. It is used when deriving
+#'   a CDF from a PDF or a PDF from a CDF.
+#' @param hf_lower Lower integration origin for hazard-derived routes. Present
+#'   for consistency with [geom_pdf()], [geom_cdf()], and [geom_chf()]; direct
+#'   hazard plotting through `fun` does not integrate the hazard.
 #' @param color Line color for the hazard curve.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
@@ -97,7 +103,9 @@ geom_hf <- function(
     cdf_fun = NULL,
     survival_fun = NULL,
     qf_fun = NULL,
+    hf_lower = -Inf,
     xlim = NULL,
+    support = c(-Inf, Inf),
     n = 101,
     args = list(),
     pdf_args = NULL,
@@ -129,8 +137,10 @@ geom_hf <- function(
       cdf_fun = cdf_fun,
       survival_fun = survival_fun,
       qf_fun = qf_fun,
+      hf_lower = hf_lower,
       n = n,
       xlim = xlim,
+      support = support,
       args = args,
       pdf_args = pdf_args,
       cdf_args = cdf_args,
@@ -148,7 +158,8 @@ StatHF <- ggproto("StatHF", Stat,
 
   compute_group = function(data, scales, fun = NULL, pdf_fun = NULL,
                            cdf_fun = NULL, survival_fun = NULL,
-                           qf_fun = NULL, xlim = NULL, n = 101,
+                           qf_fun = NULL, hf_lower = -Inf,
+                           xlim = NULL, support = c(-Inf, Inf), n = 101,
                            args = NULL, pdf_args = NULL, cdf_args = NULL) {
 
     # Validate interface
@@ -177,52 +188,19 @@ StatHF <- ggproto("StatHF", Stat,
 
     xseq <- seq(range[1], range[2], length.out = n)
 
-    if (using_fun) {
-      fun_injected <- function(x) rlang::inject(fun(x, !!!args))
-      y_out <- fun_injected(xseq)
-    } else if (using_survival) {
-      surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
-      cdf_derived <- survival_to_cdf(surv_injected)
-      pdf_derived <- cdf_to_pdf(cdf_derived)
-
-      f_vals <- pdf_derived(xseq)
-      S_vals <- surv_injected(xseq)
-      y_out <- ifelse(S_vals > 0, f_vals / S_vals, NaN)
-    } else if (using_qf) {
-      qf_injected <- function(p) rlang::inject(qf_fun(p, !!!args))
-      cdf_derived <- qf_to_cdf(qf_injected)
-      pdf_derived <- cdf_to_pdf(cdf_derived)
-
-      f_vals <- pdf_derived(xseq)
-      S_vals <- 1 - cdf_derived(xseq)
-      y_out <- ifelse(S_vals > 0, f_vals / S_vals, NaN)
-    } else {
-      # Merge shared args with specific overrides
-      pdf_a <- if (!is.null(pdf_args)) modifyList(args, pdf_args) else args
-      cdf_a <- if (!is.null(cdf_args)) modifyList(args, cdf_args) else args
-
-      # Build injected versions of whichever functions were supplied
-      if (!is.null(pdf_fun)) {
-        pdf_injected <- function(x) rlang::inject(pdf_fun(x, !!!pdf_a))
-      }
-      if (!is.null(cdf_fun)) {
-        cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!cdf_a))
-      }
-
-      # Derive missing component
-      if (is.null(cdf_fun)) {
-        cdf_injected <- pdf_to_cdf(pdf_injected)
-      }
-      if (is.null(pdf_fun)) {
-        pdf_injected <- cdf_to_pdf(cdf_injected)
-      }
-
-      f_vals <- pdf_injected(xseq)
-      S_vals <- 1 - cdf_injected(xseq)
-
-      # Compute hazard, guarding division by zero
-      y_out <- ifelse(S_vals > 0, f_vals / S_vals, NaN)
-    }
+    fun_injected <- as_hf_1d(
+      fun = fun,
+      pdf_fun = pdf_fun,
+      cdf_fun = cdf_fun,
+      survival_fun = survival_fun,
+      qf_fun = qf_fun,
+      args = args,
+      pdf_args = pdf_args,
+      cdf_args = cdf_args,
+      support = support,
+      hf_lower = hf_lower
+    )
+    y_out <- fun_injected(xseq)
 
     data.frame(x = xseq, y = y_out)
   }

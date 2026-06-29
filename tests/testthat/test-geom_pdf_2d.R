@@ -24,6 +24,22 @@ test_that("geom_pdf_2d builds HDR lines without error", {
   expect_no_error(ggplot_build(p))
 })
 
+test_that("geom_pdf_2d exposes honest HDR computation-domain controls", {
+  expect_warning(
+    layer <- geom_pdf_2d(
+      fun = dbvn,
+      xlim = c(-2, 2), ylim = c(-2, 2),
+      hdr_xlim = c(-3, 3), hdr_ylim = c(-3, 3),
+      n = 30
+    ),
+    "computed and evaluated over"
+  )
+  p <- ggplot() + layer
+
+  expect_silent(built <- ggplot_build(p))
+  expect_true(max(abs(built$data[[1]]$x), na.rm = TRUE) > 2)
+})
+
 test_that("geom_pdf_2d builds density rasters without error", {
   p <- ggplot() +
     geom_pdf_2d(

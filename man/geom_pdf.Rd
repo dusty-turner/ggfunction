@@ -22,6 +22,7 @@ geom_pdf(
   hf_fun = NULL,
   hf_lower = -Inf,
   xlim = NULL,
+  support = c(-Inf, Inf),
   n = 101,
   args = list(),
   fill = "grey20",
@@ -34,6 +35,7 @@ geom_pdf(
   p_upper = NULL,
   shade_outside = FALSE,
   shade_hdr = NULL,
+  hdr_xlim = NULL,
   check = TRUE,
   check_tol = 0.01
 )
@@ -144,12 +146,21 @@ PDF is derived via numerical integration of the cumulative hazard. Exactly
 one of \code{fun}, \code{cdf_fun}, \code{survival_fun}, \code{qf_fun}, or \code{hf_fun} must be
 provided.}
 
-\item{hf_lower}{Lower limit for integrating \code{hf_fun}. Defaults to \code{-Inf}.
-For finite-support hazards, set this to the lower support point (for
-example, \code{0} for Weibull or exponential hazards); values below \code{hf_lower}
-return density \code{0}.}
+\item{hf_lower}{Lower limit for integrating \code{hf_fun}. Defaults to \code{-Inf};
+when \code{support} has a finite lower endpoint and \code{hf_lower} is left at
+\code{-Inf}, the lower support endpoint is used. For finite-support hazards,
+set \code{support} or \code{hf_lower} to the lower support point (for example, \code{0}
+for Weibull or exponential hazards); values below the hazard origin return
+density \code{0}.}
 
-\item{xlim}{A numeric vector of length 2 giving the x-range over which to evaluate the PDF.}
+\item{xlim}{A numeric vector of length 2 giving the visible x-range over
+which to draw the PDF. Probability calculations use \code{support}, not the
+displayed interval.}
+
+\item{support}{A numeric vector of length 2 giving the computational support
+of the distribution. Defaults to \code{c(-Inf, Inf)}. It is used for
+normalization checks, PDF-to-CDF integration, CDF-to-quantile inversion,
+and support-aware probability shading.}
 
 \item{n}{Number of points at which to evaluate the density. Defaults to 101.}
 
@@ -165,11 +176,10 @@ return density \code{0}.}
 
 \item{p}{(Optional) A numeric value between 0 and 1 specifying the cumulative probability
 threshold. The area will be shaded up until the point where the cumulative density reaches
-this value. The cumulative density is measured relative to the mass within the drawn
-\code{xlim} window (the density is renormalized over \code{xlim}), so when \code{xlim} is narrower than
-the support, \code{p} refers to the conditional probability within \code{xlim} rather than the
-unconditional CDF. Widen \code{xlim} to cover the full support for \code{p} to match the
-unconditional CDF.}
+this value. The probability is distributional: it is computed over
+\code{support}, not renormalized over \code{xlim}. If the corresponding quantile
+lies outside \code{xlim}, the visible shading is simply clipped by the plotted
+window.}
 
 \item{lower.tail}{Logical; if \code{TRUE} (the default) the shaded area extends from the left end
 of the density up to the threshold. If \code{FALSE}, the shading extends from the threshold to the
@@ -188,13 +198,20 @@ and \code{p_upper}. If \code{TRUE}, shading is applied to the tails outside that
 \href{https://en.wikipedia.org/wiki/Credible_interval#Highest_density_interval}{highest density region}
 (HDR) to shade. The HDR is the smallest region of the domain containing the specified
 probability mass; for multimodal densities it may be disconnected, producing multiple
-shaded intervals. Computed following the approach of \doi{10.32614/RJ-2023-048}: density
-values are evaluated on the grid, normalized to sum to 1, sorted in descending order, and
-cumulated until the target coverage is reached; the density at that threshold determines
-which regions are shaded. Takes precedence over \code{p}, \code{p_lower}, and \code{p_upper} if specified.}
+shaded intervals. The threshold is approximated on an equally spaced grid
+over \code{hdr_xlim} (or over \code{xlim} when \code{hdr_xlim = NULL}), so HDRs are
+grid-based approximations rather than analytic regions. Takes precedence
+over \code{p}, \code{p_lower}, and \code{p_upper} if specified.}
+
+\item{hdr_xlim}{Optional numeric vector of length 2 giving the computational
+interval for the gridded HDR approximation. When \code{NULL}, the visible
+\code{xlim} is used. Supplying a wider \code{hdr_xlim} lets the HDR threshold be
+computed over more of the distribution while only the portion intersecting
+\code{xlim} is displayed.}
 
 \item{check}{Logical; if \code{TRUE}, issue a diagnostic when the density does not
-integrate to 1 over the drawn x-range. Use \code{FALSE} to suppress this check.}
+integrate to 1 over \code{support}, or when an HDR computation interval omits
+substantial probability mass. Use \code{FALSE} to suppress these checks.}
 
 \item{check_tol}{Numeric tolerance used by the normalization check.}
 }
@@ -213,6 +230,11 @@ with \code{\link[ggplot2:after_stat]{ggplot2::after_stat()}}.
 \describe{
 \item{\code{after_stat(x)}}{Points at which the density is evaluated.}
 \item{\code{after_stat(y)}}{Density values.}
+\item{\code{after_stat(in_shade)}}{Logical indicator for grid points inside
+the requested probability or HDR shading region.}
+\item{\code{after_stat(shade_lower)} and \code{after_stat(shade_upper)}}{The
+distributional shading boundaries for \code{p}/\code{p_lower}/\code{p_upper} requests,
+when applicable.}
 }
 }
 
@@ -232,10 +254,15 @@ supplied. It understands the following aesthetics:
 ggplot() +
   geom_pdf(fun = dnorm, xlim = c(-3, 3), p = .975, lower.tail = TRUE)
 
+ggplot() +
+  geom_pdf(fun = dbeta, xlim = c(0, 1), support = c(0, 1),
+    args = list(shape1 = 2, shape2 = 5))
+
 # Highest density region of a bimodal density
 f_bim <- function(x) 0.5 * dnorm(x, -2, 0.5) + 0.5 * dnorm(x, 2, 0.5)
 ggplot() +
-  geom_pdf(fun = f_bim, xlim = c(-4, 4), shade_hdr = 0.9)
+  geom_pdf(fun = f_bim, xlim = c(-3, 3), hdr_xlim = c(-5, 5),
+    shade_hdr = 0.9)
 
 }
 \seealso{

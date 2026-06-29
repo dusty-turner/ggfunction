@@ -22,6 +22,7 @@ geom_cdf(
   hf_fun = NULL,
   hf_lower = -Inf,
   xlim = NULL,
+  support = c(-Inf, Inf),
   n = 101,
   args = list(),
   fill = "grey20",
@@ -114,11 +115,18 @@ CDF is derived via numerical integration of the cumulative hazard as
 \code{survival_fun}, \code{qf_fun}, or \code{hf_fun} must be provided.}
 
 \item{hf_lower}{Lower limit for integrating \code{hf_fun}. Defaults to \code{-Inf}.
-For finite-support hazards, set this to the lower support point (for
-example, \code{0} for Weibull or exponential hazards); values below \code{hf_lower}
-return CDF \code{0}.}
+When \code{support} has a finite lower endpoint and \code{hf_lower} is left at
+\code{-Inf}, the lower support endpoint is used. For finite-support hazards,
+set \code{support} or \code{hf_lower} to the lower support point (for example, \code{0}
+for Weibull or exponential hazards); values below the hazard origin return
+CDF \code{0}.}
 
-\item{xlim}{A numeric vector of length 2 specifying the x-range over which to evaluate the CDF.}
+\item{xlim}{A numeric vector of length 2 specifying the visible x-range over
+which to draw the CDF.}
+
+\item{support}{A numeric vector of length 2 giving the computational support
+of the distribution. Defaults to \code{c(-Inf, Inf)}. It is used for numerical
+PDF-to-CDF integration, CDF-to-quantile inversion, and endpoint checks.}
 
 \item{n}{Number of points at which to evaluate \code{fun}.}
 

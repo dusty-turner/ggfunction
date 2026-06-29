@@ -20,7 +20,9 @@ geom_hf(
   cdf_fun = NULL,
   survival_fun = NULL,
   qf_fun = NULL,
+  hf_lower = -Inf,
   xlim = NULL,
+  support = c(-Inf, Inf),
   n = 101,
   args = list(),
   pdf_args = NULL,
@@ -100,7 +102,15 @@ differentiation.}
 \item{qf_fun}{A quantile function (e.g. \link{qnorm}). The CDF is derived via
 interpolation and the PDF by differentiation.}
 
+\item{hf_lower}{Lower integration origin for hazard-derived routes. Present
+for consistency with \code{\link[=geom_pdf]{geom_pdf()}}, \code{\link[=geom_cdf]{geom_cdf()}}, and \code{\link[=geom_chf]{geom_chf()}}; direct
+hazard plotting through \code{fun} does not integrate the hazard.}
+
 \item{xlim}{A numeric vector of length 2 giving the x-range.}
+
+\item{support}{A numeric vector of length 2 giving the computational support
+of the distribution. Defaults to \code{c(-Inf, Inf)}. It is used when deriving
+a CDF from a PDF or a PDF from a CDF.}
 
 \item{n}{Number of points at which to evaluate. Defaults to 101.}
 

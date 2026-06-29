@@ -18,6 +18,7 @@ geom_qf(
   cdf_fun = NULL,
   pdf_fun = NULL,
   survival_fun = NULL,
+  support = c(-Inf, Inf),
   n = 101,
   args = list()
 )
@@ -92,6 +93,10 @@ one of \code{fun}, \code{cdf_fun}, \code{pdf_fun}, or \code{survival_fun} must b
 The CDF is computed as \eqn{F(x) = 1 - S(x)} and then the quantile
 function is derived by root-finding. Exactly one of \code{fun}, \code{cdf_fun},
 \code{pdf_fun}, or \code{survival_fun} must be provided.}
+
+\item{support}{A numeric vector of length 2 giving the computational support
+of the distribution. Defaults to \code{c(-Inf, Inf)}. It is used when a
+quantile function is derived by integrating a PDF or inverting a CDF.}
 
 \item{n}{Number of probability points at which to evaluate \code{fun}. Defaults to 101.
 Points are placed at \href{https://en.wikipedia.org/wiki/Chebyshev_nodes}{Chebyshev nodes}
