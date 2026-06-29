@@ -84,6 +84,18 @@ test_that("geom_ecdf builds with custom level and conf_alpha", {
   expect_silent(ggplot_build(p))
 })
 
+test_that("geom_ecdf and geom_eqf ribbons use neutral geom_smooth-like defaults", {
+  df <- data.frame(x = c(-1.2, -0.4, 0.1, 0.8, 1.5, 2.1))
+
+  ecdf_band <- ggplot_build(ggplot(df, aes(x = x)) + geom_ecdf())$data[[1]]
+  eqf_band <- ggplot_build(ggplot(df, aes(x = x)) + geom_eqf())$data[[1]]
+
+  expect_equal(unique(ecdf_band$fill), "grey60")
+  expect_equal(unique(ecdf_band$alpha), 0.4)
+  expect_equal(unique(eqf_band$fill), "grey60")
+  expect_equal(unique(eqf_band$alpha), 0.4)
+})
+
 test_that("geom_ecdf builds with grouped data", {
   df <- data.frame(
     x = c(rnorm(20), rnorm(20, mean = 2)),

@@ -80,7 +80,7 @@
 #'   DKW/Massart confidence band.
 #' @param level Confidence level for the DKW band. Defaults to `0.95`.
 #' @param conf_alpha Alpha (transparency) of the confidence ribbon. Defaults
-#'   to `0.25`.
+#'   to `0.4`.
 #' @param band_n Number of points used to draw the DKW ribbon. Defaults to
 #'   `501`.
 #' @param a Plotting-position offset passed to [stats::ppoints()]. Defaults to
@@ -190,7 +190,7 @@ geom_ppplot <- function(
     args = list(),
     conf_int = TRUE,
     level = 0.95,
-    conf_alpha = 0.25,
+    conf_alpha = 0.4,
     band_n = 501,
     a = 1 / 2,
     identity_line = TRUE,
@@ -267,7 +267,7 @@ geom_ppplot <- function(
         level = level,
         band_n = band_n,
         a = a,
-        fill = "grey70",
+        fill = "grey60",
         linewidth = 0,
         alpha = conf_alpha
       )
@@ -314,7 +314,7 @@ geom_spplot <- function(
     args = list(),
     conf_int = TRUE,
     level = 0.95,
-    conf_alpha = 0.25,
+    conf_alpha = 0.4,
     band_n = 501,
     a = 1 / 2,
     identity_line = TRUE,
@@ -391,7 +391,7 @@ geom_spplot <- function(
         level = level,
         band_n = band_n,
         a = a,
-        fill = "grey70",
+        fill = "grey60",
         linewidth = 0,
         alpha = conf_alpha
       )
@@ -438,7 +438,7 @@ geom_qqplot <- function(
     args = list(),
     conf_int = TRUE,
     level = 0.95,
-    conf_alpha = 0.25,
+    conf_alpha = 0.4,
     band_n = 501,
     a = 1 / 2,
     identity_line = TRUE,
@@ -526,7 +526,7 @@ geom_qqplot <- function(
         level = level,
         band_n = band_n,
         a = a,
-        fill = "grey70",
+        fill = "grey60",
         linewidth = 0,
         alpha = conf_alpha
       )
@@ -779,7 +779,7 @@ GeomQQPlotRibbon <- ggproto("GeomQQPlotRibbon", Geom,
 
   default_aes = aes(
     colour = NA,
-    fill = "grey70",
+    fill = "grey60",
     linewidth = 0,
     linetype = 1,
     alpha = NA

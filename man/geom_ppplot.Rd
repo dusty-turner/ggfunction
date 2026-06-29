@@ -30,7 +30,7 @@ geom_ppplot(
   args = list(),
   conf_int = TRUE,
   level = 0.95,
-  conf_alpha = 0.25,
+  conf_alpha = 0.4,
   band_n = 501,
   a = 1/2,
   identity_line = TRUE,
@@ -61,7 +61,7 @@ geom_spplot(
   args = list(),
   conf_int = TRUE,
   level = 0.95,
-  conf_alpha = 0.25,
+  conf_alpha = 0.4,
   band_n = 501,
   a = 1/2,
   identity_line = TRUE,
@@ -92,7 +92,7 @@ geom_qqplot(
   args = list(),
   conf_int = TRUE,
   level = 0.95,
-  conf_alpha = 0.25,
+  conf_alpha = 0.4,
   band_n = 501,
   a = 1/2,
   identity_line = TRUE,
@@ -229,7 +229,7 @@ DKW/Massart confidence band.}
 \item{level}{Confidence level for the DKW band. Defaults to \code{0.95}.}
 
 \item{conf_alpha}{Alpha (transparency) of the confidence ribbon. Defaults
-to \code{0.25}.}
+to \code{0.4}.}
 
 \item{band_n}{Number of points used to draw the DKW ribbon. Defaults to
 \code{501}.}

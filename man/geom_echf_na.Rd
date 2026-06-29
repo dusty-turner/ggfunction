@@ -4,6 +4,7 @@
 \alias{geom_echf_na}
 \alias{StatECHFNA}
 \alias{StatECHFNABand}
+\alias{StatECHFNAInterval}
 \title{Plot a Nelson-Aalen Cumulative Hazard Estimate for Censored Data}
 \usage{
 geom_echf_na(
@@ -21,16 +22,18 @@ geom_echf_na(
   show_vert = NULL,
   conf_int = TRUE,
   level = 0.95,
-  conf_alpha = 0.65,
+  conf_alpha = 0.4,
   conf_geom = c("errorbar", "ribbon", "none"),
-  conf_colour = "grey70",
+  conf_colour = "grey60",
   conf_linewidth = 0.25,
-  conf_width = 0
+  conf_width = NULL
 )
 
 StatECHFNA
 
 StatECHFNABand
+
+StatECHFNAInterval
 }
 \arguments{
 \item{mapping}{Set of aesthetic mappings created by \code{\link[ggplot2:aes]{aes()}}. If specified and
@@ -142,7 +145,7 @@ confidence intervals for the Nelson-Aalen estimate.}
 \item{level}{Confidence level for the intervals. Defaults to \code{0.95}.}
 
 \item{conf_alpha}{Alpha (transparency) of the confidence display. Defaults
-to \code{0.65}.}
+to \code{0.4}.}
 
 \item{conf_geom}{Confidence display to use when \code{conf_int = TRUE}.
 \code{"errorbar"} (the default) draws thin pointwise interval bars at event
@@ -150,13 +153,14 @@ times. \code{"ribbon"} preserves the previous continuous ribbon display.
 \code{"none"} suppresses the confidence display.}
 
 \item{conf_colour}{Colour or fill for the confidence display. Defaults
-to \code{"grey70"}.}
+to \code{"grey60"}.}
 
 \item{conf_linewidth}{Line width for \code{conf_geom = "errorbar"}. Defaults
 to \code{0.25}.}
 
 \item{conf_width}{Width of the error-bar caps when \code{conf_geom = "errorbar"}.
-Defaults to \code{0}.}
+Defaults to \code{NULL}, which uses 2\% of the event-time range. Use \code{0} for
+capless vertical interval bars.}
 }
 \value{
 A ggplot2 layer, or a list of two layers when a confidence display

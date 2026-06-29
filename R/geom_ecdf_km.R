@@ -356,7 +356,7 @@ geom_ecdf_km <- function(
       params      = list(
         na.rm     = na.rm,
         level     = level,
-        fill      = "grey70",
+        fill      = "grey60",
         linewidth = 0,
         alpha     = conf_alpha
       )
@@ -506,13 +506,14 @@ StatCensorMarks <- ggproto("StatCensorMarks", Stat,
 #'   times. `"ribbon"` preserves the previous continuous ribbon display.
 #'   `"none"` suppresses the confidence display.
 #' @param conf_colour Colour or fill for the confidence display. Defaults
-#'   to `"grey70"`.
+#'   to `"grey60"`.
 #' @param conf_linewidth Line width for `conf_geom = "errorbar"`. Defaults
 #'   to `0.25`.
 #' @param conf_alpha Alpha (transparency) of the confidence display. Defaults
-#'   to `0.65`.
+#'   to `0.4`.
 #' @param conf_width Width of the error-bar caps when `conf_geom = "errorbar"`.
-#'   Defaults to `0`.
+#'   Defaults to `NULL`, which uses 2% of the event-time range. Use `0` for
+#'   capless vertical interval bars.
 #'
 #' @section Computed variables:
 #' These are calculated by the `stat` part of the layer and can be accessed
@@ -575,7 +576,7 @@ StatCensorMarks <- ggproto("StatCensorMarks", Stat,
 #'   [geom_ecdf_km()] for the Kaplan-Meier survival curve.
 #'
 #' @name geom_echf_na
-#' @aliases StatECHFNA StatECHFNABand
+#' @aliases StatECHFNA StatECHFNABand StatECHFNAInterval
 #' @export
 geom_echf_na <- function(
     mapping     = NULL,
@@ -592,11 +593,11 @@ geom_echf_na <- function(
     show_vert   = NULL,
     conf_int    = TRUE,
     level       = 0.95,
-    conf_alpha  = 0.65,
+    conf_alpha  = 0.4,
     conf_geom   = c("errorbar", "ribbon", "none"),
-    conf_colour = "grey70",
+    conf_colour = "grey60",
     conf_linewidth = 0.25,
-    conf_width  = 0
+    conf_width  = NULL
 ) {
   conf_geom <- match.arg(conf_geom)
 
@@ -645,27 +646,42 @@ geom_echf_na <- function(
       )
     )
   } else {
+    conf_params <- list(
+      na.rm     = na.rm,
+      level     = level,
+      colour    = conf_colour,
+      linewidth = conf_linewidth,
+      alpha     = conf_alpha
+    )
+    if (!is.null(conf_width)) conf_params$width <- conf_width
+
     conf_layer <- layer(
       data        = data,
       mapping     = aes(ymin = after_stat(ymin), ymax = after_stat(ymax)),
       stat        = StatECHFNAInterval,
-      geom        = GeomErrorbar,
+      geom        = GeomECHFNAErrorbar,
       position    = position,
       show.legend = FALSE,
       inherit.aes = inherit.aes,
-      params      = list(
-        na.rm     = na.rm,
-        level     = level,
-        colour    = conf_colour,
-        linewidth = conf_linewidth,
-        alpha     = conf_alpha,
-        width     = conf_width
-      )
+      params      = conf_params
     )
   }
 
   list(conf_layer, main_layer)
 }
+
+
+GeomECHFNAErrorbar <- ggproto("GeomECHFNAErrorbar", GeomErrorbar,
+  setup_data = function(self, data, params) {
+    width <- params$width
+    if (is.null(width)) width <- .echf_na_interval_width(data$x)
+    data$width <- NULL
+    params$width <- width
+    data <- ggproto_parent(GeomErrorbar, self)$setup_data(data, params)
+    data$width <- width
+    data
+  }
+)
 
 
 #' @rdname geom_echf_na
@@ -695,6 +711,8 @@ StatECHFNABand <- ggproto("StatECHFNABand", Stat,
 )
 
 
+#' @rdname geom_echf_na
+#' @export
 StatECHFNAInterval <- ggproto("StatECHFNAInterval", Stat,
   required_aes = c("x", "status"),
   dropped_aes  = "status",
@@ -716,4 +734,15 @@ StatECHFNAInterval <- ggproto("StatECHFNAInterval", Stat,
     ymax = tab$chf + z * se
   )
   df[is.finite(df$x) & is.finite(df$ymin) & is.finite(df$ymax), , drop = FALSE]
+}
+
+.echf_na_interval_width <- function(x) {
+  x <- x[is.finite(x)]
+  if (length(x) == 0L) return(0)
+  span <- diff(range(x))
+  if (span > 0) {
+    0.02 * span
+  } else {
+    0.02 * max(abs(x[1L]), 1)
+  }
 }

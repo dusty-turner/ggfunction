@@ -173,7 +173,7 @@ geom_ecdf <- function(
     params      = list(
       na.rm     = na.rm,
       level     = level,
-      fill      = "grey70",
+      fill      = "grey60",
       linewidth = 0,
       alpha     = conf_alpha
     )
@@ -346,7 +346,7 @@ geom_eqf <- function(
     params      = list(
       na.rm     = na.rm,
       level     = level,
-      fill      = "grey70",
+      fill      = "grey60",
       linewidth = 0,
       alpha     = conf_alpha
     )
@@ -666,7 +666,7 @@ geom_echf <- function(
       na.rm     = na.rm,
       level     = level,
       band_max  = band_max,
-      fill      = "grey70",
+      fill      = "grey60",
       linewidth = 0,
       alpha     = conf_alpha
     )

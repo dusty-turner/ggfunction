@@ -130,6 +130,16 @@ test_that("geom_echf builds with custom level and conf_alpha", {
   suppressMessages(expect_no_warning(ggplot_build(p)))
 })
 
+test_that("geom_echf ribbon uses neutral geom_smooth-like defaults", {
+  df <- data.frame(x = seq(0.2, 4, length.out = 20))
+  band <- suppressMessages(
+    ggplot_build(ggplot(df, aes(x = x)) + geom_echf(band_max = 5))$data[[1]]
+  )
+
+  expect_equal(unique(band$fill), "grey60")
+  expect_equal(unique(band$alpha), 0.4)
+})
+
 test_that("geom_echf builds with grouped data", {
   df <- data.frame(
     x = c(rexp(20), rexp(20, rate = 0.5)),

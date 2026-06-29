@@ -433,8 +433,8 @@ test_that("geom_echf_na draws interval bars by default", {
   )
   p <- ggplot(df, aes(x = time, status = status)) + geom_echf_na()
 
-  expect_equal(unname(vapply(p$layers, function(layer) class(layer$geom)[1], character(1))),
-               c("GeomErrorbar", "GeomCDFDiscrete"))
+  expect_true(inherits(p$layers[[1]]$geom, "GeomErrorbar"))
+  expect_equal(class(p$layers[[2]]$geom)[1], "GeomCDFDiscrete")
 
   built <- ggplot_build(p)
   interval_data <- built$data[[1]]
@@ -446,6 +446,9 @@ test_that("geom_echf_na draws interval bars by default", {
   expect_true(all(is.finite(interval_data$ymax)))
   expect_true(all(interval_data$ymin >= 0))
   expect_true(all(interval_data$ymin <= interval_data$ymax))
+  expect_equal(unique(interval_data$colour), "grey60")
+  expect_equal(unique(interval_data$alpha), 0.4)
+  expect_equal(unique(interval_data$width), 0.02 * diff(range(tab$time)))
 })
 
 test_that("geom_echf_na interval bar style is configurable", {
@@ -466,6 +469,18 @@ test_that("geom_echf_na interval bar style is configurable", {
   expect_equal(unique(interval_data$linewidth), 0.6)
   expect_equal(unique(interval_data$alpha), 0.4)
   expect_equal(unique(interval_data$width), 0.1)
+})
+
+test_that("geom_echf_na allows explicit capless interval bars", {
+  df <- data.frame(
+    time   = c(1, 2, 3, 4, 5),
+    status = c(1, 1, 0, 1, 1)
+  )
+  p <- ggplot(df, aes(x = time, status = status)) +
+    geom_echf_na(conf_width = 0)
+  interval_data <- ggplot_build(p)$data[[1]]
+
+  expect_equal(unique(interval_data$width), 0)
 })
 
 test_that("geom_echf_na ribbon display remains available", {
@@ -531,6 +546,19 @@ test_that("other empirical confidence displays keep ribbon geoms", {
   expect_equal(class(echf_plot$layers[[1]]$geom)[1], "GeomRibbon")
   expect_true(any(vapply(pp_plot$layers, function(layer) class(layer$geom)[1],
                          character(1)) == "GeomRibbon"))
+})
+
+test_that("geom_ecdf_km ribbon uses neutral geom_smooth-like defaults", {
+  df <- data.frame(
+    time   = c(1, 2, 3, 4, 5),
+    status = c(1, 1, 0, 1, 1)
+  )
+  band <- ggplot_build(
+    ggplot(df, aes(x = time, status = status)) + geom_ecdf_km()
+  )$data[[1]]
+
+  expect_equal(unique(band$fill), "grey60")
+  expect_equal(unique(band$alpha), 0.4)
 })
 
 test_that("geom_echf_na builds with grouped data", {

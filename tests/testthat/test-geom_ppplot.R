@@ -199,6 +199,21 @@ test_that("geom_ppplot and geom_qqplot build without confidence bands", {
   expect_silent(ggplot_build(p_qq))
 })
 
+test_that("diagnostic ribbons use neutral geom_smooth-like defaults", {
+  df <- data.frame(x = c(-1.4, -0.6, -0.2, 0.3, 0.8, 1.6))
+  plots <- list(
+    ggplot(df, aes(x = x)) + geom_ppplot(fun = pnorm),
+    ggplot(df, aes(x = x)) + geom_spplot(fun = pnorm),
+    ggplot(df, aes(x = x)) + geom_qqplot(fun = qnorm)
+  )
+
+  for (p in plots) {
+    band <- ggplot_build(p)$data[[1]]
+    expect_equal(unique(band$fill), "grey60")
+    expect_equal(unique(band$alpha), 0.4)
+  }
+})
+
 test_that("geom_ppplot and geom_qqplot use ggplot2 default colour scale", {
   df <- data.frame(x = rnorm(30))
 
