@@ -14,18 +14,6 @@ knitr::opts_chunk$set(
   message = FALSE
 )
 
-# library("ggplot2")
-# library("ggfunction")
-# library("patchwork")
-#
-# options(
-#   ggplot2.continuous.colour = NULL,
-#   ggplot2.continuous.fill = NULL
-# )
-#
-# theme_set(theme_minimal(base_size = 10))
-# theme_update(panel.grid.minor = element_blank())
-
 
 ## ----motivating, fig.height=3, fig.cap="A motivating example: support-aware normal-density plotting and shading with a simple syntax. The shaded region is computed from the distribution, not by renormalizing over the displayed x range.", echo=TRUE, message=FALSE----
 library("ggplot2"); theme_set(theme_minimal())
@@ -248,12 +236,10 @@ disc_pmf <- function(x) {
 
 pmf_plot <- ggplot() +
   geom_pmf(fun = disc_pmf, support = disc_support, p = 0.8) +
-  # scale_x_continuous(breaks = disc_support) +
   labs(title = "PMF", x = "support", y = "mass")
 
 cdf_plot <- ggplot() +
   geom_cdf_discrete(pmf_fun = disc_pmf, support = disc_support) +
-  # scale_x_continuous(breaks = disc_support) +
   labs(title = "CDF from PMF", x = "support", y = "cumulative mass")
 
 pmf_plot + cdf_plot

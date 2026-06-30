@@ -91,18 +91,6 @@ knitr::opts_chunk$set(
   warning = FALSE,
   message = FALSE
 )
-
-# library("ggplot2")
-# library("ggfunction")
-# library("patchwork")
-#
-# options(
-#   ggplot2.continuous.colour = NULL,
-#   ggplot2.continuous.fill = NULL
-# )
-#
-# theme_set(theme_minimal(base_size = 10))
-# theme_update(panel.grid.minor = element_blank())
 ```
 
 # Introduction
@@ -136,9 +124,8 @@ display window: support governs normalization, integration, inversion, and
 probability shading, while `xlim` and coordinates govern what is visible.
 Together, theoretical curves, empirical summaries, censored-data estimators,
 and diagnostic plots use the same function-as-layer pattern while remaining
-ordinary \CRANpkg{ggplot2} layers. The result is an ergonomic tool that
-thoughtfully resolves a broad array of practical problems encountered in
-statistics and data science when using \CRANpkg{ggplot2}.
+ordinary \CRANpkg{ggplot2} layers. The result is a practical, composable
+interface for common function- and distribution-based graphics in \CRANpkg{ggplot2}.
 
 The package is available from CRAN and can be installed with
 `install.packages("ggfunction")`. Development versions and issue tracking are
@@ -147,8 +134,7 @@ depends on \CRANpkg{ggplot2}; bivariate highest-density regions are delegated
 to \CRANpkg{ggdensity} [@otto2023ggdensity], and vector-field and stream-field
 layers delegate to \CRANpkg{ggvfields} [@ggvfields].
 
-The rest of the article is organized around package design and workflows rather
-than around a complete reference list, which is lengthy and can be seen on the website and learned through vignettes. Section 2 describes the layer design and
+The rest of the article is organized around package design and workflows rather than a complete reference manual; full function-level documentation is available on the package website and in the vignettes. Section 2 describes the layer design and
 dimensional taxonomy. Section 3 presents three core workflows: mathematical
 functions, probability distributions, and empirical or censored data summaries.
 Section 4 summarizes implementation, numerical behavior, validation, and
@@ -354,8 +340,7 @@ set, including all support points tied at the cutoff mass.
 The bivariate probability layers have a narrower scope. `geom_pdf_2d()` draws
 theoretical bivariate densities as HDRs or rasters, and `geom_pmf_2d()` draws
 bivariate mass functions on a lattice. The package does not estimate bivariate
-densities from samples; that task belongs to \CRANpkg{ggdensity}, authored by
-the present authors and following the same general design philosophy. It also does
+densities from samples; that task belongs to \CRANpkg{ggdensity}, which follows the same general design philosophy. It also does
 not provide arbitrary three-dimensional rendering of density surfaces. The goal
 is to display probability content in the same two-dimensional grammar used by
 the rest of \CRANpkg{ggplot2}.
@@ -597,12 +582,10 @@ disc_pmf <- function(x) {
 
 pmf_plot <- ggplot() +
   geom_pmf(fun = disc_pmf, support = disc_support, p = 0.8) +
-  # scale_x_continuous(breaks = disc_support) +
   labs(title = "PMF", x = "support", y = "mass")
 
 cdf_plot <- ggplot() +
   geom_cdf_discrete(pmf_fun = disc_pmf, support = disc_support) +
-  # scale_x_continuous(breaks = disc_support) +
   labs(title = "CDF from PMF", x = "support", y = "cumulative mass")
 
 pmf_plot + cdf_plot
@@ -793,7 +776,7 @@ wrappers around \CRANpkg{ggvfields} vector-field and stream-field layers. Bivari
 PDF HDR displays are thin wrappers around \CRANpkg{ggdensity}'s functional HDR
 geoms; the raster mode for `geom_pdf_2d()` uses the scalar-field machinery
 instead. This delegation keeps \pkg{ggfunction} focused on function interfaces,
-probability semantics, and validation, while not duplicating other work controlled by the authors.
+probability semantics, and validation, while not duplicating other work maintained by the authors.
 
 The layer constructors also provide a predictable data contract. Most users do
 not inspect the built data, but doing so is useful for tests, extensions, and
@@ -1056,8 +1039,9 @@ the plot in context.
 
 \pkg{ggfunction} is closest to tools that bridge statistical or mathematical
 objects and graphics. The compact summaries below describe the closest
-\CRANpkg{ggplot2} extensions and adjacent packages. The first table emphasizes
-function-layer design; the second emphasizes empirical, diagnostic, and
+\CRANpkg{ggplot2} extensions and adjacent packages. Table
+\@ref(tab:related-core) emphasizes function-layer design; Table
+\@ref(tab:related-adjacent) emphasizes empirical, diagnostic, and
 survival displays. The intent is complementarity rather than replacement:
 several packages solve different problems better than \pkg{ggfunction} does.
 
@@ -1166,7 +1150,7 @@ While \pkg{ggfunction} is a large package, it makes a narrow commitment: take a 
 function, evaluate it safely enough for plotting, and return a standard
 \CRANpkg{ggplot2} layer. That commitment covers common teaching and diagnostic
 tasks without asking users to build grids, integrate densities, or hand-code
-confidence ribbons, and in doing so alleviates point points experienced by
+confidence ribbons, and in doing so alleviates pain points experienced by
 countless \CRANpkg{ggplot2} users in a thoughtful way.
 
 Future work could add better support for collections of functions, richer
