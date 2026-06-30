@@ -25,7 +25,7 @@ geom_echf_na(
   conf_alpha = 0.4,
   conf_geom = c("errorbar", "ribbon", "none"),
   conf_colour = "grey60",
-  conf_linewidth = 0.25,
+  conf_linewidth = 0.4,
   conf_width = NULL
 )
 
@@ -148,7 +148,7 @@ confidence intervals for the Nelson-Aalen estimate.}
 to \code{0.4}.}
 
 \item{conf_geom}{Confidence display to use when \code{conf_int = TRUE}.
-\code{"errorbar"} (the default) draws thin pointwise interval bars at event
+\code{"errorbar"} (the default) draws pointwise interval bars at event
 times. \code{"ribbon"} preserves the previous continuous ribbon display.
 \code{"none"} suppresses the confidence display.}
 
@@ -156,7 +156,7 @@ times. \code{"ribbon"} preserves the previous continuous ribbon display.
 to \code{"grey60"}.}
 
 \item{conf_linewidth}{Line width for \code{conf_geom = "errorbar"}. Defaults
-to \code{0.25}.}
+to \code{0.4}.}
 
 \item{conf_width}{Width of the error-bar caps when \code{conf_geom = "errorbar"}.
 Defaults to \code{NULL}, which uses 2\% of the event-time range. Use \code{0} for
@@ -172,7 +172,7 @@ right-censored data and renders it as an increasing step function starting
 at 0, using the same visual conventions as \code{\link[=geom_cdf_discrete]{geom_cdf_discrete()}}. An
 optional pointwise normal interval display (defaulting to 95\%) is drawn at
 event times using the Nelson variance estimator. These pointwise intervals
-are drawn as thin gray error bars by default to distinguish them visually
+are drawn as gray error bars by default to distinguish them visually
 from simultaneous confidence bands.
 }
 \details{

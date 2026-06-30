@@ -14,28 +14,29 @@ knitr::opts_chunk$set(
   message = FALSE
 )
 
-library("ggplot2")
-library("ggfunction")
-library("patchwork")
+# library("ggplot2")
+# library("ggfunction")
+# library("patchwork")
+#
+# options(
+#   ggplot2.continuous.colour = NULL,
+#   ggplot2.continuous.fill = NULL
+# )
+#
+# theme_set(theme_minimal(base_size = 10))
+# theme_update(panel.grid.minor = element_blank())
 
-options(
-  ggplot2.continuous.colour = NULL,
-  ggplot2.continuous.fill = NULL
-)
 
-theme_set(theme_minimal(base_size = 10))
+## ----motivating, fig.height=3, fig.cap="A motivating example: support-aware normal-density plotting and shading with a simple syntax. The shaded region is computed from the distribution, not by renormalizing over the displayed x range.", echo=TRUE, message=FALSE----
+library("ggplot2"); theme_set(theme_minimal())
 theme_update(panel.grid.minor = element_blank())
+library("ggfunction")
 
-
-## ----motivating, fig.height=4.2, fig.cap="A motivating example: support-aware normal-density shading. The shaded upper tail is computed from the distribution, not by renormalizing over the displayed x range."----
 ggplot() +
-  geom_pdf(fun = dnorm, xlim = c(-3.5, 3.5), p = 0.975, lower.tail = FALSE) +
-  labs(x = "x", y = "density")
-
-
-## ----args-example, eval=FALSE, echo=TRUE--------------------------------------
-# ggplot() +
-#   geom_pdf(fun = dnorm, args = list(mean = 5, sd = 2), xlim = c(0, 10))
+  geom_pdf(
+    fun = dnorm, xlim = c(-3.5, 3.5),
+    support = c(-Inf, Inf), p_lower = 0.025, p_upper = 0.975
+  )
 
 
 ## ----taxonomy-table-----------------------------------------------------------
@@ -86,49 +87,15 @@ vector_plot <- ggplot() +
   coord_equal() +
   labs(title = expression(R^2 %->% R^2), x = "x", y = "y")
 
+library("patchwork")
 (scalar_plot + curve_plot) / (scalar_field_plot + vector_plot)
 
 
 ## ----dimension-args-example, eval=FALSE, echo=TRUE----------------------------
-# lissajous <- function(t, a = 3, b = 2, delta = pi / 2) {
-#   c(sin(a * t + delta), sin(b * t))
-# }
+# lissajous <- function(t, a = 3, b = 2, delta = pi / 2) c(sin(a*t + delta), sin(b*t))
 # 
 # ggplot() +
-#   geom_function_1d_2d(
-#     fun = lissajous,
-#     tlim = c(0, 2 * pi),
-#     args = list(a = 5, b = 4)
-#   )
-
-
-## ----vector-stream, fig.width=7, fig.height=4.2, out.width="95%", fig.cap="The same rotation field rendered as local arrows and as streamlines. ggfunction supplies the function interface and delegates vector-field rendering to ggvfields."----
-rotation_field <- function(v) c(-v[2], v[1])
-
-arrow_field <- ggplot() +
-  geom_function_2d_2d(
-    fun = rotation_field,
-    xlim = c(-1, 1),
-    ylim = c(-1, 1),
-    n = 9,
-    type = "vector"
-  ) +
-  coord_equal() +
-  labs(title = "vector field", x = "x", y = "y")
-
-stream_field <- ggplot() +
-  geom_function_2d_2d(
-    fun = rotation_field,
-    xlim = c(-1, 1),
-    ylim = c(-1, 1),
-    n = 9,
-    type = "stream",
-    T = 0.9
-  ) +
-  coord_equal() +
-  labs(title = "stream field", x = "x", y = "y")
-
-arrow_field + stream_field
+#   geom_function_1d_2d(fun = lissajous, tlim = c(0, 2 * pi), args = list(a = 5, b = 4))
 
 
 ## ----conversion-continuous----------------------------------------------------
@@ -142,7 +109,6 @@ conversion_continuous <- data.frame(
     "hazard $h$",
     "cum. hazard $H$"
   ),
-  Native = rep("\\code{fun}", 6),
   "Other sources" = c(
     "$F$, $S$, $Q$, or $h$",
     "$f$, $S$, $Q$, or $h$",
@@ -152,12 +118,12 @@ conversion_continuous <- data.frame(
     "$h$, $F$, $S$, $f$, or $Q$"
   ),
   Route = c(
-    "finite diff., interpolation, or $hS$",
-    "integration or identity",
+    "finite differences, interpolation, or $hS$",
+    "\\code{stats::integrate()} or identity",
     "$1-F$",
-    "root-find $F$",
+    "bracketed \\code{stats::uniroot()} on $F$",
     "$f/S$; $f+F$ accepted",
-    "$-\\log S$ or integrate $h$"
+    "$-\\log S$ or \\code{stats::integrate()} on $h$"
   ),
   check.names = FALSE
 )
@@ -168,7 +134,6 @@ knitr::kable(conversion_continuous, escape = FALSE)
 #| tab.cap: "Discrete distribution-function inputs and conversion routes. Computations are performed over the declared support."
 conversion_discrete <- data.frame(
   Target = c("PMF", "CDF", "survival", "quantile"),
-  Native = c("\\code{fun}", "\\code{fun}", "\\code{fun}", "\\code{fun}"),
   "Other sources" = c(
     "CDF or survival",
     "PMF or survival",
@@ -177,38 +142,43 @@ conversion_discrete <- data.frame(
   ),
   Route = c(
     "support differences",
-    "cumulative sums",
-    "$1-F$ on support",
-    "generalized inverse"
+    "cumulative sums over sorted support",
+    "$1-F$ on sorted support",
+    "generalized inverse over sorted support"
   ),
   check.names = FALSE
 )
 knitr::kable(conversion_discrete, escape = FALSE)
 
 
-## ----gamma-views, fig.width=7, fig.height=5.8, out.width="95%", fig.cap="One gamma distribution viewed through four related functions. The PDF panel uses a native density; the CDF and survival panels derive from the density; the hazard panel uses the documented PDF + CDF bundle."----
+## ----gamma-views, fig.width=7, fig.height=5.8, out.width="95%", fig.cap="One gamma distribution viewed through four related functions. The PDF panel uses a native density; the CDF and survival panels derive from the density; the hazard panel uses the documented PDF + CDF bundle.", echo=TRUE----
 gamma_args <- list(shape = 2, scale = 1.5)
+Sx <- c(0, Inf)
+gx <- c(0, 10)
+hx <- c(0.01, 10)
 
 gamma_pdf <- ggplot() +
-  geom_pdf(fun = dgamma, args = gamma_args, xlim = c(0, 10), support = c(0, Inf)) +
+  geom_pdf(fun = dgamma, args = gamma_args, xlim = gx, support = Sx) +
   labs(title = "PDF", x = "x", y = "f(x)")
 
 gamma_cdf <- ggplot() +
-  geom_cdf(pdf_fun = dgamma, args = gamma_args, xlim = c(0, 10), support = c(0, Inf)) +
+  geom_cdf(pdf_fun = dgamma, args = gamma_args, xlim = gx, support = Sx) +
   labs(title = "CDF from PDF", x = "x", y = "F(x)")
 
 gamma_surv <- ggplot() +
-  geom_survival(pdf_fun = dgamma, args = gamma_args, xlim = c(0, 10), support = c(0, Inf)) +
+  geom_survival(pdf_fun = dgamma, args = gamma_args, xlim = gx, support = Sx) +
   labs(title = "Survival from PDF", x = "x", y = "S(x)")
 
 gamma_hazard <- ggplot() +
-  geom_hf(pdf_fun = dgamma, cdf_fun = pgamma, args = gamma_args, xlim = c(0.01, 10), support = c(0, Inf)) +
+  geom_hf(pdf_fun = dgamma, cdf_fun = pgamma,
+          args = gamma_args, xlim = hx, support = Sx) +
   labs(title = "Hazard from PDF + CDF", x = "x", y = "h(x)")
 
+library("patchwork")
 (gamma_pdf + gamma_cdf) / (gamma_surv + gamma_hazard)
 
 
-## ----prob-shading, fig.width=7, fig.height=4.2, out.width="95%", fig.cap="Three probability-shading requests for the standard normal distribution: a lower-tail probability, a central interval, and two tails outside a central interval."----
+## ----prob-shading, fig.width=7, fig.height=3, out.width="95%", fig.cap="Three probability-shading requests for the standard normal distribution: a lower-tail probability, a central interval, and two tails outside a central interval."----
 base_pdf <- function(...) {
   ggplot() +
     geom_pdf(fun = dnorm, xlim = c(-3.5, 3.5), ...) +
@@ -223,7 +193,7 @@ p_outside <- base_pdf(p_lower = 0.025, p_upper = 0.975, shade_outside = TRUE) +
 p_lower + p_central + p_outside
 
 
-## ----hdr-examples, fig.width=7, fig.height=4.2, out.width="95%", fig.cap="Approximate highest density regions. Left: a disconnected 80% grid-based HDR for a bimodal univariate density. Right: bivariate normal HDRs delegated to ggdensity."----
+## ----hdr-examples, fig.width=7, fig.height=3, out.width="95%", fig.cap="Approximate highest density regions. Left: a disconnected 80% grid-based HDR for a bimodal univariate density. Right: bivariate normal HDRs delegated to ggdensity."----
 bimodal <- function(x) {
   0.6 * dnorm(x, mean = -2, sd = 0.6) +
     0.4 * dnorm(x, mean = 2, sd = 1.2)
@@ -247,7 +217,7 @@ hdr_2d <- ggplot() +
 hdr_1d + hdr_2d
 
 
-## ----pmf-2d-workflow, fig.width=7, fig.height=4.2, out.width="95%", fig.cap="A bivariate probability mass function displayed as a balloon plot and as a tile heatmap."----
+## ----pmf-2d-workflow, fig.width=7, fig.height=3, out.width="95%", fig.cap="A bivariate probability mass function displayed as a balloon plot and as a tile heatmap."----
 dbinom2 <- function(v, sizes = c(10, 10), probs = c(0.35, 0.65)) {
   dbinom(v[1], sizes[1], probs[1]) * dbinom(v[2], sizes[2], probs[2])
 }
@@ -266,7 +236,7 @@ pmf2_tile <- ggplot() +
 pmf2_point + pmf2_tile
 
 
-## ----discrete-support, fig.width=7, fig.height=4.2, out.width="95%", fig.cap="A discrete distribution on a nonconsecutive support. The PMF layer shades the lower cumulative region; the discrete CDF is derived from the same PMF by cumulative summation over the declared support."----
+## ----discrete-support, fig.width=7, fig.height=3, out.width="95%", fig.cap="A discrete distribution on a nonconsecutive support. The PMF layer shades the lower cumulative region; the discrete CDF is derived from the same PMF by cumulative summation over the declared support."----
 disc_support <- c(0, 1, 3, 4, 8)
 disc_mass <- c(0.12, 0.28, 0.20, 0.25, 0.15)
 disc_pmf <- function(x) {
@@ -278,18 +248,18 @@ disc_pmf <- function(x) {
 
 pmf_plot <- ggplot() +
   geom_pmf(fun = disc_pmf, support = disc_support, p = 0.8) +
-  scale_x_continuous(breaks = disc_support) +
+  # scale_x_continuous(breaks = disc_support) +
   labs(title = "PMF", x = "support", y = "mass")
 
 cdf_plot <- ggplot() +
   geom_cdf_discrete(pmf_fun = disc_pmf, support = disc_support) +
-  scale_x_continuous(breaks = disc_support) +
+  # scale_x_continuous(breaks = disc_support) +
   labs(title = "CDF from PMF", x = "support", y = "cumulative mass")
 
 pmf_plot + cdf_plot
 
 
-## ----ecdf-workflow, fig.width=6, fig.height=4.2, fig.cap="Grouped ECDFs with DKW/Massart confidence bands. Each group receives a separate band computed from its own sample size."----
+## ----ecdf-workflow, fig.width=6, fig.height=3, fig.cap="Grouped ECDFs with DKW/Massart confidence bands. Each group receives a separate band computed from its own sample size."----
 set.seed(3101)
 ecdf_data <- data.frame(
   x = c(rnorm(80, 0, 1), rnorm(120, 1.2, 1)),
@@ -301,15 +271,23 @@ ggplot(ecdf_data, aes(x = x, colour = group, fill = group)) +
   labs(x = "x", y = "empirical CDF", colour = "group", fill = "group")
 
 
-## ----echf-complete, fig.width=6, fig.height=4.2, fig.cap="Complete-data empirical cumulative hazard with a transformed DKW band and the theoretical cumulative hazard for an exponential model. The displayed upper edge is clipped at the top of the plotting window where the transformed upper DKW bound saturates."----
+## ----echf-complete, fig.width=7, fig.height=3, out.width="95%", fig.cap="The same complete exponential sample shown as an ECDF and as an empirical cumulative hazard. The ECDF is curved under an exponential model, while the cumulative-hazard target is linear. The displayed ECHF upper band is clipped where the transformed upper DKW bound saturates."----
 set.seed(3104)
 haz_data <- data.frame(x = rexp(100, rate = 0.6))
+haz_xlim <- c(0, max(haz_data$x))
 
-ggplot(haz_data, aes(x = x)) +
+cdf_complete <- ggplot(haz_data, aes(x = x)) +
+  geom_ecdf() +
+  geom_cdf(fun = function(x) pexp(x, rate = 0.6), xlim = haz_xlim, color = "#D55E00") +
+  labs(title = "ECDF", x = "x", y = "distribution function")
+
+echf_complete <- ggplot(haz_data, aes(x = x)) +
   geom_echf(band_max = 6) +
-  geom_chf(fun = function(x) 0.6 * x, xlim = c(0, max(haz_data$x)), color = "#D55E00") +
+  geom_chf(fun = function(x) 0.6 * x, xlim = haz_xlim, color = "#D55E00") +
   coord_cartesian(ylim = c(0, 6)) +
-  labs(x = "x", y = "cumulative hazard")
+  labs(title = "ECHF", x = "x", y = "cumulative hazard")
+
+cdf_complete + echf_complete
 
 
 ## ----diagnostic-workflow, fig.width=7, fig.height=4.6, out.width="95%", fig.cap="QQ and stabilized probability plots for one sample against a fully specified standard normal null. Fitted-null diagnostics use the same visual band but require separate calibration for formal testing."----
@@ -416,8 +394,13 @@ validation_context <- accuracy_results[1L, c(
 
 ## ----technical-accuracy-------------------------------------------------------
 #| tab.cap: "Representative numerical conversion accuracy from saved validation output. Errors are maximum absolute differences on the fixed grids described in the text."
+format_route <- function(x) {
+  vapply(strsplit(x, "->", fixed = TRUE), function(parts) {
+    paste(toupper(parts), collapse = " $\\to$ ")
+  }, character(1))
+}
 accuracy_table <- data.frame(
-  Route = accuracy_results$route,
+  Route = format_route(accuracy_results$route),
   Distribution = accuracy_results$distribution,
   Grid = accuracy_results$n_grid,
   "Max error" = formatC(accuracy_results$max_abs_error, format = "e", digits = 2),
@@ -447,21 +430,20 @@ related_core <- data.frame(
     "\\CRANpkg{metR}",
     "\\CRANpkg{ggformula}/\\CRANpkg{mosaicCalc}"
   ),
-  Focus = c(
-    "function curves",
-    "vector/stream fields",
-    "gridded fields",
-    "teaching front ends"
-  ),
   Relationship = c(
-    "native univariate baseline",
-    "delegated field rendering",
-    "stronger for precomputed fields",
-    "formula/calculus pedagogy"
+    "native univariate function-curve baseline",
+    "delegated vector-field and stream-field rendering",
+    "stronger support for precomputed gridded fields",
+    "formula-oriented front ends for calculus and teaching"
   ),
   check.names = FALSE
 )
-knitr::kable(related_core, escape = FALSE)
+knitr::kable(
+  related_core,
+  escape = FALSE,
+  longtable = TRUE,
+  caption = "Closest function-layer and field-display packages."
+)
 
 
 ## ----related-adjacent---------------------------------------------------------
@@ -473,21 +455,19 @@ related_adjacent <- data.frame(
     "\\CRANpkg{qqplotr}",
     "\\CRANpkg{survminer}/\\CRANpkg{ggsurvfit}"
   ),
-  Focus = c(
-    "uncertainty",
-    "biv. HDRs",
-    "HDR/CDE",
-    "Q-Q/P-P diagnostics",
-    "survival figures"
-  ),
   Relationship = c(
     "broader distribution displays",
-    "HDR engine used here",
+    "bivariate HDR engine used here",
     "HDR objects outside layer taxonomy",
     "wider band/detrend menu",
     "risk-table/test workflows"
   ),
   check.names = FALSE
 )
-knitr::kable(related_adjacent, escape = FALSE)
+knitr::kable(
+  related_adjacent,
+  escape = FALSE,
+  longtable = TRUE,
+  caption = "Adjacent distribution, diagnostic, and survival-display packages."
+)
 

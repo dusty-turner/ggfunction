@@ -33,8 +33,8 @@
   renormalized over `xlim`.
 * Added `hdr_xlim` for univariate PDF HDR shading and `hdr_xlim`/`hdr_ylim`
   controls for bivariate HDR delegation.
-* `geom_echf_na()` draws pointwise Nelson-Aalen confidence intervals as thin
-  gray error bars at event times by default (`conf_geom = "errorbar"`),
+* `geom_echf_na()` draws pointwise Nelson-Aalen confidence intervals as gray
+  error bars at event times by default (`conf_geom = "errorbar"`),
   visually distinguishing them from the simultaneous Kaplan-Meier ribbon band;
   `conf_geom = "ribbon"` and `conf_geom = "none"` remain available when users
   want a ribbon or no confidence display.

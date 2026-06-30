@@ -1,4 +1,4 @@
-\begin{thebibliography}{22}
+\begin{thebibliography}{27}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -33,6 +33,12 @@ E.~Campitelli.
 M.~Greenwood.
 \newblock \emph{A Report on the Natural Duration of Cancer}.
 \newblock Number~33 in Reports on Public Health and Medical Subjects. His Majesty's Stationery Office, London, 1926.
+
+\bibitem[Hester and Vaughan(2025)]{bench}
+J.~Hester and D.~Vaughan.
+\newblock \emph{{bench}: High Precision Timing of {R} Expressions}, 2025.
+\newblock URL \url{https://CRAN.R-project.org/package=bench}.
+\newblock R package version 1.1.4.
 
 \bibitem[Hyndman et~al.(2024)Hyndman, Einbeck, and Wand]{hdrcde}
 R.~J. Hyndman, J.~Einbeck, and M.~P. Wand.
@@ -70,6 +76,12 @@ M.~Kay.
 \newblock \emph{IEEE Transactions on Visualization and Computer Graphics}, 30\penalty0 (1):\penalty0 983--993, 2024.
 \newblock \doi{10.1109/TVCG.2023.3327195}.
 
+\bibitem[Lilliefors(1967)]{lilliefors1967}
+H.~W. Lilliefors.
+\newblock On the {Kolmogorov-Smirnov} test for normality with mean and variance unknown.
+\newblock \emph{Journal of the American Statistical Association}, 62\penalty0 (318):\penalty0 399--402, 1967.
+\newblock \doi{10.1080/01621459.1967.10482916}.
+
 \bibitem[Massart(1990)]{massart1990tight}
 P.~Massart.
 \newblock The tight constant in the {Dvoretzky--Kiefer--Wolfowitz} inequality.
@@ -101,11 +113,23 @@ J.~Otto and D.~Kahle.
 \newblock \emph{The R Journal}, 15\penalty0 (2):\penalty0 220--236, 2023.
 \newblock \doi{10.32614/RJ-2023-048}.
 
+\bibitem[Pedersen(2025)]{patchwork}
+T.~L. Pedersen.
+\newblock \emph{{patchwork}: The Composer of Plots}, 2025.
+\newblock URL \url{https://CRAN.R-project.org/package=patchwork}.
+\newblock R package version 1.3.2.
+
 \bibitem[Pruim et~al.(2017)Pruim, Kaplan, and Horton]{pruim2017mosaic}
 R.~Pruim, D.~T. Kaplan, and N.~J. Horton.
 \newblock The mosaic package: Helping students to ``think with data'' using \proglang{R}.
 \newblock \emph{The R Journal}, 9\penalty0 (1):\penalty0 77--102, 2017.
 \newblock \doi{10.32614/RJ-2017-024}.
+
+\bibitem[{\proglang{R} Core Team}(2026)]{R}
+{\proglang{R} Core Team}.
+\newblock \emph{\proglang{R}: A Language and Environment for Statistical Computing}.
+\newblock \proglang{R} Foundation for Statistical Computing, Vienna, Austria, 2026.
+\newblock URL \url{https://www.R-project.org/}.
 
 \bibitem[Sjoberg et~al.(2025)Sjoberg, Baillie, Fruechtenicht, Haesendonckx, and Treis]{ggsurvfit}
 D.~D. Sjoberg, M.~Baillie, C.~Fruechtenicht, S.~Haesendonckx, and T.~Treis.
@@ -131,6 +155,12 @@ H.~Wickham.
 \newblock Springer-Verlag New York, 2nd edition, 2016.
 \newblock ISBN 978-3-319-24277-4.
 \newblock URL \url{https://ggplot2-book.org/}.
+
+\bibitem[Wickham et~al.(2026)Wickham, Danenberg, Cs{\'a}rdi, and Eugster]{roxygen2}
+H.~Wickham, P.~Danenberg, G.~Cs{\'a}rdi, and M.~Eugster.
+\newblock \emph{{roxygen2}: In-Line Documentation for {R}}, 2026.
+\newblock URL \url{https://CRAN.R-project.org/package=roxygen2}.
+\newblock R package version 8.0.0.
 
 \bibitem[Wilkinson(2005)]{wilkinson2005grammar}
 L.~Wilkinson.

@@ -3,92 +3,106 @@
 \providecommand\HyField@AuxAddToFields[1]{}
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \bibstyle{abbrvnat}
+\citation{R}
 \citation{wickham2010layered,wickham2016ggplot2}
 \citation{otto2023ggdensity}
 \citation{ggvfields}
 \@writefile{toc}{\contentsline {chapter}{\numberline {1}ggfunction: Functions and Distributions in ggplot2}{1}{section*.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {2.1}Introduction}{1}{section.2.1}\protected@file@percent }
 \newlabel{introduction}{{2.1}{1}{Introduction}{section.2.1}{}}
+\@writefile{brf}{\backcite{R}{{1}{2.1}{section.2.1}}}
 \@writefile{brf}{\backcite{wickham2010layered}{{1}{2.1}{section.2.1}}}
 \@writefile{brf}{\backcite{wickham2016ggplot2}{{1}{2.1}{section.2.1}}}
-\@writefile{brf}{\backcite{otto2023ggdensity}{{1}{2.1}{figure.caption.2}}}
-\@writefile{brf}{\backcite{ggvfields}{{1}{2.1}{figure.caption.2}}}
+\@writefile{brf}{\backcite{otto2023ggdensity}{{1}{2.1}{section.2.1}}}
+\@writefile{brf}{\backcite{ggvfields}{{1}{2.1}{section.2.1}}}
 \@writefile{toc}{\contentsline {section}{\numberline {2.2}Design}{1}{section.2.2}\protected@file@percent }
 \newlabel{design}{{2.2}{1}{Design}{section.2.2}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2.1}Functions as layer-level objects}{1}{subsection.2.2.1}\protected@file@percent }
 \newlabel{functions-as-layer-level-objects}{{2.2.1}{1}{Functions as layer-level objects}{subsection.2.2.1}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces A motivating example: support-aware normal-density shading. The shaded upper tail is computed from the distribution, not by renormalizing over the displayed x range.}}{2}{figure.caption.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces A motivating example: support-aware normal-density plotting and shading with a simple syntax. The shaded region is computed from the distribution, not by renormalizing over the displayed x range.}}{2}{figure.caption.2}\protected@file@percent }
 \providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
-\newlabel{fig:motivating}{{1}{2}{A motivating example: support-aware normal-density shading. The shaded upper tail is computed from the distribution, not by renormalizing over the displayed x range}{figure.caption.2}{}}
+\newlabel{fig:motivating}{{1}{2}{A motivating example: support-aware normal-density plotting and shading with a simple syntax. The shaded region is computed from the distribution, not by renormalizing over the displayed x range}{figure.caption.2}{}}
 \@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Dimensional taxonomy for mathematical-function layers.}}{2}{table.caption.3}\protected@file@percent }
 \newlabel{tab:taxonomy-table}{{1}{2}{Dimensional taxonomy for mathematical-function layers}{table.caption.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2.2}Dimensional taxonomy}{2}{subsection.2.2.2}\protected@file@percent }
 \newlabel{dimensional-taxonomy}{{2.2.2}{2}{Dimensional taxonomy}{subsection.2.2.2}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {2.3}Three workflows}{2}{section.2.3}\protected@file@percent }
-\newlabel{three-workflows}{{2.3}{2}{Three workflows}{section.2.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Mathematical functions by dimension}{2}{subsection.2.3.1}\protected@file@percent }
-\newlabel{mathematical-functions-by-dimension}{{2.3.1}{2}{Mathematical functions by dimension}{subsection.2.3.1}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces The four mathematical-function signatures supported by the ggfunction dimensional taxonomy: scalar functions, parametric curves, scalar fields, and vector fields.}}{3}{figure.caption.4}\protected@file@percent }
 \newlabel{fig:taxonomy}{{2}{3}{The four mathematical-function signatures supported by the ggfunction dimensional taxonomy: scalar functions, parametric curves, scalar fields, and vector fields}{figure.caption.4}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces The same rotation field rendered as local arrows and as streamlines. ggfunction supplies the function interface and delegates vector-field rendering to ggvfields.}}{4}{figure.caption.5}\protected@file@percent }
-\newlabel{fig:vector-stream}{{3}{4}{The same rotation field rendered as local arrows and as streamlines. ggfunction supplies the function interface and delegates vector-field rendering to ggvfields}{figure.caption.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {2.3}Three workflows}{3}{section.2.3}\protected@file@percent }
+\newlabel{three-workflows}{{2.3}{3}{Three workflows}{section.2.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.1}Mathematical functions by dimension}{3}{subsection.2.3.1}\protected@file@percent }
+\newlabel{mathematical-functions-by-dimension}{{2.3.1}{3}{Mathematical functions by dimension}{subsection.2.3.1}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Continuous distribution-function inputs and conversion routes. Native inputs are used directly; derived routes may require numerical integration, finite differences, interpolation, or root finding.}}{4}{table.caption.5}\protected@file@percent }
+\newlabel{tab:conversion-continuous}{{2}{4}{Continuous distribution-function inputs and conversion routes. Native inputs are used directly; derived routes may require numerical integration, finite differences, interpolation, or root finding}{table.caption.5}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.3.2}Probability distributions}{4}{subsection.2.3.2}\protected@file@percent }
 \newlabel{probability-distributions}{{2.3.2}{4}{Probability distributions}{subsection.2.3.2}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Continuous distribution-function inputs and conversion routes. Native inputs are used directly; derived routes may require numerical integration, finite differences, interpolation, or root finding.}}{5}{table.caption.6}\protected@file@percent }
-\newlabel{tab:conversion-continuous}{{2}{5}{Continuous distribution-function inputs and conversion routes. Native inputs are used directly; derived routes may require numerical integration, finite differences, interpolation, or root finding}{table.caption.6}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Discrete distribution-function inputs and conversion routes. Computations are performed over the declared support.}}{5}{table.caption.7}\protected@file@percent }
-\newlabel{tab:conversion-discrete}{{3}{5}{Discrete distribution-function inputs and conversion routes. Computations are performed over the declared support}{table.caption.7}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces One gamma distribution viewed through four related functions. The PDF panel uses a native density; the CDF and survival panels derive from the density; the hazard panel uses the documented PDF + CDF bundle.}}{6}{figure.caption.8}\protected@file@percent }
-\newlabel{fig:gamma-views}{{4}{6}{One gamma distribution viewed through four related functions. The PDF panel uses a native density; the CDF and survival panels derive from the density; the hazard panel uses the documented PDF + CDF bundle}{figure.caption.8}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Three probability-shading requests for the standard normal distribution: a lower-tail probability, a central interval, and two tails outside a central interval.}}{6}{figure.caption.9}\protected@file@percent }
-\newlabel{fig:prob-shading}{{5}{6}{Three probability-shading requests for the standard normal distribution: a lower-tail probability, a central interval, and two tails outside a central interval}{figure.caption.9}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Discrete distribution-function inputs and conversion routes. Computations are performed over the declared support.}}{5}{table.caption.6}\protected@file@percent }
+\newlabel{tab:conversion-discrete}{{3}{5}{Discrete distribution-function inputs and conversion routes. Computations are performed over the declared support}{table.caption.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces One gamma distribution viewed through four related functions. The PDF panel uses a native density; the CDF and survival panels derive from the density; the hazard panel uses the documented PDF + CDF bundle.}}{6}{figure.caption.7}\protected@file@percent }
+\newlabel{fig:gamma-views}{{3}{6}{One gamma distribution viewed through four related functions. The PDF panel uses a native density; the CDF and survival panels derive from the density; the hazard panel uses the documented PDF + CDF bundle}{figure.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Three probability-shading requests for the standard normal distribution: a lower-tail probability, a central interval, and two tails outside a central interval.}}{7}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:prob-shading}{{4}{7}{Three probability-shading requests for the standard normal distribution: a lower-tail probability, a central interval, and two tails outside a central interval}{figure.caption.8}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Approximate highest density regions. Left: a disconnected 80\% grid-based HDR for a bimodal univariate density. Right: bivariate normal HDRs delegated to ggdensity.}}{7}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:hdr-examples}{{5}{7}{Approximate highest density regions. Left: a disconnected 80\% grid-based HDR for a bimodal univariate density. Right: bivariate normal HDRs delegated to ggdensity}{figure.caption.9}{}}
 \citation{massart1990tight}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces A bivariate probability mass function displayed as a balloon plot and as a tile heatmap.}}{8}{figure.caption.10}\protected@file@percent }
+\newlabel{fig:pmf-2d-workflow}{{6}{8}{A bivariate probability mass function displayed as a balloon plot and as a tile heatmap}{figure.caption.10}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces A discrete distribution on a nonconsecutive support. The PMF layer shades the lower cumulative region; the discrete CDF is derived from the same PMF by cumulative summation over the declared support.}}{8}{figure.caption.11}\protected@file@percent }
+\newlabel{fig:discrete-support}{{7}{8}{A discrete distribution on a nonconsecutive support. The PMF layer shades the lower cumulative region; the discrete CDF is derived from the same PMF by cumulative summation over the declared support}{figure.caption.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.3}Empirical distributions and censored summaries}{8}{subsection.2.3.3}\protected@file@percent }
+\newlabel{empirical-distributions-and-censored-summaries}{{2.3.3}{8}{Empirical distributions and censored summaries}{subsection.2.3.3}{}}
+\@writefile{brf}{\backcite{massart1990tight}{{8}{2.3.3}{subsection.2.3.3}}}
 \citation{michael1983stabilized}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Approximate highest density regions. Left: a disconnected 80\% grid-based HDR for a bimodal univariate density. Right: bivariate normal HDRs delegated to ggdensity.}}{7}{figure.caption.10}\protected@file@percent }
-\newlabel{fig:hdr-examples}{{6}{7}{Approximate highest density regions. Left: a disconnected 80\% grid-based HDR for a bimodal univariate density. Right: bivariate normal HDRs delegated to ggdensity}{figure.caption.10}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3.3}Empirical distributions and censored summaries}{7}{subsection.2.3.3}\protected@file@percent }
-\newlabel{empirical-distributions-and-censored-summaries}{{2.3.3}{7}{Empirical distributions and censored summaries}{subsection.2.3.3}{}}
-\@writefile{brf}{\backcite{massart1990tight}{{7}{2.3.3}{subsection.2.3.3}}}
-\@writefile{brf}{\backcite{michael1983stabilized}{{7}{2.3.3}{figure.caption.14}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces A bivariate probability mass function displayed as a balloon plot and as a tile heatmap.}}{8}{figure.caption.11}\protected@file@percent }
-\newlabel{fig:pmf-2d-workflow}{{7}{8}{A bivariate probability mass function displayed as a balloon plot and as a tile heatmap}{figure.caption.11}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces A discrete distribution on a nonconsecutive support. The PMF layer shades the lower cumulative region; the discrete CDF is derived from the same PMF by cumulative summation over the declared support.}}{8}{figure.caption.12}\protected@file@percent }
-\newlabel{fig:discrete-support}{{8}{8}{A discrete distribution on a nonconsecutive support. The PMF layer shades the lower cumulative region; the discrete CDF is derived from the same PMF by cumulative summation over the declared support}{figure.caption.12}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Grouped ECDFs with DKW/Massart confidence bands. Each group receives a separate band computed from its own sample size.}}{9}{figure.caption.13}\protected@file@percent }
-\newlabel{fig:ecdf-workflow}{{9}{9}{Grouped ECDFs with DKW/Massart confidence bands. Each group receives a separate band computed from its own sample size}{figure.caption.13}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Complete-data empirical cumulative hazard with a transformed DKW band and the theoretical cumulative hazard for an exponential model. The displayed upper edge is clipped at the top of the plotting window where the transformed upper DKW bound saturates.}}{9}{figure.caption.14}\protected@file@percent }
-\newlabel{fig:echf-complete}{{10}{9}{Complete-data empirical cumulative hazard with a transformed DKW band and the theoretical cumulative hazard for an exponential model. The displayed upper edge is clipped at the top of the plotting window where the transformed upper DKW bound saturates}{figure.caption.14}{}}
+\citation{lilliefors1967}
 \citation{kaplan1958nonparametric}
 \citation{greenwood1926natural}
 \citation{nair1984confidence}
 \citation{nelson1972theory,aalen1978nonparametric}
-\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces QQ and stabilized probability plots for one sample against a fully specified standard normal null. Fitted-null diagnostics use the same visual band but require separate calibration for formal testing.}}{10}{figure.caption.15}\protected@file@percent }
-\newlabel{fig:diagnostic-workflow}{{11}{10}{QQ and stabilized probability plots for one sample against a fully specified standard normal null. Fitted-null diagnostics use the same visual band but require separate calibration for formal testing}{figure.caption.15}{}}
-\@writefile{brf}{\backcite{kaplan1958nonparametric}{{10}{2.3.3}{figure.caption.15}}}
-\@writefile{brf}{\backcite{greenwood1926natural}{{10}{2.3.3}{figure.caption.15}}}
-\@writefile{brf}{\backcite{nair1984confidence}{{10}{2.3.3}{figure.caption.15}}}
-\@writefile{brf}{\backcite{nelson1972theory}{{10}{2.3.3}{figure.caption.15}}}
-\@writefile{brf}{\backcite{aalen1978nonparametric}{{10}{2.3.3}{figure.caption.15}}}
-\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Censored-data summaries from the same simulated sample. The smooth orange curves show the generating Exp(0.45) survival and cumulative-hazard targets. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with pointwise normal intervals.}}{11}{figure.caption.16}\protected@file@percent }
-\newlabel{fig:survival-workflow}{{12}{11}{Censored-data summaries from the same simulated sample. The smooth orange curves show the generating Exp(0.45) survival and cumulative-hazard targets. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with pointwise normal intervals}{figure.caption.16}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Grouped ECDFs with DKW/Massart confidence bands. Each group receives a separate band computed from its own sample size.}}{9}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:ecdf-workflow}{{8}{9}{Grouped ECDFs with DKW/Massart confidence bands. Each group receives a separate band computed from its own sample size}{figure.caption.12}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces The same complete exponential sample shown as an ECDF and as an empirical cumulative hazard. The ECDF is curved under an exponential model, while the cumulative-hazard target is linear. The displayed ECHF upper band is clipped where the transformed upper DKW bound saturates.}}{9}{figure.caption.13}\protected@file@percent }
+\newlabel{fig:echf-complete}{{9}{9}{The same complete exponential sample shown as an ECDF and as an empirical cumulative hazard. The ECDF is curved under an exponential model, while the cumulative-hazard target is linear. The displayed ECHF upper band is clipped where the transformed upper DKW bound saturates}{figure.caption.13}{}}
+\@writefile{brf}{\backcite{michael1983stabilized}{{9}{2.3.3}{figure.caption.13}}}
+\@writefile{brf}{\backcite{lilliefors1967}{{9}{2.3.3}{figure.caption.13}}}
+\@writefile{brf}{\backcite{kaplan1958nonparametric}{{9}{2.3.3}{figure.caption.14}}}
+\@writefile{brf}{\backcite{greenwood1926natural}{{9}{2.3.3}{figure.caption.14}}}
+\@writefile{brf}{\backcite{nair1984confidence}{{9}{2.3.3}{figure.caption.14}}}
+\@writefile{brf}{\backcite{nelson1972theory}{{9}{2.3.3}{figure.caption.14}}}
+\@writefile{brf}{\backcite{aalen1978nonparametric}{{9}{2.3.3}{figure.caption.14}}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces QQ and stabilized probability plots for one sample against a fully specified standard normal null. Fitted-null diagnostics use the same visual band but require separate calibration for formal testing.}}{10}{figure.caption.14}\protected@file@percent }
+\newlabel{fig:diagnostic-workflow}{{10}{10}{QQ and stabilized probability plots for one sample against a fully specified standard normal null. Fitted-null diagnostics use the same visual band but require separate calibration for formal testing}{figure.caption.14}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Censored-data summaries from the same simulated sample. The smooth orange curves show the generating Exp(0.45) survival and cumulative-hazard targets. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with pointwise normal intervals.}}{11}{figure.caption.15}\protected@file@percent }
+\newlabel{fig:survival-workflow}{{11}{11}{Censored-data summaries from the same simulated sample. The smooth orange curves show the generating Exp(0.45) survival and cumulative-hazard targets. Left: Kaplan--Meier survival with censor marks and a simultaneous Greenwood/Nair band. Right: Nelson--Aalen cumulative hazard with pointwise normal intervals}{figure.caption.15}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Representative computed variables returned by ggfunction stats.}}{11}{table.caption.16}\protected@file@percent }
+\newlabel{tab:data-contract}{{4}{11}{Representative computed variables returned by ggfunction stats}{table.caption.16}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {2.4}Implementation, numerical behavior, and performance}{11}{section.2.4}\protected@file@percent }
 \newlabel{implementation-numerical-behavior-and-performance}{{2.4}{11}{Implementation, numerical behavior, and performance}{section.2.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4.1}ggplot2 stat-geom architecture}{11}{subsection.2.4.1}\protected@file@percent }
 \newlabel{ggplot2-stat-geom-architecture}{{2.4.1}{11}{ggplot2 stat-geom architecture}{subsection.2.4.1}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Representative computed variables returned by ggfunction stats.}}{12}{table.caption.17}\protected@file@percent }
-\newlabel{tab:data-contract}{{4}{12}{Representative computed variables returned by ggfunction stats}{table.caption.17}{}}
+\citation{bench}
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Representative numerical conversion accuracy from saved validation output. Errors are maximum absolute differences on the fixed grids described in the text.}}{12}{table.caption.17}\protected@file@percent }
+\newlabel{tab:technical-accuracy}{{5}{12}{Representative numerical conversion accuracy from saved validation output. Errors are maximum absolute differences on the fixed grids described in the text}{table.caption.17}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4.2}Numerical conversions}{12}{subsection.2.4.2}\protected@file@percent }
 \newlabel{numerical-conversions}{{2.4.2}{12}{Numerical conversions}{subsection.2.4.2}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.3}Performance and scaling}{12}{subsection.2.4.3}\protected@file@percent }
-\newlabel{performance-and-scaling}{{2.4.3}{12}{Performance and scaling}{subsection.2.4.3}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Representative numerical conversion accuracy from saved validation output. Errors are maximum absolute differences on the fixed grids described in the text.}}{13}{table.caption.18}\protected@file@percent }
-\newlabel{tab:technical-accuracy}{{5}{13}{Representative numerical conversion accuracy from saved validation output. Errors are maximum absolute differences on the fixed grids described in the text}{table.caption.18}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Representative local performance checks from saved benchmark output. Timings are medians over 10 iterations of plot construction, not full device rendering.}}{13}{table.caption.19}\protected@file@percent }
-\newlabel{tab:technical-performance}{{6}{13}{Representative local performance checks from saved benchmark output. Timings are medians over 10 iterations of plot construction, not full device rendering}{table.caption.19}{}}
+\@writefile{brf}{\backcite{bench}{{12}{2.4.2}{subsection.2.4.2}}}
+\citation{roxygen2}
+\citation{patchwork}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Representative local performance checks from saved benchmark output. Timings are medians over 10 iterations of plot construction, not full device rendering.}}{13}{table.caption.18}\protected@file@percent }
+\newlabel{tab:technical-performance}{{6}{13}{Representative local performance checks from saved benchmark output. Timings are medians over 10 iterations of plot construction, not full device rendering}{table.caption.18}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4.3}Performance and scaling}{13}{subsection.2.4.3}\protected@file@percent }
+\newlabel{performance-and-scaling}{{2.4.3}{13}{Performance and scaling}{subsection.2.4.3}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.4.4}Validation and warnings}{13}{subsection.2.4.4}\protected@file@percent }
 \newlabel{validation-and-warnings}{{2.4.4}{13}{Validation and warnings}{subsection.2.4.4}{}}
+\@writefile{brf}{\backcite{roxygen2}{{13}{2.4.4}{subsection.2.4.4}}}
 \@writefile{toc}{\contentsline {section}{\numberline {2.5}Composability and limitations}{13}{section.2.5}\protected@file@percent }
 \newlabel{composability-and-limitations}{{2.5}{13}{Composability and limitations}{section.2.5}{}}
+\@writefile{brf}{\backcite{patchwork}{{13}{2.5}{section.2.5}}}
+\gdef \LT@i {\LT@entry 
+    {1}{122.56029pt}\LT@entry 
+    {1}{225.11752pt}}
+\gdef \LT@ii {\LT@entry 
+    {1}{96.85501pt}\LT@entry 
+    {1}{158.12231pt}}
 \citation{wickham2010layered,wickham2016ggplot2}
 \citation{wilkinson2005grammar}
 \citation{kay2024ggdist}
@@ -104,47 +118,56 @@
 \citation{ggsurvfit}
 \@writefile{toc}{\contentsline {section}{\numberline {2.6}Related work}{14}{section.2.6}\protected@file@percent }
 \newlabel{related-work}{{2.6}{14}{Related work}{section.2.6}{}}
-\@writefile{brf}{\backcite{wickham2010layered}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{wickham2016ggplot2}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{wilkinson2005grammar}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{kay2024ggdist}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{otto2023ggdensity}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{ggvfields}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{metR}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{hdrcde}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{ggformula}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{pruim2017mosaic}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{mosaicCalc}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{almeida2018qqplotr}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{qqplotr}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{survminer}{{14}{2.6}{section.2.6}}}
-\@writefile{brf}{\backcite{ggsurvfit}{{14}{2.6}{section.2.6}}}
+\newlabel{tab:related-core}{{7}{14}{Related work}{table.2.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Closest function-layer and field-display packages.}}{14}{table.2.7}\protected@file@percent }
+\newlabel{tab:related-adjacent}{{8}{14}{Related work}{table.2.8}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Adjacent distribution, diagnostic, and survival-display packages.}}{14}{table.2.8}\protected@file@percent }
+\@writefile{brf}{\backcite{wickham2010layered}{{14}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{wickham2016ggplot2}{{14}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{wilkinson2005grammar}{{14}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{kay2024ggdist}{{14}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{otto2023ggdensity}{{14}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{ggvfields}{{14}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{metR}{{14}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{hdrcde}{{14}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{ggformula}{{14}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{pruim2017mosaic}{{14}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{mosaicCalc}{{14}{2.6}{table.2.8}}}
 \bibdata{RJreferences.bib}
 \bibcite{aalen1978nonparametric}{{1}{1978}{{Aalen}}{{}}}
 \bibcite{almeida2018qqplotr}{{2}{2018}{{Almeida et~al.}}{{Almeida, Loy, and Hofmann}}}
 \bibcite{qqplotr}{{3}{2025}{{Almeida et~al.}}{{Almeida, Loy, and Hofmann}}}
 \bibcite{metR}{{4}{2024}{{Campitelli}}{{}}}
 \bibcite{greenwood1926natural}{{5}{1926}{{Greenwood}}{{}}}
-\bibcite{hdrcde}{{6}{2024}{{Hyndman et~al.}}{{Hyndman, Einbeck, and Wand}}}
-\bibcite{ggformula}{{7}{2026}{{Kaplan and Pruim}}{{}}}
+\@writefile{brf}{\backcite{almeida2018qqplotr}{{15}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{qqplotr}{{15}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{survminer}{{15}{2.6}{table.2.8}}}
+\@writefile{brf}{\backcite{ggsurvfit}{{15}{2.6}{table.2.8}}}
 \@writefile{toc}{\contentsline {section}{\numberline {2.7}Discussion and future directions}{15}{section.2.7}\protected@file@percent }
 \newlabel{discussion-and-future-directions}{{2.7}{15}{Discussion and future directions}{section.2.7}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {2.8}Acknowledgments}{15}{section.2.8}\protected@file@percent }
 \newlabel{acknowledgments}{{2.8}{15}{Acknowledgments}{section.2.8}{}}
-\bibcite{mosaicCalc}{{8}{2024}{{Kaplan et~al.}}{{Kaplan, Pruim, and Horton}}}
-\bibcite{kaplan1958nonparametric}{{9}{1958}{{Kaplan and Meier}}{{}}}
-\bibcite{survminer}{{10}{2026}{{Kassambara et~al.}}{{Kassambara, Kosinski, Biecek, and Scheipl}}}
-\bibcite{kay2024ggdist}{{11}{2024}{{Kay}}{{}}}
-\bibcite{massart1990tight}{{12}{1990}{{Massart}}{{}}}
-\bibcite{michael1983stabilized}{{13}{1983}{{Michael}}{{}}}
-\bibcite{nair1984confidence}{{14}{1984}{{Nair}}{{}}}
-\bibcite{nelson1972theory}{{15}{1972}{{Nelson}}{{}}}
-\bibcite{otto2023ggdensity}{{16}{2023}{{Otto and Kahle}}{{}}}
-\bibcite{pruim2017mosaic}{{17}{2017}{{Pruim et~al.}}{{Pruim, Kaplan, and Horton}}}
-\bibcite{ggsurvfit}{{18}{2025}{{Sjoberg et~al.}}{{Sjoberg, Baillie, Fruechtenicht, Haesendonckx, and Treis}}}
-\bibcite{ggvfields}{{19}{2026}{{Turner et~al.}}{{Turner, Kahle, and Sturdivant}}}
-\bibcite{wickham2010layered}{{20}{2010}{{Wickham}}{{}}}
-\bibcite{wickham2016ggplot2}{{21}{2016}{{Wickham}}{{}}}
-\bibcite{wilkinson2005grammar}{{22}{2005}{{Wilkinson}}{{}}}
+\bibcite{bench}{{6}{2025}{{Hester and Vaughan}}{{}}}
+\bibcite{hdrcde}{{7}{2024}{{Hyndman et~al.}}{{Hyndman, Einbeck, and Wand}}}
+\bibcite{ggformula}{{8}{2026}{{Kaplan and Pruim}}{{}}}
+\bibcite{mosaicCalc}{{9}{2024}{{Kaplan et~al.}}{{Kaplan, Pruim, and Horton}}}
+\bibcite{kaplan1958nonparametric}{{10}{1958}{{Kaplan and Meier}}{{}}}
+\bibcite{survminer}{{11}{2026}{{Kassambara et~al.}}{{Kassambara, Kosinski, Biecek, and Scheipl}}}
+\bibcite{kay2024ggdist}{{12}{2024}{{Kay}}{{}}}
+\bibcite{lilliefors1967}{{13}{1967}{{Lilliefors}}{{}}}
+\bibcite{massart1990tight}{{14}{1990}{{Massart}}{{}}}
+\bibcite{michael1983stabilized}{{15}{1983}{{Michael}}{{}}}
+\bibcite{nair1984confidence}{{16}{1984}{{Nair}}{{}}}
+\bibcite{nelson1972theory}{{17}{1972}{{Nelson}}{{}}}
+\bibcite{otto2023ggdensity}{{18}{2023}{{Otto and Kahle}}{{}}}
+\bibcite{patchwork}{{19}{2025}{{Pedersen}}{{}}}
+\bibcite{pruim2017mosaic}{{20}{2017}{{Pruim et~al.}}{{Pruim, Kaplan, and Horton}}}
+\bibcite{R}{{21}{2026}{{\textsf  {R} Core Team}}{{}}}
+\bibcite{ggsurvfit}{{22}{2025}{{Sjoberg et~al.}}{{Sjoberg, Baillie, Fruechtenicht, Haesendonckx, and Treis}}}
+\bibcite{ggvfields}{{23}{2026}{{Turner et~al.}}{{Turner, Kahle, and Sturdivant}}}
+\bibcite{wickham2010layered}{{24}{2010}{{Wickham}}{{}}}
+\bibcite{wickham2016ggplot2}{{25}{2016}{{Wickham}}{{}}}
+\bibcite{roxygen2}{{26}{2026}{{Wickham et~al.}}{{Wickham, Danenberg, Cs{\'a}rdi, and Eugster}}}
+\bibcite{wilkinson2005grammar}{{27}{2005}{{Wilkinson}}{{}}}
 \ttl@finishall
 \gdef \@abspage@last{17}

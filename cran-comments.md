@@ -7,7 +7,7 @@
 Updated local checks after the final figure and confidence-display revisions:
 
 * `devtools::document()`: completed cleanly
-* `devtools::test(reporter = "summary")`: 959 passing expectations across
+* `devtools::test(reporter = "summary")`: 960 passing expectations across
   443 tests, 0 failures, 0 warnings
 * `spelling::spell_check_package()`: no spelling errors found
 * `rcmdcheck::rcmdcheck(args = c("--as-cran", "--no-manual"), env = c("_R_CHECK_CRAN_INCOMING_REMOTE_" = "false", "_R_CHECK_SYSTEM_CLOCK_" = "false"), error_on = "never")`:

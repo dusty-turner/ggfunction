@@ -471,7 +471,7 @@ StatCensorMarks <- ggproto("StatCensorMarks", Stat,
 #' at 0, using the same visual conventions as [geom_cdf_discrete()]. An
 #' optional pointwise normal interval display (defaulting to 95%) is drawn at
 #' event times using the Nelson variance estimator. These pointwise intervals
-#' are drawn as thin gray error bars by default to distinguish them visually
+#' are drawn as gray error bars by default to distinguish them visually
 #' from simultaneous confidence bands.
 #'
 #' The Nelson-Aalen estimator at event time \eqn{t_j} is
@@ -502,13 +502,13 @@ StatCensorMarks <- ggproto("StatCensorMarks", Stat,
 #'   confidence intervals for the Nelson-Aalen estimate.
 #' @param level Confidence level for the intervals. Defaults to `0.95`.
 #' @param conf_geom Confidence display to use when `conf_int = TRUE`.
-#'   `"errorbar"` (the default) draws thin pointwise interval bars at event
+#'   `"errorbar"` (the default) draws pointwise interval bars at event
 #'   times. `"ribbon"` preserves the previous continuous ribbon display.
 #'   `"none"` suppresses the confidence display.
 #' @param conf_colour Colour or fill for the confidence display. Defaults
 #'   to `"grey60"`.
 #' @param conf_linewidth Line width for `conf_geom = "errorbar"`. Defaults
-#'   to `0.25`.
+#'   to `0.4`.
 #' @param conf_alpha Alpha (transparency) of the confidence display. Defaults
 #'   to `0.4`.
 #' @param conf_width Width of the error-bar caps when `conf_geom = "errorbar"`.
@@ -596,7 +596,7 @@ geom_echf_na <- function(
     conf_alpha  = 0.4,
     conf_geom   = c("errorbar", "ribbon", "none"),
     conf_colour = "grey60",
-    conf_linewidth = 0.25,
+    conf_linewidth = 0.4,
     conf_width  = NULL
 ) {
   conf_geom <- match.arg(conf_geom)

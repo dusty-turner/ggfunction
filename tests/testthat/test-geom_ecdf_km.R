@@ -448,6 +448,7 @@ test_that("geom_echf_na draws interval bars by default", {
   expect_true(all(interval_data$ymin <= interval_data$ymax))
   expect_equal(unique(interval_data$colour), "grey60")
   expect_equal(unique(interval_data$alpha), 0.4)
+  expect_equal(unique(interval_data$linewidth), 0.4)
   expect_equal(unique(interval_data$width), 0.02 * diff(range(tab$time)))
 })
 
