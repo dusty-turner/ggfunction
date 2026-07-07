@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.6.28)  29 JUN 2026 22:05
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.6.28)  29 JUN 2026 22:17
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -885,11 +885,11 @@ LaTeX Font Info:    Font shape `T1/phv/m/sl' will be
 )
 
 LaTeX Font Warning: Font shape `T1/zi4/m/it' undefined
-(Font)              using `T1/zi4/m/n' instead on input line 989.
+(Font)              using `T1/zi4/m/n' instead on input line 990.
 
 [16]
 LaTeX Font Info:    Font shape `T1/zi4/m/it' will be
-(Font)              scaled to size 9.18004pt on input line 999.
+(Font)              scaled to size 9.18004pt on input line 1000.
 ) [17] (./RJwrapper.aux)
  ***********
 LaTeX2e <2026-06-01>
@@ -906,13 +906,13 @@ Package rerunfilecheck Info: File `RJwrapper.brf' has not changed.
 Here is how much of TeX's memory you used:
  27692 strings out of 469158
  508686 string characters out of 5459129
- 935248 words of memory out of 5000000
+ 936248 words of memory out of 5000000
  55708 multiletter control sequences out of 15000+600000
  698788 words of font info for 404 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 117i,13n,131p,1065b,828s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 117i,13n,131p,1065b,826s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbb.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbi.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/helvetic/uhvro8a.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></Users/davidkahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on RJwrapper.pdf (17 pages, 333958 bytes).
+Output written on RJwrapper.pdf (17 pages, 334036 bytes).
 PDF statistics:
  601 PDF objects out of 1000 (max. 8388607)
  525 compressed objects within 6 object streams
