@@ -129,6 +129,30 @@ geom_cdf <- function(
     mapping <- modifyList(default_mapping, mapping)
   }
 
+  params <- list(
+    fun = fun,
+    pdf_fun = pdf_fun,
+    survival_fun = survival_fun,
+    qf_fun = qf_fun,
+    hf_fun = hf_fun,
+    hf_lower = hf_lower,
+    n = n,
+    xlim = xlim,
+    support = support,
+    args = args,
+    na.rm = na.rm,
+    fill = fill,
+    color = color,
+    p = p,
+    lower.tail = lower.tail,
+    p_lower = p_lower,
+    p_upper = p_upper,
+    check = check,
+    check_tol = check_tol,
+    ...
+  )
+  params <- drop_overridden_aes_defaults(params, mapping)
+
   layer(
     data = data,
     mapping = mapping,
@@ -137,28 +161,7 @@ geom_cdf <- function(
     position = position,
     show.legend = show.legend,
     inherit.aes = inherit.aes,
-    params = list(
-      fun = fun,
-      pdf_fun = pdf_fun,
-      survival_fun = survival_fun,
-      qf_fun = qf_fun,
-      hf_fun = hf_fun,
-      hf_lower = hf_lower,
-      n = n,
-      xlim = xlim,
-      support = support,
-      args = args,
-      na.rm = na.rm,
-      fill = fill,
-      color = color,
-      p = p,
-      lower.tail = lower.tail,
-      p_lower = p_lower,
-      p_upper = p_upper,
-      check = check,
-      check_tol = check_tol,
-      ...
-    )
+    params = params
   )
 }
 

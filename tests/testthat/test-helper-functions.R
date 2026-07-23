@@ -274,3 +274,62 @@ test_that("discrete_hdr_probs includes ties and reports tie-inclusive coverage",
 test_that("discrete_hdr_probs aborts on non-positive total mass", {
   expect_error(discrete_hdr_probs(c(0, 0, 0), 0.5), "positive total mass")
 })
+
+# --- new soft validators ---
+
+test_that("check_survival_validity is silent for a valid survival function", {
+  s <- function(x) 1 - pnorm(x)
+  expect_silent(check_survival_validity(s, s(seq(-3, 3, 0.1)), -Inf, Inf))
+})
+
+test_that("check_survival_validity alerts on bad endpoints", {
+  expect_message(
+    check_survival_validity(pnorm, 1 - pnorm(seq(-3, 3, 0.1)), -Inf, Inf),
+    "survival"
+  )
+})
+
+test_that("check_survival_validity alerts on non-monotone values", {
+  s <- function(x) 1 - pnorm(x)
+  expect_message(
+    check_survival_validity(s, c(1, 0.5, 0.8, 0), -Inf, Inf),
+    "non-increasing"
+  )
+})
+
+test_that("check_survival_validity skips endpoint check when unevaluable", {
+  s_partial <- function(x) ifelse(is.finite(x), 1 - pexp(x), NA_real_)
+  expect_silent(check_survival_validity(s_partial, 1 - pexp(seq(0, 5, 0.1)), 0, Inf))
+})
+
+test_that("check_qf_validity is silent for a valid quantile function", {
+  expect_silent(check_qf_validity(qnorm(seq(0.01, 0.99, 0.01))))
+})
+
+test_that("check_qf_validity alerts on non-monotone values", {
+  expect_message(check_qf_validity(c(0, 1, 0.5, 2)), "non-decreasing")
+})
+
+test_that("check_qf_validity alerts when values leave the support", {
+  expect_message(check_qf_validity(c(-1, 0, 1), support = c(0, Inf)), "support")
+})
+
+test_that("check_hf_validity alerts on negative hazards only", {
+  expect_silent(check_hf_validity(c(0, 1, 2)))
+  expect_message(check_hf_validity(c(0.5, -0.5, 1)), "negative")
+})
+
+test_that("check_chf_validity alerts on negative or decreasing values", {
+  expect_silent(check_chf_validity(c(0, 1, 2)))
+  expect_message(check_chf_validity(c(-1, 0, 1)), "negative")
+  expect_message(check_chf_validity(c(0, 2, 1)), "non-decreasing")
+})
+
+test_that("new validators respect the ggfunction.check option", {
+  old_options <- options(ggfunction.check = FALSE)
+  on.exit(options(old_options), add = TRUE)
+
+  expect_silent(check_qf_validity(c(0, 1, 0.5, 2)))
+  expect_silent(check_hf_validity(c(-1)))
+  expect_silent(check_chf_validity(c(0, 2, 1)))
+})

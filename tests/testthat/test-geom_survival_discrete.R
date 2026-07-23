@@ -162,3 +162,41 @@ test_that("StatSurvivalDiscrete errors when no input provided", {
     "fun.*cdf_fun.*pmf_fun"
   )
 })
+
+# --- shading ---
+
+test_that("geom_survival_discrete shades the upper tail with lower.tail = FALSE", {
+  built <- ggplot_build(ggplot() +
+    geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10),
+                           args = list(size = 10, prob = 0.5),
+                           p = 0.25, lower.tail = FALSE))
+  in_shade <- built$data[[1]]$in_shade
+  expect_true(any(in_shade))
+  expect_true(any(!in_shade))
+  # Upper tail: shaded atoms form a suffix
+  expect_true(all(diff(in_shade) >= 0))
+})
+
+test_that("geom_survival_discrete shading matches geom_cdf_discrete membership", {
+  args <- list(size = 10, prob = 0.5)
+  b_srv <- ggplot_build(ggplot() +
+    geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = args, p = 0.5))
+  b_cdf <- ggplot_build(ggplot() +
+    geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = args, p = 0.5))
+  expect_identical(b_srv$data[[1]]$in_shade, b_cdf$data[[1]]$in_shade)
+})
+
+test_that("geom_survival_discrete without shading args marks all atoms in_shade", {
+  built <- ggplot_build(ggplot() +
+    geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10),
+                           args = list(size = 10, prob = 0.5)))
+  expect_true(all(built$data[[1]]$in_shade))
+})
+
+test_that("geom_survival_discrete draws with shading", {
+  p <- ggplot() +
+    geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10),
+                           args = list(size = 10, prob = 0.5),
+                           p = 0.25, lower.tail = FALSE)
+  expect_silent(ggplotGrob(p))
+})

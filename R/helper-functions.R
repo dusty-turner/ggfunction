@@ -54,6 +54,24 @@ normalise_colour_params <- function(params) {
   params
 }
 
+#' Drop constructor default aesthetic params the user has overridden
+#'
+#' Distribution geom constructors forward fixed defaults like
+#' `color = "black"` as aesthetic params. Fixed aesthetic params override both
+#' a user-supplied `colour` in `...` (which does not match the `color` formal)
+#' and mapped aesthetics, so the default must be removed whenever the user
+#' supplies the aesthetic either way.
+#' @noRd
+drop_overridden_aes_defaults <- function(params, mapping) {
+  if (("colour" %in% names(params)) || ("colour" %in% names(mapping))) {
+    params$color <- NULL
+  }
+  if (("fill" %in% names(mapping)) && ("fill" %in% names(params))) {
+    params$fill <- NULL
+  }
+  params
+}
+
 #' @exportS3Method ggplot2::ggplot_add
 ggplot_add.ggfunction_default_labs <- function(object, plot, object_name) {
   if (is.null(plot$labels$x) && !is.null(object$x)) {
@@ -291,6 +309,89 @@ check_discrete_cdf <- function(cdf_vals, tol = 1e-2, source = "fun") {
     ))
   }
   invisible(cdf_vals)
+}
+
+#' Soft validity check for a survival function over the drawn grid.
+#'
+#' Warns (without aborting) when the survival function is not near 1 at the
+#' lower support endpoint or near 0 at the upper support endpoint, or when the
+#' computed values are not monotonically non-increasing. Mirrors
+#' `check_cdf_normalization()` for the survival geoms.
+#' @noRd
+check_survival_validity <- function(f, y_vals, lower, upper, tol = 1e-2) {
+  if (!ggfunction_check_enabled()) return(invisible(y_vals))
+
+  # Numerically derived survival functions (e.g. hazard routes) may not be
+  # evaluable at infinite support endpoints; skip the endpoint check silently
+  # in that case rather than raising a spurious integration warning.
+  vals <- suppressWarnings(
+    try(c(lower = f(lower), upper = f(upper)), silent = TRUE)
+  )
+  if (!inherits(vals, "try-error") && !any(is.na(vals)) &&
+      (abs(vals[["lower"]] - 1) > tol || abs(vals[["upper"]]) > tol)) {
+    cli::cli_alert(sprintf("The provided function appears not to be a valid survival function over the range [%g, %g]: it returns %g at the lower bound and %g at the upper bound.",
+                           lower, upper, vals[["lower"]], vals[["upper"]]))
+  }
+
+  finite <- y_vals[is.finite(y_vals)]
+  if (length(finite) > 1L && any(diff(finite) > tol)) {
+    cli::cli_alert("The computed survival values are not monotonically non-increasing; the provided function may not be a valid survival function.")
+  }
+  invisible(y_vals)
+}
+
+#' Soft validity check for computed quantile values.
+#'
+#' Warns (without aborting) when the quantile values are not monotonically
+#' non-decreasing over the probability grid, or when finite values leave the
+#' declared support.
+#' @noRd
+check_qf_validity <- function(q_vals, support = c(-Inf, Inf), tol = 1e-2) {
+  if (!ggfunction_check_enabled()) return(invisible(q_vals))
+  finite <- q_vals[is.finite(q_vals)]
+  if (length(finite) == 0L) return(invisible(q_vals))
+  if (length(finite) > 1L && any(diff(finite) < -tol)) {
+    cli::cli_alert("The computed quantile values are not monotonically non-decreasing; the provided function may not be a valid quantile function.")
+  }
+  if (any(finite < support[1] - tol) || any(finite > support[2] + tol)) {
+    cli::cli_alert(sprintf(
+      "The computed quantile values leave the declared support [%g, %g] (range %.4f to %.4f).",
+      support[1], support[2], min(finite), max(finite)
+    ))
+  }
+  invisible(q_vals)
+}
+
+#' Soft validity check for computed hazard values.
+#' @noRd
+check_hf_validity <- function(y_vals, tol = 1e-2) {
+  if (!ggfunction_check_enabled()) return(invisible(y_vals))
+  finite <- y_vals[is.finite(y_vals)]
+  if (length(finite) > 0L && any(finite < -tol)) {
+    cli::cli_alert(sprintf(
+      "The computed hazard values are negative (minimum %.4f); hazard functions must be non-negative.",
+      min(finite)
+    ))
+  }
+  invisible(y_vals)
+}
+
+#' Soft validity check for computed cumulative hazard values.
+#' @noRd
+check_chf_validity <- function(y_vals, tol = 1e-2) {
+  if (!ggfunction_check_enabled()) return(invisible(y_vals))
+  finite <- y_vals[is.finite(y_vals)]
+  if (length(finite) == 0L) return(invisible(y_vals))
+  if (any(finite < -tol)) {
+    cli::cli_alert(sprintf(
+      "The computed cumulative hazard values are negative (minimum %.4f); cumulative hazard functions must be non-negative.",
+      min(finite)
+    ))
+  }
+  if (length(finite) > 1L && any(diff(finite) < -tol)) {
+    cli::cli_alert("The computed cumulative hazard values are not monotonically non-decreasing; the provided function may not be a valid cumulative hazard function.")
+  }
+  invisible(y_vals)
 }
 
 #' Per-group lollipop shading membership for a discrete PMF.

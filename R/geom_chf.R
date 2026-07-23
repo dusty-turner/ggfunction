@@ -44,6 +44,11 @@
 #' @param support A numeric vector of length 2 giving the computational support
 #'   of the distribution. Defaults to `c(-Inf, Inf)`. It is used for
 #'   PDF-to-CDF and hazard integrations.
+#' @param check Logical; if `TRUE`, issue a diagnostic when the computed
+#'   cumulative hazard values are negative or not monotonically
+#'   non-decreasing. Use `FALSE` to suppress this check.
+#' @param check_tol Numeric tolerance used by the cumulative hazard validity
+#'   check.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
@@ -105,7 +110,9 @@ geom_chf <- function(
     xlim = NULL,
     support = c(-Inf, Inf),
     n = 101,
-    args = list()
+    args = list(),
+    check = TRUE,
+    check_tol = 1e-2
     ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -138,6 +145,8 @@ geom_chf <- function(
       xlim = xlim,
       support = support,
       args = args,
+      check = check,
+      check_tol = check_tol,
       na.rm = na.rm,
       ...
     )
@@ -154,7 +163,8 @@ StatCHF <- ggproto("StatCHF", Stat,
                            survival_fun = NULL, qf_fun = NULL,
                            hf_lower = -Inf,
                            xlim = NULL, support = c(-Inf, Inf),
-                           n = 101, args = NULL) {
+                           n = 101, args = NULL,
+                           check = TRUE, check_tol = 1e-2) {
 
     # Validate: exactly one source
     n_provided <- (!is.null(fun)) + (!is.null(hf_fun)) + (!is.null(cdf_fun)) +
@@ -190,6 +200,10 @@ StatCHF <- ggproto("StatCHF", Stat,
       support = support
     )
     y_out <- fun_injected(xseq)
+
+    if (ggfunction_check_enabled(check)) {
+      invisible(check_chf_validity(y_out, tol = check_tol))
+    }
 
     data.frame(x = xseq, y = y_out)
   }

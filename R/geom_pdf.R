@@ -175,6 +175,37 @@ geom_pdf <- function(
     list(linewidth = linewidth)
   }
 
+  params <- c(
+    list(
+      fun = fun,
+      cdf_fun = cdf_fun,
+      survival_fun = survival_fun,
+      qf_fun = qf_fun,
+      hf_fun = hf_fun,
+      hf_lower = hf_lower,
+      n = n,
+      xlim = xlim,
+      support = support,
+      args = args,
+      na.rm = na.rm,
+      fill = fill,
+      color = color,
+      alpha = alpha,
+      p = p,
+      lower.tail = lower.tail,
+      p_lower = p_lower,
+      p_upper = p_upper,
+      shade_outside = shade_outside,
+      shade_hdr = shade_hdr,
+      hdr_xlim = hdr_xlim,
+      check = check,
+      check_tol = check_tol
+    ),
+    linewidth_params,
+    list(...)
+  )
+  params <- drop_overridden_aes_defaults(params, mapping)
+
   layer(
     data = data,
     mapping = mapping,
@@ -183,35 +214,7 @@ geom_pdf <- function(
     position = position,
     show.legend = show.legend,
     inherit.aes = inherit.aes,
-    params = c(
-      list(
-        fun = fun,
-        cdf_fun = cdf_fun,
-        survival_fun = survival_fun,
-        qf_fun = qf_fun,
-        hf_fun = hf_fun,
-        hf_lower = hf_lower,
-        n = n,
-        xlim = xlim,
-        support = support,
-        args = args,
-        na.rm = na.rm,
-        fill = fill,
-        color = color,
-        alpha = alpha,
-        p = p,
-        lower.tail = lower.tail,
-        p_lower = p_lower,
-        p_upper = p_upper,
-        shade_outside = shade_outside,
-        shade_hdr = shade_hdr,
-        hdr_xlim = hdr_xlim,
-        check = check,
-        check_tol = check_tol
-      ),
-      linewidth_params,
-      list(...)
-    )
+    params = params
   )
 }
 

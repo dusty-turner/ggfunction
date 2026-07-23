@@ -211,3 +211,38 @@ test_that("StatQFDiscrete errors when multiple inputs including survival_fun pro
     "fun.*pmf_fun.*cdf_fun.*survival_fun"
   )
 })
+
+# --- shading ---
+
+test_that("geom_qf_discrete shades the lower tail with p", {
+  built <- ggplot_build(ggplot() +
+    geom_qf_discrete(pmf_fun = dbinom, xlim = c(0, 10),
+                     args = list(size = 10, prob = 0.5), p = 0.5))
+  in_shade <- built$data[[1]]$in_shade
+  expect_true(any(in_shade))
+  expect_true(any(!in_shade))
+  expect_true(all(diff(in_shade) <= 0))
+})
+
+test_that("geom_qf_discrete shading membership matches across sources", {
+  args <- list(size = 10, prob = 0.5)
+  b_pmf <- ggplot_build(ggplot() +
+    geom_qf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = args, p = 0.5))
+  b_fun <- ggplot_build(ggplot() +
+    geom_qf_discrete(fun = qbinom, xlim = c(0, 10), args = args, p = 0.5))
+  expect_identical(b_pmf$data[[1]]$in_shade, b_fun$data[[1]]$in_shade)
+})
+
+test_that("geom_qf_discrete without shading args marks all atoms in_shade", {
+  built <- ggplot_build(ggplot() +
+    geom_qf_discrete(pmf_fun = dbinom, xlim = c(0, 10),
+                     args = list(size = 10, prob = 0.5)))
+  expect_true(all(built$data[[1]]$in_shade))
+})
+
+test_that("geom_qf_discrete draws with shading", {
+  p <- ggplot() +
+    geom_qf_discrete(pmf_fun = dbinom, xlim = c(0, 10),
+                     args = list(size = 10, prob = 0.5), p = 0.5)
+  expect_silent(ggplotGrob(p))
+})

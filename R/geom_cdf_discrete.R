@@ -39,6 +39,19 @@
 #' @param show_vert Logical. If `FALSE`, suppresses the vertical jump segments.
 #'   If `NULL` (the default), segments are shown when there are 50 or fewer
 #'   points and hidden otherwise.
+#' @param p (Optional) A numeric value between 0 and 1 specifying a cumulative
+#'   probability threshold. When `lower.tail = TRUE` (the default), steps and
+#'   endpoints up to the corresponding quantile are highlighted and the rest
+#'   are dimmed; when `FALSE`, the upper tail is highlighted.
+#' @param lower.tail Logical; controls the direction of `p`-based shading.
+#'   Defaults to `TRUE`.
+#' @param p_lower (Optional) Lower cumulative probability bound for two-sided
+#'   shading. Used with `p_upper`.
+#' @param p_upper (Optional) Upper cumulative probability bound for two-sided
+#'   shading. Used with `p_lower`.
+#' @param shade_outside Logical; if `TRUE`, shading is applied to the tails
+#'   outside the `p_lower`/`p_upper` interval rather than inside. Defaults to
+#'   `FALSE`.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
@@ -82,6 +95,11 @@
 #'   ggplot() +
 #'     geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 #'
+#'   # highlight the lower half of the distribution
+#'   ggplot() +
+#'     geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10),
+#'                       args = list(size = 10, prob = 0.5), p = 0.5)
+#'
 #' @name geom_cdf_discrete
 #' @aliases StatCDFDiscrete GeomCDFDiscrete
 #' @export
@@ -103,7 +121,12 @@ geom_cdf_discrete <- function(
     open_fill = NULL,
     vert_type = "dashed",
     show_points = NULL,
-    show_vert = NULL
+    show_vert = NULL,
+    p = NULL,
+    lower.tail = TRUE,
+    p_lower = NULL,
+    p_upper = NULL,
+    shade_outside = FALSE
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -140,6 +163,11 @@ geom_cdf_discrete <- function(
       vert_type = vert_type,
       show_points = show_points,
       show_vert = show_vert,
+      p = p,
+      lower.tail = lower.tail,
+      p_lower = p_lower,
+      p_upper = p_upper,
+      shade_outside = shade_outside,
       ...
     )
   )
@@ -152,7 +180,10 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
 
   compute_group = function(data, scales, fun = NULL, pmf_fun = NULL,
                            survival_fun = NULL,
-                           xlim = NULL, support = NULL, args = NULL) {
+                           xlim = NULL, support = NULL, args = NULL,
+                           p = NULL, lower.tail = TRUE,
+                           p_lower = NULL, p_upper = NULL,
+                           shade_outside = FALSE) {
 
     # Validate: exactly one source
     n_provided <- (!is.null(fun)) + (!is.null(pmf_fun)) + (!is.null(survival_fun))
@@ -169,29 +200,32 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
       fun_injected <- function(x) rlang::inject(fun(x, !!!args))
       cdf_vals <- fun_injected(x_vals)
       invisible(check_discrete_cdf(cdf_vals, source = "fun"))
-      out <- data.frame(x = x_vals, y = cdf_vals, p = cdf_vals)
-      return(filter_discrete_xlim(out, xlim = xlim))
-    }
-
-    if (!is.null(pmf_fun)) {
+      pmf_vals <- diff(c(0, cdf_vals))
+    } else if (!is.null(pmf_fun)) {
       fun_injected <- function(x) rlang::inject(pmf_fun(x, !!!args))
       invisible(check_pmf_normalization(
         fun_injected, support = x_vals, tol = 1e-2, action = "abort"
       ))
       pmf_vals <- fun_injected(x_vals)
       cdf_vals <- cumsum(pmf_vals)
-      out <- data.frame(x = x_vals, y = cdf_vals, p = cdf_vals)
-      return(filter_discrete_xlim(out, xlim = xlim))
-    }
-
-    if (!is.null(survival_fun)) {
+    } else {
       surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
       surv_vals <- surv_injected(x_vals)
       cdf_vals <- 1 - surv_vals
       invisible(check_discrete_cdf(cdf_vals, source = "survival_fun"))
-      out <- data.frame(x = x_vals, y = cdf_vals, p = cdf_vals)
-      return(filter_discrete_xlim(out, xlim = xlim))
+      pmf_vals <- diff(c(0, cdf_vals))
     }
+
+    out <- data.frame(x = x_vals, y = cdf_vals, p = cdf_vals)
+    # Shading membership is computed on the full support, before any xlim
+    # filtering, so cumulative probabilities are not distorted by the display
+    # window.
+    out$in_shade <- pmf_shade_index(
+      pmf_vals, p = p, lower.tail = lower.tail,
+      p_lower = p_lower, p_upper = p_upper,
+      shade_outside = shade_outside
+    )
+    filter_discrete_xlim(out, xlim = xlim)
   }
 )
 
@@ -232,6 +266,8 @@ GeomCDFDiscrete <- ggproto("GeomCDFDiscrete", Geom,
     if (is.null(show_points)) show_points <- n <= 50
     if (is.null(show_vert))   show_vert   <- n <= 50
 
+    in_shade <- if ("in_shade" %in% names(data)) data$in_shade else rep(TRUE, n)
+
     # Horizontal segments:
     #   [left_boundary → x[1]] at height 0,
     #   [x[k] → x[k+1]] at height y[k],
@@ -241,12 +277,16 @@ GeomCDFDiscrete <- ggproto("GeomCDFDiscrete", Geom,
     data_hori$xend   <- c(data$x, panel_params$x.range[2])
     data_hori$y      <- c(0, data$y)
     data_hori$yend   <- c(0, data$y)
+    # The step at height y[k] belongs to atom k; the leading baseline segment
+    # inherits atom 1's membership.
+    data_hori$alpha  <- ifelse(c(in_shade[1], in_shade), data_hori$alpha, 0.3)
 
     # Vertical jump segments at each x[k]: from y[k-1] (or 0) up to y[k]
     data_vert        <- data
     data_vert$xend   <- data$x
     data_vert$y      <- c(0, data$y[-n])
     data_vert$yend   <- data$y
+    data_vert$alpha  <- ifelse(in_shade, data_vert$alpha, 0.3)
 
     coord_hori <- coord$transform(data_hori, panel_params)
     coord_vert <- coord$transform(data_vert, panel_params)
@@ -282,7 +322,7 @@ GeomCDFDiscrete <- ggproto("GeomCDFDiscrete", Geom,
         default.units = "native",
         pch = 21,
         gp = grid::gpar(
-          col      = coord_vert$colour,
+          col      = scales::alpha(coord_vert$colour, coord_vert$alpha),
           fill     = open_fill,
           fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
           lwd      = coord_vert$stroke * .stroke / 2

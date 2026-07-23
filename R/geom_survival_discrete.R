@@ -39,6 +39,20 @@
 #' @param show_vert Logical. If `FALSE`, suppresses the vertical jump segments.
 #'   If `NULL` (the default), segments are shown when there are 50 or fewer
 #'   points and hidden otherwise.
+#' @param p (Optional) A numeric value between 0 and 1 specifying a cumulative
+#'   probability threshold from the left (that is, on \eqn{F = 1 - S}). When
+#'   `lower.tail = TRUE` (the default), steps and endpoints up to the
+#'   corresponding quantile are highlighted and the rest are dimmed; when
+#'   `FALSE`, the upper tail is highlighted.
+#' @param lower.tail Logical; controls the direction of `p`-based shading.
+#'   Defaults to `TRUE`.
+#' @param p_lower (Optional) Lower cumulative probability bound for two-sided
+#'   shading. Used with `p_upper`.
+#' @param p_upper (Optional) Upper cumulative probability bound for two-sided
+#'   shading. Used with `p_lower`.
+#' @param shade_outside Logical; if `TRUE`, shading is applied to the tails
+#'   outside the `p_lower`/`p_upper` interval rather than inside. Defaults to
+#'   `FALSE`.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
@@ -78,6 +92,12 @@
 #'   ggplot() +
 #'     geom_survival_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
 #'
+#'   # highlight the upper quartile
+#'   ggplot() +
+#'     geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10),
+#'                            args = list(size = 10, prob = 0.5),
+#'                            p = 0.25, lower.tail = FALSE)
+#'
 #' @name geom_survival_discrete
 #' @aliases StatSurvivalDiscrete GeomSurvivalDiscrete
 #' @export
@@ -99,7 +119,12 @@ geom_survival_discrete <- function(
     open_fill = NULL,
     vert_type = "dashed",
     show_points = NULL,
-    show_vert = NULL
+    show_vert = NULL,
+    p = NULL,
+    lower.tail = TRUE,
+    p_lower = NULL,
+    p_upper = NULL,
+    shade_outside = FALSE
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -131,6 +156,11 @@ geom_survival_discrete <- function(
       vert_type = vert_type,
       show_points = show_points,
       show_vert = show_vert,
+      p = p,
+      lower.tail = lower.tail,
+      p_lower = p_lower,
+      p_upper = p_upper,
+      shade_outside = shade_outside,
       ...
     )
   )
@@ -143,7 +173,10 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
 
   compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
                            pmf_fun = NULL, xlim = NULL, support = NULL,
-                           args = NULL) {
+                           args = NULL,
+                           p = NULL, lower.tail = TRUE,
+                           p_lower = NULL, p_upper = NULL,
+                           shade_outside = FALSE) {
 
     # Validate: exactly one source
     n_provided <- (!is.null(fun)) + (!is.null(cdf_fun)) + (!is.null(pmf_fun))
@@ -165,11 +198,8 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
           "i" = "Check the function supplied to {.arg fun}."
         ))
       }
-      out <- data.frame(x = x_vals, y = survival_vals)
-      return(filter_discrete_xlim(out, xlim = xlim))
-    }
-
-    if (!is.null(cdf_fun)) {
+      pmf_vals <- diff(c(0, 1 - survival_vals))
+    } else if (!is.null(cdf_fun)) {
       cdf_injected   <- function(x) rlang::inject(cdf_fun(x, !!!args))
       survival_vals  <- 1 - cdf_injected(x_vals)
       if (length(survival_vals) > 1 && any(diff(survival_vals) > 0, na.rm = TRUE)) {
@@ -178,11 +208,8 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
           "i" = "Check the function supplied to {.arg cdf_fun}."
         ))
       }
-      out <- data.frame(x = x_vals, y = survival_vals)
-      return(filter_discrete_xlim(out, xlim = xlim))
-    }
-
-    if (!is.null(pmf_fun)) {
+      pmf_vals <- diff(c(0, 1 - survival_vals))
+    } else {
       fun_injected  <- function(x) rlang::inject(pmf_fun(x, !!!args))
       invisible(check_pmf_normalization(
         fun_injected, support = x_vals, tol = 1e-2, action = "abort"
@@ -190,9 +217,18 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
       pmf_vals      <- fun_injected(x_vals)
       cdf_vals      <- cumsum(pmf_vals)
       survival_vals <- 1 - cdf_vals
-      out <- data.frame(x = x_vals, y = survival_vals)
-      return(filter_discrete_xlim(out, xlim = xlim))
     }
+
+    out <- data.frame(x = x_vals, y = survival_vals)
+    # Shading membership is computed on the full support, before any xlim
+    # filtering, so cumulative probabilities are not distorted by the display
+    # window.
+    out$in_shade <- pmf_shade_index(
+      pmf_vals, p = p, lower.tail = lower.tail,
+      p_lower = p_lower, p_upper = p_upper,
+      shade_outside = shade_outside
+    )
+    filter_discrete_xlim(out, xlim = xlim)
   }
 )
 
@@ -234,17 +270,23 @@ GeomSurvivalDiscrete <- ggproto("GeomSurvivalDiscrete", Geom,
     #   Segment at height S(x[k]) from x[k] to x[k+1], plus
     #   leftmost extension from panel left to x[1] at height 1,
     #   and rightmost extension from x[n] to panel right at height S(x[n]).
+    in_shade <- if ("in_shade" %in% names(data)) data$in_shade else rep(TRUE, n)
+
     data_hori        <- data[c(1, 1:n), ]
     data_hori$x      <- c(panel_params$x.range[1], data$x)
     data_hori$xend   <- c(data$x, panel_params$x.range[2])
     data_hori$y      <- c(1, data$y)
     data_hori$yend   <- c(1, data$y)
+    # The step at height S(x[k]) belongs to atom k; the leading segment at
+    # height 1 inherits atom 1's membership.
+    data_hori$alpha  <- ifelse(c(in_shade[1], in_shade), data_hori$alpha, 0.3)
 
     # Vertical jump segments at each x[k]: from S(x[k-1]) (or 1) down to S(x[k])
     data_vert        <- data
     data_vert$xend   <- data$x
     data_vert$y      <- c(1, data$y[-n])
     data_vert$yend   <- data$y
+    data_vert$alpha  <- ifelse(in_shade, data_vert$alpha, 0.3)
 
     coord_hori <- coord$transform(data_hori, panel_params)
     coord_vert <- coord$transform(data_vert, panel_params)
@@ -280,7 +322,7 @@ GeomSurvivalDiscrete <- ggproto("GeomSurvivalDiscrete", Geom,
         default.units = "native",
         pch = 21,
         gp = grid::gpar(
-          col      = coord_vert$colour,
+          col      = scales::alpha(coord_vert$colour, coord_vert$alpha),
           fill     = open_fill,
           fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
           lwd      = coord_vert$stroke * .stroke / 2

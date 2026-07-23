@@ -1,3 +1,25 @@
+# ggfunction (development version)
+
+* `geom_qf()` and `geom_survival()` gained an `hf_fun` source (with
+  `hf_lower`), so quantile and survival curves can now be derived from a hazard
+  function like the other continuous distribution geoms.
+* `geom_qf()` gained `xlim` (the drawn probability range) and `check`/
+  `check_tol` validity diagnostics.
+* `geom_survival()` gained probability shading (`p`, `lower.tail`,
+  `p_lower`/`p_upper`, and a `fill` argument), mirroring `geom_cdf()`, plus
+  `check`/`check_tol` diagnostics that replace the previous unconditional
+  monotonicity warning.
+* `geom_hf()` and `geom_chf()` gained `check`/`check_tol` validity diagnostics
+  (non-negativity, and monotonicity for cumulative hazards).
+* The discrete step geoms `geom_cdf_discrete()`, `geom_survival_discrete()`,
+  and `geom_qf_discrete()` gained tail/interval shading (`p`, `lower.tail`,
+  `p_lower`/`p_upper`, `shade_outside`) consistent with `geom_pmf()`:
+  highlighted atoms draw at full opacity while the rest are dimmed.
+* Fixed a bug where `geom_pdf()`, `geom_cdf()`, `geom_survival()`, and
+  `geom_hf()` silently overrode a user-supplied `colour` argument (or a mapped
+  `colour`/`fill` aesthetic) with their fixed `color` default, drawing the
+  layer in black and emitting a duplicated-aesthetics warning.
+
 # ggfunction 0.1.0
 
 * Initial release of mathematical-function taxonomy layers:

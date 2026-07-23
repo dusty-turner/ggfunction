@@ -172,3 +172,26 @@ test_that("StatCHF errors when multiple inputs provided", {
     "fun.*hf_fun.*cdf_fun.*pdf_fun.*survival_fun.*qf_fun"
   )
 })
+
+# --- check ---
+
+test_that("StatCHF check alerts on a decreasing cumulative hazard", {
+  scales <- list(x = NULL)
+  expect_message(
+    StatCHF$compute_group(
+      data = data.frame(group = 1), scales = scales,
+      fun = function(x) 3 - x, xlim = c(0, 3), n = 51, args = list()
+    )
+  )
+})
+
+test_that("StatCHF check = FALSE suppresses the diagnostic", {
+  scales <- list(x = NULL)
+  expect_silent(
+    StatCHF$compute_group(
+      data = data.frame(group = 1), scales = scales,
+      fun = function(x) 3 - x, xlim = c(0, 3), n = 51, args = list(),
+      check = FALSE
+    )
+  )
+})

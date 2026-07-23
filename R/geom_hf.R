@@ -46,6 +46,9 @@
 #'   for consistency with [geom_pdf()], [geom_cdf()], and [geom_chf()]; direct
 #'   hazard plotting through `fun` does not integrate the hazard.
 #' @param color Line color for the hazard curve.
+#' @param check Logical; if `TRUE`, issue a diagnostic when the computed
+#'   hazard values are negative. Use `FALSE` to suppress this check.
+#' @param check_tol Numeric tolerance used by the hazard validity check.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
@@ -110,7 +113,9 @@ geom_hf <- function(
     args = list(),
     pdf_args = NULL,
     cdf_args = NULL,
-    color = "black"
+    color = "black",
+    check = TRUE,
+    check_tol = 1e-2
     ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -123,6 +128,27 @@ geom_hf <- function(
     mapping <- modifyList(default_mapping, mapping)
   }
 
+  params <- list(
+    fun = fun,
+    pdf_fun = pdf_fun,
+    cdf_fun = cdf_fun,
+    survival_fun = survival_fun,
+    qf_fun = qf_fun,
+    hf_lower = hf_lower,
+    n = n,
+    xlim = xlim,
+    support = support,
+    args = args,
+    pdf_args = pdf_args,
+    cdf_args = cdf_args,
+    check = check,
+    check_tol = check_tol,
+    na.rm = na.rm,
+    color = color,
+    ...
+  )
+  params <- drop_overridden_aes_defaults(params, mapping)
+
   layer(
     data = data,
     mapping = mapping,
@@ -131,23 +157,7 @@ geom_hf <- function(
     position = position,
     show.legend = show.legend,
     inherit.aes = inherit.aes,
-    params = list(
-      fun = fun,
-      pdf_fun = pdf_fun,
-      cdf_fun = cdf_fun,
-      survival_fun = survival_fun,
-      qf_fun = qf_fun,
-      hf_lower = hf_lower,
-      n = n,
-      xlim = xlim,
-      support = support,
-      args = args,
-      pdf_args = pdf_args,
-      cdf_args = cdf_args,
-      na.rm = na.rm,
-      color = color,
-      ...
-    )
+    params = params
   )
 }
 
@@ -160,7 +170,8 @@ StatHF <- ggproto("StatHF", Stat,
                            cdf_fun = NULL, survival_fun = NULL,
                            qf_fun = NULL, hf_lower = -Inf,
                            xlim = NULL, support = c(-Inf, Inf), n = 101,
-                           args = NULL, pdf_args = NULL, cdf_args = NULL) {
+                           args = NULL, pdf_args = NULL, cdf_args = NULL,
+                           check = TRUE, check_tol = 1e-2) {
 
     # Validate interface
     using_fun <- !is.null(fun)
@@ -201,6 +212,10 @@ StatHF <- ggproto("StatHF", Stat,
       hf_lower = hf_lower
     )
     y_out <- fun_injected(xseq)
+
+    if (ggfunction_check_enabled(check)) {
+      invisible(check_hf_validity(y_out, tol = check_tol))
+    }
 
     data.frame(x = xseq, y = y_out)
   }

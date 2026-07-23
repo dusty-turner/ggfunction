@@ -161,3 +161,80 @@ test_that("StatCDFDiscrete errors when no source provided", {
     "fun.*pmf_fun.*survival_fun"
   )
 })
+
+# --- shading ---
+
+test_that("geom_cdf_discrete shades the lower tail with p", {
+  built <- ggplot_build(
+    ggplot() +
+      geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10),
+                        args = list(size = 10, prob = 0.5), p = 0.5)
+  )
+  in_shade <- built$data[[1]]$in_shade
+  expect_true(any(in_shade))
+  expect_true(any(!in_shade))
+  # Lower tail: shaded atoms form a prefix
+  expect_true(all(diff(in_shade) <= 0))
+})
+
+test_that("geom_cdf_discrete shading membership matches across sources", {
+  args <- list(size = 10, prob = 0.5)
+  b_pmf <- ggplot_build(ggplot() +
+    geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = args, p = 0.5))
+  b_fun <- ggplot_build(ggplot() +
+    geom_cdf_discrete(fun = pbinom, xlim = c(0, 10), args = args, p = 0.5))
+  b_srv <- ggplot_build(ggplot() +
+    geom_cdf_discrete(survival_fun = function(x, size, prob) 1 - pbinom(x, size, prob),
+                      xlim = c(0, 10), args = args, p = 0.5))
+  expect_identical(b_pmf$data[[1]]$in_shade, b_fun$data[[1]]$in_shade)
+  expect_identical(b_pmf$data[[1]]$in_shade, b_srv$data[[1]]$in_shade)
+})
+
+test_that("geom_cdf_discrete shading matches geom_pmf on the same distribution", {
+  args <- list(size = 10, prob = 0.5)
+  b_cdf <- ggplot_build(ggplot() +
+    geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = args, p = 0.8))
+  b_pmf <- ggplot_build(ggplot() +
+    geom_pmf(fun = dbinom, xlim = c(0, 10), args = args, p = 0.8))
+  expect_identical(b_cdf$data[[1]]$in_shade, b_pmf$data[[1]]$in_shade)
+})
+
+test_that("geom_cdf_discrete supports two-sided and outside shading", {
+  args <- list(size = 10, prob = 0.5)
+  b_in <- ggplot_build(ggplot() +
+    geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = args,
+                      p_lower = 0.1, p_upper = 0.9))
+  b_out <- ggplot_build(ggplot() +
+    geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = args,
+                      p_lower = 0.1, p_upper = 0.9, shade_outside = TRUE))
+  expect_identical(b_in$data[[1]]$in_shade, !b_out$data[[1]]$in_shade)
+})
+
+test_that("geom_cdf_discrete shading is computed on the full support before xlim", {
+  args <- list(size = 10, prob = 0.5)
+  b_full <- ggplot_build(ggplot() +
+    geom_cdf_discrete(pmf_fun = dbinom, support = 0:10, args = args, p = 0.5))
+  b_clip <- ggplot_build(ggplot() +
+    geom_cdf_discrete(pmf_fun = dbinom, support = 0:10, xlim = c(3, 7),
+                      args = args, p = 0.5))
+  full <- b_full$data[[1]]
+  clip <- b_clip$data[[1]]
+  expect_identical(
+    clip$in_shade,
+    full$in_shade[full$x >= 3 & full$x <= 7]
+  )
+})
+
+test_that("geom_cdf_discrete without shading args marks all atoms in_shade", {
+  built <- ggplot_build(ggplot() +
+    geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10),
+                      args = list(size = 10, prob = 0.5)))
+  expect_true(all(built$data[[1]]$in_shade))
+})
+
+test_that("geom_cdf_discrete draws with shading", {
+  p <- ggplot() +
+    geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10),
+                      args = list(size = 10, prob = 0.5), p = 0.5)
+  expect_silent(ggplotGrob(p))
+})

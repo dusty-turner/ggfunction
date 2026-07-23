@@ -46,6 +46,21 @@
 #' @param show_vert Logical. If `FALSE`, suppresses the vertical jump segments.
 #'   If `NULL` (the default), segments are shown when there are 50 or fewer
 #'   points and hidden otherwise.
+#' @param p (Optional) A numeric value between 0 and 1 specifying a cumulative
+#'   probability threshold. When `lower.tail = TRUE` (the default), steps and
+#'   endpoints up to the corresponding quantile are highlighted and the rest
+#'   are dimmed; when `FALSE`, the upper tail is highlighted. For the direct
+#'   `fun` path the cumulative probabilities are recovered from a dense grid,
+#'   so membership is approximate at grid resolution.
+#' @param lower.tail Logical; controls the direction of `p`-based shading.
+#'   Defaults to `TRUE`.
+#' @param p_lower (Optional) Lower cumulative probability bound for two-sided
+#'   shading. Used with `p_upper`.
+#' @param p_upper (Optional) Upper cumulative probability bound for two-sided
+#'   shading. Used with `p_lower`.
+#' @param shade_outside Logical; if `TRUE`, shading is applied to the tails
+#'   outside the `p_lower`/`p_upper` interval rather than inside. Defaults to
+#'   `FALSE`.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
@@ -108,7 +123,12 @@ geom_qf_discrete <- function(
     open_fill = NULL,
     vert_type = "dashed",
     show_points = NULL,
-    show_vert = NULL
+    show_vert = NULL,
+    p = NULL,
+    lower.tail = TRUE,
+    p_lower = NULL,
+    p_upper = NULL,
+    shade_outside = FALSE
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -141,6 +161,11 @@ geom_qf_discrete <- function(
       vert_type = vert_type,
       show_points = show_points,
       show_vert = show_vert,
+      p = p,
+      lower.tail = lower.tail,
+      p_lower = p_lower,
+      p_upper = p_upper,
+      shade_outside = shade_outside,
       ...
     )
   )
@@ -155,7 +180,10 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
 
   compute_group = function(data, scales, fun = NULL, pmf_fun = NULL,
                            cdf_fun = NULL, survival_fun = NULL,
-                           xlim = NULL, support = NULL, args = NULL) {
+                           xlim = NULL, support = NULL, args = NULL,
+                           p = NULL, lower.tail = TRUE,
+                           p_lower = NULL, p_upper = NULL,
+                           shade_outside = FALSE) {
 
     # Validate: exactly one source
     n_provided <- (!is.null(fun)) + (!is.null(pmf_fun)) + (!is.null(cdf_fun)) +
@@ -190,10 +218,7 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
                          numeric(1))
       if (length(p_right) > 0L) p_right[length(p_right)] <- 1
       out <- data.frame(p = p_right, x = q_unique)
-      return(filter_discrete_xlim(out, xlim = xlim))
-    }
-
-    if (!is.null(cdf_fun)) {
+    } else if (!is.null(cdf_fun)) {
       x_vals <- discrete_support(xlim = xlim, support = support)
 
       cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
@@ -201,10 +226,7 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
       invisible(check_discrete_cdf(cdf_vals, source = "cdf_fun"))
 
       out <- data.frame(p = cdf_vals, x = x_vals)
-      return(filter_discrete_xlim(out, xlim = xlim))
-    }
-
-    if (!is.null(pmf_fun)) {
+    } else if (!is.null(pmf_fun)) {
       x_vals <- discrete_support(xlim = xlim, support = support)
 
       fun_injected <- function(x) rlang::inject(pmf_fun(x, !!!args))
@@ -215,10 +237,7 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
       cdf_vals <- cumsum(pmf_vals)
 
       out <- data.frame(p = cdf_vals, x = x_vals)
-      return(filter_discrete_xlim(out, xlim = xlim))
-    }
-
-    if (!is.null(survival_fun)) {
+    } else {
       x_vals <- discrete_support(xlim = xlim, support = support)
 
       surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
@@ -227,8 +246,17 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
       invisible(check_discrete_cdf(cdf_vals, source = "survival_fun"))
 
       out <- data.frame(p = cdf_vals, x = x_vals)
-      return(filter_discrete_xlim(out, xlim = xlim))
     }
+
+    # Shading membership is computed on the full support, before any xlim
+    # filtering. The per-atom masses are recovered by differencing the
+    # cumulative probabilities.
+    out$in_shade <- pmf_shade_index(
+      diff(c(0, out$p)), p = p, lower.tail = lower.tail,
+      p_lower = p_lower, p_upper = p_upper,
+      shade_outside = shade_outside
+    )
+    filter_discrete_xlim(out, xlim = xlim)
   }
 )
 
@@ -265,6 +293,9 @@ GeomQFDiscrete <- ggproto("GeomQFDiscrete", Geom,
     if (is.null(show_points)) show_points <- n <= 50
     if (is.null(show_vert))   show_vert   <- n <= 50
 
+    in_shade   <- if ("in_shade" %in% names(data)) data$in_shade else rep(TRUE, n)
+    orig_alpha <- data$alpha
+
     # Horizontal segments (n total, defined only on [0, 1]):
     #   [0 → x[1]] at height y[1],
     #   [x[k] → x[k+1]] at height y[k+1], ...,
@@ -275,6 +306,7 @@ GeomQFDiscrete <- ggproto("GeomQFDiscrete", Geom,
     data_hori$xend   <- data$x
     data_hori$y      <- data$y
     data_hori$yend   <- data$y
+    data_hori$alpha  <- ifelse(in_shade, orig_alpha, 0.3)
 
     coord_hori <- coord$transform(data_hori, panel_params)
 
@@ -296,6 +328,10 @@ GeomQFDiscrete <- ggproto("GeomQFDiscrete", Geom,
       data_vert        <- data[-n, ]   # n-1 rows: x = F(x_k), y = x_k
       data_vert$xend   <- data_vert$x  # same p (vertical segment)
       data_vert$yend   <- data$y[-1]   # top of jump = x_{k+1}
+      # The jump and its closed (bottom) circle belong to atom k; the open
+      # (top) circle previews atom k + 1's membership.
+      data_vert$alpha  <- ifelse(in_shade[-n], orig_alpha[-n], 0.3)
+      open_alpha       <- ifelse(in_shade[-1], orig_alpha[-1], 0.3)
 
       coord_vert <- coord$transform(data_vert, panel_params)
 
@@ -331,7 +367,7 @@ GeomQFDiscrete <- ggproto("GeomQFDiscrete", Geom,
           default.units = "native",
           pch = 21,
           gp = grid::gpar(
-            col      = coord_vert$colour,
+            col      = scales::alpha(coord_vert$colour, open_alpha),
             fill     = open_fill,
             fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
             lwd      = coord_vert$stroke * .stroke / 2

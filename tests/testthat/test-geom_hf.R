@@ -233,3 +233,27 @@ test_that("StatHF errors when both fun and survival_fun supplied", {
     "fun.*pdf_fun.*cdf_fun.*survival_fun.*qf_fun"
   )
 })
+
+# --- check ---
+
+test_that("StatHF check alerts on negative hazard values", {
+  scales <- list(x = NULL)
+  expect_message(
+    StatHF$compute_group(
+      data = data.frame(group = 1), scales = scales,
+      fun = function(x) -x, xlim = c(0, 3), n = 51, args = list()
+    ),
+    "negative"
+  )
+})
+
+test_that("StatHF check = FALSE suppresses the diagnostic", {
+  scales <- list(x = NULL)
+  expect_silent(
+    StatHF$compute_group(
+      data = data.frame(group = 1), scales = scales,
+      fun = function(x) -x, xlim = c(0, 3), n = 51, args = list(),
+      check = FALSE
+    )
+  )
+})

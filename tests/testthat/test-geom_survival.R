@@ -164,3 +164,119 @@ test_that("StatSurvival errors when multiple inputs including qf_fun provided", 
     "fun.*cdf_fun.*pdf_fun.*qf_fun"
   )
 })
+
+# --- Alternate input: hf_fun ---
+
+test_that("StatSurvival computes survival from a Weibull hazard", {
+  h_weibull <- function(t) 2 * t  # shape 2, scale 1: S(t) = exp(-t^2)
+  scales <- list(x = NULL)
+  result <- StatSurvival$compute_group(
+    data = data.frame(group = 1),
+    scales = scales,
+    hf_fun = h_weibull,
+    support = c(0, Inf),
+    xlim = c(0, 3),
+    n = 101,
+    args = list()
+  )
+  expect_equal(result$y, exp(-result$x^2), tolerance = 1e-3)
+})
+
+test_that("geom_survival with hf_fun builds without error", {
+  p <- ggplot() +
+    geom_survival(hf_fun = function(t) 2 * t, support = c(0, Inf), xlim = c(0, 3))
+  expect_s3_class(p, "gg")
+  expect_silent(ggplot_build(p))
+})
+
+test_that("StatSurvival errors when hf_fun combined with another source", {
+  scales <- list(x = NULL)
+  expect_error(
+    StatSurvival$compute_group(
+      data = data.frame(group = 1),
+      scales = scales,
+      cdf_fun = pnorm,
+      hf_fun = function(t) 2 * t,
+      xlim = c(0, 3),
+      n = 101,
+      args = list()
+    ),
+    "hf_fun"
+  )
+})
+
+# --- shading ---
+
+test_that("geom_survival shades the lower tail with p", {
+  p <- ggplot() +
+    geom_survival(cdf_fun = pexp, args = list(rate = 0.5), xlim = c(0, 10), p = 0.5)
+  expect_s3_class(p, "gg")
+  expect_silent(ggplotGrob(p))
+})
+
+test_that("geom_survival shades the upper tail with lower.tail = FALSE", {
+  p <- ggplot() +
+    geom_survival(cdf_fun = pnorm, xlim = c(-3, 3), p = 0.1, lower.tail = FALSE)
+  expect_silent(ggplotGrob(p))
+})
+
+test_that("geom_survival shades two-sided regions", {
+  p <- ggplot() +
+    geom_survival(cdf_fun = pnorm, xlim = c(-3, 3), p_lower = 0.25, p_upper = 0.75)
+  expect_silent(ggplotGrob(p))
+})
+
+test_that("geom_survival warns and clamps when shading probability is unreached", {
+  p <- ggplot() +
+    geom_survival(cdf_fun = pnorm, xlim = c(-3, 0), p = 0.99)
+  expect_warning(ggplotGrob(p), "not reached")
+})
+
+# --- check ---
+
+test_that("StatSurvival check alerts on an invalid survival function", {
+  scales <- list(x = NULL)
+  msgs <- capture_messages(
+    StatSurvival$compute_group(
+      data = data.frame(group = 1), scales = scales,
+      fun = pnorm,  # increasing: a CDF, not a survival function
+      xlim = c(-3, 3), n = 101, args = list()
+    )
+  )
+  expect_true(any(grepl("valid survival function", msgs)))
+  expect_true(any(grepl("non-increasing", msgs)))
+})
+
+test_that("StatSurvival check = FALSE suppresses the diagnostic", {
+  scales <- list(x = NULL)
+  expect_silent(
+    StatSurvival$compute_group(
+      data = data.frame(group = 1), scales = scales,
+      fun = pnorm,
+      xlim = c(-3, 3), n = 101, args = list(),
+      check = FALSE
+    )
+  )
+})
+
+test_that("user-supplied colour is respected (no default color override)", {
+  b <- ggplot_build(
+    ggplot() +
+      geom_survival(cdf_fun = pexp, xlim = c(0, 6), args = list(rate = 1),
+                    colour = "steelblue")
+  )
+  expect_identical(unique(b$data[[1]]$colour), "steelblue")
+  b2 <- ggplot_build(
+    ggplot() + geom_hf(fun = function(x) rep(1, length(x)), xlim = c(0, 3),
+                       colour = "firebrick")
+  )
+  expect_identical(unique(b2$data[[1]]$colour), "firebrick")
+  b3 <- ggplot_build(
+    ggplot() + geom_cdf(fun = pnorm, xlim = c(-3, 3), colour = "tomato")
+  )
+  expect_identical(unique(b3$data[[1]]$colour), "tomato")
+  b4 <- ggplot_build(
+    ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3), colour = "tomato")
+  )
+  expect_identical(unique(b4$data[[1]]$colour), "tomato")
+})

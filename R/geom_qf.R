@@ -5,26 +5,50 @@
 #' and connects them with a line.
 #'
 #' Supply exactly one of `fun` (a quantile function), `cdf_fun` (a CDF),
-#' `pdf_fun` (a PDF), or `survival_fun` (a survival function). When `cdf_fun`
-#' is supplied, the quantile function is derived by numerical root-finding.
-#' When `pdf_fun` is supplied, the CDF is first derived by numerical
-#' integration and then inverted. When `survival_fun` is supplied, the CDF is
-#' computed as \eqn{F(x) = 1 - S(x)} and then inverted.
+#' `pdf_fun` (a PDF), `survival_fun` (a survival function), or `hf_fun` (a
+#' hazard function). When `cdf_fun` is supplied, the quantile function is
+#' derived by numerical root-finding. When `pdf_fun` is supplied, the CDF is
+#' first derived by numerical integration and then inverted. When
+#' `survival_fun` is supplied, the CDF is computed as \eqn{F(x) = 1 - S(x)} and
+#' then inverted. When `hf_fun` is supplied, the CDF is derived via numerical
+#' integration of the cumulative hazard as \eqn{F(x) = 1 - \exp(-H(x))} and
+#' then inverted.
 #'
 #' @inheritParams ggplot2::geom_function
 #' @param fun A function to compute the quantile function (e.g. [qnorm]). The function must
 #'   accept a numeric vector of probabilities (values in `[0,1]`) as its first argument.
-#'   Exactly one of `fun`, `cdf_fun`, `pdf_fun`, or `survival_fun` must be provided.
+#'   Exactly one of `fun`, `cdf_fun`, `pdf_fun`, `survival_fun`, or `hf_fun`
+#'   must be provided.
 #' @param cdf_fun A CDF function (e.g. [pnorm]). The quantile function is derived
 #'   numerically via root-finding. Exactly one of `fun`, `cdf_fun`, `pdf_fun`,
-#'   or `survival_fun` must be provided.
+#'   `survival_fun`, or `hf_fun` must be provided.
 #' @param pdf_fun A PDF function (e.g. [dnorm]). The CDF is first derived by
 #'   numerical integration, then the quantile function by root-finding. Exactly
-#'   one of `fun`, `cdf_fun`, `pdf_fun`, or `survival_fun` must be provided.
+#'   one of `fun`, `cdf_fun`, `pdf_fun`, `survival_fun`, or `hf_fun` must be
+#'   provided.
 #' @param survival_fun A survival function (e.g. `function(x) 1 - pnorm(x)`).
 #'   The CDF is computed as \eqn{F(x) = 1 - S(x)} and then the quantile
 #'   function is derived by root-finding. Exactly one of `fun`, `cdf_fun`,
-#'   `pdf_fun`, or `survival_fun` must be provided.
+#'   `pdf_fun`, `survival_fun`, or `hf_fun` must be provided.
+#' @param hf_fun A hazard function (e.g. a Weibull hazard). The CDF is derived
+#'   via numerical integration of the cumulative hazard as
+#'   \eqn{F(x) = 1 - \exp(-H(x))} and then inverted by root-finding. Exactly
+#'   one of `fun`, `cdf_fun`, `pdf_fun`, `survival_fun`, or `hf_fun` must be
+#'   provided.
+#' @param hf_lower Lower limit for integrating `hf_fun`. Defaults to `-Inf`.
+#'   When `support` has a finite lower endpoint and `hf_lower` is left at
+#'   `-Inf`, the lower support endpoint is used. For finite-support hazards,
+#'   set `support` or `hf_lower` to the lower support point (for example, `0`
+#'   for Weibull or exponential hazards).
+#' @param xlim A numeric vector of length 2 giving the probability range over
+#'   which to draw the quantile function, with
+#'   `0 <= xlim[1] < xlim[2] <= 1`. Defaults to `NULL`, which draws over
+#'   (0, 1). Note this differs from [geom_qf_discrete()], where `xlim` limits
+#'   the displayed support values.
+#' @param check Logical; if `TRUE`, issue a diagnostic when the computed
+#'   quantile values are not monotonically non-decreasing or leave the declared
+#'   `support`. Use `FALSE` to suppress this check.
+#' @param check_tol Numeric tolerance used by the quantile validity check.
 #' @param n Number of probability points at which to evaluate `fun`. Defaults to 101.
 #'   Points are placed at [Chebyshev nodes](https://en.wikipedia.org/wiki/Chebyshev_nodes)
 #'   of the first kind on $(0, 1)$, which cluster
@@ -70,6 +94,10 @@
 #'   ggplot() +
 #'     geom_qf(fun = qbeta, args = list(shape1 = 3, shape2 = 4))
 #'
+#'   # derive the quantile function from a Weibull hazard
+#'   ggplot() +
+#'     geom_qf(hf_fun = function(t) 2 * t, support = c(0, Inf))
+#'
 #' @name geom_qf
 #' @aliases StatQF
 #' @export
@@ -85,9 +113,14 @@ geom_qf <- function(mapping = NULL,
                     cdf_fun = NULL,
                     pdf_fun = NULL,
                     survival_fun = NULL,
+                    hf_fun = NULL,
+                    hf_lower = -Inf,
+                    xlim = NULL,
                     support = c(-Inf, Inf),
                     n = 101,
-                    args = list()) {
+                    args = list(),
+                    check = TRUE,
+                    check_tol = 1e-2) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
 
@@ -111,9 +144,14 @@ geom_qf <- function(mapping = NULL,
       cdf_fun = cdf_fun,
       pdf_fun = pdf_fun,
       survival_fun = survival_fun,
+      hf_fun = hf_fun,
+      hf_lower = hf_lower,
+      xlim = xlim,
       support = support,
       n = n,
       args = args,
+      check = check,
+      check_tol = check_tol,
       na.rm = na.rm,
       ...
     )
@@ -128,32 +166,41 @@ StatQF <- ggproto("StatQF", Stat,
 
   compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
                            pdf_fun = NULL, survival_fun = NULL,
-                           support = c(-Inf, Inf),
-                           n = 101, args = NULL, ...) {
+                           hf_fun = NULL, hf_lower = -Inf,
+                           xlim = NULL, support = c(-Inf, Inf),
+                           n = 101, args = NULL,
+                           check = TRUE, check_tol = 1e-2, ...) {
 
-    # Validate: exactly one source
-    n_provided <- (!is.null(fun)) + (!is.null(cdf_fun)) + (!is.null(pdf_fun)) +
-      (!is.null(survival_fun))
-    if (n_provided == 0L) {
-      cli::cli_abort("One of {.arg fun}, {.arg cdf_fun}, {.arg pdf_fun}, or {.arg survival_fun} must be provided.")
-    }
-    if (n_provided > 1L) {
-      cli::cli_abort("Supply only one of {.arg fun}, {.arg cdf_fun}, {.arg pdf_fun}, or {.arg survival_fun}.")
-    }
+    support <- validate_support_1d(support)
 
-    k <- seq_len(n)
-    p_vals <- (1 - cos((2 * k - 1) * pi / (2 * n))) / 2
-
+    # Validates that exactly one source is provided
     fun_injected <- make_qf_function(
       fun = fun,
       cdf_fun = cdf_fun,
       pdf_fun = pdf_fun,
       survival_fun = survival_fun,
+      hf_fun = hf_fun,
+      hf_lower = hf_lower,
       args = args,
       support = support
     )
 
+    k <- seq_len(n)
+    p_vals <- (1 - cos((2 * k - 1) * pi / (2 * n))) / 2
+
+    if (!is.null(xlim)) {
+      if (!is.numeric(xlim) || length(xlim) != 2 || any(!is.finite(xlim)) ||
+          xlim[1] < 0 || xlim[2] > 1 || xlim[1] >= xlim[2]) {
+        cli::cli_abort("{.arg xlim} must be a numeric vector of length 2 with {.code 0 <= xlim[1] < xlim[2] <= 1}.")
+      }
+      p_vals <- xlim[1] + (xlim[2] - xlim[1]) * p_vals
+    }
+
     q_vals <- fun_injected(p_vals)
+
+    if (ggfunction_check_enabled(check)) {
+      invisible(check_qf_validity(q_vals, support = support, tol = check_tol))
+    }
 
     data.frame(p = p_vals, q = q_vals, x = q_vals)
 
