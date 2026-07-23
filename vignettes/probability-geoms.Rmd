@@ -74,3 +74,17 @@ ggplot() +
   )
 ```
 
+The discrete step geoms accept the same cumulative shading arguments as
+`geom_pmf()`: atoms inside the requested region draw at full opacity while the
+rest are dimmed.
+
+```{r discrete-cdf-shading}
+ggplot() +
+  geom_cdf_discrete(
+    pmf_fun = dbinom,
+    support = 0:12,
+    args = list(size = 12, prob = 0.35),
+    p = 0.5
+  )
+```
+

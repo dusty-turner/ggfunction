@@ -710,6 +710,20 @@ ggplot() +
 
 <img src="man/figures/readme-discrete-cdf-1.png" alt="" width="60%" />
 
+**Shading.** The discrete CDF accepts the same `p`, `lower.tail`, and
+`p_lower`/`p_upper` arguments as `geom_cdf()` and `geom_pmf()`: atoms
+inside the requested region draw at full opacity while the rest are
+dimmed. Here we highlight the lower half of the
+$\text{Binomial}(10, 0.5)$ distribution.
+
+``` r
+ggplot() +
+  geom_cdf_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+    p = 0.5)
+```
+
+<img src="man/figures/readme-discrete-cdf-p-1.png" alt="" width="60%" />
+
 **Hiding points and lines.** `show_points = FALSE` and
 `show_vert = FALSE` remove the endpoint circles and vertical jump
 segments, leaving only the horizontal staircase. By default, points and
@@ -743,9 +757,10 @@ of surviving past $x$.
 
 **Continuous (`geom_survival()`).** Accepts a survival function directly
 via `fun`, or derives $S$ from a CDF via `cdf_fun`, a PDF via `pdf_fun`,
-or a quantile function via `qf_fun`. The following example shows the
-survival function of an $\text{Exponential}(0.5)$ distribution, which
-decays as $S(x) = e^{-0.5x}$.
+a quantile function via `qf_fun`, or a hazard function via `hf_fun`. The
+following example shows the survival function of an
+$\text{Exponential}(0.5)$ distribution, which decays as
+$S(x) = e^{-0.5x}$.
 
 ``` r
 ggplot() +
@@ -753,6 +768,30 @@ ggplot() +
 ```
 
 <img src="man/figures/readme-survival-1.png" alt="" width="60%" />
+
+**From a hazard function.** When `hf_fun` is supplied, the survival
+function is derived by numerically integrating the cumulative hazard,
+$S(x) = e^{-H(x)}$. Here the Weibull hazard $h(t) = 2t$ yields
+$S(t) = e^{-t^2}$.
+
+``` r
+ggplot() +
+  geom_survival(hf_fun = function(t) 2 * t, support = c(0, Inf), xlim = c(0, 3))
+```
+
+<img src="man/figures/readme-survival-hf-1.png" alt="" width="60%" />
+
+**Shading.** `geom_survival()` accepts the same `p`, `lower.tail`, and
+`p_lower`/`p_upper` arguments as `geom_cdf()`, interpreted as cumulative
+probabilities from the left ($F = 1 - S$). Here we shade up to the
+median survival time.
+
+``` r
+ggplot() +
+  geom_survival(cdf_fun = pexp, xlim = c(0, 10), args = list(rate = 0.5), p = 0.5)
+```
+
+<img src="man/figures/readme-survival-p-1.png" alt="" width="60%" />
 
 **Discrete (`geom_survival_discrete()`).** Takes a PMF and renders
 $S(x) = 1 - F(x)$ as a right-continuous step function using the same
@@ -767,6 +806,18 @@ ggplot() +
 ```
 
 <img src="man/figures/readme-discrete-survival-1.png" alt="" width="60%" />
+
+**Shading.** The discrete survival function accepts the same shading
+arguments as `geom_cdf_discrete()`, with `p` interpreted as cumulative
+probability from the left. Here we highlight the upper quartile.
+
+``` r
+ggplot() +
+  geom_survival_discrete(pmf_fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
+    p = 0.25, lower.tail = FALSE)
+```
+
+<img src="man/figures/readme-discrete-survival-p-1.png" alt="" width="60%" />
 
 **Hiding points.** Setting `show_points = FALSE` removes the endpoint
 circles.
@@ -795,8 +846,12 @@ ggplot() +
 The quantile function $Q(p) = \inf\{x : F(x) \ge p\}$ inverts the CDF.
 
 **Continuous (`geom_qf()`).** Evaluates a quantile function over the
-unit interval $(0, 1)$ and draws it as a curve. The following example
-plots the standard normal quantile function.
+unit interval $(0, 1)$ and draws it as a curve. Like the other
+continuous distribution geoms, it can also derive the quantile function
+from a CDF (`cdf_fun`), PDF (`pdf_fun`), survival function
+(`survival_fun`), or hazard function (`hf_fun`), and `xlim` restricts
+the drawn probability range. The following example plots the standard
+normal quantile function.
 
 ``` r
 ggplot() +

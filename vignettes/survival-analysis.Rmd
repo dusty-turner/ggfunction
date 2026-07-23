@@ -59,6 +59,34 @@ The exponential survival curve (blue) decays at a constant rate---the memoryless
 property. The Weibull (red) decays faster over time (increasing hazard), while
 the normal (green) concentrates failures around the mean.
 
+Survival curves can also be derived directly from a hazard function via
+`hf_fun`: the cumulative hazard is integrated numerically and
+$S(x) = e^{-H(x)}$. Here the Weibull hazard $h(t) = 2t$ yields
+$S(t) = e^{-t^2}$.
+
+```{r survival-from-hazard}
+ggplot() +
+  geom_survival(hf_fun = function(t) 2 * t, support = c(0, Inf),
+                xlim = c(0, 3)) +
+  labs(x = "Time", y = "S(x)",
+       title = "Survival curve derived from its hazard") +
+  theme_minimal()
+```
+
+Like `geom_cdf()`, `geom_survival()` shades probability regions with `p`,
+`lower.tail`, and `p_lower`/`p_upper`, interpreted as cumulative probabilities
+from the left ($F = 1 - S$). Shading up to $p = 0.5$ marks the median survival
+time.
+
+```{r survival-shading}
+ggplot() +
+  geom_survival(cdf_fun = pexp, xlim = c(0, 6), args = list(rate = 1),
+                p = 0.5) +
+  labs(x = "Time", y = "S(x)",
+       title = "Region up to the median survival time") +
+  theme_minimal()
+```
+
 
 ## Hazard functions
 
