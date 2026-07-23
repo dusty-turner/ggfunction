@@ -232,9 +232,11 @@ example, if the mass at 2 is \(1/2\), the mass at 1 is \(1/3\), and the mass at
 then 3. The CDF jumps from 0 to \(1/3\) at 1, to \(1/3+1/2\) at 2, and to 1 at
 3. This sorted support determines where step functions jump and how probability
 shading is resolved. For discrete cumulative targets that cannot be hit exactly,
-\texttt{geom\_pmf()} includes the first support point whose cumulative mass reaches or
-exceeds the target; discrete HDR shading similarly uses the smallest containing
-set, including all support points tied at the cutoff mass.
+the discrete layers---\texttt{geom\_pmf()} and the step geoms \texttt{geom\_cdf\_discrete()},
+\texttt{geom\_survival\_discrete()}, and \texttt{geom\_qf\_discrete()}---include the first
+support point whose cumulative mass reaches or exceeds the target; discrete
+HDR shading similarly uses the smallest containing set, including all support
+points tied at the cutoff mass.
 
 The bivariate probability layers have a narrower scope. \texttt{geom\_pdf\_2d()} draws
 theoretical bivariate densities as HDRs or rasters, and \texttt{geom\_pmf\_2d()} draws
@@ -281,7 +283,7 @@ CDF & PMF or survival & cumulative sums over sorted support\\
 \hline
 survival & PMF or CDF & $1-F$ on sorted support\\
 \hline
-quantile & PMF or CDF & generalized inverse over sorted support\\
+quantile & PMF, CDF, or survival & generalized inverse over sorted support\\
 \hline
 \end{tabular}
 \end{table}
@@ -442,7 +444,7 @@ vignettes.
 
 }
 
-\caption{A discrete distribution on a nonconsecutive support. The PMF layer shades the lower cumulative region; the discrete CDF is derived from the same PMF by cumulative summation over the declared support.}\label{fig:discrete-support}
+\caption{A discrete distribution on a nonconsecutive support. Both layers resolve the same lower cumulative shading request; the discrete CDF is derived from the same PMF by cumulative summation over the declared support.}\label{fig:discrete-support}
 \end{figure}
 
 \subsection{Empirical distributions and censored summaries}\label{empirical-distributions-and-censored-summaries}
@@ -773,7 +775,12 @@ checked for approximate normalization over their declared support, PMFs are
 checked for non-negative finite mass and approximate summation, CDF-like inputs
 are checked for monotonicity where the route requires it, and support/window
 diagnostics warn when an HDR computation domain omits substantial probability
-mass. Invalid source combinations are rejected. Most distribution geoms require
+mass. Computed survival, quantile, hazard, and cumulative-hazard curves are
+soft-checked as well: survival curves for unit-to-zero endpoint behavior and
+monotone decrease, quantile curves for monotone increase within the declared
+support, hazards for non-negativity, and cumulative hazards additionally for
+monotone increase. These diagnostics alert without aborting and can be
+disabled per layer via \texttt{check\ =\ FALSE} or globally via the package option. Invalid source combinations are rejected. Most distribution geoms require
 exactly one source function, but hazard layers also accept the documented
 bundle \texttt{pdf\_fun} + \texttt{cdf\_fun}, which avoids deriving either component
 numerically.

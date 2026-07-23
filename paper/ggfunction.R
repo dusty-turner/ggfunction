@@ -126,7 +126,7 @@ conversion_discrete <- data.frame(
     "CDF or survival",
     "PMF or survival",
     "PMF or CDF",
-    "PMF or CDF"
+    "PMF, CDF, or survival"
   ),
   Route = c(
     "support differences",
@@ -224,7 +224,7 @@ pmf2_tile <- ggplot() +
 pmf2_point + pmf2_tile
 
 
-## ----discrete-support, fig.width=7, fig.height=3, out.width="95%", fig.cap="A discrete distribution on a nonconsecutive support. The PMF layer shades the lower cumulative region; the discrete CDF is derived from the same PMF by cumulative summation over the declared support."----
+## ----discrete-support, fig.width=7, fig.height=3, out.width="95%", fig.cap="A discrete distribution on a nonconsecutive support. Both layers resolve the same lower cumulative shading request; the discrete CDF is derived from the same PMF by cumulative summation over the declared support."----
 disc_support <- c(0, 1, 3, 4, 8)
 disc_mass <- c(0.12, 0.28, 0.20, 0.25, 0.15)
 disc_pmf <- function(x) {
@@ -239,7 +239,7 @@ pmf_plot <- ggplot() +
   labs(title = "PMF", x = "support", y = "mass")
 
 cdf_plot <- ggplot() +
-  geom_cdf_discrete(pmf_fun = disc_pmf, support = disc_support) +
+  geom_cdf_discrete(pmf_fun = disc_pmf, support = disc_support, p = 0.8) +
   labs(title = "CDF from PMF", x = "support", y = "cumulative mass")
 
 pmf_plot + cdf_plot
