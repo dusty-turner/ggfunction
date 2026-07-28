@@ -20,12 +20,14 @@ layers_with_stat <- function(built, stat_class) {
 }
 
 # Depth-first collection of grobs inheriting from any of `classes`.
-# Descends into gTrees and unwraps gLists.
+# Descends into gtables, gTrees, and gLists.
 find_grobs <- function(grob, classes) {
   found <- list()
   walk <- function(g) {
     if (inherits(g, classes)) found[[length(found) + 1L]] <<- g
-    if (inherits(g, "gTree")) {
+    if (inherits(g, "gtable")) {
+      for (child in g$grobs) walk(child)
+    } else if (inherits(g, "gTree")) {
       for (child in g$children) walk(child)
     } else if (inherits(g, "gList")) {
       for (child in g) walk(child)

@@ -158,6 +158,7 @@ geom_pdf <- function(
     ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
+  validate_data_limits(xlim)
 
   default_mapping <- aes(x = after_stat(x), y = after_stat(y))
 
@@ -288,49 +289,13 @@ make_pdf_qf_function <- function(fun = NULL, cdf_fun = NULL,
   )
 }
 
+#' Draw-time regrid: extend the curve over the full visible panel when other
+#' layers or expansion widened it beyond the stat's grid. Geometry only — no
+#' checks and no probability calculations happen here; shading membership is
+#' reconstructed from raw metadata retained by the Stat (spec 3.8, B-02).
 #' @noRd
-pdf_scale_inverse <- function(x_scale, x) {
-  if (is.null(x_scale) || x_scale$is_discrete()) return(x)
-  x_scale$get_transformation()$inverse(x)
-}
-
-#' @noRd
-pdf_scale_transform <- function(y_scale, y) {
-  if (is.null(y_scale) || y_scale$is_discrete()) return(y)
-  y_scale$get_transformation()$transform(y)
-}
-
-#' @noRd
-pdf_x_scale_transform <- function(x_scale, x) {
-  if (is.null(x_scale) || x_scale$is_discrete()) return(x)
-  x_scale$get_transformation()$transform(x)
-}
-
-#' @noRd
-pdf_stat_range <- function(scales, xlim = NULL, n = 101,
-                           support = c(-Inf, Inf)) {
-  support <- validate_support_1d(support)
-  if (is.null(scales$x)) {
-    x_range <- xlim %||% if (all(is.finite(support))) support else c(0, 1)
-    xseq <- seq(x_range[1], x_range[2], length.out = n)
-    x_eval <- xseq
-  } else {
-    x_range <- xlim %||% scales$x$dimension()
-    xseq <- seq(x_range[1], x_range[2], length.out = n)
-    x_eval <- pdf_scale_inverse(scales$x, xseq)
-  }
-
-  list(x = xseq, x_eval = x_eval)
-}
-
-#' @noRd
-pdf_eval_range <- function(x, x_scale = NULL) {
-  x_range <- range(x, na.rm = TRUE)
-  pdf_scale_inverse(x_scale, x_range)
-}
-
-#' @noRd
-pdf_panel_data <- function(data, panel_params, fun, n = 101) {
+pdf_panel_data <- function(data, panel_params, fun, n = 101,
+                           shade_outside = FALSE, support = c(-Inf, Inf)) {
   panel_range <- panel_params$x$limits %||% panel_params$x.range
   if (length(panel_range) != 2L || any(!is.finite(panel_range))) {
     return(data)
@@ -341,17 +306,48 @@ pdf_panel_data <- function(data, panel_params, fun, n = 101) {
   }
 
   xseq <- seq(panel_range[1], panel_range[2], length.out = n)
-  x_eval <- pdf_scale_inverse(panel_params$x, xseq)
-  y_out <- fun(x_eval)
-  y_out <- pdf_scale_transform(panel_params$y, y_out)
+  x_eval <- scale_inverse(panel_params$x, xseq)
+  y_raw <- fun(x_eval)
 
   out <- data[rep(1L, n), , drop = FALSE]
   out$x <- xseq
   out$x_eval <- x_eval
-  out$y <- y_out
-  if ("ymin" %in% names(out)) out$ymin <- 0
-  if ("ymax" %in% names(out)) out$ymax <- y_out
+  out$y <- scale_forward(panel_params$y, y_raw)
+  out$density <- y_raw
+  if ("ymax" %in% names(out)) out$ymax <- out$y
+
+  hdr_cutoff <- if ("hdr_cutoff" %in% names(data)) data$hdr_cutoff[1] else NA_real_
+  shade_lower <- if ("shade_lower" %in% names(data)) data$shade_lower[1] else NA_real_
+  shade_upper <- if ("shade_upper" %in% names(data)) data$shade_upper[1] else NA_real_
+
+  if (is.finite(hdr_cutoff)) {
+    out$in_shade <- out$density >= hdr_cutoff
+  } else if (!is.na(shade_lower) || !is.na(shade_upper)) {
+    intervals <- pdf_reconstruct_intervals(
+      shade_lower, shade_upper, shade_outside, support
+    )
+    boundaries <- c(shade_lower, shade_upper)
+    out <- pdf_insert_boundary_rows(
+      out, boundaries, fun,
+      x_scale = panel_params$x, y_scale = panel_params$y
+    )
+    out$in_shade <- pdf_mark_intervals(out$x_eval, intervals)
+  }
   out
+}
+
+#' Rebuild shading intervals from retained raw boundary metadata.
+#' @noRd
+pdf_reconstruct_intervals <- function(shade_lower, shade_upper,
+                                      shade_outside = FALSE,
+                                      support = c(-Inf, Inf)) {
+  lower <- if (is.na(shade_lower)) support[1] else shade_lower
+  upper <- if (is.na(shade_upper)) support[2] else shade_upper
+  if (isTRUE(shade_outside)) {
+    rbind(c(support[1], lower), c(upper, support[2]))
+  } else {
+    rbind(c(lower, upper))
+  }
 }
 
 #' @noRd
@@ -372,22 +368,31 @@ validate_probability_shading <- function(p = NULL, p_lower = NULL,
   }
 }
 
+#' Insert exact shading-boundary evaluation rows. Boundaries are raw
+#' distributional quantiles; a row is inserted only when the boundary lies
+#' inside the evaluation window (spec B-02). Positions are transformed
+#' exactly once; raw values are retained alongside.
 #' @noRd
-insert_pdf_boundary_rows <- function(data, boundaries, fun, scales) {
+pdf_insert_boundary_rows <- function(data, boundaries, fun,
+                                     x_scale = NULL, y_scale = NULL) {
   boundaries <- unique(boundaries[is.finite(boundaries)])
   if (length(boundaries) == 0L) return(data)
 
   display_range <- range(data$x_eval, na.rm = TRUE)
   boundaries <- boundaries[boundaries >= display_range[1] & boundaries <= display_range[2]]
+  boundaries <- setdiff(boundaries, data$x_eval)
   if (length(boundaries) == 0L) return(data)
 
   rows <- data[rep(1L, length(boundaries)), , drop = FALSE]
+  y_raw <- fun(boundaries)
   rows$x_eval <- boundaries
-  rows$x <- pdf_x_scale_transform(scales$x, boundaries)
-  rows$y <- fun(boundaries)
+  rows$x <- scale_forward(x_scale, boundaries)
+  rows$density <- y_raw
+  rows$y <- scale_forward(y_scale, y_raw)
+  if ("ymax" %in% names(rows)) rows$ymax <- rows$y
 
   out <- rbind(data, rows)
-  out[order(out$x), , drop = FALSE]
+  out[order(out$x_eval), , drop = FALSE]
 }
 
 #' @noRd
@@ -451,8 +456,11 @@ pdf_mark_intervals <- function(x, intervals) {
   in_region
 }
 
+#' HDR density cutoff on a raw data-space grid over `hdr_xlim`. The grid is
+#' uniform in data coordinates regardless of any display transformation, so
+#' the (approximate) HDR is display-independent (spec 5.2).
 #' @noRd
-pdf_hdr_cutoff <- function(fun, hdr_xlim, n = 101) {
+pdf_hdr_cutoff <- function(fun, hdr_xlim, coverage, n = 101) {
   hdr_grid <- seq(hdr_xlim[1], hdr_xlim[2], length.out = n)
   y <- fun(hdr_grid)
   if (any(!is.finite(y) | y < 0)) {
@@ -463,11 +471,14 @@ pdf_hdr_cutoff <- function(fun, hdr_xlim, n = 101) {
   }
   ord <- order(y, decreasing = TRUE)
   weights <- y / sum(y)
-  cutoff_idx <- which(cumsum(weights[ord]) >= attr(hdr_xlim, "shade_hdr"))[1L]
+  cutoff_idx <- which(cumsum(weights[ord]) >= coverage)[1L]
   if (is.na(cutoff_idx)) cutoff_idx <- length(y)
   y[ord[cutoff_idx]]
 }
 
+#' Resolve shading membership and raw boundary metadata in the Stat.
+#' All probability logic happens here, on raw values; the Geom only consumes
+#' the resulting columns (spec B-02).
 #' @noRd
 pdf_add_shading_columns <- function(data, scales, fun, cdf, qf,
                                     support = c(-Inf, Inf), xlim = NULL,
@@ -485,9 +496,8 @@ pdf_add_shading_columns <- function(data, scales, fun, cdf, qf,
 
   if (!is.null(shade_hdr)) {
     hdr_xlim <- validate_support_1d(hdr_xlim %||% xlim %||% range(data$x_eval, na.rm = TRUE), "hdr_xlim")
-    attr(hdr_xlim, "shade_hdr") <- shade_hdr
-    cutoff <- pdf_hdr_cutoff(fun, hdr_xlim, n = n)
-    data$in_shade <- data$y >= cutoff
+    cutoff <- pdf_hdr_cutoff(fun, hdr_xlim, coverage = shade_hdr, n = n)
+    data$in_shade <- data$density >= cutoff
     data$hdr_cutoff <- cutoff
 
     if (ggfunction_check_enabled(check)) {
@@ -512,7 +522,10 @@ pdf_add_shading_columns <- function(data, scales, fun, cdf, qf,
       p_upper = p_upper,
       shade_outside = shade_outside
     )
-    data <- insert_pdf_boundary_rows(data, region$boundaries, fun, scales)
+    data <- pdf_insert_boundary_rows(
+      data, region$boundaries, fun,
+      x_scale = scales$x, y_scale = scales$y
+    )
     data$in_shade <- pdf_mark_intervals(data$x_eval, region$intervals)
     data$shade_lower <- region$shade_lower
     data$shade_upper <- region$shade_upper
@@ -542,7 +555,7 @@ StatPDF <- ggproto("StatPDF", Stat,
     check_pdf_sources(fun, cdf_fun, survival_fun, qf_fun, hf_fun)
     support <- validate_support_1d(support)
 
-    range <- pdf_stat_range(scales, xlim, n, support = support)
+    grid <- resolve_stat_grid_1d(scales$x, xlim, support = support, n = n)
     fun_injected <- make_pdf_function(
       fun, cdf_fun, survival_fun, qf_fun, hf_fun,
       hf_lower = hf_lower, args = args, support = support
@@ -556,9 +569,14 @@ StatPDF <- ggproto("StatPDF", Stat,
       hf_lower = hf_lower, args = args, support = support
     )
 
-    y_out <- fun_injected(range$x_eval)
+    y_raw <- fun_injected(grid$eval)
 
-    out <- data.frame(x = range$x, x_eval = range$x_eval, y = y_out)
+    out <- data.frame(
+      x = grid$panel,
+      x_eval = grid$eval,
+      y = scale_forward(scales$y, y_raw),
+      density = y_raw
+    )
 
     if (ggfunction_check_enabled(check)) {
       invisible(check_pdf_normalization(
@@ -569,14 +587,14 @@ StatPDF <- ggproto("StatPDF", Stat,
       ))
     }
 
-    pdf_add_shading_columns(
+    out <- pdf_add_shading_columns(
       out,
       scales = scales,
       fun = fun_injected,
       cdf = cdf_injected,
       qf = qf_injected,
       support = support,
-      xlim = xlim %||% range(range$x_eval, na.rm = TRUE),
+      xlim = xlim %||% range(grid$eval, na.rm = TRUE),
       p = p,
       lower.tail = lower.tail,
       p_lower = p_lower,
@@ -588,12 +606,26 @@ StatPDF <- ggproto("StatPDF", Stat,
       check = check,
       check_tol = check_tol
     )
+
+    # Density baseline: raw zero, transformed once when finite in the
+    # transformation domain; retained as metadata otherwise (spec 5.1).
+    baseline <- resolve_stat_baseline(scales$y, 0)
+    out$baseline_panel <- baseline$panel
+    out
   }
 )
 
 #' @rdname geom_pdf
 #' @export
 GeomPDF <- ggproto("GeomPDF", GeomArea,
+  setup_data = function(data, params) {
+    # The area baseline is the transformed raw-zero density, not panel zero.
+    # When the transformation excludes zero, no finite training value exists;
+    # draw_panel clips to the visible panel floor instead (spec 5.1).
+    base <- if ("baseline_panel" %in% names(data)) data$baseline_panel else 0
+    transform(data, ymin = base, ymax = y)
+  },
+
   draw_panel = function(self, data, panel_params, coord, arrow = NULL,
                         lineend = "butt", linejoin = "round", linemitre = 10,
                         na.rm = FALSE, p = NULL, lower.tail = TRUE,
@@ -607,63 +639,51 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
                         ) {
 
     if (is.null(xlim)) {
+      # Panel-coverage regrid only; shading membership is reconstructed from
+      # raw metadata retained by the Stat — no checks, no quantile solving.
       support <- validate_support_1d(support)
       fun_injected <- make_pdf_function(
         fun, cdf_fun, survival_fun, qf_fun, hf_fun,
         hf_lower = hf_lower, args = args, support = support
       )
-      cdf_injected <- make_pdf_cdf_function(
-        fun, cdf_fun, survival_fun, qf_fun, hf_fun,
-        hf_lower = hf_lower, args = args, support = support
-      )
-      qf_injected <- make_pdf_qf_function(
-        fun, cdf_fun, survival_fun, qf_fun, hf_fun,
-        hf_lower = hf_lower, args = args, support = support
-      )
-      data <- pdf_panel_data(data, panel_params, fun_injected, n)
-      data <- pdf_add_shading_columns(
-        data,
-        scales = list(x = panel_params$x),
-        fun = fun_injected,
-        cdf = cdf_injected,
-        qf = qf_injected,
-        support = support,
-        xlim = range(data$x_eval, na.rm = TRUE),
-        p = p,
-        lower.tail = lower.tail,
-        p_lower = p_lower,
-        p_upper = p_upper,
-        shade_outside = shade_outside,
-        shade_hdr = shade_hdr,
-        hdr_xlim = hdr_xlim,
-        n = n,
-        check = FALSE,
-        check_tol = check_tol
+      data <- pdf_panel_data(
+        data, panel_params, fun_injected, n,
+        shade_outside = shade_outside, support = support
       )
     }
 
-    # Helper to build a closed polygon from clipped data
+    baseline_panel <- if ("baseline_panel" %in% names(data)) {
+      data$baseline_panel[1]
+    } else {
+      NA_real_
+    }
+    base_y <- baseline_draw_value(baseline_panel, panel_params)
+
+    # Closed polygon from a run of in-shade rows down to the baseline.
     build_poly <- function(clip_data, clip_range) {
       pd <- rbind(
-        transform(clip_data[1, , drop = FALSE], x = clip_range[1], y = 0),
+        transform(clip_data[1, , drop = FALSE], x = clip_range[1], y = base_y),
         clip_data,
-        transform(clip_data[nrow(clip_data), , drop = FALSE], x = clip_range[2], y = 0)
+        transform(clip_data[nrow(clip_data), , drop = FALSE], x = clip_range[2], y = base_y)
       )
       pd$colour <- NA
+      pd$ymin <- base_y
+      pd$ymax <- pd$y
       pd
     }
 
     area_grobs <- list()
 
-    in_shade <- if ("in_shade" %in% names(data)) data$in_shade else rep(TRUE, nrow(data))
-    if (any(in_shade, na.rm = TRUE)) {
+    for (g in split(data, data$group)) {
+      in_shade <- if ("in_shade" %in% names(g)) g$in_shade else rep(TRUE, nrow(g))
+      if (!any(in_shade, na.rm = TRUE)) next
       runs <- rle(in_shade)
       idx_end <- cumsum(runs$lengths)
       idx_start <- c(1L, head(idx_end, -1L) + 1L)
 
       for (i in seq_along(runs$values)) {
         if (!runs$values[i]) next
-        clip_data <- data[idx_start[i]:idx_end[i], , drop = FALSE]
+        clip_data <- g[idx_start[i]:idx_end[i], , drop = FALSE]
         clip_range <- range(clip_data$x, na.rm = TRUE)
         area_grobs <- c(area_grobs, list(
           ggproto_parent(GeomArea, self)$draw_panel(

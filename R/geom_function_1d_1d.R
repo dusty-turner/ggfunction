@@ -8,19 +8,34 @@
 #' @param fun A function to compute. The function must accept a numeric vector as its first argument.
 #' @param n Number of points at which to evaluate `fun`. Defaults to 101.
 #' @param args A named list of additional arguments to pass to `fun`.
-#' @param xlim A numeric vector of length 2 giving the x-range over which to evaluate the function.
-#' @param fill Fill color for the shaded area (only used when `shade_from`/`shade_to` are specified).
-#' @param color Line color for the curve.
-#' @param shade_from (Optional) Numeric. Left boundary of the x-interval to shade.
-#' @param shade_to (Optional) Numeric. Right boundary of the x-interval to shade.
+#' @param xlim A numeric vector of length 2 giving the x-range over which to
+#'   evaluate the function, in data coordinates. Under a transformed x scale
+#'   the evaluation grid is evenly spaced in panel (transformed) space and the
+#'   function is evaluated at the corresponding data-space values. (This
+#'   deliberately differs from [ggplot2::stat_function()], which interprets
+#'   `xlim` in transformed scale space.)
+#' @param fill Fill color for the shaded area (only used when `shade_from`/`shade_to` are
+#'   specified). Defaults to `"grey20"`; supply a value to override a fill mapping.
+#' @param color Line color for the curve. Defaults to `"black"`; supply a
+#'   value to override a colour mapping.
+#' @param shade_from (Optional) Numeric. Left boundary of the x-interval to shade, in data
+#'   coordinates.
+#' @param shade_to (Optional) Numeric. Right boundary of the x-interval to shade, in data
+#'   coordinates.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
 #' These are calculated by the `stat` part of the layer and can be accessed
 #' with [ggplot2::after_stat()].
 #' \describe{
-#'   \item{`after_stat(x)`}{Points at which `fun` is evaluated.}
+#'   \item{`after_stat(x)`}{Points at which `fun` is evaluated (data
+#'   coordinates).}
 #'   \item{`after_stat(y)`}{Function values.}
+#'   \item{`after_stat(x_eval)`}{Data-space evaluation points (equal to the
+#'   raw `x` grid).}
+#'   \item{`after_stat(y_raw)`}{Raw (untransformed) function values.}
+#'   \item{`after_stat(in_shade)`}{Logical indicator for grid points inside
+#'   the requested `shade_from`/`shade_to` region.}
 #' }
 #'
 #' @section Aesthetics:
@@ -30,7 +45,8 @@
 #'   \item{Computed position aesthetics}{`x` and `y`, mapped by default to
 #'   `after_stat(x)` and `after_stat(y)`.}
 #'   \item{Drawing aesthetics}{`alpha`, `colour`/`color`, `fill`, `group`,
-#'   `linetype`, and `linewidth` for the line and optional shaded region.}
+#'   `linetype`, and `linewidth` for the line and optional shaded region. A
+#'   mapped `fill` must be constant within each shaded group.}
 #' }
 #'
 #' @return A ggplot2 layer.
@@ -67,13 +83,15 @@ geom_function_1d_1d <- function(
     xlim = NULL,
     n = 101,
     args = list(),
-    fill = "grey20",
-    color = "black",
+    fill = NULL,
+    color = NULL,
     shade_from = NULL,
     shade_to = NULL
     ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
+  validate_data_limits(xlim)
+  validate_shade_bounds(shade_from, shade_to)
 
   default_mapping <- aes(x = after_stat(x), y = after_stat(y))
 
@@ -83,6 +101,23 @@ geom_function_1d_1d <- function(
     mapping <- modifyList(default_mapping, mapping)
   }
 
+  params <- list(
+    fun = fun,
+    n = n,
+    xlim = xlim,
+    args = args,
+    na.rm = na.rm,
+    shade_from = shade_from,
+    shade_to = shade_to,
+    ...
+  )
+  # Fixed colour/fill are forwarded only when the user supplied them; the
+  # defaults (black line, grey20 shade) live in GeomFunction1d$default_aes so
+  # mapped aesthetics are honored (E-04).
+  if (!is.null(color)) params$color <- color
+  if (!is.null(fill)) params$fill <- fill
+  params <- normalise_colour_params(params)
+
   layer(
     data = data,
     mapping = mapping,
@@ -91,19 +126,23 @@ geom_function_1d_1d <- function(
     position = position,
     show.legend = show.legend,
     inherit.aes = inherit.aes,
-    params = list(
-      fun = fun,
-      n = n,
-      xlim = xlim,
-      args = args,
-      na.rm = na.rm,
-      fill = fill,
-      color = color,
-      shade_from = shade_from,
-      shade_to = shade_to,
-      ...
-    )
+    params = params
   )
+}
+
+#' @noRd
+validate_shade_bounds <- function(shade_from = NULL, shade_to = NULL) {
+  for (nm in c("shade_from", "shade_to")) {
+    val <- get(nm)
+    if (!is.null(val) &&
+        (!is.numeric(val) || length(val) != 1L || !is.finite(val))) {
+      cli::cli_abort("{.arg {nm}} must be a single finite number (data coordinates).")
+    }
+  }
+  if (!is.null(shade_from) && !is.null(shade_to) && shade_from >= shade_to) {
+    cli::cli_abort("{.arg shade_from} must be less than {.arg shade_to}.")
+  }
+  invisible(NULL)
 }
 
 #' @rdname geom_function_1d_1d
@@ -111,85 +150,117 @@ geom_function_1d_1d <- function(
 StatFunction1d <- ggproto("StatFunction1d", Stat,
   default_aes = aes(x = NULL, y = after_stat(y)),
 
-  compute_group = function(data, scales, fun, xlim = NULL, n = 101, args = NULL) {
+  compute_group = function(data, scales, fun, xlim = NULL, n = 101,
+                           args = NULL,
+                           shade_from = NULL, shade_to = NULL) {
 
-    range <- if (is.null(scales$x)) {
-      xlim %||% c(0, 1)
-    } else {
-      xlim %||% scales$x$dimension()
+    validate_shade_bounds(shade_from, shade_to)
+    grid <- resolve_stat_grid_1d(scales$x, xlim, n = n)
+    x_eval <- grid$eval
+    x_panel <- grid$panel
+
+    has_shading <- !is.null(shade_from) || !is.null(shade_to)
+
+    # Insert exact shade boundary evaluation rows (data space) when they fall
+    # inside the evaluation window (E-05).
+    if (has_shading) {
+      window <- range(x_eval)
+      bounds <- c(shade_from, shade_to)
+      bounds <- bounds[bounds >= window[1] & bounds <= window[2]]
+      bounds <- setdiff(bounds, x_eval)
+      if (length(bounds) > 0L) {
+        bounds_panel <- scale_forward(scales$x, bounds)
+        ord <- order(c(x_eval, bounds))
+        x_eval <- c(x_eval, bounds)[ord]
+        x_panel <- c(x_panel, bounds_panel)[ord]
+      }
     }
 
     fun_injected <- function(x) {
       rlang::inject(fun(x, !!!args))
     }
 
-    xseq <- seq(range[1], range[2], length.out = n)
-    y_out <- fun_injected(xseq)
+    y_raw <- fun_injected(x_eval)
+    y_panel <- scale_forward(scales$y, y_raw)
 
-    data.frame(x = xseq, y = y_out)
+    out <- data.frame(
+      x = x_panel,
+      x_eval = x_eval,
+      y = y_panel,
+      y_raw = y_raw
+    )
+
+    if (has_shading) {
+      out$in_shade <- x_eval >= (shade_from %||% -Inf) &
+        x_eval <= (shade_to %||% Inf)
+      baseline <- resolve_stat_baseline(scales$y, 0)
+      out$baseline_panel <- baseline$panel
+      # The zero baseline participates in scale training only when it is
+      # finite in the active transformation domain (E-05).
+      if (baseline$finite) out$ymin <- baseline$panel
+    } else {
+      out$in_shade <- FALSE
+    }
+
+    out
   }
 )
 
 #' @rdname geom_function_1d_1d
 #' @export
 GeomFunction1d <- ggproto("GeomFunction1d", GeomPath,
-  extra_params = c("na.rm", "shade_from", "shade_to", "fill"),
+  default_aes = aes(
+    colour = "black",
+    fill = "grey20",
+    linewidth = 0.5,
+    linetype = 1,
+    alpha = NA
+  ),
+  extra_params = c("na.rm", "shade_from", "shade_to"),
+
   draw_panel = function(self, data, panel_params, coord, arrow = NULL,
                         lineend = "butt", linejoin = "round", linemitre = 10,
-                        na.rm = FALSE, shade_from = NULL, shade_to = NULL,
-                        fill = "grey20"
-                        ) {
+                        na.rm = FALSE, shade_from = NULL, shade_to = NULL) {
 
-    x_vals <- data$x
-    y_vals <- data$y
     has_shading <- !is.null(shade_from) || !is.null(shade_to)
-
     grobs <- list()
 
-    if (has_shading) {
-      clip_left <- shade_from %||% min(x_vals)
-      clip_right <- shade_to %||% max(x_vals)
-
-      # Interpolate y at exact shade boundaries if they fall between grid points
-      fun_approx <- stats::approxfun(x_vals, y_vals, rule = 2)
-      y_left <- fun_approx(clip_left)
-      y_right <- fun_approx(clip_right)
-
-      # Get points within the shading range
-      in_range <- x_vals >= clip_left & x_vals <= clip_right
-      clip_x <- x_vals[in_range]
-      clip_y <- y_vals[in_range]
-
-      # Add interpolated boundary points if needed
-      if (length(clip_x) == 0 || clip_x[1] != clip_left) {
-        clip_x <- c(clip_left, clip_x)
-        clip_y <- c(y_left, clip_y)
+    if (has_shading && any(data$in_shade, na.rm = TRUE)) {
+      baseline_panel <- if ("baseline_panel" %in% names(data)) {
+        data$baseline_panel[1]
+      } else {
+        NA_real_
       }
-      if (clip_x[length(clip_x)] != clip_right) {
-        clip_x <- c(clip_x, clip_right)
-        clip_y <- c(clip_y, y_right)
+      base_y <- baseline_draw_value(baseline_panel, panel_params)
+
+      for (g in split(data, data$group)) {
+        seg <- g[which(g$in_shade), , drop = FALSE]
+        if (nrow(seg) < 2L) next
+
+        fills <- unique(seg$fill)
+        if (length(fills) > 1L) {
+          cli::cli_abort(c(
+            "{.field fill} varies within a single shaded group.",
+            "i" = "Map {.field fill} to a group-constant value, or supply a fixed {.arg fill}."
+          ))
+        }
+        alpha_val <- seg$alpha[1]
+        if (is.na(alpha_val)) alpha_val <- 0.4
+
+        poly_df <- data.frame(
+          x = c(seg$x, rev(seg$x)),
+          y = c(seg$y, rep(base_y, nrow(seg)))
+        )
+        poly_coords <- coord$transform(poly_df, panel_params)
+
+        grobs <- c(grobs, list(grid::polygonGrob(
+          x = poly_coords$x,
+          y = poly_coords$y,
+          gp = grid::gpar(fill = fills, alpha = alpha_val, col = NA)
+        )))
       }
-
-      # Build closed polygon: curve points then back along baseline
-      poly_x <- c(clip_x, rev(clip_x))
-      poly_y <- c(clip_y, rep(0, length(clip_x)))
-
-      # Transform to panel coordinates
-      poly_df <- data.frame(x = poly_x, y = poly_y)
-      poly_coords <- coord$transform(poly_df, panel_params)
-
-      fill_col <- fill
-      alpha_val <- if (!is.null(data$alpha[1]) && !is.na(data$alpha[1])) data$alpha[1] else 0.4
-
-      poly_grob <- grid::polygonGrob(
-        x = poly_coords$x,
-        y = poly_coords$y,
-        gp = grid::gpar(fill = fill_col, alpha = alpha_val, col = NA)
-      )
-      grobs <- c(grobs, list(poly_grob))
     }
 
-    # Always draw the line for the entire function
     line_grob <- ggproto_parent(GeomPath, self)$draw_panel(
       data, panel_params, coord,
       arrow = arrow,
