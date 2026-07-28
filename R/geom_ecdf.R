@@ -164,7 +164,9 @@ geom_ecdf <- function(
 
   ribbon_layer <- layer(
     data        = data,
-    mapping     = aes(ymin = after_stat(ymin), ymax = after_stat(ymax)),
+    mapping     = merge_input_mapping(
+      mapping, aes(ymin = after_stat(ymin), ymax = after_stat(ymax))
+    ),
     stat        = StatECDFBand,
     geom        = GeomRibbon,
     position    = position,
@@ -337,7 +339,9 @@ geom_eqf <- function(
 
   ribbon_layer <- layer(
     data        = data,
-    mapping     = aes(ymin = after_stat(ymin), ymax = after_stat(ymax)),
+    mapping     = merge_input_mapping(
+      mapping, aes(ymin = after_stat(ymin), ymax = after_stat(ymax))
+    ),
     stat        = StatEQFBand,
     geom        = GeomRibbon,
     position    = position,
@@ -656,7 +660,9 @@ geom_echf <- function(
 
   ribbon_layer <- layer(
     data        = data,
-    mapping     = aes(ymin = after_stat(ymin), ymax = after_stat(ymax)),
+    mapping     = merge_input_mapping(
+      mapping, aes(ymin = after_stat(ymin), ymax = after_stat(ymax))
+    ),
     stat        = StatECHFBand,
     geom        = GeomRibbon,
     position    = position,

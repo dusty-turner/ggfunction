@@ -40,10 +40,7 @@ NULL
     ))
   }
 
-  if (any(!(status %in% c(0, 1)))) {
-    cli::cli_abort("{.arg status} must contain only 0/1 or FALSE/TRUE values.")
-  }
-  status <- as.integer(status)
+  status <- normalize_status(status)
 
   # Sort by time
 
@@ -177,10 +174,7 @@ NULL
   }
   time   <- time[keep]
   status <- status[keep]
-  if (any(!(status %in% c(0, 1)))) {
-    cli::cli_abort("{.arg status} must contain only 0/1 or FALSE/TRUE values.")
-  }
-  status <- as.integer(status)
+  status <- normalize_status(status)
   sort(time[status == 0L])
 }
 
@@ -324,7 +318,7 @@ geom_ecdf_km <- function(
     mapping <- modifyList(default_mapping, mapping)
   }
 
-  main_layer <- layer(
+  main_layer <- status_layer(
     data        = data,
     mapping     = mapping,
     stat        = stat,
@@ -345,9 +339,11 @@ geom_ecdf_km <- function(
   layers <- list()
 
   if (conf_int) {
-    ribbon_layer <- layer(
+    ribbon_layer <- status_layer(
       data        = data,
-      mapping     = aes(ymin = after_stat(ymin), ymax = after_stat(ymax)),
+      mapping     = merge_input_mapping(
+        mapping, aes(ymin = after_stat(ymin), ymax = after_stat(ymax))
+      ),
       stat        = StatECDFKMBand,
       geom        = GeomRibbon,
       position    = position,
@@ -367,9 +363,9 @@ geom_ecdf_km <- function(
   layers <- c(layers, list(main_layer))
 
   if (censor_marks) {
-    censor_layer <- layer(
+    censor_layer <- status_layer(
       data        = data,
-      mapping     = aes(y = after_stat(y)),
+      mapping     = merge_input_mapping(mapping, aes(y = after_stat(y))),
       stat        = StatCensorMarks,
       geom        = GeomPoint,
       position    = position,
@@ -608,7 +604,7 @@ geom_echf_na <- function(
     mapping <- modifyList(default_mapping, mapping)
   }
 
-  main_layer <- layer(
+  main_layer <- status_layer(
     data        = data,
     mapping     = mapping,
     stat        = stat,
@@ -629,9 +625,11 @@ geom_echf_na <- function(
   if (!conf_int || identical(conf_geom, "none")) return(main_layer)
 
   if (identical(conf_geom, "ribbon")) {
-    conf_layer <- layer(
+    conf_layer <- status_layer(
       data        = data,
-      mapping     = aes(ymin = after_stat(ymin), ymax = after_stat(ymax)),
+      mapping     = merge_input_mapping(
+        mapping, aes(ymin = after_stat(ymin), ymax = after_stat(ymax))
+      ),
       stat        = StatECHFNABand,
       geom        = GeomRibbon,
       position    = position,
@@ -655,9 +653,11 @@ geom_echf_na <- function(
     )
     if (!is.null(conf_width)) conf_params$width <- conf_width
 
-    conf_layer <- layer(
+    conf_layer <- status_layer(
       data        = data,
-      mapping     = aes(ymin = after_stat(ymin), ymax = after_stat(ymax)),
+      mapping     = merge_input_mapping(
+        mapping, aes(ymin = after_stat(ymin), ymax = after_stat(ymax))
+      ),
       stat        = StatECHFNAInterval,
       geom        = GeomECHFNAErrorbar,
       position    = position,

@@ -256,7 +256,9 @@ geom_ppplot <- function(
   if (conf_int) {
     layers <- c(layers, list(layer(
       data = data,
-      mapping = aes(ymin = after_stat(ymin), ymax = after_stat(ymax)),
+      mapping = merge_input_mapping(
+        mapping, aes(ymin = after_stat(ymin), ymax = after_stat(ymax))
+      ),
       stat = StatPPPlotBand,
       geom = GeomRibbon,
       position = position,
@@ -380,7 +382,9 @@ geom_spplot <- function(
   if (conf_int) {
     layers <- c(layers, list(layer(
       data = data,
-      mapping = aes(ymin = after_stat(ymin), ymax = after_stat(ymax)),
+      mapping = merge_input_mapping(
+        mapping, aes(ymin = after_stat(ymin), ymax = after_stat(ymax))
+      ),
       stat = StatSPPlotBand,
       geom = GeomRibbon,
       position = position,
@@ -504,11 +508,11 @@ geom_qqplot <- function(
   if (conf_int) {
     layers <- c(layers, list(layer(
       data = data,
-      mapping = aes(
+      mapping = merge_input_mapping(mapping, aes(
         qq_x = after_stat(qq_x),
         qq_ymin = after_stat(qq_ymin),
         qq_ymax = after_stat(qq_ymax)
-      ),
+      )),
       stat = StatQQPlotBandUnscaled,
       geom = GeomQQPlotRibbon,
       position = position,

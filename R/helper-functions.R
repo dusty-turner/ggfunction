@@ -72,6 +72,49 @@ drop_overridden_aes_defaults <- function(params, mapping) {
   params
 }
 
+#' Does a quosure reference a calculated (after-stat/after-scale) value?
+#' @noRd
+quo_is_calculated <- function(q) {
+  detect <- function(e) {
+    if (is.call(e)) {
+      fn <- e[[1]]
+      if (is.name(fn) &&
+          as.character(fn) %in% c("after_stat", "stat", "after_scale", "stage")) {
+        return(TRUE)
+      }
+      return(any(vapply(as.list(e)[-1], detect, logical(1))))
+    }
+    if (is.name(e)) {
+      return(grepl("^\\.\\..+\\.\\.$", as.character(e)))
+    }
+    FALSE
+  }
+  detect(rlang::get_expr(q))
+}
+
+#' Merge a constructor-local user mapping into an auxiliary layer's computed
+#' mapping (spec A-02).
+#'
+#' Composite geoms (ECDF/KM/Nelson-Aalen bands, censor marks, PP/SP/QQ
+#' bands) must receive the input, grouping, and facet aesthetics supplied
+#' directly to the composite constructor — `inherit.aes = TRUE` only recovers
+#' plot-global mappings. The merger:
+#' - preserves the user's input/grouping aesthetics;
+#' - lets the auxiliary layer's computed output aesthetics (`ymin`, `ymax`,
+#'   ...) override same-named user mappings;
+#' - drops calculated (`after_stat()`) user aesthetics, which reference
+#'   computed variables of the main stat that the auxiliary stat does not
+#'   expose (point-only calculated aesthetics must not leak into ribbons or
+#'   censor marks).
+#' @noRd
+merge_input_mapping <- function(user_mapping, computed_mapping) {
+  if (is.null(user_mapping)) return(computed_mapping)
+  keep <- user_mapping[!vapply(user_mapping, quo_is_calculated, logical(1))]
+  merged <- modifyList(keep, computed_mapping)
+  class(merged) <- "uneval"
+  merged
+}
+
 #' @exportS3Method ggplot2::ggplot_add
 ggplot_add.ggfunction_default_labs <- function(object, plot, object_name) {
   if (is.null(plot$labels$x) && !is.null(object$x)) {
