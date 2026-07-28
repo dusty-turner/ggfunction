@@ -188,6 +188,7 @@ geom_ppplot <- function(
     hf_fun = NULL,
     hf_lower = -Inf,
     args = list(),
+    null_type = NULL,
     conf_int = TRUE,
     level = 0.95,
     conf_alpha = 0.4,
@@ -202,6 +203,27 @@ geom_ppplot <- function(
     stroke = NULL,
     color = NULL
 ) {
+
+  # PP/SP confidence bands are continuous-null procedures (D-04): a band
+  # request requires an explicit declaration, and a discrete null cannot
+  # request a band. The point diagnostic itself needs no declaration.
+  if (!is.null(null_type)) {
+    null_type <- match.arg(null_type, c("continuous", "discrete"))
+  }
+  if (isTRUE(conf_int)) {
+    if (is.null(null_type)) {
+      cli::cli_abort(c(
+        "PP/SP confidence bands assume a continuous null distribution; declare {.arg null_type}.",
+        "i" = 'Use {.code null_type = "continuous"} to keep the band, or {.code conf_int = FALSE} for the point diagnostic alone.'
+      ))
+    }
+    if (identical(null_type, "discrete")) {
+      cli::cli_abort(c(
+        "PP/SP confidence bands are continuous-null procedures and are invalid for a discrete null.",
+        "i" = "Use {.code conf_int = FALSE}; the point diagnostic remains interpretable for discrete nulls."
+      ))
+    }
+  }
   point_aes_params <- normalise_colour_params(list(...))
   has_fixed_colour <- "colour" %in% names(point_aes_params) || !is.null(color)
 
@@ -240,7 +262,7 @@ geom_ppplot <- function(
   point_params <- c(point_params, point_aes_params)
   if (!is.null(color)) point_params$colour <- color
 
-  main_layer <- layer(
+  main_layer <- diagnostic_layer(
     data = data,
     mapping = mapping,
     stat = point_stat,
@@ -314,6 +336,7 @@ geom_spplot <- function(
     hf_fun = NULL,
     hf_lower = -Inf,
     args = list(),
+    null_type = NULL,
     conf_int = TRUE,
     level = 0.95,
     conf_alpha = 0.4,
@@ -328,6 +351,27 @@ geom_spplot <- function(
     stroke = NULL,
     color = NULL
 ) {
+
+  # PP/SP confidence bands are continuous-null procedures (D-04): a band
+  # request requires an explicit declaration, and a discrete null cannot
+  # request a band. The point diagnostic itself needs no declaration.
+  if (!is.null(null_type)) {
+    null_type <- match.arg(null_type, c("continuous", "discrete"))
+  }
+  if (isTRUE(conf_int)) {
+    if (is.null(null_type)) {
+      cli::cli_abort(c(
+        "PP/SP confidence bands assume a continuous null distribution; declare {.arg null_type}.",
+        "i" = 'Use {.code null_type = "continuous"} to keep the band, or {.code conf_int = FALSE} for the point diagnostic alone.'
+      ))
+    }
+    if (identical(null_type, "discrete")) {
+      cli::cli_abort(c(
+        "PP/SP confidence bands are continuous-null procedures and are invalid for a discrete null.",
+        "i" = "Use {.code conf_int = FALSE}; the point diagnostic remains interpretable for discrete nulls."
+      ))
+    }
+  }
   point_aes_params <- normalise_colour_params(list(...))
   has_fixed_colour <- "colour" %in% names(point_aes_params) || !is.null(color)
 
@@ -366,7 +410,7 @@ geom_spplot <- function(
   point_params <- c(point_params, point_aes_params)
   if (!is.null(color)) point_params$colour <- color
 
-  main_layer <- layer(
+  main_layer <- diagnostic_layer(
     data = data,
     mapping = mapping,
     stat = point_stat,
@@ -492,7 +536,7 @@ geom_qqplot <- function(
   point_params <- c(point_params, point_aes_params)
   if (!is.null(color)) point_params$colour <- color
 
-  main_layer <- layer(
+  main_layer <- diagnostic_layer(
     data = data,
     mapping = mapping,
     stat = point_stat,
@@ -560,7 +604,7 @@ geom_qqplot <- function(
 #' @rdname geom_ppplot
 #' @export
 StatPPPlot <- ggproto("StatPPPlot", Stat,
-  required_aes = "x",
+  required_aes = "sample|x",
 
   compute_group = function(data, scales, fun = NULL, pdf_fun = NULL,
                            survival_fun = NULL, qf_fun = NULL, hf_fun = NULL,
@@ -568,7 +612,7 @@ StatPPPlot <- ggproto("StatPPPlot", Stat,
                            na.rm = FALSE) {
     check_cdf_sources(fun, pdf_fun, survival_fun, qf_fun, hf_fun)
 
-    ord <- order_stat_sample(data$x, na.rm = na.rm, a = a)
+    ord <- order_stat_sample(data$sample %||% data$x, na.rm = na.rm, a = a)
     if (nrow(ord) == 0L) return(data.frame())
 
     cdf_fun <- make_cdf_function(
@@ -582,9 +626,11 @@ StatPPPlot <- ggproto("StatPPPlot", Stat,
     )
     observed <- cdf_fun(ord$sample)
 
+    # The null CDF consumed raw observations; display positions are
+    # transformed exactly once here (D-06).
     data.frame(
-      x = ord$p,
-      y = observed,
+      x = scale_forward(scales$x, ord$p),
+      y = scale_forward(scales$y, observed),
       p = ord$p,
       theoretical = ord$p,
       observed = observed,
@@ -597,11 +643,12 @@ StatPPPlot <- ggproto("StatPPPlot", Stat,
 #' @rdname geom_ppplot
 #' @export
 StatPPPlotBand <- ggproto("StatPPPlotBand", Stat,
-  required_aes = "x",
+  required_aes = "sample|x",
+  dropped_aes = "sample",
 
   compute_group = function(data, scales, na.rm = FALSE, level = 0.95,
                            band_n = 501, a = 1 / 2) {
-    ord <- order_stat_sample(data$x, na.rm = na.rm, a = a)
+    ord <- order_stat_sample(data$sample %||% data$x, na.rm = na.rm, a = a)
     if (nrow(ord) == 0L) return(data.frame())
 
     n <- ord$n[1L]
@@ -609,10 +656,10 @@ StatPPPlotBand <- ggproto("StatPPPlotBand", Stat,
     p_grid <- seq(0, 1, length.out = validate_ppqq_band_n(band_n))
 
     data.frame(
-      x = p_grid,
+      x = scale_forward(scales$x, p_grid),
       p = p_grid,
-      ymin = pmax(0, p_grid - eps),
-      ymax = pmin(1, p_grid + eps),
+      ymin = scale_forward(scales$y, pmax(0, p_grid - eps)),
+      ymax = scale_forward(scales$y, pmin(1, p_grid + eps)),
       n = n
     )
   }
@@ -621,7 +668,7 @@ StatPPPlotBand <- ggproto("StatPPPlotBand", Stat,
 #' @rdname geom_ppplot
 #' @export
 StatSPPlot <- ggproto("StatSPPlot", Stat,
-  required_aes = "x",
+  required_aes = "sample|x",
 
   compute_group = function(data, scales, fun = NULL, pdf_fun = NULL,
                            survival_fun = NULL, qf_fun = NULL, hf_fun = NULL,
@@ -629,7 +676,7 @@ StatSPPlot <- ggproto("StatSPPlot", Stat,
                            na.rm = FALSE) {
     check_cdf_sources(fun, pdf_fun, survival_fun, qf_fun, hf_fun)
 
-    ord <- order_stat_sample(data$x, na.rm = na.rm, a = a)
+    ord <- order_stat_sample(data$sample %||% data$x, na.rm = na.rm, a = a)
     if (nrow(ord) == 0L) return(data.frame())
 
     cdf_fun <- make_cdf_function(
@@ -646,8 +693,8 @@ StatSPPlot <- ggproto("StatSPPlot", Stat,
     observed <- sp_transform(observed_p)
 
     data.frame(
-      x = theoretical,
-      y = observed,
+      x = scale_forward(scales$x, theoretical),
+      y = scale_forward(scales$y, observed),
       p = ord$p,
       theoretical = theoretical,
       observed = observed,
@@ -660,11 +707,12 @@ StatSPPlot <- ggproto("StatSPPlot", Stat,
 #' @rdname geom_ppplot
 #' @export
 StatSPPlotBand <- ggproto("StatSPPlotBand", Stat,
-  required_aes = "x",
+  required_aes = "sample|x",
+  dropped_aes = "sample",
 
   compute_group = function(data, scales, na.rm = FALSE, level = 0.95,
                            band_n = 501, a = 1 / 2) {
-    ord <- order_stat_sample(data$x, na.rm = na.rm, a = a)
+    ord <- order_stat_sample(data$sample %||% data$x, na.rm = na.rm, a = a)
     if (nrow(ord) == 0L) return(data.frame())
 
     n <- ord$n[1L]
@@ -672,10 +720,10 @@ StatSPPlotBand <- ggproto("StatSPPlotBand", Stat,
     p_grid <- seq(0, 1, length.out = validate_ppqq_band_n(band_n))
 
     data.frame(
-      x = sp_transform(p_grid),
+      x = scale_forward(scales$x, sp_transform(p_grid)),
       p = p_grid,
-      ymin = sp_transform(pmax(0, p_grid - eps)),
-      ymax = sp_transform(pmin(1, p_grid + eps)),
+      ymin = scale_forward(scales$y, sp_transform(pmax(0, p_grid - eps))),
+      ymax = scale_forward(scales$y, sp_transform(pmin(1, p_grid + eps))),
       n = n
     )
   }
@@ -684,7 +732,7 @@ StatSPPlotBand <- ggproto("StatSPPlotBand", Stat,
 #' @rdname geom_ppplot
 #' @export
 StatQQPlot <- ggproto("StatQQPlot", Stat,
-  required_aes = "x",
+  required_aes = "sample|x",
 
   compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
                            pdf_fun = NULL, survival_fun = NULL, hf_fun = NULL,
@@ -700,14 +748,16 @@ StatQQPlot <- ggproto("StatQQPlot", Stat,
       args = args
     )
 
-    ord <- order_stat_sample(data$x, na.rm = na.rm, a = a)
+    ord <- order_stat_sample(data$sample %||% data$x, na.rm = na.rm, a = a)
     if (nrow(ord) == 0L) return(data.frame())
 
     theoretical <- qf_fun(ord$p)
 
+    # The null quantile function consumed raw probabilities; display
+    # positions are transformed exactly once here (D-06).
     data.frame(
-      x = theoretical,
-      y = ord$sample,
+      x = scale_forward(scales$x, theoretical),
+      y = scale_forward(scales$y, ord$sample),
       p = ord$p,
       theoretical = theoretical,
       observed = ord$sample,
@@ -720,7 +770,8 @@ StatQQPlot <- ggproto("StatQQPlot", Stat,
 #' @rdname geom_ppplot
 #' @export
 StatQQPlotBand <- ggproto("StatQQPlotBand", Stat,
-  required_aes = "x",
+  required_aes = "sample|x",
+  dropped_aes = "sample",
 
   compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
                            pdf_fun = NULL, survival_fun = NULL, hf_fun = NULL,
@@ -736,16 +787,16 @@ StatQQPlotBand <- ggproto("StatQQPlotBand", Stat,
       args = args
     )
 
-    ord <- order_stat_sample(data$x, na.rm = na.rm, a = a)
+    ord <- order_stat_sample(data$sample %||% data$x, na.rm = na.rm, a = a)
     if (nrow(ord) == 0L) return(data.frame())
 
     band <- compute_qqplot_band(ord, qf_fun, level = level, band_n = band_n)
 
     data.frame(
-      x = band$qq_x,
+      x = scale_forward(scales$x, band$qq_x),
       p = band$p,
-      ymin = band$qq_ymin,
-      ymax = band$qq_ymax,
+      ymin = scale_forward(scales$y, band$qq_ymin),
+      ymax = scale_forward(scales$y, band$qq_ymax),
       n = band$n
     )
   }
@@ -753,8 +804,8 @@ StatQQPlotBand <- ggproto("StatQQPlotBand", Stat,
 
 #' @noRd
 StatQQPlotBandUnscaled <- ggproto("StatQQPlotBandUnscaled", Stat,
-  required_aes = "x",
-  dropped_aes = "x",
+  required_aes = "sample|x",
+  dropped_aes = c("x", "sample"),
 
   compute_group = function(data, scales, fun = NULL, cdf_fun = NULL,
                            pdf_fun = NULL, survival_fun = NULL, hf_fun = NULL,
@@ -770,10 +821,16 @@ StatQQPlotBandUnscaled <- ggproto("StatQQPlotBandUnscaled", Stat,
       args = args
     )
 
-    ord <- order_stat_sample(data$x, na.rm = na.rm, a = a)
+    ord <- order_stat_sample(data$sample %||% data$x, na.rm = na.rm, a = a)
     if (nrow(ord) == 0L) return(data.frame())
 
-    compute_qqplot_band(ord, qf_fun, level = level, band_n = band_n)
+    band <- compute_qqplot_band(ord, qf_fun, level = level, band_n = band_n)
+    # qq_* are non-position aesthetics consumed directly by the ribbon at
+    # draw time, so they carry panel-space coordinates (D-06).
+    band$qq_x <- scale_forward(scales$x, band$qq_x)
+    band$qq_ymin <- scale_forward(scales$y, band$qq_ymin)
+    band$qq_ymax <- scale_forward(scales$y, band$qq_ymax)
+    band
   }
 )
 

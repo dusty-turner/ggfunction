@@ -146,11 +146,11 @@ test_that("geom_qqplot ribbon extends past points without training scales", {
   df <- data.frame(x = rnorm(100))
 
   with_band <- ggplot_build(
-    ggplot(df, aes(x = x)) +
+    ggplot(df, aes(sample = x)) +
       geom_qqplot(fun = qnorm, identity_line = FALSE)
   )
   without_band <- ggplot_build(
-    ggplot(df, aes(x = x)) +
+    ggplot(df, aes(sample = x)) +
       geom_qqplot(fun = qnorm, conf_int = FALSE, identity_line = FALSE)
   )
 
@@ -172,9 +172,9 @@ test_that("geom_qqplot ribbon extends past points without training scales", {
 test_that("geom_ppplot and geom_qqplot build without error", {
   df <- data.frame(x = rnorm(30))
 
-  p_pp <- ggplot(df, aes(x = x)) + geom_ppplot(fun = pnorm)
-  p_sp <- ggplot(df, aes(x = x)) + geom_spplot(fun = pnorm)
-  p_qq <- ggplot(df, aes(x = x)) + geom_qqplot(fun = qnorm)
+  p_pp <- ggplot(df, aes(sample = x)) + geom_ppplot(null_type = "continuous", fun = pnorm)
+  p_sp <- ggplot(df, aes(sample = x)) + geom_spplot(null_type = "continuous", fun = pnorm)
+  p_qq <- ggplot(df, aes(sample = x)) + geom_qqplot(fun = qnorm)
 
   expect_s3_class(p_pp, "gg")
   expect_s3_class(p_sp, "gg")
@@ -187,11 +187,11 @@ test_that("geom_ppplot and geom_qqplot build without error", {
 test_that("geom_ppplot and geom_qqplot build without confidence bands", {
   df <- data.frame(x = rnorm(30))
 
-  p_pp <- ggplot(df, aes(x = x)) +
+  p_pp <- ggplot(df, aes(sample = x)) +
     geom_ppplot(fun = pnorm, conf_int = FALSE)
-  p_sp <- ggplot(df, aes(x = x)) +
+  p_sp <- ggplot(df, aes(sample = x)) +
     geom_spplot(fun = pnorm, conf_int = FALSE)
-  p_qq <- ggplot(df, aes(x = x)) +
+  p_qq <- ggplot(df, aes(sample = x)) +
     geom_qqplot(fun = qnorm, conf_int = FALSE)
 
   expect_silent(ggplot_build(p_pp))
@@ -202,9 +202,9 @@ test_that("geom_ppplot and geom_qqplot build without confidence bands", {
 test_that("diagnostic ribbons use neutral geom_smooth-like defaults", {
   df <- data.frame(x = c(-1.4, -0.6, -0.2, 0.3, 0.8, 1.6))
   plots <- list(
-    ggplot(df, aes(x = x)) + geom_ppplot(fun = pnorm),
-    ggplot(df, aes(x = x)) + geom_spplot(fun = pnorm),
-    ggplot(df, aes(x = x)) + geom_qqplot(fun = qnorm)
+    ggplot(df, aes(sample = x)) + geom_ppplot(null_type = "continuous", fun = pnorm),
+    ggplot(df, aes(sample = x)) + geom_spplot(null_type = "continuous", fun = pnorm),
+    ggplot(df, aes(sample = x)) + geom_qqplot(fun = qnorm)
   )
 
   for (p in plots) {
@@ -217,9 +217,9 @@ test_that("diagnostic ribbons use neutral geom_smooth-like defaults", {
 test_that("geom_ppplot and geom_qqplot use ggplot2 default colour scale", {
   df <- data.frame(x = rnorm(30))
 
-  p_pp <- ggplot(df, aes(x = x)) + geom_ppplot(fun = pnorm)
-  p_sp <- ggplot(df, aes(x = x)) + geom_spplot(fun = pnorm)
-  p_qq <- ggplot(df, aes(x = x)) + geom_qqplot(fun = qnorm)
+  p_pp <- ggplot(df, aes(sample = x)) + geom_ppplot(null_type = "continuous", fun = pnorm)
+  p_sp <- ggplot(df, aes(sample = x)) + geom_spplot(null_type = "continuous", fun = pnorm)
+  p_qq <- ggplot(df, aes(sample = x)) + geom_qqplot(fun = qnorm)
   built_pp <- ggplot_build(p_pp)
   built_sp <- ggplot_build(p_sp)
   built_qq <- ggplot_build(p_qq)
@@ -236,29 +236,29 @@ test_that("geom_ppplot and geom_qqplot support fixed black colour and explicit s
   df <- data.frame(x = rnorm(30))
 
   fixed_pp <- ggplot_build(
-    ggplot(df, aes(x = x)) + geom_ppplot(fun = pnorm, colour = "black")
+    ggplot(df, aes(sample = x)) + geom_ppplot(null_type = "continuous", fun = pnorm, colour = "black")
   )
   fixed_sp <- ggplot_build(
-    ggplot(df, aes(x = x)) + geom_spplot(fun = pnorm, colour = "black")
+    ggplot(df, aes(sample = x)) + geom_spplot(null_type = "continuous", fun = pnorm, colour = "black")
   )
   fixed_qq <- ggplot_build(
-    ggplot(df, aes(x = x)) + geom_qqplot(fun = qnorm, colour = "black")
+    ggplot(df, aes(sample = x)) + geom_qqplot(fun = qnorm, colour = "black")
   )
   expect_null(fixed_pp$plot$scales$get_scales("colour"))
   expect_null(fixed_sp$plot$scales$get_scales("colour"))
   expect_null(fixed_qq$plot$scales$get_scales("colour"))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) +
-      geom_ppplot(fun = pnorm) +
+    ggplot(df, aes(sample = x)) +
+      geom_ppplot(null_type = "continuous", fun = pnorm) +
       scale_colour_gradientn(colors = grDevices::rainbow(10))
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) +
-      geom_spplot(fun = pnorm) +
+    ggplot(df, aes(sample = x)) +
+      geom_spplot(null_type = "continuous", fun = pnorm) +
       scale_colour_gradientn(colors = grDevices::rainbow(10))
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) +
+    ggplot(df, aes(sample = x)) +
       geom_qqplot(fun = qnorm) +
       scale_colour_gradientn(colors = grDevices::rainbow(10))
   ))
@@ -268,13 +268,13 @@ test_that("geom_ppplot supports alternate CDF inputs", {
   df <- data.frame(x = rnorm(20))
 
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_ppplot(pdf_fun = dnorm)
+    ggplot(df, aes(sample = x)) + geom_ppplot(null_type = "continuous", pdf_fun = dnorm)
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_ppplot(survival_fun = function(x) 1 - pnorm(x))
+    ggplot(df, aes(sample = x)) + geom_ppplot(null_type = "continuous", survival_fun = function(x) 1 - pnorm(x))
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_ppplot(qf_fun = qnorm)
+    ggplot(df, aes(sample = x)) + geom_ppplot(null_type = "continuous", qf_fun = qnorm)
   ))
 })
 
@@ -282,13 +282,13 @@ test_that("geom_spplot supports alternate CDF inputs", {
   df <- data.frame(x = rnorm(20))
 
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_spplot(pdf_fun = dnorm)
+    ggplot(df, aes(sample = x)) + geom_spplot(null_type = "continuous", pdf_fun = dnorm)
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_spplot(survival_fun = function(x) 1 - pnorm(x))
+    ggplot(df, aes(sample = x)) + geom_spplot(null_type = "continuous", survival_fun = function(x) 1 - pnorm(x))
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_spplot(qf_fun = qnorm)
+    ggplot(df, aes(sample = x)) + geom_spplot(null_type = "continuous", qf_fun = qnorm)
   ))
 })
 
@@ -296,13 +296,13 @@ test_that("geom_qqplot supports alternate quantile inputs", {
   df <- data.frame(x = rnorm(20))
 
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_qqplot(cdf_fun = pnorm)
+    ggplot(df, aes(sample = x)) + geom_qqplot(cdf_fun = pnorm)
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_qqplot(pdf_fun = dnorm)
+    ggplot(df, aes(sample = x)) + geom_qqplot(pdf_fun = dnorm)
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_qqplot(survival_fun = function(x) 1 - pnorm(x))
+    ggplot(df, aes(sample = x)) + geom_qqplot(survival_fun = function(x) 1 - pnorm(x))
   ))
 })
 
@@ -311,13 +311,13 @@ test_that("geom_ppplot and geom_qqplot support hazard inputs", {
   exp_hazard <- function(x) rep(1, length(x))
 
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_ppplot(hf_fun = exp_hazard, hf_lower = 0)
+    ggplot(df, aes(sample = x)) + geom_ppplot(null_type = "continuous", hf_fun = exp_hazard, hf_lower = 0)
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_spplot(hf_fun = exp_hazard, hf_lower = 0)
+    ggplot(df, aes(sample = x)) + geom_spplot(null_type = "continuous", hf_fun = exp_hazard, hf_lower = 0)
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_qqplot(hf_fun = exp_hazard, hf_lower = 0)
+    ggplot(df, aes(sample = x)) + geom_qqplot(hf_fun = exp_hazard, hf_lower = 0)
   ))
 })
 
@@ -325,15 +325,15 @@ test_that("geom_ppplot and geom_qqplot pass args to distribution functions", {
   df <- data.frame(x = rnorm(20, mean = 2, sd = 3))
 
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) +
-      geom_ppplot(fun = pnorm, args = list(mean = 2, sd = 3))
+    ggplot(df, aes(sample = x)) +
+      geom_ppplot(null_type = "continuous", fun = pnorm, args = list(mean = 2, sd = 3))
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) +
-      geom_spplot(fun = pnorm, args = list(mean = 2, sd = 3))
+    ggplot(df, aes(sample = x)) +
+      geom_spplot(null_type = "continuous", fun = pnorm, args = list(mean = 2, sd = 3))
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) +
+    ggplot(df, aes(sample = x)) +
       geom_qqplot(fun = qnorm, args = list(mean = 2, sd = 3))
   ))
 })
@@ -345,13 +345,13 @@ test_that("geom_ppplot and geom_qqplot build with grouped data and ties", {
   )
 
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x, group = group)) + geom_ppplot(fun = pnorm)
+    ggplot(df, aes(sample = x, group = group)) + geom_ppplot(null_type = "continuous", fun = pnorm)
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x, group = group)) + geom_spplot(fun = pnorm)
+    ggplot(df, aes(sample = x, group = group)) + geom_spplot(null_type = "continuous", fun = pnorm)
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x, group = group)) + geom_qqplot(fun = qnorm)
+    ggplot(df, aes(sample = x, group = group)) + geom_qqplot(fun = qnorm)
   ))
 })
 
@@ -362,7 +362,7 @@ test_that("geom_ppplot and geom_qqplot respect colour-based grouping", {
   )
 
   pp_built <- ggplot_build(
-    ggplot(df, aes(x = x, colour = group)) +
+    ggplot(df, aes(sample = x, colour = group)) +
       geom_ppplot(
         fun = pnorm,
         conf_int = FALSE,
@@ -370,7 +370,7 @@ test_that("geom_ppplot and geom_qqplot respect colour-based grouping", {
       )
   )
   sp_built <- ggplot_build(
-    ggplot(df, aes(x = x, colour = group)) +
+    ggplot(df, aes(sample = x, colour = group)) +
       geom_spplot(
         fun = pnorm,
         conf_int = FALSE,
@@ -378,7 +378,7 @@ test_that("geom_ppplot and geom_qqplot respect colour-based grouping", {
       )
   )
   qq_built <- ggplot_build(
-    ggplot(df, aes(x = x, colour = group)) +
+    ggplot(df, aes(sample = x, colour = group)) +
       geom_qqplot(
         fun = qnorm,
         conf_int = FALSE,
@@ -395,15 +395,15 @@ test_that("geom_ppplot and geom_qqplot support custom mappings", {
   df <- data.frame(x = rnorm(20))
 
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) +
-      geom_ppplot(fun = pnorm, mapping = aes(alpha = after_stat(p)))
+    ggplot(df, aes(sample = x)) +
+      geom_ppplot(null_type = "continuous", fun = pnorm, mapping = aes(alpha = after_stat(p)))
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) +
-      geom_spplot(fun = pnorm, mapping = aes(alpha = after_stat(p)))
+    ggplot(df, aes(sample = x)) +
+      geom_spplot(null_type = "continuous", fun = pnorm, mapping = aes(alpha = after_stat(p)))
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) +
+    ggplot(df, aes(sample = x)) +
       geom_qqplot(fun = qnorm, mapping = aes(alpha = after_stat(p)))
   ))
 })
@@ -412,24 +412,24 @@ test_that("geom_ppplot and geom_qqplot handle missing values with na.rm", {
   df <- data.frame(x = c(rnorm(10), NA))
 
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_ppplot(fun = pnorm, na.rm = TRUE)
+    ggplot(df, aes(sample = x)) + geom_ppplot(null_type = "continuous", fun = pnorm, na.rm = TRUE)
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_spplot(fun = pnorm, na.rm = TRUE)
+    ggplot(df, aes(sample = x)) + geom_spplot(null_type = "continuous", fun = pnorm, na.rm = TRUE)
   ))
   expect_silent(ggplot_build(
-    ggplot(df, aes(x = x)) + geom_qqplot(fun = qnorm, na.rm = TRUE)
+    ggplot(df, aes(sample = x)) + geom_qqplot(fun = qnorm, na.rm = TRUE)
   ))
 })
 
 test_that("geom_ppplot and geom_qqplot use default axis labels", {
   df <- data.frame(x = rnorm(20))
 
-  p_pp <- ggplot(df, aes(x = x)) +
+  p_pp <- ggplot(df, aes(sample = x)) +
     geom_ppplot(fun = pnorm, conf_int = FALSE)
-  p_sp <- ggplot(df, aes(x = x)) +
+  p_sp <- ggplot(df, aes(sample = x)) +
     geom_spplot(fun = pnorm, conf_int = FALSE)
-  p_qq <- ggplot(df, aes(x = x)) +
+  p_qq <- ggplot(df, aes(sample = x)) +
     geom_qqplot(fun = qnorm, conf_int = FALSE)
 
   expect_equal(plot_axis_titles(p_pp), c(
@@ -449,13 +449,13 @@ test_that("geom_ppplot and geom_qqplot use default axis labels", {
 test_that("geom_ppplot and geom_qqplot do not override explicit labels", {
   df <- data.frame(x = rnorm(20))
 
-  p_pp <- ggplot(df, aes(x = x)) +
+  p_pp <- ggplot(df, aes(sample = x)) +
     labs(x = "prob", y = "cdf", colour = "value") +
     geom_ppplot(fun = pnorm, conf_int = FALSE)
-  p_sp <- ggplot(df, aes(x = x)) +
+  p_sp <- ggplot(df, aes(sample = x)) +
     labs(x = "transformed", y = "cdf", colour = "value") +
     geom_spplot(fun = pnorm, conf_int = FALSE)
-  p_qq <- ggplot(df, aes(x = x)) +
+  p_qq <- ggplot(df, aes(sample = x)) +
     labs(x = "theory", y = "sample", colour = "probability") +
     geom_qqplot(fun = qnorm, conf_int = FALSE)
 

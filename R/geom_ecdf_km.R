@@ -88,9 +88,11 @@ NULL
 
   # Greenwood variance of S(t): Var(S) = S^2 * sum(d_j / (n_j * (n_j - d_j)))
 
+  # A singular Greenwood contribution (n_j == d_j) leaves the variance
+  # undefined from that time on; it is never replaced by zero (D-01).
   greenwood_term <- ifelse(
     n_evt == d_evt,
-    0,
+    NA_real_,
     d_evt / (n_evt * (n_evt - d_evt))
   )
   var_surv <- surv^2 * cumsum(greenwood_term)
@@ -111,6 +113,27 @@ NULL
   )
 }
 
+#' Validate a prespecified equal-precision transformed-time domain (D-01).
+#' @noRd
+validate_ep_range <- function(ep_range) {
+  if (is.null(ep_range)) return(NULL)
+  if (!is.numeric(ep_range) || length(ep_range) != 2L ||
+      any(!is.finite(ep_range)) || ep_range[1] <= 0 || ep_range[2] >= 1 ||
+      ep_range[1] >= ep_range[2]) {
+    cli::cli_abort("{.arg ep_range} must be two values with 0 < a_L < a_U < 1.")
+  }
+  ep_range
+}
+
+#' Observed follow-up range (event and censoring times alike), used for
+#' non-inferential domain anchors (D-02).
+#' @noRd
+.observed_time_range <- function(time, status) {
+  keep <- is.finite(time) & !is.na(status)
+  if (!any(keep)) return(NULL)
+  range(time[keep])
+}
+
 #' Equal-precision (EP) critical value for simultaneous confidence bands.
 #'
 #' Computes the Nair (1984) EP critical value using the Miller-Siegmund
@@ -126,12 +149,14 @@ NULL
 .ep_critical_value <- function(a_L, a_U, alpha) {
   if (!is.finite(a_L) || !is.finite(a_U) || a_L <= 0 || a_U <= 0 ||
       a_L >= 1 || a_U >= 1 || a_U <= a_L) {
-    return(stats::qnorm(1 - alpha / 2))
+    # Never a pointwise-normal fallback: an invalid equal-precision domain
+    # is a caller error (D-01).
+    cli::cli_abort("Equal-precision endpoints must satisfy 0 < a_L < a_U < 1.")
   }
 
   log_term <- log((a_U * (1 - a_L)) / (a_L * (1 - a_U)))
   if (!is.finite(log_term) || log_term <= 0) {
-    return(stats::qnorm(1 - alpha / 2))
+    cli::cli_abort("Equal-precision endpoints must satisfy 0 < a_L < a_U < 1.")
   }
 
   ms_tail <- function(x) {
@@ -307,10 +332,12 @@ geom_ecdf_km <- function(
     conf_int     = TRUE,
     level        = 0.95,
     conf_alpha   = 0.4,
+    ep_range     = NULL,
     censor_marks = TRUE,
     censor_shape = 3,
     censor_size  = 2
 ) {
+  validate_ep_range(ep_range)
   default_mapping <- aes(y = after_stat(y))
   if (is.null(mapping)) {
     mapping <- default_mapping
@@ -352,6 +379,7 @@ geom_ecdf_km <- function(
       params      = list(
         na.rm     = na.rm,
         level     = level,
+        ep_range  = ep_range,
         fill      = "grey60",
         linewidth = 0,
         alpha     = conf_alpha
@@ -392,8 +420,45 @@ StatECDFKM <- ggproto("StatECDFKM", Stat,
 
   compute_group = function(data, scales, na.rm = FALSE) {
     tab <- .tabulate_km(data$x, data$status, na.rm = na.rm)
-    if (nrow(tab) == 0L) return(data.frame(x = numeric(0), y = numeric(0)))
-    data.frame(x = tab$time, y = tab$surv)
+    rng <- .observed_time_range(data$x, data$status)
+    if (is.null(rng)) return(data.frame(x = numeric(0), y = numeric(0)))
+
+    if (nrow(tab) == 0L) {
+      # All censored: S(t) = 1 over the observation domain, no jumps (D-02).
+      times <- unique(rng)
+      surv_vals <- rep(1, length(times))
+      prev <- surv_vals
+      jump <- rep(FALSE, length(times))
+      anchor <- rep(TRUE, length(times))
+    } else {
+      times <- tab$time
+      surv_vals <- tab$surv
+      prev <- c(1, surv_vals[-length(surv_vals)])
+      jump <- rep(TRUE, length(times))
+      anchor <- rep(FALSE, length(times))
+      if (rng[2] > max(times)) {
+        # Trailing follow-up (a censoring after the last event) extends the
+        # curve horizontally; the anchor is not an event (D-02).
+        s_last <- surv_vals[length(surv_vals)]
+        times <- c(times, rng[2])
+        surv_vals <- c(surv_vals, s_last)
+        prev <- c(prev, s_last)
+        jump <- c(jump, FALSE)
+        anchor <- c(anchor, TRUE)
+      }
+    }
+
+    out <- data.frame(
+      x = times,
+      y = scale_forward(scales$y, surv_vals),
+      survival = surv_vals,
+      y_prev = scale_forward(scales$y, prev),
+      jump = jump,
+      domain_anchor = anchor
+    )
+    out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
+    out$top_panel <- resolve_stat_baseline(scales$y, 1)$panel
+    out
   }
 )
 
@@ -404,27 +469,73 @@ StatECDFKMBand <- ggproto("StatECDFKMBand", Stat,
   required_aes = c("x", "status"),
   dropped_aes  = "status",
 
-  compute_group = function(data, scales, na.rm = FALSE, level = 0.95) {
+  compute_group = function(data, scales, na.rm = FALSE, level = 0.95,
+                           ep_range = NULL) {
+    ep_range <- validate_ep_range(ep_range)
     tab <- .tabulate_km(data$x, data$status, na.rm = na.rm)
+    rng <- .observed_time_range(data$x, data$status)
     if (nrow(tab) == 0L) return(data.frame())
+
     G <- ifelse(tab$surv > 0, tab$var_surv / tab$surv^2, NA_real_)
     se <- sqrt(tab$var_surv)
     a <- tab$n[1L] * G / (1 + tab$n[1L] * G)
-    valid_a <- is.finite(a) & a > 0 & a < 1
-    if (any(valid_a)) {
-      a_vals <- a[valid_a]
-      a_L <- a_vals[1L]
-      a_U <- a_vals[length(a_vals)]
+
+    # The band is defined only where the Greenwood variance is finite and
+    # positive and the equal-precision transformed time is valid; a singular
+    # terminal contribution never produces a fake zero-width interval (D-01).
+    valid <- is.finite(a) & a > 0 & a < 1 & is.finite(se) & se > 0
+    if (!is.null(ep_range)) {
+      keep <- valid & a >= ep_range[1] & a <= ep_range[2]
+      a_L <- ep_range[1]
+      a_U <- ep_range[2]
     } else {
-      a_L <- a_U <- NA_real_
+      # Data-adaptive plug-in domain: first/last valid transformed times.
+      # This is an approximate plug-in band, not an unqualified nominal
+      # simultaneous-confidence procedure (D-01).
+      keep <- valid
+      if (any(valid)) {
+        a_vals <- a[valid]
+        a_L <- a_vals[1L]
+        a_U <- a_vals[length(a_vals)]
+      } else {
+        a_L <- a_U <- NA_real_
+      }
     }
+
+    if (!any(keep) || !is.finite(a_L) || !is.finite(a_U) ||
+        a_L <= 0 || a_U >= 1 || a_U <= a_L) {
+      cli::cli_warn(c(
+        "No valid domain exists for the equal-precision confidence band; the band is omitted.",
+        "i" = "The Greenwood variance is undefined or degenerate at every event time (for example, a single event time or an all-terminal risk set)."
+      ))
+      return(data.frame())
+    }
+
     c_ep <- .ep_critical_value(a_L, a_U, alpha = 1 - level)
-    df <- data.frame(
-      x    = tab$time,
-      ymin = pmax(0, tab$surv - c_ep * se),
-      ymax = pmin(1, tab$surv + c_ep * se)
-    )
-    .expand_step_ribbon(df)
+
+    ymin_raw <- pmax(0, (tab$surv - c_ep * se)[keep])
+    ymax_raw <- pmin(1, (tab$surv + c_ep * se)[keep])
+    df <- data.frame(x = tab$time[keep], ymin = ymin_raw, ymax = ymax_raw)
+    band <- .expand_step_ribbon(df)
+    band$domain_anchor <- FALSE
+    band$jump <- TRUE
+
+    # Carry the last valid interval to the end of observed follow-up as
+    # geometric metadata; this anchor is not a confidence interval (D-01,
+    # D-02).
+    t_end <- max(c(rng[2], tab$time))
+    if (t_end > max(df$x)) {
+      band <- rbind(band, data.frame(
+        x = t_end,
+        ymin = ymin_raw[length(ymin_raw)],
+        ymax = ymax_raw[length(ymax_raw)],
+        domain_anchor = TRUE,
+        jump = FALSE
+      ))
+    }
+    band$ymin <- scale_forward(scales$y, band$ymin)
+    band$ymax <- scale_forward(scales$y, band$ymax)
+    band
   }
 )
 
@@ -443,7 +554,11 @@ StatCensorMarks <- ggproto("StatCensorMarks", Stat,
     tab <- .tabulate_km(data$x, data$status, na.rm = na.rm)
     if (nrow(tab) == 0L) {
       # No events — survival is 1 everywhere
-      return(data.frame(x = ct, y = rep(1, length(ct))))
+      return(data.frame(
+        x = ct,
+        y = scale_forward(scales$y, rep(1, length(ct))),
+        survival = rep(1, length(ct))
+      ))
     }
 
     # S(t) is right-continuous step: for each censoring time, find the most
@@ -453,7 +568,11 @@ StatCensorMarks <- ggproto("StatCensorMarks", Stat,
       if (length(idx) == 0L) 1 else tab$surv[max(idx)]
     }, numeric(1L))
 
-    data.frame(x = ct, y = surv_at_censor)
+    data.frame(
+      x = ct,
+      y = scale_forward(scales$y, surv_at_censor),
+      survival = surv_at_censor
+    )
   }
 )
 
@@ -692,8 +811,44 @@ StatECHFNA <- ggproto("StatECHFNA", Stat,
 
   compute_group = function(data, scales, na.rm = FALSE) {
     tab <- .tabulate_km(data$x, data$status, na.rm = na.rm)
-    if (nrow(tab) == 0L) return(data.frame(x = numeric(0), y = numeric(0)))
-    data.frame(x = tab$time, y = tab$chf)
+    rng <- .observed_time_range(data$x, data$status)
+    if (is.null(rng)) return(data.frame(x = numeric(0), y = numeric(0)))
+
+    if (nrow(tab) == 0L) {
+      # All censored: H(t) = 0 over the observation domain, no jumps (D-02).
+      times <- unique(rng)
+      chf_vals <- rep(0, length(times))
+      prev <- chf_vals
+      jump <- rep(FALSE, length(times))
+      anchor <- rep(TRUE, length(times))
+    } else {
+      times <- tab$time
+      chf_vals <- tab$chf
+      prev <- c(0, chf_vals[-length(chf_vals)])
+      jump <- rep(TRUE, length(times))
+      anchor <- rep(FALSE, length(times))
+      if (rng[2] > max(times)) {
+        h_last <- chf_vals[length(chf_vals)]
+        times <- c(times, rng[2])
+        chf_vals <- c(chf_vals, h_last)
+        prev <- c(prev, h_last)
+        jump <- c(jump, FALSE)
+        anchor <- c(anchor, TRUE)
+      }
+    }
+
+    out <- data.frame(
+      x = times,
+      y = scale_forward(scales$y, chf_vals),
+      cumhazard = chf_vals,
+      y_prev = scale_forward(scales$y, prev),
+      jump = jump,
+      domain_anchor = anchor
+    )
+    # The cumulative-hazard baseline trains on raw zero when the transform
+    # allows it; no artificial upper endpoint is forced (C-05).
+    out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
+    out
   }
 )
 
@@ -706,7 +861,21 @@ StatECHFNABand <- ggproto("StatECHFNABand", Stat,
 
   compute_group = function(data, scales, na.rm = FALSE, level = 0.95) {
     df <- .echf_na_intervals(data$x, data$status, na.rm = na.rm, level = level)
-    .expand_step_ribbon(df)
+    if (nrow(df) == 0L) return(df)
+    band <- .expand_step_ribbon(df)
+    band$domain_anchor <- FALSE
+    band$jump <- TRUE
+    rng <- .observed_time_range(data$x, data$status)
+    if (!is.null(rng) && rng[2] > max(df$x)) {
+      band <- rbind(band, data.frame(
+        x = rng[2],
+        ymin = df$ymin[nrow(df)],
+        ymax = df$ymax[nrow(df)],
+        domain_anchor = TRUE,
+        jump = FALSE
+      ))
+    }
+    band
   }
 )
 

@@ -41,7 +41,10 @@ test_that("geom_ppplot works with a constructor-local mapping (A-02)", {
   set.seed(1)
   d <- data.frame(z = rnorm(20))
   expect_no_error(
-    b <- ggplot_build(ggplot(d) + geom_ppplot(aes(x = z), fun = pnorm))
+    b <- ggplot_build(
+      ggplot(d) +
+        geom_ppplot(aes(sample = z), fun = pnorm, null_type = "continuous")
+    )
   )
   expect_true(all(vapply(b$data, nrow, integer(1)) > 0))
 })
@@ -71,8 +74,9 @@ test_that("point-only calculated aesthetics do not leak into bands (A-02)", {
   b <- ggplot_build(
     ggplot(d) +
       geom_ppplot(
-        aes(x = z, alpha = after_stat(p)),
+        aes(sample = z, alpha = after_stat(p)),
         fun = pnorm,
+        null_type = "continuous",
         conf_alpha = 0.4
       )
   )
@@ -105,7 +109,11 @@ test_that("logical and integer status produce identical KM output (A-03)", {
   )$data[[1]]
 
   expect_equal(b_logical[c("x", "y")], b_integer[c("x", "y")])
-  expect_equal(b_logical$y, c(0.8, 0.6, 0.3))
+  # Event rows carry the KM estimates; the trailing row is the D-02
+  # observation-domain anchor at the final censoring time.
+  expect_equal(b_logical$y[b_logical$jump], c(0.8, 0.6, 0.3))
+  expect_equal(tail(b_logical$x, 1), 5)
+  expect_false(tail(b_logical$jump, 1))
 })
 
 test_that("logical/integer equivalence holds for bands, censor marks, and NA (A-03)", {

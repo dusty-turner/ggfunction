@@ -578,7 +578,17 @@ order_stat_sample <- function(x, na.rm = FALSE, a = 1 / 2) {
     return(data.frame(sample = numeric(0), p = numeric(0), n = integer(0)))
   }
 
-  data.frame(sample = x, p = stats::ppoints(n, a = a), n = n)
+  p <- stats::ppoints(n, a = a)
+  # Invalid offsets produce non-finite, out-of-range, or non-increasing
+  # plotting positions; reject them before any band construction (D-05).
+  if (any(!is.finite(p)) || any(p <= 0) || any(p >= 1) ||
+      (n > 1L && any(diff(p) <= 0))) {
+    cli::cli_abort(
+      "{.arg a} = {a} produces invalid plotting positions; use an offset such as 1/2 or 3/8."
+    )
+  }
+
+  data.frame(sample = x, p = p, n = n)
 }
 
 #' Resolve open_fill for discrete step-function geoms
@@ -670,6 +680,7 @@ draw_discrete_step_group <- function(data, panel_params, coord,
   if (is.null(show_vert))   show_vert   <- n <= 50
 
   in_shade <- if ("in_shade" %in% names(data)) data$in_shade else rep(TRUE, n)
+  jump <- if ("jump" %in% names(data)) data$jump else rep(TRUE, n)
 
   y_prev <- if ("y_prev" %in% names(data)) {
     data$y_prev
@@ -681,7 +692,13 @@ draw_discrete_step_group <- function(data, panel_params, coord,
     y_prev[!is.finite(y_prev)] <- floor_y
   }
 
-  segs <- discrete_step_segments(data$x, data$y, y_prev, panel_params$x.range)
+  # Empirical stats carry observation-domain anchors: the curve stops at its
+  # own maximum follow-up rather than extending to the panel edge, and
+  # anchors draw no jumps or endpoint circles (D-02).
+  has_domain <- "domain_anchor" %in% names(data)
+  x_hi <- if (has_domain) max(data$x) else panel_params$x.range[2]
+  segs <- discrete_step_segments(data$x, data$y, y_prev,
+                                 c(panel_params$x.range[1], x_hi))
 
   data_hori <- data[segs$hori$piece, , drop = FALSE]
   data_hori$x <- segs$hori$x
@@ -689,29 +706,33 @@ draw_discrete_step_group <- function(data, panel_params, coord,
   data_hori$y <- segs$hori$y
   data_hori$yend <- segs$hori$yend
   data_hori$alpha <- dim_alpha(data_hori$alpha, in_shade[segs$hori$piece])
+  data_hori <- data_hori[data_hori$x != data_hori$xend, , drop = FALSE]
 
   data_vert <- data
   data_vert$xend <- segs$vert$xend
   data_vert$y <- segs$vert$y
   data_vert$yend <- segs$vert$yend
   data_vert$alpha <- dim_alpha(data_vert$alpha, in_shade)
+  data_vert <- data_vert[jump, , drop = FALSE]
 
   coord_hori <- coord$transform(data_hori, panel_params)
   coord_vert <- coord$transform(data_vert, panel_params)
 
   grobs <- list()
 
-  grobs$hori <- grid::segmentsGrob(
-    coord_hori$x, coord_hori$y, coord_hori$xend, coord_hori$yend,
-    default.units = "native",
-    gp = grid::gpar(
-      col = scales::alpha(coord_hori$colour, coord_hori$alpha),
-      lwd = coord_hori$linewidth * .pt,
-      lty = coord_hori$linetype
+  if (nrow(coord_hori) > 0L) {
+    grobs$hori <- grid::segmentsGrob(
+      coord_hori$x, coord_hori$y, coord_hori$xend, coord_hori$yend,
+      default.units = "native",
+      gp = grid::gpar(
+        col = scales::alpha(coord_hori$colour, coord_hori$alpha),
+        lwd = coord_hori$linewidth * .pt,
+        lty = coord_hori$linetype
+      )
     )
-  )
+  }
 
-  if (show_vert) {
+  if (show_vert && nrow(coord_vert) > 0L) {
     grobs$vert <- grid::segmentsGrob(
       coord_vert$x, coord_vert$y, coord_vert$xend, coord_vert$yend,
       default.units = "native",
@@ -723,7 +744,7 @@ draw_discrete_step_group <- function(data, panel_params, coord,
     )
   }
 
-  if (show_points) {
+  if (show_points && nrow(coord_vert) > 0L) {
     # Open circle at the pre-jump value (left limit); closed circle at the
     # value the function attains at x[k].
     grobs$open <- grid::pointsGrob(

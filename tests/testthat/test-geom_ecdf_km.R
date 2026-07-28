@@ -119,14 +119,16 @@ test_that(".tabulate_km returns empty for empty input", {
   expect_equal(nrow(tab), 0)
 })
 
-test_that(".tabulate_km Greenwood variance is zero-guarded when n_i == d_i", {
-  # Last observation: n=1, d=1 => n*(n-d) = 0
+test_that(".tabulate_km leaves the singular Greenwood variance undefined (D-01)", {
+  # Last observation: n=1, d=1 => n*(n-d) = 0. The variance is undefined
+  # there and is never replaced by zero.
   tab <- ggfunction:::.tabulate_km(
     time   = c(1, 2),
     status = c(1, 1),
     na.rm  = FALSE
   )
-  expect_true(all(is.finite(tab$var_surv)))
+  expect_true(is.finite(tab$var_surv[1]))
+  expect_true(is.na(tab$var_surv[2]))
 })
 
 
@@ -188,13 +190,16 @@ test_that("StatECDFKM computes correct values", {
   expect_true(all(diff(result$y) <= 0))  # decreasing
 })
 
-test_that("StatECDFKM returns empty for no-event data", {
+test_that("StatECDFKM represents all-censored data as S(t) = 1 (D-02)", {
   result <- StatECDFKM$compute_group(
     data = data.frame(x = c(1, 2, 3), status = c(0, 0, 0)),
-    scales = list(),
+    scales = list(x = NULL, y = NULL),
     na.rm = FALSE
   )
-  expect_equal(nrow(result), 0)
+  expect_gt(nrow(result), 0)
+  expect_true(all(result$y == 1))
+  expect_equal(range(result$x), c(1, 3))
+  expect_true(all(!result$jump))
 })
 
 
@@ -211,13 +216,16 @@ test_that("StatECHFNA computes correct values", {
   expect_true(all(diff(result$y) >= 0))  # increasing
 })
 
-test_that("StatECHFNA returns empty for no-event data", {
+test_that("StatECHFNA represents all-censored data as H(t) = 0 (D-02)", {
   result <- StatECHFNA$compute_group(
     data = data.frame(x = c(1, 2, 3), status = c(0, 0, 0)),
-    scales = list(),
+    scales = list(x = NULL, y = NULL),
     na.rm = FALSE
   )
-  expect_equal(nrow(result), 0)
+  expect_gt(nrow(result), 0)
+  expect_true(all(result$y == 0))
+  expect_equal(range(result$x), c(1, 3))
+  expect_true(all(!result$jump))
 })
 
 
@@ -294,7 +302,7 @@ test_that("StatECHFNABand uses pointwise normal critical values", {
     ymax = tab$chf + z * sqrt(tab$var_chf)
   )
   expected <- ggfunction:::.expand_step_ribbon(expected)
-  expect_equal(result, expected, tolerance = 1e-10)
+  expect_equal(result[, c("x", "ymin", "ymax")], expected, tolerance = 1e-10)
 })
 
 test_that("StatECHFNABand returns empty for empty data", {
@@ -502,6 +510,7 @@ test_that("geom_echf_na ribbon display remains available", {
     na.rm = FALSE,
     level = 0.95
   )
+  expected_band <- expected_band[, c("x", "ymin", "ymax")]
   row.names(built_band) <- NULL
   row.names(expected_band) <- NULL
 
@@ -541,10 +550,11 @@ test_that("other empirical confidence displays keep ribbon geoms", {
 
   km_plot <- ggplot(km_df, aes(x = time, status = status)) + geom_ecdf_km()
   echf_plot <- ggplot(echf_df, aes(x = x)) + geom_echf()
-  pp_plot <- ggplot(diag_df, aes(x = x)) + geom_ppplot(fun = pnorm)
+  pp_plot <- ggplot(diag_df, aes(sample = x)) +
+    geom_ppplot(fun = pnorm, null_type = "continuous")
 
   expect_equal(class(km_plot$layers[[1]]$geom)[1], "GeomRibbon")
-  expect_equal(class(echf_plot$layers[[1]]$geom)[1], "GeomRibbon")
+  expect_s3_class(echf_plot$layers[[1]]$geom, "GeomRibbon")
   expect_true(any(vapply(pp_plot$layers, function(layer) class(layer$geom)[1],
                          character(1)) == "GeomRibbon"))
 })

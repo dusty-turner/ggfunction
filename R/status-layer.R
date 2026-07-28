@@ -88,3 +88,43 @@ StatusAwareLayer <- ggproto(
 status_layer <- function(...) {
   layer(..., layer_class = StatusAwareLayer)
 }
+
+#' Diagnostic-input layer (spec D-06).
+#'
+#' PP/SP/QQ diagnostics take raw observations. The canonical input aesthetic
+#' is the non-positional `sample`, which ggplot2 never transforms. The legacy
+#' `aes(x = value)` input remains supported on identity x scales for one
+#' deprecation cycle (with a targeted warning); under a transformed x scale
+#' the raw observations cannot be reconstructed after the pre-stat position
+#' transform, so the layer aborts and directs the user to `sample`.
+#' @noRd
+DiagnosticSampleLayer <- ggproto(
+  "DiagnosticSampleLayer", .layer_template,
+  compute_aesthetics = function(self, data, plot) {
+    mapping <- self$computed_mapping %||% self$mapping
+    if (!("sample" %in% names(mapping)) && "x" %in% names(mapping)) {
+      x_scale <- plot@scales$get_scales("x")
+      trans_name <- if (!is.null(x_scale) && !x_scale$is_discrete()) {
+        tryCatch(x_scale$get_transformation()$name, error = function(e) "identity")
+      } else {
+        "identity"
+      }
+      if (!identical(trans_name, "identity")) {
+        cli::cli_abort(c(
+          "Diagnostic layers cannot recover raw observations from {.code aes(x = )} under a transformed x scale (found {.val {trans_name}}).",
+          "i" = "Map the observations to {.code aes(sample = )} instead."
+        ))
+      }
+      cli::cli_warn(
+        "Mapping diagnostic observations to {.code aes(x = )} is deprecated; use {.code aes(sample = )}."
+      )
+    }
+    ggproto_parent(.layer_template, self)$compute_aesthetics(data, plot)
+  }
+)
+
+#' A layer() wrapper that installs the diagnostic-input Layer class (D-06).
+#' @noRd
+diagnostic_layer <- function(...) {
+  layer(..., layer_class = DiagnosticSampleLayer)
+}

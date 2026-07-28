@@ -191,7 +191,19 @@ StatECDF <- ggproto("StatECDF", Stat,
 
   compute_group = function(data, scales, na.rm = FALSE) {
     df <- .tabulate_empirical(data$x, na.rm = na.rm)
-    data.frame(x = df$x, y = df$cdf)
+    cdf <- df$cdf
+    prev <- c(0, cdf[-length(cdf)])
+    out <- data.frame(
+      x = df$x,
+      y = scale_forward(scales$y, cdf),
+      cdf = cdf,
+      y_prev = scale_forward(scales$y, prev)
+    )
+    # The mathematical endpoints 0 and 1 train the probability axis when
+    # they are finite under the active transformation (C-05).
+    out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
+    out$top_panel <- resolve_stat_baseline(scales$y, 1)$panel
+    out
   }
 )
 
@@ -516,14 +528,7 @@ geom_epmf <- function(
     )
   )
 
-  # Force y-axis to include 0 (the lollipop baseline) without drawing anything.
-  baseline_layer <- ggplot2::geom_blank(
-    data        = data.frame(y = 0),
-    mapping     = aes(y = y),
-    inherit.aes = FALSE
-  )
-
-  list(baseline_layer, main_layer)
+  main_layer
 }
 
 #' @rdname geom_epmf
@@ -533,7 +538,15 @@ StatEPMF <- ggproto("StatEPMF", Stat,
 
   compute_group = function(data, scales, na.rm = FALSE) {
     df <- .tabulate_empirical(data$x, na.rm = na.rm)
-    data.frame(x = df$x, y = df$pmf)
+    out <- data.frame(
+      x = df$x,
+      y = scale_forward(scales$y, df$pmf),
+      mass = df$pmf
+    )
+    # The mass baseline trains the y scale when it is finite under the
+    # active transformation (C-05); lollipop sticks drop to it at draw time.
+    out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
+    out
   }
 )
 
@@ -664,7 +677,7 @@ geom_echf <- function(
       mapping, aes(ymin = after_stat(ymin), ymax = after_stat(ymax))
     ),
     stat        = StatECHFBand,
-    geom        = GeomRibbon,
+    geom        = GeomECHFBandRibbon,
     position    = position,
     show.legend = FALSE,
     inherit.aes = inherit.aes,
@@ -694,45 +707,86 @@ StatECHF <- ggproto("StatECHF", Stat,
     # producing a huge but finite H; dropping avoids this artefact.
     df <- df[-nrow(df), , drop = FALSE]
     if (nrow(df) == 0L) return(data.frame(x = numeric(0), y = numeric(0)))
-    h <- -log(1 - df$cdf)
-    data.frame(x = df$x, y = h)
+    h <- -log1p(-df$cdf)
+    prev <- c(0, h[-length(h)])
+    out <- data.frame(
+      x = df$x,
+      y = scale_forward(scales$y, h),
+      cumhazard = h,
+      y_prev = scale_forward(scales$y, prev)
+    )
+    # The cumulative-hazard baseline trains on raw zero when the transform
+    # allows it; no artificial upper endpoint is forced (C-05).
+    out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
+    out
   }
 )
 
 #' @rdname geom_echf
 #' @export
+#' Validate the ECHF band cap: NULL (default log(2n) cap), Inf (genuinely
+#' unbounded), or one finite non-negative scalar (D-03).
+#' @noRd
+validate_band_max <- function(band_max) {
+  if (is.null(band_max)) return(NULL)
+  if (!is.numeric(band_max) || length(band_max) != 1L || is.na(band_max) ||
+      band_max < 0 || is.nan(band_max)) {
+    cli::cli_abort("{.arg band_max} must be NULL, Inf, or a single finite non-negative number.")
+  }
+  band_max
+}
+
 StatECHFBand <- ggproto("StatECHFBand", Stat,
   required_aes = "x",
 
   compute_group = function(data, scales, na.rm = FALSE, level = 0.95,
                            band_max = NULL) {
+    validate_band_max(band_max)
     tab <- .tabulate_empirical(data$x, na.rm = na.rm)
     if (nrow(tab) == 0L) return(data.frame())
     n   <- tab$n[1L]
     eps <- sqrt(log(2 / (1 - level)) / (2 * n))
     cdf_lower <- pmax(0, tab$cdf - eps)
-    cdf_upper <- pmin(1 - 1e-10, tab$cdf + eps)
-    h_lower <- -log(1 - cdf_lower)
-    h_upper <- -log(1 - cdf_upper)
-    # Clip h_upper on the H scale.  Default: log(2n); Inf disables.
-    if (is.null(band_max)) {
-      h_cap   <- log(2 * n)
-      clipped <- any(h_upper > h_cap)
-      h_upper <- pmin(h_cap, h_upper)
-      if (clipped) {
+    cdf_upper <- tab$cdf + eps
+    h_lower <- -log1p(-cdf_lower)
+    # Where F_n + eps >= 1 the true upper bound is infinite (D-03). The log
+    # branch is evaluated only where it is defined.
+    h_upper <- rep(Inf, length(cdf_upper))
+    defined <- cdf_upper < 1
+    h_upper[defined] <- -log1p(-cdf_upper[defined])
+
+    cap <- if (is.null(band_max)) log(2 * n) else band_max
+    keep <- rep(TRUE, length(h_lower))
+    if (is.finite(cap)) {
+      if (is.null(band_max) && any(h_upper > cap)) {
         cli::cli_inform(
-          "Upper confidence band clipped at {.val H} = {round(h_cap, 2)} ({.code log(2n)}); true upper bound is infinite where {.code F_n(x) + eps >= 1}. Set {.arg band_max = Inf} to disable."
+          "Upper confidence band clipped at {.val H} = {round(cap, 2)} ({.code log(2n)}); true upper bound is infinite where {.code F_n(x) + eps >= 1}. Set {.arg band_max = Inf} to disable."
         )
       }
-    } else if (is.finite(band_max)) {
-      h_upper <- pmin(band_max, h_upper)
+      # Intersect the band with [0, cap]: rows whose lower bound exceeds the
+      # cap are omitted; retained rows keep ymin <= ymax (D-03).
+      keep <- h_lower <= cap
+      h_upper <- pmin(h_upper, cap)
     }
-    keep <- is.finite(h_lower) & is.finite(h_upper)
     df  <- data.frame(
       x    = tab$x[keep],
       ymin = h_lower[keep],
       ymax = h_upper[keep]
     )
     .expand_step_ribbon(df)
+  }
+)
+
+#' Ribbon that renders infinite upper bounds at the visible panel edge
+#' instead of passing non-finite coordinates to grid (D-03).
+#' @rdname geom_echf
+#' @export
+GeomECHFBandRibbon <- ggproto("GeomECHFBandRibbon", GeomRibbon,
+  draw_group = function(self, data, panel_params, coord, ...) {
+    inf_upper <- is.infinite(data$ymax) & data$ymax > 0
+    if (any(inf_upper)) {
+      data$ymax[inf_upper] <- panel_params$y.range[2]
+    }
+    ggproto_parent(GeomRibbon, self)$draw_group(data, panel_params, coord, ...)
   }
 )
