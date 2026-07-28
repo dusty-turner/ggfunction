@@ -47,9 +47,14 @@ default_labs_component <- function(x = NULL, y = NULL, fill = NULL, colour = NUL
 #' @noRd
 normalise_colour_params <- function(params) {
   if ("color" %in% names(params)) {
-    color <- params$color
+    if ("colour" %in% names(params)) {
+      # Both alias spellings supplied as fixed values: leave them so
+      # ggplot2's duplicated-aesthetic diagnostic fires after name
+      # standardization (E-08).
+      return(params)
+    }
+    params$colour <- params$color
     params$color <- NULL
-    if (!("colour" %in% names(params))) params$colour <- color
   }
   params
 }

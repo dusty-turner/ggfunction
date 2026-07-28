@@ -149,7 +149,12 @@ geom_pmf <- function(mapping = NULL,
     default_mapping <- aes(x = after_stat(x), y = after_stat(y))
   }
 
-  if (!is.null(shade_hdr)) {
+  # The HDR alpha default is added only when the user supplied neither a
+  # static alpha nor an alpha mapping, so a user override never triggers a
+  # duplicated-aesthetic warning (E-08).
+  has_user_alpha <- "alpha" %in% names(list(...)) ||
+    (!is.null(mapping) && "alpha" %in% names(mapping))
+  if (!is.null(shade_hdr) && !has_user_alpha) {
     default_mapping <- modifyList(default_mapping, aes(alpha = after_stat(probs)))
   }
 

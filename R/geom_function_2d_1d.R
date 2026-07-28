@@ -222,11 +222,16 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
         mapping <- modifyList(mapping, aes(fill = after_stat(z)))
       }
     } else {
-      default_mapping <- aes(alpha = after_stat(function2d_alpha_rescale(z)))
-      if (is.null(mapping)) {
-        mapping <- default_mapping
+      # The alpha default yields to a user-supplied static alpha (E-08).
+      if ("alpha" %in% names(dots)) {
+        mapping <- mapping %||% aes()
       } else {
-        mapping <- modifyList(default_mapping, mapping)
+        default_mapping <- aes(alpha = after_stat(function2d_alpha_rescale(z)))
+        if (is.null(mapping)) {
+          mapping <- default_mapping
+        } else {
+          mapping <- modifyList(default_mapping, mapping)
+        }
       }
       if (!"fill" %in% names(dots) && is.null(mapping$fill)) dots$fill <- "grey20"
     }

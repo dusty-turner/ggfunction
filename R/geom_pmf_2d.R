@@ -157,19 +157,29 @@ geom_pmf_2d <- function(
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
 
-  if (identical(type, "point")) {
-    geom <- GeomPMF2dPoint
-    default_mapping <- aes(
-      x = after_stat(x), y = after_stat(y), size = after_stat(prob)
-    )
-  } else {
-    geom <- GeomPMF2dTile
-    default_mapping <- aes(
-      x = after_stat(x), y = after_stat(y), fill = after_stat(prob)
-    )
+  static_aes <- names(list(...))
+  mapped_aes <- names(mapping %||% aes())
+  has_user <- function(aes_name) {
+    aes_name %in% static_aes || aes_name %in% mapped_aes
   }
 
-  if (!is.null(shade_hdr)) {
+  # Package default mappings yield to user-supplied statics or mappings so
+  # overrides never trigger duplicated-aesthetic warnings (E-08).
+  if (identical(type, "point")) {
+    geom <- GeomPMF2dPoint
+    default_mapping <- aes(x = after_stat(x), y = after_stat(y))
+    if (!has_user("size")) {
+      default_mapping <- modifyList(default_mapping, aes(size = after_stat(prob)))
+    }
+  } else {
+    geom <- GeomPMF2dTile
+    default_mapping <- aes(x = after_stat(x), y = after_stat(y))
+    if (!has_user("fill")) {
+      default_mapping <- modifyList(default_mapping, aes(fill = after_stat(prob)))
+    }
+  }
+
+  if (!is.null(shade_hdr) && !has_user("alpha")) {
     default_mapping <- modifyList(default_mapping, aes(alpha = after_stat(probs)))
   }
 
