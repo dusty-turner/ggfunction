@@ -1,9 +1,6 @@
 # R/scale-helpers.R
 #
-# Shared scale-transformation architecture (spec A-01, section 5.1).
-
-#' @importFrom ggplot2 ggproto_parent .pt .stroke
-NULL
+# Shared scale-transformation architecture.
 #
 # Coordinate contract:
 #   - Public `xlim`/`ylim`/`support` arguments are DATA coordinates.
@@ -17,6 +14,9 @@ NULL
 #     aesthetics and stay raw.
 #   - Raw values are transformed exactly once, in the Stat; never transform a
 #     `dimension()` value or an incoming mapped position a second time.
+
+#' @importFrom ggplot2 ggproto_parent .pt .stroke
+NULL
 
 #' @noRd
 scale_is_transformable <- function(scale) {
@@ -41,7 +41,7 @@ scale_inverse <- function(scale, x) {
 #' Has this scale an actual display window (trained range or explicit
 #' limits)? An untrained scale reports a generic default `dimension()`, which
 #' is not an inherited display window and must not outrank a finite declared
-#' support (spec B-01).
+#' support.
 #' @noRd
 scale_has_window <- function(scale) {
   if (is.null(scale)) return(FALSE)
@@ -53,7 +53,7 @@ scale_has_window <- function(scale) {
 
 #' Validate a data-space limits argument: length-2, finite, strictly
 #' increasing. A supplied but malformed limit aborts; it never falls through
-#' to another range source (spec B-01).
+#' to another range source.
 #' @noRd
 validate_data_limits <- function(limits, arg = "xlim") {
   if (is.null(limits)) return(NULL)
@@ -68,7 +68,7 @@ validate_data_limits <- function(limits, arg = "xlim") {
 
 #' Resolve the 1D evaluation grid for a function-generated Stat.
 #'
-#' Range precedence (spec B-01):
+#' Range precedence:
 #'   1. explicit, valid data-space `limits`;
 #'   2. the panel window of a trained or explicitly limited scale;
 #'   3. finite declared data-space `support`;
@@ -114,7 +114,7 @@ resolve_stat_grid_1d <- function(scale, limits = NULL, support = NULL,
 
 #' Resolve one axis of a 2D evaluation grid. `panel_limits` (already in
 #' panel space, e.g. the range of incoming mapped positions) short-circuits
-#' the B-01 precedence chain used for explicit data-space `limits`.
+#' the range-precedence chain used for explicit data-space `limits`.
 #' @noRd
 resolve_stat_grid_axis <- function(scale, limits = NULL, panel_limits = NULL,
                                    n = 50, default_panel_limits = c(-1, 1),
@@ -129,7 +129,7 @@ resolve_stat_grid_axis <- function(scale, limits = NULL, panel_limits = NULL,
   )
 }
 
-#' Resolve a full 2D evaluation grid (spec A-01, 2D): evenly spaced in panel
+#' Resolve a full 2D evaluation grid: evenly spaced in panel
 #' space on each axis, inverse-transformed for evaluation. Returns a data
 #' frame with panel-space `x`/`y` and data-space `x_eval`/`y_eval`.
 #' @noRd
@@ -148,7 +148,7 @@ resolve_stat_grid_2d <- function(x_scale, y_scale, xlim = NULL, ylim = NULL,
   cbind(out, ev)
 }
 
-#' Insert exact evaluation rows at raw data-space boundaries (spec B-02).
+#' Insert exact evaluation rows at raw data-space boundaries.
 #'
 #' A row is inserted only when the boundary lies inside the evaluation
 #' window; positions are transformed exactly once, and the raw function value
@@ -178,7 +178,7 @@ stat_insert_boundary_rows <- function(data, boundaries, fun,
 }
 
 #' Resolve a raw mathematical baseline (density/mass/hazard zero, survival
-#' one, ...) against a possibly transforming scale (spec 5.1).
+#' one, ...) against a possibly transforming scale.
 #'
 #' When the transformation maps the baseline to a finite panel value, that
 #' value may participate in scale training and drawing. When it does not
@@ -219,7 +219,7 @@ warn_baseline_clipped <- function(axis = "y") {
   ))
 }
 
-#' Guard delegated layers that compute in raw coordinates (spec A-01).
+#' Guard delegated layers that compute in raw coordinates.
 #'
 #' Some ggfunction types delegate to upstream stats (ggvfields vector/stream
 #' fields) that evaluate and emit positions in raw data coordinates. Under a

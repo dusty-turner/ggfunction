@@ -164,7 +164,7 @@ geom_pmf_2d <- function(
   }
 
   # Package default mappings yield to user-supplied statics or mappings so
-  # overrides never trigger duplicated-aesthetic warnings (E-08).
+  # overrides never trigger duplicated-aesthetic warnings.
   if (identical(type, "point")) {
     geom <- GeomPMF2dPoint
     default_mapping <- aes(x = after_stat(x), y = after_stat(y))
@@ -241,7 +241,7 @@ StatPMF2d <- ggproto("StatPMF2d", Stat,
     }
 
     # Exact support positions, transformed once for panel space; raw lattice
-    # coordinates and masses retained (A-01).
+    # coordinates and masses retained.
     grid$x <- scale_forward(scales$x, grid$x_eval)
     grid$y <- scale_forward(scales$y, grid$y_eval)
     grid$prob <- as.numeric(prob)

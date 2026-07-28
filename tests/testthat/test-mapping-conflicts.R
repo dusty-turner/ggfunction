@@ -1,6 +1,6 @@
-# E-08: package default mappings never conflict with user aesthetics.
+# Package default mappings never conflict with user aesthetics.
 
-test_that("static overrides of package default mappings are silent (E-08)", {
+test_that("static overrides of package default mappings are silent", {
   # PMF HDR alpha default vs static alpha
   expect_no_warning(
     l <- geom_pmf(
@@ -51,7 +51,7 @@ test_that("static overrides of package default mappings are silent (E-08)", {
   )
 })
 
-test_that("layer mapping plus static value keeps the single native warning (E-08)", {
+test_that("layer mapping plus static value keeps the single native warning", {
   # When the USER supplies both a mapping and a static value on the same
   # layer, ggplot2's own defined-twice warning fires exactly once.
   w <- testthat::capture_warnings(
@@ -65,7 +65,7 @@ test_that("layer mapping plus static value keeps the single native warning (E-08
   expect_match(w, "defined twice")
 })
 
-test_that("plot-global mapping plus layer static override is silent (E-08)", {
+test_that("plot-global mapping plus layer static override is silent", {
   d <- data.frame(x = 1:5, a = seq(0.2, 1, length.out = 5))
   expect_no_warning(
     ggplot_build(
@@ -75,7 +75,7 @@ test_that("plot-global mapping plus layer static override is silent (E-08)", {
   )
 })
 
-test_that("both colour alias spellings keep ggplot2's diagnostic (E-08)", {
+test_that("both colour alias spellings keep ggplot2's diagnostic", {
   expect_warning(
     geom_function_1d_1d(fun = sin, xlim = c(0, 1), color = "red", colour = "blue"),
     "[Dd]uplicated aesthetics"

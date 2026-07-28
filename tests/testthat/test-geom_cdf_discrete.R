@@ -239,3 +239,28 @@ test_that("geom_cdf_discrete draws with shading", {
                       args = list(size = 10, prob = 0.5), p = 0.5)
   expect_silent(ggplotGrob(p))
 })
+
+
+test_that("a truncated sub-1 CDF triggers the soft endpoint diagnostic", {
+  expect_message(
+    StatCDFDiscrete$compute_group(
+      data.frame(group = 1), scales = list(),
+      fun = function(x) ppois(x, 20), support = 0:5, args = list()
+    ),
+    "top of the support"
+  )
+})
+
+test_that("the discrete CDF agrees across fun and pmf input paths", {
+  via_fun <- StatCDFDiscrete$compute_group(
+    data.frame(group = 1), scales = list(),
+    fun = function(x) pbinom(x, 10, 0.4), xlim = c(0, 10), args = list()
+  )
+  via_pmf <- StatCDFDiscrete$compute_group(
+    data.frame(group = 1), scales = list(),
+    pmf_fun = function(x) dbinom(x, 10, 0.4), xlim = c(0, 10), args = list()
+  )
+  expect_equal(via_fun$x, via_pmf$x)
+  expect_equal(via_fun$y, via_pmf$y, tolerance = 1e-12)
+  expect_equal(via_fun$y[length(via_fun$y)], 1, tolerance = 1e-6)
+})

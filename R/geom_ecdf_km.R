@@ -89,7 +89,7 @@ NULL
   # Greenwood variance of S(t): Var(S) = S^2 * sum(d_j / (n_j * (n_j - d_j)))
 
   # A singular Greenwood contribution (n_j == d_j) leaves the variance
-  # undefined from that time on; it is never replaced by zero (D-01).
+  # undefined from that time on; it is never replaced by zero.
   greenwood_term <- ifelse(
     n_evt == d_evt,
     NA_real_,
@@ -113,7 +113,7 @@ NULL
   )
 }
 
-#' Validate a prespecified equal-precision transformed-time domain (D-01).
+#' Validate a prespecified equal-precision transformed-time domain.
 #' @noRd
 validate_ep_range <- function(ep_range) {
   if (is.null(ep_range)) return(NULL)
@@ -126,7 +126,7 @@ validate_ep_range <- function(ep_range) {
 }
 
 #' Observed follow-up range (event and censoring times alike), used for
-#' non-inferential domain anchors (D-02).
+#' non-inferential domain anchors.
 #' @noRd
 .observed_time_range <- function(time, status) {
   keep <- is.finite(time) & !is.na(status)
@@ -150,7 +150,7 @@ validate_ep_range <- function(ep_range) {
   if (!is.finite(a_L) || !is.finite(a_U) || a_L <= 0 || a_U <= 0 ||
       a_L >= 1 || a_U >= 1 || a_U <= a_L) {
     # Never a pointwise-normal fallback: an invalid equal-precision domain
-    # is a caller error (D-01).
+    # is a caller error.
     cli::cli_abort("Equal-precision endpoints must satisfy 0 < a_L < a_U < 1.")
   }
 
@@ -436,7 +436,7 @@ StatECDFKM <- ggproto("StatECDFKM", Stat,
     if (is.null(rng)) return(data.frame(x = numeric(0), y = numeric(0)))
 
     if (nrow(tab) == 0L) {
-      # All censored: S(t) = 1 over the observation domain, no jumps (D-02).
+      # All censored: S(t) = 1 over the observation domain, no jumps.
       times <- unique(rng)
       surv_vals <- rep(1, length(times))
       prev <- surv_vals
@@ -450,7 +450,7 @@ StatECDFKM <- ggproto("StatECDFKM", Stat,
       anchor <- rep(FALSE, length(times))
       if (rng[2] > max(times)) {
         # Trailing follow-up (a censoring after the last event) extends the
-        # curve horizontally; the anchor is not an event (D-02).
+        # curve horizontally; the anchor is not an event.
         s_last <- surv_vals[length(surv_vals)]
         times <- c(times, rng[2])
         surv_vals <- c(surv_vals, s_last)
@@ -494,7 +494,7 @@ StatECDFKMBand <- ggproto("StatECDFKMBand", Stat,
 
     # The band is defined only where the Greenwood variance is finite and
     # positive and the equal-precision transformed time is valid; a singular
-    # terminal contribution never produces a fake zero-width interval (D-01).
+    # terminal contribution never produces a fake zero-width interval.
     valid <- is.finite(a) & a > 0 & a < 1 & is.finite(se) & se > 0
     if (!is.null(ep_range)) {
       keep <- valid & a >= ep_range[1] & a <= ep_range[2]
@@ -503,7 +503,7 @@ StatECDFKMBand <- ggproto("StatECDFKMBand", Stat,
     } else {
       # Data-adaptive plug-in domain: first/last valid transformed times.
       # This is an approximate plug-in band, not an unqualified nominal
-      # simultaneous-confidence procedure (D-01).
+      # simultaneous-confidence procedure.
       keep <- valid
       if (any(valid)) {
         a_vals <- a[valid]
@@ -533,8 +533,7 @@ StatECDFKMBand <- ggproto("StatECDFKMBand", Stat,
     band$jump <- TRUE
 
     # Carry the last valid interval to the end of observed follow-up as
-    # geometric metadata; this anchor is not a confidence interval (D-01,
-    # D-02).
+    # geometric metadata; this anchor is not a confidence interval.
     t_end <- max(c(rng[2], tab$time))
     if (t_end > max(df$x)) {
       band <- rbind(band, data.frame(
@@ -827,7 +826,7 @@ StatECHFNA <- ggproto("StatECHFNA", Stat,
     if (is.null(rng)) return(data.frame(x = numeric(0), y = numeric(0)))
 
     if (nrow(tab) == 0L) {
-      # All censored: H(t) = 0 over the observation domain, no jumps (D-02).
+      # All censored: H(t) = 0 over the observation domain, no jumps.
       times <- unique(rng)
       chf_vals <- rep(0, length(times))
       prev <- chf_vals
@@ -858,7 +857,7 @@ StatECHFNA <- ggproto("StatECHFNA", Stat,
       domain_anchor = anchor
     )
     # The cumulative-hazard baseline trains on raw zero when the transform
-    # allows it; no artificial upper endpoint is forced (C-05).
+    # allows it; no artificial upper endpoint is forced.
     out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
     out
   }

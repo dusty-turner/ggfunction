@@ -294,7 +294,7 @@ qf_to_cdf <- function(qf_fun, n = 10000, support = c(-Inf, Inf)) {
 #'
 #' The effective hazard origin is `max(support[1], hf_lower)` (via
 #' `resolve_hf_lower()`). Exact endpoint values are returned without
-#' attempting numerical integration (spec B-04): `H(x) = 0` at/below the
+#' attempting numerical integration: `H(x) = 0` at/below the
 #' origin and `H(x) = Inf` at/above the upper support endpoint, where the
 #' cumulative hazard of a distribution reaching the end of its support
 #' necessarily diverges.
@@ -344,7 +344,7 @@ hf_to_chf <- function(hf_fun, lower = -Inf, support = NULL) {
 
 #' Convert a hazard function to a CDF function via `F(x) = -expm1(-H(x))`,
 #' which is exact for small cumulative hazards and returns exactly 1 when
-#' `H` is infinite (spec B-04).
+#' `H` is infinite.
 #' @noRd
 hf_to_cdf <- function(hf_fun, lower = -Inf, support = NULL) {
   chf_fun <- hf_to_chf(hf_fun, lower = lower, support = support)
@@ -354,7 +354,7 @@ hf_to_cdf <- function(hf_fun, lower = -Inf, support = NULL) {
 
 #' Convert a hazard function to a PDF function. Where the cumulative hazard
 #' is infinite (at/beyond the upper support endpoint) the density is exactly
-#' zero, not `NA` (spec B-04).
+#' zero, not `NA`.
 #' @noRd
 hf_to_pdf <- function(hf_fun, lower = -Inf, support = NULL) {
   support <- validate_support_1d(support %||% c(lower, Inf))
@@ -379,7 +379,7 @@ hf_to_pdf <- function(hf_fun, lower = -Inf, support = NULL) {
 #' Convert a PDF to a survival function by upper-tail integration,
 #' `S(x) = integral of the density from x to the upper support endpoint`.
 #' Numerically stable deep in the upper tail, where `1 - F(x)` suffers
-#' catastrophic cancellation (spec B-03).
+#' catastrophic cancellation.
 #' @noRd
 pdf_to_survival <- function(pdf_fun, support = c(-Inf, Inf)) {
   support <- validate_support_1d(support)
@@ -422,7 +422,7 @@ pdf_to_survival <- function(pdf_fun, support = c(-Inf, Inf)) {
 
 #' Convert a survival function to a hazard via the logarithmic derivative
 #' `h(x) = -d/dx log S(x)`, which stays exact deep in the tail where the
-#' `f/S` ratio of reconstructed quantities collapses (spec B-03). Central
+#' `f/S` ratio of reconstructed quantities collapses. Central
 #' differences, one-sided at finite support boundaries.
 #' @noRd
 survival_to_hf <- function(survival_fun, support = c(-Inf, Inf), h = 1e-5,
@@ -628,7 +628,7 @@ as_hf_1d <- function(fun = NULL, pdf_fun = NULL, cdf_fun = NULL,
 
   if (!is.null(survival_fun)) {
     # Logarithmic derivative: h(x) = -d/dx log S(x). Exact deep in the tail,
-    # where reconstructing f and S separately cancels to zero (B-03).
+    # where reconstructing f and S separately cancels to zero.
     S <- distribution_fun(survival_fun, args, "survival_fun")
     return(survival_to_hf(S, support = support))
   }
@@ -637,7 +637,7 @@ as_hf_1d <- function(fun = NULL, pdf_fun = NULL, cdf_fun = NULL,
     f <- distribution_fun(pdf_fun, utils::modifyList(args, pdf_args), "pdf_fun")
     F <- distribution_fun(cdf_fun, utils::modifyList(args, cdf_args), "cdf_fun")
     # Use 1 - F while it is well-conditioned; fall back to stable upper-tail
-    # integration of the density once cancellation sets in (B-03).
+    # integration of the density once cancellation sets in.
     S_tail <- pdf_to_survival(f, support = support)
     out <- function(x) {
       vapply(x, function(xi) {
@@ -671,7 +671,7 @@ as_hf_1d <- function(fun = NULL, pdf_fun = NULL, cdf_fun = NULL,
   if (!is.null(cdf_fun)) {
     # CDF-only route: the tail is unrecoverable once F(x) rounds to 1 in
     # double precision. Warn about the saturation rather than silently
-    # returning zero (B-03).
+    # returning zero.
     F <- distribution_fun(cdf_fun, utils::modifyList(args, cdf_args), "cdf_fun")
     f <- cdf_to_pdf(F, support = support)
     warned <- FALSE

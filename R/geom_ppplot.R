@@ -222,7 +222,7 @@ geom_ppplot <- function(
     color = NULL
 ) {
 
-  # PP/SP confidence bands are continuous-null procedures (D-04): a band
+  # PP/SP confidence bands are continuous-null procedures: a band
   # request requires an explicit declaration, and a discrete null cannot
   # request a band. The point diagnostic itself needs no declaration.
   if (!is.null(null_type)) {
@@ -370,7 +370,7 @@ geom_spplot <- function(
     color = NULL
 ) {
 
-  # PP/SP confidence bands are continuous-null procedures (D-04): a band
+  # PP/SP confidence bands are continuous-null procedures: a band
   # request requires an explicit declaration, and a discrete null cannot
   # request a band. The point diagnostic itself needs no declaration.
   if (!is.null(null_type)) {
@@ -645,7 +645,7 @@ StatPPPlot <- ggproto("StatPPPlot", Stat,
     observed <- cdf_fun(ord$sample)
 
     # The null CDF consumed raw observations; display positions are
-    # transformed exactly once here (D-06).
+    # transformed exactly once here.
     data.frame(
       x = scale_forward(scales$x, ord$p),
       y = scale_forward(scales$y, observed),
@@ -772,7 +772,7 @@ StatQQPlot <- ggproto("StatQQPlot", Stat,
     theoretical <- qf_fun(ord$p)
 
     # The null quantile function consumed raw probabilities; display
-    # positions are transformed exactly once here (D-06).
+    # positions are transformed exactly once here.
     data.frame(
       x = scale_forward(scales$x, theoretical),
       y = scale_forward(scales$y, ord$sample),
@@ -844,7 +844,7 @@ StatQQPlotBandUnscaled <- ggproto("StatQQPlotBandUnscaled", Stat,
 
     band <- compute_qqplot_band(ord, qf_fun, level = level, band_n = band_n)
     # qq_* are non-position aesthetics consumed directly by the ribbon at
-    # draw time, so they carry panel-space coordinates (D-06).
+    # draw time, so they carry panel-space coordinates.
     band$qq_x <- scale_forward(scales$x, band$qq_x)
     band$qq_ymin <- scale_forward(scales$y, band$qq_ymin)
     band$qq_ymax <- scale_forward(scales$y, band$qq_ymax)

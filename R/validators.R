@@ -1,6 +1,6 @@
 # R/validators.R
 #
-# Shared structural validators (spec 5.3, B-05). Structural invalidity always
+# Shared structural validators. Structural invalidity always
 # aborts and is never disabled by options(ggfunction.check = FALSE); that
 # option only governs soft normalization/endpoint diagnostics.
 
@@ -9,7 +9,7 @@ is_scalar_prob <- function(x) {
   is.numeric(x) && length(x) == 1L && is.finite(x) && x > 0 && x < 1
 }
 
-#' Shared probability-argument validation for shading requests (B-05).
+#' Shared probability-argument validation for shading requests.
 #'
 #' Rules:
 #' - `p` is a finite numeric scalar strictly between 0 and 1;
@@ -70,7 +70,7 @@ validate_probability_shading <- function(p = NULL, p_lower = NULL,
   invisible(NULL)
 }
 
-#' Evaluate and structurally validate a PMF exactly once (spec C-03).
+#' Evaluate and structurally validate a PMF exactly once.
 #'
 #' Calls the PMF a single time over the support and validates the result:
 #' numeric output, exactly one value per support point, all values finite and
@@ -128,7 +128,7 @@ evaluate_pmf <- function(fun, support, args = NULL, arg = "fun",
   mass
 }
 
-#' Strictly validate direct discrete survival values (spec C-04).
+#' Strictly validate direct discrete survival values.
 #'
 #' Requires numeric output of the right length, finite values within the
 #' unit interval (roundoff excursions within sqrt(.Machine$double.eps) are
@@ -155,7 +155,7 @@ validate_discrete_survival <- function(vals, support, arg = "fun") {
   vals
 }
 
-#' Strictly validate direct discrete CDF values (spec C-04).
+#' Strictly validate direct discrete CDF values.
 #' @noRd
 validate_discrete_cdf_values <- function(vals, support, arg = "fun") {
   tol <- sqrt(.Machine$double.eps)
@@ -178,7 +178,7 @@ validate_discrete_cdf_values <- function(vals, support, arg = "fun") {
   vals
 }
 
-#' Multiplicative dimming for unshaded discrete pieces (spec C-06).
+#' Multiplicative dimming for unshaded discrete pieces.
 #'
 #' The dimming factor multiplies the resolved alpha (NA alpha resolves to 1),
 #' so unhighlighted pieces are never more opaque than highlighted ones, and

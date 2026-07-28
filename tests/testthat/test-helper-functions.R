@@ -265,7 +265,7 @@ test_that("discrete_hdr_probs includes ties and reports tie-inclusive coverage",
   m <- dbinom(0:10, 10, 0.5)
   expect_message(
     probs_binom <- discrete_hdr_probs(m, 0.8),
-    "80% -> 89%",  # C-07: shared adaptive formatter
+    "80% -> 89%",  # shared adaptive coverage formatter
     fixed = TRUE
   )
   expect_equal(sum(m[probs_binom == "80%"]), 0.890625)
@@ -334,9 +334,9 @@ test_that("new validators respect the ggfunction.check option", {
   expect_silent(check_chf_validity(c(0, 2, 1)))
 })
 
-# --- B-05: shared probability-argument validation ---
+# --- shared probability-argument validation ---
 
-test_that("probability shading arguments are validated uniformly (B-05)", {
+test_that("probability shading arguments are validated uniformly", {
   cases <- list(
     list(args = list(p = -0.1), msg = "between 0 and 1"),
     list(args = list(p = 1.1), msg = "between 0 and 1"),
@@ -366,9 +366,30 @@ test_that("probability shading arguments are validated uniformly (B-05)", {
   expect_no_error(validate_probability_shading(shade_outside = FALSE))
 })
 
-test_that("the shared validator is applied across shading constructors (B-05)", {
+test_that("the shared validator is applied across shading constructors", {
   expect_error(geom_pdf(fun = dnorm, p = 2), "between 0 and 1")
   expect_error(geom_pdf(fun = dnorm, p = 0.5, shade_outside = TRUE), "pair")
   expect_error(geom_cdf(fun = pnorm, p = c(0.1, 0.2)), "single")
   expect_error(geom_survival(fun = function(x) exp(-x), p_upper = 0.9), "together")
+})
+
+
+# --- pmf_shade_index tail semantics ---
+
+test_that("pmf upper-tail shading mirrors the lower tail (inclusive crossing atom)", {
+  y <- dbinom(0:10, 10, 0.5)
+  lower <- pmf_shade_index(y, p = 0.2, lower.tail = TRUE)
+  upper <- pmf_shade_index(y, p = 0.2, lower.tail = FALSE)
+  # By symmetry of dbinom(., 10, .5), the two tails shade equal mass.
+  expect_equal(sum(y[lower]), sum(y[upper]))
+  # Both tails include the crossing atom, so each shades at least p.
+  expect_gte(sum(y[lower]), 0.2)
+  expect_gte(sum(y[upper]), 0.2)
+})
+
+test_that("two-sided pmf shading respects shade_outside", {
+  y <- dbinom(0:10, 10, 0.5)
+  inside  <- pmf_shade_index(y, p_lower = 0.2, p_upper = 0.8)
+  outside <- pmf_shade_index(y, p_lower = 0.2, p_upper = 0.8, shade_outside = TRUE)
+  expect_identical(outside, !inside)
 })

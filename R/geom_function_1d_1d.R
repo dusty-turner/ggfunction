@@ -113,7 +113,7 @@ geom_function_1d_1d <- function(
   )
   # Fixed colour/fill are forwarded only when the user supplied them; the
   # defaults (black line, grey20 shade) live in GeomFunction1d$default_aes so
-  # mapped aesthetics are honored (E-04).
+  # mapped aesthetics are honored.
   if (!is.null(color)) params$color <- color
   if (!is.null(fill)) params$fill <- fill
   params <- normalise_colour_params(params)
@@ -162,7 +162,7 @@ StatFunction1d <- ggproto("StatFunction1d", Stat,
     has_shading <- !is.null(shade_from) || !is.null(shade_to)
 
     # Insert exact shade boundary evaluation rows (data space) when they fall
-    # inside the evaluation window (E-05).
+    # inside the evaluation window.
     if (has_shading) {
       window <- range(x_eval)
       bounds <- c(shade_from, shade_to)
@@ -196,7 +196,7 @@ StatFunction1d <- ggproto("StatFunction1d", Stat,
       baseline <- resolve_stat_baseline(scales$y, 0)
       out$baseline_panel <- baseline$panel
       # The zero baseline participates in scale training only when it is
-      # finite in the active transformation domain (E-05).
+      # finite in the active transformation domain.
       if (baseline$finite) out$ymin <- baseline$panel
     } else {
       out$in_shade <- FALSE

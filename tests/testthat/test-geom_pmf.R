@@ -279,3 +279,27 @@ test_that("shade_hdr includes support points tied at the cutoff", {
   ))
   expect_true(all(result$probs == "50%"))
 })
+
+
+test_that("pmf p-shading is resolved per group (no cross-group cumsum)", {
+  # Two genuinely independent groups in one built layer: each group's shading
+  # must be computed from only that group's masses. A panel-wide cumsum
+  # (reaching total mass 2.0) would mis-shade the second group.
+  d <- data.frame(g = c("a", "b"))
+  b <- ggplot_build(
+    ggplot(d, aes(colour = g, group = g)) +
+      geom_pmf(
+        data = d,
+        fun = dbinom, xlim = c(0, 10),
+        args = list(size = 10, prob = 0.5), p = 0.8
+      )
+  )$data[[1]]
+
+  expect_equal(length(unique(b$group)), 2)
+  for (gid in unique(b$group)) {
+    rows <- b[b$group == gid, ]
+    expect_true("in_shade" %in% names(rows))
+    expect_identical(rows$in_shade, pmf_shade_index(rows$mass, p = 0.8))
+    expect_true(any(rows$in_shade) && any(!rows$in_shade))
+  }
+})

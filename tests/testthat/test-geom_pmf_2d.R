@@ -307,7 +307,7 @@ test_that("empty integer xlim/ylim ranges evaluate no lattice points", {
   expect_equal(nrow(b$data[[1]]), 0)
 })
 
-test_that("pmf_2d support positions are exact under transformed scales (A-01)", {
+test_that("pmf_2d support positions are exact under transformed scales", {
   withr::local_options(ggfunction.check = FALSE)  # deliberately truncated lattice
   dbinom2 <- function(v) dbinom(v[1], 5, 0.5) * dbinom(v[2], 5, 0.5)
   b <- ggplot_build(

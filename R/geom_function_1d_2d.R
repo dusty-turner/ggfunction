@@ -170,12 +170,12 @@ geom_function_1d_2d <- function(mapping = NULL, data = NULL,
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
-  parameter_grid(tlim, dt)  # validate tlim/dt at construction (E-06)
+  parameter_grid(tlim, dt)  # validate tlim/dt at construction
 
   # The default colour = after_stat(t) mapping is added only when the user
   # supplied neither a colour mapping nor a static colour, so a fixed
   # `colour =` in ... overrides the package default without a
-  # duplicated-aesthetic warning (E-08).
+  # duplicated-aesthetic warning.
   has_static_colour <- any(c("color", "colour") %in% names(list(...)))
   default_mapping <- aes(color = after_stat(t))
 
@@ -232,12 +232,12 @@ stat_function_1d_2d <- function(mapping = NULL, data = NULL,
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
-  parameter_grid(tlim, dt)  # validate tlim/dt at construction (E-06)
+  parameter_grid(tlim, dt)  # validate tlim/dt at construction
 
   # The default colour = after_stat(t) mapping is added only when the user
   # supplied neither a colour mapping nor a static colour, so a fixed
   # `colour =` in ... overrides the package default without a
-  # duplicated-aesthetic warning (E-08).
+  # duplicated-aesthetic warning.
   has_static_colour <- any(c("color", "colour") %in% names(list(...)))
   default_mapping <- aes(color = after_stat(t))
 
@@ -274,7 +274,7 @@ stat_function_1d_2d <- function(mapping = NULL, data = NULL,
 }
 
 #' Regular parameter grid with `dt` as an exact positive step magnitude
-#' (E-06). Regular evaluations are exactly `dt` apart; the terminal endpoint
+#'. Regular evaluations are exactly `dt` apart; the terminal endpoint
 #' is appended when the span is not an exact multiple; reversed `tlim` steps
 #' in the negative direction; equal endpoints produce one evaluation.
 #' @noRd
@@ -315,7 +315,7 @@ Stat_1d_2d <- ggproto("Stat_1d_2d", Stat,
     y_eval <- stream_values[, 2]
 
     # Positions are transformed exactly once; raw evaluations are retained
-    # in t/x_eval/y_eval (A-01).
+    # in t/x_eval/y_eval.
     data.frame(
       t = t,
       x = scale_forward(scales$x, x_eval),

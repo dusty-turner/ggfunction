@@ -235,9 +235,9 @@ test_that("StatCDF errors when multiple sources provided", {
   )
 })
 
-# --- B-01: finite default ranges with documented precedence ---
+# --- finite default ranges with documented precedence ---
 
-test_that("function-only CDF layers get a finite default range (B-01)", {
+test_that("function-only CDF layers get a finite default range", {
   expect_no_warning(
     b <- ggplot_build(ggplot() + geom_cdf(fun = pnorm))
   )
@@ -249,14 +249,14 @@ test_that("function-only CDF layers get a finite default range (B-01)", {
   expect_equal(d$p, d$cdf)
 })
 
-test_that("finite support supplies the default range for untrained scales (B-01)", {
+test_that("finite support supplies the default range for untrained scales", {
   d <- ggplot_build(
     ggplot() + geom_cdf(fun = pnorm, support = c(-3, 3), n = 3)
   )$data[[1]]
   expect_equal(range(d$x_eval), c(-3, 3))
 })
 
-test_that("a trained scale window outranks a wider declared support (B-01)", {
+test_that("a trained scale window outranks a wider declared support", {
   d <- ggplot_build(
     ggplot(data.frame(x = c(-1, 1)), aes(x = x)) +
       geom_point(y = 0.5) +
@@ -265,7 +265,7 @@ test_that("a trained scale window outranks a wider declared support (B-01)", {
   expect_lte(max(abs(range(d$x_eval))), 1.5)
 })
 
-test_that("log-x fallback evaluates over raw c(1, 10), reverse over data space (B-01)", {
+test_that("log-x fallback evaluates over raw c(1, 10), reverse over data space", {
   log_data <- ggplot_build(
     ggplot() + geom_cdf(fun = pnorm, n = 2) + scale_x_log10()
   )$data[[1]]
@@ -279,14 +279,14 @@ test_that("log-x fallback evaluates over raw c(1, 10), reverse over data space (
   expect_equal(reverse_data$x_eval, c(-1, 0, 1))
 })
 
-test_that("malformed xlim aborts in the constructor (B-01)", {
+test_that("malformed xlim aborts in the constructor", {
   expect_error(geom_cdf(fun = pnorm, xlim = c(1, -1)), "increasing")
   expect_error(geom_cdf(fun = pnorm, xlim = c(0, NA)), "increasing")
 })
 
-# --- B-02: shading from raw probabilities in the Stat ---
+# --- shading from raw probabilities in the Stat ---
 
-test_that("CDF shading boundaries are exact quantiles, independent of grid (B-02)", {
+test_that("CDF shading boundaries are exact quantiles, independent of grid", {
   expected_boundary <- qnorm(0.3)
   for (n in c(3, 4, 101)) {
     d <- ggplot_build(
@@ -302,7 +302,7 @@ test_that("CDF shading boundaries are exact quantiles, independent of grid (B-02
   }
 })
 
-test_that("two-sided CDF shading boundaries are exact (B-02)", {
+test_that("two-sided CDF shading boundaries are exact", {
   d_pair <- ggplot_build(
     ggplot() +
       geom_cdf(fun = pnorm, xlim = c(-3, 3), p_lower = 0.025, p_upper = 0.975)
@@ -319,7 +319,7 @@ test_that("two-sided CDF shading boundaries are exact (B-02)", {
   )
 })
 
-test_that("CDF shade boundaries are independent of the y scale (B-02)", {
+test_that("CDF shade boundaries are independent of the y scale", {
   d_id <- ggplot_build(
     ggplot() + geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.3)
   )$data[[1]]
@@ -345,7 +345,7 @@ test_that("CDF shade boundaries are independent of the y scale (B-02)", {
   }
 })
 
-test_that("out-of-window shading boundary is retained but not drawn (B-02)", {
+test_that("out-of-window shading boundary is retained but not drawn", {
   built <- ggplot_build(
     ggplot() +
       geom_cdf(fun = pnorm, xlim = c(-1, 1), n = 11, p = 0.9999) +
@@ -378,18 +378,36 @@ test_that("out-of-window shading boundary is retained but not drawn (B-02)", {
   }
 })
 
-test_that("probability axis trains on the mathematical endpoints (C-05)", {
+test_that("probability axis trains on the mathematical endpoints", {
   p <- ggplot() + geom_cdf(fun = pnorm, xlim = c(-1, 1))
   rng <- plot_y_range(p)
   expect_lte(rng[1], 0)
   expect_gte(rng[2], 1)
 })
 
-test_that("invalid probability arguments abort at construction (B-05)", {
+test_that("invalid probability arguments abort at construction", {
   expect_error(geom_cdf(fun = pnorm, p = 1.1), "between 0 and 1")
   expect_error(geom_cdf(fun = pnorm, p_lower = 0.5), "together")
   expect_error(
     geom_cdf(fun = pnorm, p_lower = 0.9, p_upper = 0.1),
     "less than"
   )
+})
+
+
+test_that("out-of-window shade boundaries render without warnings or clamping", {
+  # Standard normal CDF only reaches ~0.84 at x = 1, so the p = 0.95 quantile
+  # (~1.64) lies outside the window. The exact raw boundary is retained as
+  # metadata and the visible shading is clipped by the window; no false
+  # boundary is created at the window edge and no warning is required.
+  p <- ggplot() +
+    geom_cdf(fun = pnorm, xlim = c(-1, 1), p = 0.95)
+  expect_no_warning(g <- ggplotGrob(p))
+  d <- ggplot_build(p)$data[[1]]
+  expect_equal(
+    unique(stats::na.omit(d$shade_x_upper_raw)),
+    qnorm(0.95),
+    tolerance = 1e-8
+  )
+  expect_lte(max(d$x_eval), 1)
 })

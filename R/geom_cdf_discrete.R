@@ -201,7 +201,7 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
       invisible(check_discrete_cdf(cdf_vals, source = "fun"))
       pmf_vals <- diff(c(0, cdf_vals))
     } else if (!is.null(pmf_fun)) {
-      # Evaluated and structurally validated exactly once (C-03); the
+      # Evaluated and structurally validated exactly once; the
       # cumulative route requires unit total mass over the declared support.
       pmf_vals <- evaluate_pmf(
         pmf_fun, x_vals, args = args, arg = "pmf_fun", normalization = "abort"
@@ -219,7 +219,7 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
 
     # Retain true predecessor values before any xlim filtering, so a
     # narrowed display window starts its first step at F of the preceding
-    # support point rather than resetting to zero (C-01).
+    # support point rather than resetting to zero.
     cdf_prev <- c(0, cdf_vals[-length(cdf_vals)])
 
     out <- data.frame(
@@ -239,7 +239,7 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
       p_lower = p_lower, p_upper = p_upper,
       shade_outside = shade_outside
     )
-    # Probability endpoints for scale training (C-05); transform-invalid
+    # Probability endpoints for scale training; transform-invalid
     # endpoints are retained as metadata only.
     out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
     out$top_panel <- resolve_stat_baseline(scales$y, 1)$panel
@@ -278,7 +278,7 @@ GeomCDFDiscrete <- ggproto("GeomCDFDiscrete", Geom,
 
   setup_data = function(data, params) {
     # The mathematical probability endpoints train the y scale when they are
-    # finite under the active transformation (C-05).
+    # finite under the active transformation.
     if ("baseline_panel" %in% names(data)) data$ymin <- data$baseline_panel
     if ("top_panel" %in% names(data)) data$ymax <- data$top_panel
     data

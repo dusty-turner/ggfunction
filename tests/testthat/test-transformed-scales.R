@@ -1,8 +1,8 @@
-# A-01: transformed-scale contract for generated-position stats.
+# Transformed-scale contract for generated-position stats.
 # Public xlim/support are data coordinates; positions are transformed exactly
 # once; canonical raw columns retain evaluation-space values.
 
-test_that("geom_pdf respects data-space xlim under log10 x and y scales (A-01)", {
+test_that("geom_pdf respects data-space xlim under log10 x and y scales", {
   b <- ggplot_build(
     ggplot() +
       geom_pdf(fun = dexp, xlim = c(0.1, 10), n = 3) +
@@ -16,7 +16,7 @@ test_that("geom_pdf respects data-space xlim under log10 x and y scales (A-01)",
   expect_equal(b$density, dexp(b$x_eval), tolerance = 1e-12)
 })
 
-test_that("geom_pdf reverse x scale evaluates in data coordinates (A-01)", {
+test_that("geom_pdf reverse x scale evaluates in data coordinates", {
   b <- ggplot_build(
     ggplot() +
       geom_pdf(fun = dnorm, xlim = c(-1, 1), n = 3) +
@@ -28,7 +28,7 @@ test_that("geom_pdf reverse x scale evaluates in data coordinates (A-01)", {
   expect_equal(b$density, dnorm(b$x_eval))
 })
 
-test_that("geom_pdf identity scales remain numerically unchanged (A-01)", {
+test_that("geom_pdf identity scales remain numerically unchanged", {
   b <- ggplot_build(
     ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3), n = 5)
   )$data[[1]]
@@ -38,7 +38,7 @@ test_that("geom_pdf identity scales remain numerically unchanged (A-01)", {
   expect_equal(b$density, dnorm(b$x_eval))
 })
 
-test_that("geom_function_1d_1d evaluates in data coordinates under log10 x (A-01)", {
+test_that("geom_function_1d_1d evaluates in data coordinates under log10 x", {
   b <- ggplot_build(
     ggplot() +
       geom_function_1d_1d(fun = identity, xlim = c(1, 100), n = 3) +
@@ -50,7 +50,7 @@ test_that("geom_function_1d_1d evaluates in data coordinates under log10 x (A-01
   expect_equal(b$y_raw, c(1, 10, 100))
 })
 
-test_that("malformed xlim aborts instead of falling through (A-01/B-01)", {
+test_that("malformed xlim aborts instead of falling through", {
   expect_error(geom_pdf(fun = dnorm, xlim = c(3, -3)), "increasing")
   expect_error(geom_pdf(fun = dnorm, xlim = c(0, Inf)), "increasing")
   expect_error(geom_pdf(fun = dnorm, xlim = 3), "increasing")
@@ -60,7 +60,7 @@ test_that("malformed xlim aborts instead of falling through (A-01/B-01)", {
   )
 })
 
-test_that("xlim outside the x transform domain fails loudly, not silently (A-01)", {
+test_that("xlim outside the x transform domain fails loudly, not silently", {
   # The scale transformation is only known at build time; ggplot2 downgrades
   # Stat errors to a loud computation warning with zero rows drawn.
   expect_warning(
@@ -72,7 +72,7 @@ test_that("xlim outside the x transform domain fails loudly, not silently (A-01)
   expect_equal(nrow(b$data[[1]]), 0)
 })
 
-test_that("pdf shading boundaries are exact quantiles, independent of grid and y scale (B-02)", {
+test_that("pdf shading boundaries are exact quantiles, independent of grid and y scale", {
   expected <- qnorm(0.3)
   for (n in c(3, 4, 101)) {
     d <- ggplot_build(
@@ -90,7 +90,7 @@ test_that("pdf shading boundaries are exact quantiles, independent of grid and y
   expect_equal(unique(stats::na.omit(d_log$shade_upper)), expected, tolerance = 1e-8)
 })
 
-test_that("geom_pdf under log-y renders finite grobs and one baseline warning (A-01 render)", {
+test_that("geom_pdf under log-y renders finite grobs and one baseline warning", {
   p <- ggplot() +
     geom_pdf(fun = dnorm, xlim = c(-3, 3)) +
     scale_y_log10()
@@ -106,12 +106,12 @@ test_that("geom_pdf under log-y renders finite grobs and one baseline warning (A
   }
 })
 
-test_that("geom_pdf on identity scales renders without baseline warnings (A-01)", {
+test_that("geom_pdf on identity scales renders without baseline warnings", {
   p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3))
   expect_no_warning(ggplotGrob(p))
 })
 
-test_that("geom_survival transforms positions once and keeps raw survival (A-01)", {
+test_that("geom_survival transforms positions once and keeps raw survival", {
   b <- ggplot_build(
     ggplot() +
       geom_survival(fun = function(x) exp(-x), xlim = c(0.1, 10), n = 3,
@@ -126,7 +126,7 @@ test_that("geom_survival transforms positions once and keeps raw survival (A-01)
   expect_equal(b$y, log10(exp(-b$x_eval)), tolerance = 1e-12)
 })
 
-test_that("geom_hf and geom_chf transform positions once with raw aliases (A-01)", {
+test_that("geom_hf and geom_chf transform positions once with raw aliases", {
   b_hf <- ggplot_build(
     ggplot() +
       geom_hf(fun = function(x) rep(2, length(x)), xlim = c(0.1, 10), n = 3) +
@@ -146,7 +146,7 @@ test_that("geom_hf and geom_chf transform positions once with raw aliases (A-01)
   expect_equal(b_chf$cumhazard, c(0.1, 1, 10), tolerance = 1e-12)
 })
 
-test_that("geom_qf places raw quantiles on transformed output scales once (A-01)", {
+test_that("geom_qf places raw quantiles on transformed output scales once", {
   b <- ggplot_build(
     ggplot() +
       geom_qf(fun = qlnorm, n = 5) +
@@ -160,7 +160,7 @@ test_that("geom_qf places raw quantiles on transformed output scales once (A-01)
   expect_equal(b_id$x, b_id$p)
 })
 
-test_that("survival shading boundaries are exact quantiles on any y scale (B-02)", {
+test_that("survival shading boundaries are exact quantiles on any y scale", {
   for (scale_layer in list(NULL, scale_y_log10())) {
     p <- ggplot() + geom_survival(cdf_fun = pnorm, xlim = c(-3, 3), p = 0.3)
     if (!is.null(scale_layer)) p <- p + scale_layer
@@ -174,7 +174,7 @@ test_that("survival shading boundaries are exact quantiles on any y scale (B-02)
   }
 })
 
-test_that("survival probability axis trains on 0 and 1; CHF trains on zero (C-05)", {
+test_that("survival probability axis trains on 0 and 1; CHF trains on zero", {
   rng <- plot_y_range(
     ggplot() +
       geom_survival(fun = function(x) exp(-x), xlim = c(0, 1), support = c(0, Inf))

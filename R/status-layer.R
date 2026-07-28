@@ -1,6 +1,6 @@
 # R/status-layer.R
 #
-# Censoring-status normalization (spec A-03).
+# Censoring-status normalization.
 #
 # `status` is documented as logical or 0/1 numeric. Logical (and any other
 # discrete) status must not create statistical groups: ggplot2 derives
@@ -11,7 +11,7 @@
 # re-derives implicit groups from the remaining discrete aesthetics. An
 # explicitly mapped `group` is preserved unchanged.
 
-#' Normalize a censoring status vector to integer 0/1 (spec A-03).
+#' Normalize a censoring status vector to integer 0/1.
 #'
 #' Accepts logical and exact-0/1 numeric input; preserves `NA` so the
 #' documented `na.rm` policy can operate downstream; rejects factors and
@@ -83,13 +83,13 @@ StatusAwareLayer <- ggproto(
   }
 )
 
-#' A layer() wrapper that installs the status-aware Layer class (A-03).
+#' A layer() wrapper that installs the status-aware Layer class.
 #' @noRd
 status_layer <- function(...) {
   layer(..., layer_class = StatusAwareLayer)
 }
 
-#' Diagnostic-input layer (spec D-06).
+#' Diagnostic-input layer.
 #'
 #' PP/SP/QQ diagnostics take raw observations. The canonical input aesthetic
 #' is the non-positional `sample`, which ggplot2 never transforms. The legacy
@@ -123,7 +123,7 @@ DiagnosticSampleLayer <- ggproto(
   }
 )
 
-#' A layer() wrapper that installs the diagnostic-input Layer class (D-06).
+#' A layer() wrapper that installs the diagnostic-input Layer class.
 #' @noRd
 diagnostic_layer <- function(...) {
   layer(..., layer_class = DiagnosticSampleLayer)

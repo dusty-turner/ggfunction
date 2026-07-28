@@ -213,9 +213,9 @@ test_that("raster, contour, and contour_filled all use args", {
   }
 })
 
-# --- E-01: panel-aware contours and precomputed data ---
+# --- panel-aware contours and precomputed data ---
 
-test_that("contours populate every facet with equal grids (E-01)", {
+test_that("contours populate every facet with equal grids", {
   d <- data.frame(facet = c("a", "b"))
   f <- function(v) v[1]^2 + v[2]^2
 
@@ -234,7 +234,7 @@ test_that("contours populate every facet with equal grids (E-01)", {
   }
 })
 
-test_that("precomputed x/y/z contours match native geom_contour (E-01)", {
+test_that("precomputed x/y/z contours match native geom_contour", {
   d <- expand.grid(x = seq(-2, 2, length.out = 15), y = seq(-2, 2, length.out = 15))
   d$z <- d$x^2 + d$y^2
   breaks <- c(1, 2, 3)
@@ -252,7 +252,7 @@ test_that("precomputed x/y/z contours match native geom_contour (E-01)", {
   expect_equal(ord(b_ours), ord(b_native), ignore_attr = TRUE)
 })
 
-test_that("function-only contour layers error without a domain source (E-01/E-07)", {
+test_that("function-only contour layers error without a domain source", {
   expect_error(
     ggplot_build(
       ggplot() +
@@ -268,9 +268,9 @@ test_that("function-only contour layers error without a domain source (E-01/E-07
   )
 })
 
-# --- E-02: default scalar-field z encoding ---
+# --- default scalar-field z encoding ---
 
-test_that("stat_function_2d_1d maps fill to after_stat(z) by default (E-02)", {
+test_that("stat_function_2d_1d maps fill to after_stat(z) by default", {
   l <- stat_function_2d_1d(fun = function(v) sum(v^2), n = 5)
   expect_equal(rlang::as_label(l$mapping$fill), "after_stat(z)")
 
@@ -278,7 +278,7 @@ test_that("stat_function_2d_1d maps fill to after_stat(z) by default (E-02)", {
   expect_gt(length(unique(b$data[[1]]$fill)), 1)
 })
 
-test_that("auxiliary mappings do not displace the z fill default (E-02)", {
+test_that("auxiliary mappings do not displace the z fill default", {
   l <- geom_function_2d_1d(
     fun = function(v) sum(v^2), n = 5,
     mapping = aes(alpha = 0.5)
@@ -290,7 +290,7 @@ test_that("auxiliary mappings do not displace the z fill default (E-02)", {
   )
 })
 
-test_that("an explicit user fill mapping overrides the z default (E-02)", {
+test_that("an explicit user fill mapping overrides the z default", {
   l <- geom_function_2d_1d(
     fun = function(v) sum(v^2), n = 5,
     mapping = aes(fill = after_stat(-z))
@@ -298,7 +298,7 @@ test_that("an explicit user fill mapping overrides the z default (E-02)", {
   expect_equal(rlang::as_label(l$mapping$fill), "after_stat(-z)")
 })
 
-test_that("alpha-raster mode keeps fixed fill with z-scaled alpha (E-02)", {
+test_that("alpha-raster mode keeps fixed fill with z-scaled alpha", {
   l <- geom_function_2d_1d(
     fun = function(v) sum(v^2), n = 5, raster_aes = "alpha"
   )
@@ -308,9 +308,9 @@ test_that("alpha-raster mode keeps fixed fill with z-scaled alpha (E-02)", {
   expect_gt(length(unique(b$alpha)), 1)
 })
 
-# --- E-03: precomputed scalar-field aesthetics ---
+# --- precomputed scalar-field aesthetics ---
 
-test_that("precomputed scalar fields preserve mapped aesthetics (E-03)", {
+test_that("precomputed scalar fields preserve mapped aesthetics", {
   d <- expand.grid(x = 1:3, y = 1:3)
   d$z <- d$x + d$y
   d$a <- seq(0.1, 0.9, length.out = nrow(d))
@@ -324,7 +324,7 @@ test_that("precomputed scalar fields preserve mapped aesthetics (E-03)", {
   expect_equal(sort(unique(b$alpha)), sort(unique(d$a)))
 })
 
-test_that("grouped, faceted precomputed grids keep group and panel structure (E-03)", {
+test_that("grouped, faceted precomputed grids keep group and panel structure", {
   d <- rbind(
     transform(expand.grid(x = 1:3, y = 1:3), g = "a", facet = "f1"),
     transform(expand.grid(x = 1:3, y = 1:3), g = "b", facet = "f2")
@@ -342,9 +342,9 @@ test_that("grouped, faceted precomputed grids keep group and panel structure (E-
   expect_equal(length(unique(b$group)), 2)
 })
 
-# --- A-01: transformed scales for 2D grids ---
+# --- transformed scales for 2D grids ---
 
-test_that("2D grids are panel-uniform and evaluate in data coordinates (A-01)", {
+test_that("2D grids are panel-uniform and evaluate in data coordinates", {
   f <- function(v) v[1] + v[2]
   b <- ggplot_build(
     ggplot() +
@@ -356,4 +356,15 @@ test_that("2D grids are panel-uniform and evaluate in data coordinates (A-01)", 
   expect_equal(sort(unique(b$x)), c(0, 1, 2))
   expect_equal(sort(unique(b$y)), c(0, 1, 2))
   expect_equal(b$z, c(2, 11, 101, 11, 20, 110, 101, 110, 200))
+})
+
+
+test_that("the scalar field z = f(x, y) is evaluated at every grid point", {
+  r <- StatFunction2d$compute_group(
+    data.frame(group = 1), scales = list(),
+    fun = function(v) v[1] + 2 * v[2],
+    xlim = c(0, 2), ylim = c(0, 2), n = 3, args = list()
+  )
+  expect_equal(nrow(r), 9)
+  expect_equal(r$z, r$x_eval + 2 * r$y_eval)
 })

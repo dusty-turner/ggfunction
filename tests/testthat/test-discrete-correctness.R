@@ -1,10 +1,11 @@
-# Discrete distribution correctness (spec C-01 .. C-07).
+# Discrete distribution correctness: predecessor values, exact quantile
+# boundaries, PMF validation, scale training, dimming, and HDR labels.
 
 no_scales <- function() list(x = NULL, y = NULL)
 
-# --- C-01: predecessor values in narrowed windows ---
+# --- predecessor values in narrowed windows ---
 
-test_that("narrowed windows preserve true predecessor values (C-01)", {
+test_that("narrowed windows preserve true predecessor values", {
   cdf_data <- StatCDFDiscrete$compute_group(
     data.frame(group = 1), no_scales(),
     pmf_fun = dbinom, args = list(size = 10, prob = 0.5),
@@ -31,7 +32,7 @@ test_that("narrowed windows preserve true predecessor values (C-01)", {
   expect_equal(qf_data$p_right[1], 0.171875)
 })
 
-test_that("full unfiltered support is unchanged by predecessor metadata (C-01)", {
+test_that("full unfiltered support is unchanged by predecessor metadata", {
   full <- StatCDFDiscrete$compute_group(
     data.frame(group = 1), no_scales(),
     pmf_fun = dbinom, args = list(size = 10, prob = 0.5),
@@ -42,7 +43,7 @@ test_that("full unfiltered support is unchanged by predecessor metadata (C-01)",
   expect_equal(full$x_eval, 0:10)
 })
 
-test_that("segment helper places the leading step at the predecessor value (C-01)", {
+test_that("segment helper places the leading step at the predecessor value", {
   segs <- discrete_step_segments(
     x = 3:7,
     y = pbinom(3:7, 10, 0.5),
@@ -55,7 +56,7 @@ test_that("segment helper places the leading step at the predecessor value (C-01
   expect_equal(nrow(segs$hori), 6)
 })
 
-test_that("points outside xlim are not drawn to preserve metadata (C-01)", {
+test_that("points outside xlim are not drawn to preserve metadata", {
   d <- StatCDFDiscrete$compute_group(
     data.frame(group = 1), no_scales(),
     pmf_fun = dbinom, args = list(size = 10, prob = 0.5),
@@ -64,7 +65,7 @@ test_that("points outside xlim are not drawn to preserve metadata (C-01)", {
   expect_true(all(d$x_eval >= 3 & d$x_eval <= 7))
 })
 
-test_that("predecessor values transform under non-identity scales (C-01/A-01)", {
+test_that("predecessor values transform under non-identity scales", {
   b <- ggplot_build(
     ggplot() +
       geom_cdf_discrete(
@@ -77,9 +78,9 @@ test_that("predecessor values transform under non-identity scales (C-01/A-01)", 
   expect_equal(b$cdf_prev[1], 0.0546875)
 })
 
-# --- C-02: exact discrete-QF boundaries ---
+# --- exact discrete-QF boundaries ---
 
-test_that("rare atoms are recovered by exact bisection (C-02)", {
+test_that("rare atoms are recovered by exact bisection", {
   out <- StatQFDiscrete$compute_group(
     data = data.frame(group = 1),
     scales = list(x = NULL),
@@ -108,7 +109,7 @@ test_that("rare atoms are recovered by exact bisection (C-02)", {
   expect_equal(out3$p, pbinom(0:1, 1, 0.99995), tolerance = 1e-10)
 })
 
-test_that("zero-mass support rows are dropped, keeping earliest boundaries (C-02)", {
+test_that("zero-mass support rows are dropped, keeping earliest boundaries", {
   out <- StatQFDiscrete$compute_group(
     data = data.frame(group = 1),
     scales = list(x = NULL),
@@ -120,7 +121,7 @@ test_that("zero-mass support rows are dropped, keeping earliest boundaries (C-02
   expect_equal(out$p, c(0.5, 1))
 })
 
-test_that("unbounded black-box QFs warn and avoid a false terminal boundary (C-02)", {
+test_that("unbounded black-box QFs warn and avoid a false terminal boundary", {
   expect_warning(
     out <- StatQFDiscrete$compute_group(
       data = data.frame(group = 1),
@@ -133,7 +134,7 @@ test_that("unbounded black-box QFs warn and avoid a false terminal boundary (C-0
   expect_lt(max(out$p), 1)
 })
 
-test_that("huge inferred integer spans hit a fast size cap (C-02)", {
+test_that("huge inferred integer spans hit a fast size cap", {
   t0 <- Sys.time()
   expect_error(
     StatQFDiscrete$compute_group(
@@ -146,9 +147,9 @@ test_that("huge inferred integer spans hit a fast size cap (C-02)", {
   expect_lt(as.numeric(difftime(Sys.time(), t0, units = "secs")), 5)
 })
 
-# --- C-03: PMFs evaluated and validated exactly once ---
+# --- PMFs evaluated and validated exactly once ---
 
-test_that("PMF structural invalidity aborts across all routes (C-03)", {
+test_that("PMF structural invalidity aborts across all routes", {
   expect_error(
     StatPMF$compute_group(
       data.frame(group = 1), no_scales(),
@@ -186,7 +187,7 @@ test_that("PMF structural invalidity aborts across all routes (C-03)", {
   )
 })
 
-test_that("stateful PMFs are called exactly once per Stat computation (C-03)", {
+test_that("stateful PMFs are called exactly once per Stat computation", {
   make_counter <- function() {
     calls <- 0L
     list(
@@ -222,7 +223,7 @@ test_that("stateful PMFs are called exactly once per Stat computation (C-03)", {
   }
 })
 
-test_that("cumulative-route normalization aborts regardless of ggfunction.check (C-03)", {
+test_that("cumulative-route normalization aborts regardless of ggfunction.check", {
   withr::local_options(ggfunction.check = FALSE)
   for (build in list(
     function() StatCDFDiscrete$compute_group(
@@ -242,7 +243,7 @@ test_that("cumulative-route normalization aborts regardless of ggfunction.check 
   }
 })
 
-test_that("the 1e-8 cumulative tolerance is locked down (C-03)", {
+test_that("the 1e-8 cumulative tolerance is locked down", {
   pmf_inside <- function(x) dbinom(x, 2, 0.5) + c(5e-9, 0, -5e-9)
   expect_no_error(
     StatCDFDiscrete$compute_group(
@@ -258,9 +259,9 @@ test_that("the 1e-8 cumulative tolerance is locked down (C-03)", {
   )
 })
 
-# --- C-04: direct discrete survival validation ---
+# --- direct discrete survival validation ---
 
-test_that("invalid direct survival values abort (C-04)", {
+test_that("invalid direct survival values abort", {
   expect_error(
     StatSurvivalDiscrete$compute_group(
       data.frame(group = 1), no_scales(),
@@ -298,7 +299,7 @@ test_that("invalid direct survival values abort (C-04)", {
   )
 })
 
-test_that("non-monotone CDF sources abort (C-04)", {
+test_that("non-monotone CDF sources abort", {
   expect_error(
     StatSurvivalDiscrete$compute_group(
       data.frame(group = 1), no_scales(),
@@ -309,7 +310,7 @@ test_that("non-monotone CDF sources abort (C-04)", {
   )
 })
 
-test_that("roundoff excursions are clamped, larger ones abort (C-04)", {
+test_that("roundoff excursions are clamped, larger ones abort", {
   eps <- sqrt(.Machine$double.eps) / 2
   out <- StatSurvivalDiscrete$compute_group(
     data.frame(group = 1), no_scales(),
@@ -318,9 +319,9 @@ test_that("roundoff excursions are clamped, larger ones abort (C-04)", {
   expect_equal(out$survival, c(1, 0.5, 0))
 })
 
-# --- C-05: step endpoints train scales ---
+# --- step endpoints train scales ---
 
-test_that("discrete probability scales train on 0 and 1 even in narrowed windows (C-05)", {
+test_that("discrete probability scales train on 0 and 1 even in narrowed windows", {
   p <- ggplot() +
     geom_cdf_discrete(
       pmf_fun = dbinom, args = list(size = 10, prob = 0.5),
@@ -339,7 +340,7 @@ test_that("discrete probability scales train on 0 and 1 even in narrowed windows
   expect_gte(rng2[2], 1)
 })
 
-test_that("log-y probability steps keep metadata and clip with one warning (C-05)", {
+test_that("log-y probability steps keep metadata and clip with one warning", {
   p <- ggplot() +
     geom_cdf_discrete(
       pmf_fun = dbinom, args = list(size = 5, prob = 0.5), support = 0:5
@@ -357,9 +358,9 @@ test_that("log-y probability steps keep metadata and clip with one warning (C-05
   expect_match(w, "baseline", ignore.case = TRUE)
 })
 
-# --- C-06: multiplicative dimming ---
+# --- multiplicative dimming ---
 
-test_that("dimming multiplies the resolved alpha (C-06)", {
+test_that("dimming multiplies the resolved alpha", {
   expect_equal(dim_alpha(NA, c(TRUE, FALSE))[2], 0.3)
   expect_equal(dim_alpha(0.1, FALSE), 0.03)
   expect_equal(dim_alpha(0.1, TRUE), 0.1)
@@ -367,7 +368,7 @@ test_that("dimming multiplies the resolved alpha (C-06)", {
   expect_true(all(alphas[2] <= alphas[1]))
 })
 
-test_that("lollipop grobs dim multiplicatively under a low user alpha (C-06)", {
+test_that("lollipop grobs dim multiplicatively under a low user alpha", {
   p <- ggplot() +
     geom_pmf(
       fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
@@ -384,7 +385,7 @@ test_that("lollipop grobs dim multiplicatively under a low user alpha (C-06)", {
   expect_equal(pt_alphas, c(0.031, 0.102), tolerance = 0.02)
 })
 
-test_that("bar and step geoms dim multiplicatively (C-06)", {
+test_that("bar and step geoms dim multiplicatively", {
   p_bar <- ggplot() +
     geom_pmf(
       fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5),
@@ -409,9 +410,9 @@ test_that("bar and step geoms dim multiplicatively (C-06)", {
   expect_lte(max(step_alphas), 0.11)
 })
 
-# --- C-07: collision-free HDR labels ---
+# --- collision-free HDR labels ---
 
-test_that("close coverages get unique adaptive labels (C-07)", {
+test_that("close coverages get unique adaptive labels", {
   p <- suppressMessages(
     discrete_hdr_probs(c(0.4, 0.3, 0.2, 0.1), c(0.5001, 0.5004))
   )
@@ -419,14 +420,14 @@ test_that("close coverages get unique adaptive labels (C-07)", {
   expect_identical(levels(p), c(">50.04%", "50.04%", "50.01%"))
 })
 
-test_that("common coverage labels stay familiar (C-07)", {
+test_that("common coverage labels stay familiar", {
   p <- suppressMessages(
     discrete_hdr_probs(c(0.4, 0.3, 0.2, 0.1), c(0.5, 0.8, 0.95))
   )
   expect_identical(levels(p), c(">95%", "95%", "80%", "50%"))
 })
 
-test_that("near-zero and near-one coverages never display as 0% or 100% (C-07)", {
+test_that("near-zero and near-one coverages never display as 0% or 100%", {
   labs <- format_hdr_coverages(c(0.0004, 0.9996))
   expect_false(any(labs %in% c("0%", "100%")))
   expect_identical(format_hdr_coverages(c(0.5, 0.8)), c("50%", "80%"))

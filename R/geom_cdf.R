@@ -207,7 +207,7 @@ make_cdf_function <- function(fun = NULL, pdf_fun = NULL, survival_fun = NULL,
 }
 
 #' Resolve raw shading boundaries as distributional quantiles, once per
-#' group, in the Stat (spec B-02). `lower`/`upper` are data-space x values;
+#' group, in the Stat. `lower`/`upper` are data-space x values;
 #' `NA` means the region extends to the corresponding end of the window.
 #' @noRd
 cdf_shading_meta <- function(qf, p = NULL, lower.tail = TRUE,
@@ -231,7 +231,7 @@ cdf_mark_in_shade <- function(x_eval, lower, upper) {
     x_eval <= (if (is.na(upper)) Inf else upper)
 }
 
-#' Insert exact in-window boundary evaluation rows (spec B-02). Positions are
+#' Insert exact in-window boundary evaluation rows. Positions are
 #' transformed exactly once; raw metadata is retained even when no row is
 #' inserted.
 #' @noRd
@@ -247,7 +247,7 @@ cdf_insert_boundary_rows <- function(data, boundaries, fun,
 #' Draw-time regrid: extend the curve over the full visible panel when other
 #' layers or expansion widened it beyond the stat's grid. Geometry only —
 #' shading membership is reconstructed from raw boundary metadata retained by
-#' the Stat; no checks and no quantile solving happen here (spec 3.8, B-02).
+#' the Stat; no checks and no quantile solving happen here.
 #' @noRd
 cdf_panel_data <- function(data, panel_params, fun, n = 101) {
   panel_range <- panel_params$x.range %||% panel_params$x$limits
@@ -334,7 +334,7 @@ StatCDF <- ggproto("StatCDF", Stat,
     }
 
     # Shading boundaries are distributional quantiles resolved on raw
-    # probabilities, independent of grid resolution and y scale (B-02).
+    # probabilities, independent of grid resolution and y scale.
     out$in_shade <- FALSE
     out$shade_x_lower_raw <- NA_real_
     out$shade_x_upper_raw <- NA_real_
@@ -363,7 +363,7 @@ StatCDF <- ggproto("StatCDF", Stat,
 
     # Probability endpoints: raw zero and one, transformed once when finite
     # in the transformation domain; retained as metadata otherwise, so the
-    # probability axis trains on the mathematical endpoints (spec 5.1, C-05).
+    # probability axis trains on the mathematical endpoints.
     out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
     out$top_panel <- resolve_stat_baseline(scales$y, 1)$panel
     out
@@ -376,10 +376,10 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
 
   setup_data = function(data, params) {
     # Probability endpoints train the y scale via ymin/ymax when they are
-    # finite under the active transformation (C-05). The shading baseline is
+    # finite under the active transformation. The shading baseline is
     # the transformed raw probability zero, never panel zero; when the
     # transformation excludes it, draw_panel clips to the visible panel floor
-    # instead (spec 5.1).
+    # instead.
     base <- if ("baseline_panel" %in% names(data)) data$baseline_panel else 0
     top <- if ("top_panel" %in% names(data)) data$top_panel else 1
     transform(data, ymin = base, ymax = top)
@@ -397,7 +397,7 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
                         ) {
 
     if (is.null(xlim)) {
-      # Panel-coverage regrid only; no checks and no quantile solving (B-02).
+      # Panel-coverage regrid only; no checks and no quantile solving.
       fun_injected <- make_cdf_function(
         fun, pdf_fun, survival_fun, qf_fun, hf_fun,
         hf_lower = hf_lower, args = args, support = support

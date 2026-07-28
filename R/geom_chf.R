@@ -206,7 +206,7 @@ StatCHF <- ggproto("StatCHF", Stat,
       cumhazard = cumhazard_raw
     )
     # Cumulative hazards train on the raw zero baseline only when it is
-    # finite in the active transformation domain (C-05).
+    # finite in the active transformation domain.
     baseline <- resolve_stat_baseline(scales$y, 0)
     if (baseline$finite) out$ymin <- baseline$panel
     out

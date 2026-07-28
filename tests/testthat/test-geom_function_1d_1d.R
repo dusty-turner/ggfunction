@@ -62,7 +62,7 @@ test_that("geom_function_1d_1d with custom mapping builds without error", {
   expect_s3_class(p, "gg")
 })
 
-test_that("fixed colour via constructor arg or ... is honored (E-04)", {
+test_that("fixed colour via constructor arg or ... is honored", {
   expect_no_warning(l <- geom_function_1d_1d(fun = sin, colour = "red"))
   b <- ggplot_build(ggplot() + l)
   expect_identical(unique(b$data[[1]]$colour), "red")
@@ -72,7 +72,7 @@ test_that("fixed colour via constructor arg or ... is honored (E-04)", {
   expect_identical(unique(b2$data[[1]]$colour), "blue")
 })
 
-test_that("mapped colour is honored and no fixed default overrides it (E-04)", {
+test_that("mapped colour is honored and no fixed default overrides it", {
   expect_no_warning(
     l <- geom_function_1d_1d(fun = sin, mapping = aes(colour = after_stat(x)))
   )
@@ -81,13 +81,13 @@ test_that("mapped colour is honored and no fixed default overrides it (E-04)", {
   expect_null(l$aes_params$colour)
 })
 
-test_that("default line colour remains black and default fill grey20 (E-04)", {
+test_that("default line colour remains black and default fill grey20", {
   b <- ggplot_build(ggplot() + geom_function_1d_1d(fun = sin, xlim = c(0, 1)))
   expect_identical(unique(b$data[[1]]$colour), "black")
   expect_identical(unique(b$data[[1]]$fill), "grey20")
 })
 
-test_that("group-constant mapped fill reaches the shading polygon (E-04)", {
+test_that("group-constant mapped fill reaches the shading polygon", {
   l <- geom_function_1d_1d(
     fun = sin, xlim = c(0, pi), shade_from = 1, shade_to = 2,
     mapping = aes(fill = "grp")
@@ -99,7 +99,7 @@ test_that("group-constant mapped fill reaches the shading polygon (E-04)", {
   expect_identical(as.character(polys[[1]]$gp$fill), fill_hex)
 })
 
-test_that("within-group varying fill is rejected for shaded functions (E-04)", {
+test_that("within-group varying fill is rejected for shaded functions", {
   l <- geom_function_1d_1d(
     fun = sin, xlim = c(0, pi), shade_from = 1, shade_to = 2,
     mapping = aes(fill = after_stat(x))
@@ -107,7 +107,7 @@ test_that("within-group varying fill is rejected for shaded functions (E-04)", {
   expect_error(ggplotGrob(ggplot() + l), "varies within")
 })
 
-test_that("shading trains the zero baseline; no shading leaves it untrained (E-05)", {
+test_that("shading trains the zero baseline; no shading leaves it untrained", {
   p <- ggplot() +
     geom_function_1d_1d(
       fun = function(x) 100 + x, xlim = c(0, 1),
@@ -123,7 +123,7 @@ test_that("shading trains the zero baseline; no shading leaves it untrained (E-0
   expect_gt(rng2[1], 90)
 })
 
-test_that("exact off-grid shade boundaries are evaluated (E-05)", {
+test_that("exact off-grid shade boundaries are evaluated", {
   d <- ggplot_build(
     ggplot() +
       geom_function_1d_1d(
@@ -136,7 +136,7 @@ test_that("exact off-grid shade boundaries are evaluated (E-05)", {
   expect_equal(d$y_raw[match(c(0.2, 0.8), d$x_eval)], c(100.2, 100.8))
 })
 
-test_that("log-y shading clips the baseline with one documented warning (E-05)", {
+test_that("log-y shading clips the baseline with one documented warning", {
   p <- ggplot() +
     geom_function_1d_1d(
       fun = function(x) 100 + x, xlim = c(0, 1),
@@ -153,7 +153,7 @@ test_that("log-y shading clips the baseline with one documented warning (E-05)",
   expect_true(all(is.finite(as.numeric(polys[[1]]$y))))
 })
 
-test_that("invalid shade bounds abort clearly (E-05)", {
+test_that("invalid shade bounds abort clearly", {
   expect_error(
     ggplot_build(
       ggplot() +

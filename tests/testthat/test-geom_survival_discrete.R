@@ -201,3 +201,26 @@ test_that("geom_survival_discrete draws with shading", {
                            p = 0.25, lower.tail = FALSE)
   expect_silent(ggplotGrob(p))
 })
+
+
+test_that("non-finite survival values over the support are rejected", {
+  # Structural validity: a survival function that returns NA on its declared
+  # support is invalid and must abort rather than be drawn silently.
+  f <- function(x) ifelse(x == 3, NA_real_, exp(-0.3 * x))
+  expect_error(
+    StatSurvivalDiscrete$compute_group(
+      data.frame(group = 1), scales = list(x = NULL, y = NULL),
+      fun = f, xlim = c(0, 10), args = list()
+    ),
+    "finite"
+  )
+})
+
+test_that("discrete survival is the complement of the discrete CDF", {
+  surv <- StatSurvivalDiscrete$compute_group(
+    data.frame(group = 1), scales = list(),
+    cdf_fun = function(x) pbinom(x, 10, 0.4), xlim = c(0, 10), args = list()
+  )
+  expect_equal(surv$survival, 1 - pbinom(surv$x_eval, 10, 0.4), tolerance = 1e-12)
+  expect_true(all(diff(surv$survival) <= 0))
+})

@@ -200,7 +200,7 @@ StatECDF <- ggproto("StatECDF", Stat,
       y_prev = scale_forward(scales$y, prev)
     )
     # The mathematical endpoints 0 and 1 train the probability axis when
-    # they are finite under the active transformation (C-05).
+    # they are finite under the active transformation.
     out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
     out$top_panel <- resolve_stat_baseline(scales$y, 1)$panel
     out
@@ -544,7 +544,7 @@ StatEPMF <- ggproto("StatEPMF", Stat,
       mass = df$pmf
     )
     # The mass baseline trains the y scale when it is finite under the
-    # active transformation (C-05); lollipop sticks drop to it at draw time.
+    # active transformation; lollipop sticks drop to it at draw time.
     out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
     out
   }
@@ -716,14 +716,14 @@ StatECHF <- ggproto("StatECHF", Stat,
       y_prev = scale_forward(scales$y, prev)
     )
     # The cumulative-hazard baseline trains on raw zero when the transform
-    # allows it; no artificial upper endpoint is forced (C-05).
+    # allows it; no artificial upper endpoint is forced.
     out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
     out
   }
 )
 
 #' Validate the ECHF band cap: NULL (default log(2n) cap), Inf (genuinely
-#' unbounded), or one finite non-negative scalar (D-03).
+#' unbounded), or one finite non-negative scalar.
 #' @noRd
 validate_band_max <- function(band_max) {
   if (is.null(band_max)) return(NULL)
@@ -749,7 +749,7 @@ StatECHFBand <- ggproto("StatECHFBand", Stat,
     cdf_lower <- pmax(0, tab$cdf - eps)
     cdf_upper <- tab$cdf + eps
     h_lower <- -log1p(-cdf_lower)
-    # Where F_n + eps >= 1 the true upper bound is infinite (D-03). The log
+    # Where F_n + eps >= 1 the true upper bound is infinite. The log
     # branch is evaluated only where it is defined.
     h_upper <- rep(Inf, length(cdf_upper))
     defined <- cdf_upper < 1
@@ -764,7 +764,7 @@ StatECHFBand <- ggproto("StatECHFBand", Stat,
         )
       }
       # Intersect the band with [0, cap]: rows whose lower bound exceeds the
-      # cap are omitted; retained rows keep ymin <= ymax (D-03).
+      # cap are omitted; retained rows keep ymin <= ymax.
       keep <- h_lower <= cap
       h_upper <- pmin(h_upper, cap)
     }
@@ -778,7 +778,7 @@ StatECHFBand <- ggproto("StatECHFBand", Stat,
 )
 
 #' Ribbon that renders infinite upper bounds at the visible panel edge
-#' instead of passing non-finite coordinates to grid (D-03).
+#' instead of passing non-finite coordinates to grid.
 #' @rdname geom_echf
 #' @export
 GeomECHFBandRibbon <- ggproto("GeomECHFBandRibbon", GeomRibbon,

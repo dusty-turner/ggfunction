@@ -207,7 +207,7 @@ StatQF <- ggproto("StatQF", Stat,
     # backtransforms the `x` column by the x scale before evaluating those
     # expressions and retransforms the mapped positions, so the `x` column
     # must carry x-panel-space values for the round trip to place raw
-    # quantiles on the y scale exactly once (A-01).
+    # quantiles on the y scale exactly once.
     data.frame(
       p = p_vals,
       x_eval = p_vals,

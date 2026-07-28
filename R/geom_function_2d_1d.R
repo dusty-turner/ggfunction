@@ -215,14 +215,14 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
     if (identical(raster_aes, "fill")) {
       # The scalar field is encoded through fill = after_stat(z) by default;
       # auxiliary mappings must not displace it, and an explicit user fill
-      # mapping overrides it (E-02).
+      # mapping overrides it.
       if (is.null(mapping)) {
         mapping <- aes(fill = after_stat(z))
       } else if (!("fill" %in% names(mapping))) {
         mapping <- modifyList(mapping, aes(fill = after_stat(z)))
       }
     } else {
-      # The alpha default yields to a user-supplied static alpha (E-08).
+      # The alpha default yields to a user-supplied static alpha.
       if ("alpha" %in% names(dots)) {
         mapping <- mapping %||% aes()
       } else {
@@ -304,7 +304,7 @@ stat_function_2d_1d <- function(mapping = NULL, data = NULL,
     data <- data.frame(x = NA_real_, y = NA_real_)
   }
 
-  # The scalar field is encoded through fill = after_stat(z) by default (E-02).
+  # The scalar field is encoded through fill = after_stat(z) by default.
   if (is.null(mapping)) {
     mapping <- aes(fill = after_stat(z))
   } else if (!("fill" %in% names(mapping))) {
@@ -343,7 +343,7 @@ StatFunction2d <- ggproto(
 
   setup_params = function(data, params) {
     # Domain requirement surfaces as a build error, not a swallowed
-    # computation warning (E-07 policy for delegating callers).
+    # computation warning.
     if (!is.null(params$fun) &&
         (is.null(params$xlim) || is.null(params$ylim))) {
       has_xy <- all(c("x", "y") %in% names(data)) &&
@@ -363,7 +363,7 @@ StatFunction2d <- ggproto(
     if (is.null(fun)) {
       # Precomputed scalar field: pass the mapped data through unchanged so
       # every incoming aesthetic (alpha, colour, group, PANEL, ...) survives
-      # (E-03).
+      #.
       if (!all(c("x", "y") %in% names(data))) {
         cli::cli_abort("`stat_function_2d_1d()` requires `x` and `y` aesthetics or a `fun` with `xlim`/`ylim`.")
       }
@@ -376,7 +376,7 @@ StatFunction2d <- ggproto(
     if (is.null(n)) n <- 50
 
     # Omitted limits fall back to the incoming mapped positions, which are
-    # already panel-space; explicit limits are data-space (A-01).
+    # already panel-space; explicit limits are data-space.
     has_xy <- all(c("x", "y") %in% names(data)) &&
       any(is.finite(data$x)) && any(is.finite(data$y))
     panel_xlim <- if (is.null(xlim) && has_xy) range(data$x, na.rm = TRUE)
@@ -403,12 +403,12 @@ GeomFunction2d <- ggplot2::ggproto(
   default_aes = ggplot2::aes(fill = "black", alpha = 1)
 )
 
-#' Generate per-panel, per-group scalar-field grids for contouring (E-01).
+#' Generate per-panel, per-group scalar-field grids for contouring.
 #'
 #' Each (PANEL, group) combination present in the layer data receives its own
 #' scale-aware grid, so facets are populated independently and grouped layers
 #' are not collapsed. Grids are evenly spaced in panel coordinates and the
-#' function is evaluated at the inverse-transformed data-space image (A-01).
+#' function is evaluated at the inverse-transformed data-space image.
 #' @noRd
 function2d_contour_grids <- function(data, params, layout) {
   n <- params$n %||% 50
@@ -445,7 +445,7 @@ function2d_contour_grids <- function(data, params, layout) {
 #' @noRd
 contour_stat_setup_params <- function(parent, self, data, params) {
   if (is.null(params$fun)) {
-    # Precomputed x/y/z data delegate to the parent contour stat (E-01).
+    # Precomputed x/y/z data delegate to the parent contour stat.
     if (!all(c("x", "y", "z") %in% names(data))) {
       cli::cli_abort(
         "Contour layers require {.arg fun} or mapped {.field x}, {.field y}, and {.field z} aesthetics."

@@ -1,5 +1,5 @@
-# Shared inspection helpers for value-level and render-level assertions
-# (spec F-02.3): trained panel ranges, grob-tree searches, and layer lookup
+# Shared inspection helpers for value-level and render-level assertions:
+# trained panel ranges, grob-tree searches, and layer lookup
 # by stat class, so tests need not hard-code deeply nested grob indices.
 
 plot_x_range <- function(p) {

@@ -29,7 +29,7 @@ test_that("stat_function_2d_2d builds without error", {
   expect_silent(ggplot_build(p))
 })
 
-test_that("vector and stream fields reject transformed position scales (A-01)", {
+test_that("vector and stream fields reject transformed position scales", {
   f <- function(v) c(-v[2], v[1])
   expect_error(
     ggplot_build(

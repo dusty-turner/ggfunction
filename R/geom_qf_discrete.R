@@ -176,7 +176,7 @@ geom_qf_discrete <- function(
 
 #' Infer a bounded integer support from a black-box discrete quantile
 #' function via Q(0)/Q(1), or return NULL (with a warning) when exact
-#' enumeration is impossible (C-02).
+#' enumeration is impossible.
 #' @noRd
 infer_qf_integer_support <- function(qf, cap = 10000L) {
   q0 <- tryCatch(suppressWarnings(qf(0)), error = function(e) NA_real_)
@@ -202,7 +202,7 @@ infer_qf_integer_support <- function(qf, cap = 10000L) {
 }
 
 #' Recover the exact right boundary F(x_k) = sup{p : Q(p) <= x_k} for each
-#' support point by monotone bisection (C-02).
+#' support point by monotone bisection.
 #' @noRd
 qf_right_boundaries <- function(qf, support, tol = 1e-15) {
   vapply(support, function(xk) {
@@ -251,7 +251,7 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
 
       if (!is.null(support_use)) {
         # Exact right boundaries by monotone bisection; rare atoms are
-        # recovered no matter how small their mass (C-02).
+        # recovered no matter how small their mass.
         p_right <- qf_right_boundaries(fun_injected, support_use)
         qdf <- data.frame(q = support_use, p_right = p_right)
       } else {
@@ -274,7 +274,7 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
       qdf <- data.frame(q = x_vals, p_right = cdf_vals)
     } else if (!is.null(pmf_fun)) {
       x_vals <- discrete_support(xlim = xlim, support = support)
-      # Evaluated and structurally validated exactly once (C-03).
+      # Evaluated and structurally validated exactly once.
       pmf_vals <- evaluate_pmf(
         pmf_fun, x_vals, args = args, arg = "pmf_fun", normalization = "abort"
       )
@@ -288,9 +288,9 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
       qdf <- data.frame(q = x_vals, p_right = 1 - surv_vals)
     }
 
-    # True predecessor boundaries on the full computational set (C-01), then
+    # True predecessor boundaries on the full computational set, then
     # zero-mass rows are dropped before constructing QF geometry, keeping the
-    # earliest support value for a duplicated cumulative boundary (C-02).
+    # earliest support value for a duplicated cumulative boundary.
     qdf$p_left <- c(0, qdf$p_right[-nrow(qdf)])
     mass <- qdf$p_right - qdf$p_left
     qdf$in_shade <- pmf_shade_index(
@@ -303,7 +303,7 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
     out <- data.frame(
       # The quantile column rides the after_stat(p)/after_stat(x)
       # cross-mapping round trip, so it carries x-panel-space values; raw
-      # quantiles are retained in q (A-01, as in geom_qf).
+      # quantiles are retained in q.
       x = scale_forward(scales$x, qdf$q),
       q = qdf$q,
       p = qdf$p_right,
@@ -355,7 +355,7 @@ GeomQFDiscrete <- ggproto("GeomQFDiscrete", Geom,
     # Horizontal segments (n total, defined only on [0, 1]):
     #   [p_left[k] → p_right[k]] at height y[k] = x_k (support value).
     # p_left carries the true predecessor boundary, so a narrowed window
-    # starts atom k's segment at F(x_{k-1}) rather than 0 (C-01).
+    # starts atom k's segment at F(x_{k-1}) rather than 0.
     left_bound <- if ("p_left_panel" %in% names(data)) {
       data$p_left_panel
     } else {

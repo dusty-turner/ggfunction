@@ -248,7 +248,7 @@ StatSurvival <- ggproto("StatSurvival", Stat,
 
     # Shading boundaries are distributional quantiles resolved on raw
     # probabilities (`p` counts cumulative mass from the left, F = 1 - S),
-    # independent of grid resolution and y scale (B-02 policy).
+    # independent of grid resolution and y scale.
     out$in_shade <- FALSE
     out$shade_x_lower_raw <- NA_real_
     out$shade_x_upper_raw <- NA_real_
@@ -274,7 +274,7 @@ StatSurvival <- ggproto("StatSurvival", Stat,
     }
 
     # Probability endpoints: raw zero and one, transformed once when finite
-    # in the transformation domain (spec 5.1, C-05).
+    # in the transformation domain.
     out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
     out$top_panel <- resolve_stat_baseline(scales$y, 1)$panel
     out
@@ -286,8 +286,8 @@ StatSurvival <- ggproto("StatSurvival", Stat,
 GeomSurvival <- ggproto("GeomSurvival", GeomArea,
   setup_data = function(data, params) {
     # Probability endpoints train the y scale when finite under the active
-    # transformation (C-05); the shading baseline is the transformed raw
-    # survival zero, never panel zero (spec 5.1).
+    # transformation; the shading baseline is the transformed raw
+    # survival zero, never panel zero.
     base <- if ("baseline_panel" %in% names(data)) data$baseline_panel else 0
     top <- if ("top_panel" %in% names(data)) data$top_panel else 1
     transform(data, ymin = base, ymax = top)

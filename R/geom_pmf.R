@@ -151,7 +151,7 @@ geom_pmf <- function(mapping = NULL,
 
   # The HDR alpha default is added only when the user supplied neither a
   # static alpha nor an alpha mapping, so a user override never triggers a
-  # duplicated-aesthetic warning (E-08).
+  # duplicated-aesthetic warning.
   has_user_alpha <- "alpha" %in% names(list(...)) ||
     (!is.null(mapping) && "alpha" %in% names(mapping))
   if (!is.null(shade_hdr) && !has_user_alpha) {
@@ -223,7 +223,7 @@ StatPMF <- ggproto("StatPMF", Stat,
       return(out)
     }
 
-    # Evaluated and structurally validated exactly once (C-03): the same
+    # Evaluated and structurally validated exactly once: the same
     # mass vector drives checks, plotting, HDRs, and shading.
     y_vals <- evaluate_pmf(
       fun, x_vals, args = args, arg = "fun",
@@ -241,7 +241,7 @@ StatPMF <- ggproto("StatPMF", Stat,
     }
 
     # Mass baseline: raw zero, transformed once when finite in the
-    # transformation domain; metadata otherwise (spec 5.1).
+    # transformation domain; metadata otherwise.
     out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
 
     # Resolve p-based shading here, per group, so the cumulative probability
@@ -266,7 +266,7 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
 
   setup_data = function(data, params) {
     # The mass baseline trains the y scale when it is finite under the
-    # active transformation (C-05/spec 5.1); the lollipop sticks then drop
+    # active transformation; the lollipop sticks then drop
     # to that baseline at draw time.
     if ("baseline_panel" %in% names(data)) {
       data$ymin <- ifelse(is.finite(data$baseline_panel),
@@ -303,7 +303,7 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
     }
     base_y <- baseline_draw_value(baseline_panel, panel_params)
 
-    # Build segment data: unshaded segments are dimmed multiplicatively (C-06)
+    # Build segment data: unshaded segments are dimmed multiplicatively
     seg_data          <- transform(data, yend = y, y = base_y)
     seg_data$linewidth <- stick_linewidth
     seg_data$linetype  <- stick_linetype
@@ -337,7 +337,7 @@ GeomPMFBar <- ggproto("GeomPMFBar", ggplot2::GeomCol,
     data <- ggproto_parent(ggplot2::GeomCol, self)$setup_data(data, params)
     # Bars rest on the transformed raw-zero baseline, not panel zero; a
     # transform-excluded baseline emits no training value and is clipped to
-    # the panel floor at draw time (spec 5.1).
+    # the panel floor at draw time.
     if ("baseline_panel" %in% names(data)) {
       base <- data$baseline_panel
       data$ymin <- ifelse(is.finite(base), pmin(data$y, base), NA_real_)

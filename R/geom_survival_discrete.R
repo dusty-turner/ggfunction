@@ -193,7 +193,7 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
     if (!is.null(fun)) {
       fun_injected <- function(x) rlang::inject(fun(x, !!!args))
       # Direct survival values are strictly validated: type, length,
-      # finiteness, [0, 1] with roundoff clamping, and monotonicity (C-04).
+      # finiteness, [0, 1] with roundoff clamping, and monotonicity.
       survival_vals <- validate_discrete_survival(
         fun_injected(x_vals), x_vals, arg = "fun"
       )
@@ -206,7 +206,7 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
       survival_vals <- 1 - cdf_vals
       pmf_vals <- diff(c(0, cdf_vals))
     } else {
-      # Evaluated and structurally validated exactly once (C-03).
+      # Evaluated and structurally validated exactly once.
       pmf_vals <- evaluate_pmf(
         pmf_fun, x_vals, args = args, arg = "pmf_fun", normalization = "abort"
       )
@@ -214,7 +214,7 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
       survival_vals <- 1 - cdf_vals
     }
 
-    # Retain true predecessor values before any xlim filtering (C-01).
+    # Retain true predecessor values before any xlim filtering.
     survival_prev <- c(1, survival_vals[-length(survival_vals)])
 
     out <- data.frame(
@@ -266,7 +266,7 @@ GeomSurvivalDiscrete <- ggproto("GeomSurvivalDiscrete", Geom,
 
   setup_data = function(data, params) {
     # The mathematical probability endpoints train the y scale when they are
-    # finite under the active transformation (C-05).
+    # finite under the active transformation.
     if ("baseline_panel" %in% names(data)) data$ymin <- data$baseline_panel
     if ("top_panel" %in% names(data)) data$ymax <- data$top_panel
     data

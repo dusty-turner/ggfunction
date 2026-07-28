@@ -226,7 +226,7 @@ test_that("geom_survival shades two-sided regions", {
   expect_silent(ggplotGrob(p))
 })
 
-test_that("geom_survival keeps exact out-of-window shade boundaries without clamping (B-02)", {
+test_that("geom_survival keeps exact out-of-window shade boundaries without clamping", {
   # The p = 0.99 quantile (~2.33) lies outside xlim = c(-3, 0). The exact raw
   # boundary is retained as metadata and the visible shading is clipped by
   # the window; no false boundary is created at the window edge.

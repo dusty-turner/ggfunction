@@ -1,7 +1,7 @@
-# A-02: constructor-local mappings propagate to every auxiliary layer of a
-# composite geom. A-03: censoring status never creates statistical groups.
+# Constructor-local mappings propagate to every auxiliary layer of a
+# composite geom, and censoring status never creates statistical groups.
 
-test_that("geom_ecdf works with a constructor-local mapping (A-02)", {
+test_that("geom_ecdf works with a constructor-local mapping", {
   d <- data.frame(z = 1:5)
   expect_no_error(
     b <- ggplot_build(ggplot(d) + geom_ecdf(aes(x = z)))
@@ -9,7 +9,7 @@ test_that("geom_ecdf works with a constructor-local mapping (A-02)", {
   expect_true(all(vapply(b$data, nrow, integer(1)) > 0))
 })
 
-test_that("geom_ecdf_km works with a constructor-local mapping (A-02)", {
+test_that("geom_ecdf_km works with a constructor-local mapping", {
   d <- data.frame(
     time = 1:5,
     status = c(1L, 1L, 0L, 1L, 0L)
@@ -23,7 +23,7 @@ test_that("geom_ecdf_km works with a constructor-local mapping (A-02)", {
   expect_true(all(vapply(b$data, nrow, integer(1)) > 0))
 })
 
-test_that("geom_echf_na works with a constructor-local mapping (A-02)", {
+test_that("geom_echf_na works with a constructor-local mapping", {
   d <- data.frame(
     time = 1:5,
     status = c(1L, 1L, 0L, 1L, 0L)
@@ -37,7 +37,7 @@ test_that("geom_echf_na works with a constructor-local mapping (A-02)", {
   expect_true(all(vapply(b$data, nrow, integer(1)) > 0))
 })
 
-test_that("geom_ppplot works with a constructor-local mapping (A-02)", {
+test_that("geom_ppplot works with a constructor-local mapping", {
   set.seed(1)
   d <- data.frame(z = rnorm(20))
   expect_no_error(
@@ -49,7 +49,7 @@ test_that("geom_ppplot works with a constructor-local mapping (A-02)", {
   expect_true(all(vapply(b$data, nrow, integer(1)) > 0))
 })
 
-test_that("local and global mappings produce identical statistics (A-02)", {
+test_that("local and global mappings produce identical statistics", {
   d <- data.frame(
     z = c(rnorm(15, 0, 1), rnorm(15, 2, 1)),
     g = rep(c("a", "b"), each = 15)
@@ -69,7 +69,7 @@ test_that("local and global mappings produce identical statistics (A-02)", {
   expect_equal(length(unique(b_local$data[[1]]$group)), 2)
 })
 
-test_that("point-only calculated aesthetics do not leak into bands (A-02)", {
+test_that("point-only calculated aesthetics do not leak into bands", {
   d <- data.frame(z = qnorm(seq(0.05, 0.95, length.out = 20)))
   b <- ggplot_build(
     ggplot(d) +
@@ -90,9 +90,9 @@ test_that("point-only calculated aesthetics do not leak into bands (A-02)", {
   expect_true(all(b$data[[band_i]]$alpha == 0.4))
 })
 
-# --- A-03: status normalization before implicit grouping ---
+# --- status normalization before implicit grouping ---
 
-test_that("logical and integer status produce identical KM output (A-03)", {
+test_that("logical and integer status produce identical KM output", {
   d_logical <- data.frame(
     time = 1:5,
     status = c(TRUE, TRUE, FALSE, TRUE, FALSE)
@@ -109,14 +109,14 @@ test_that("logical and integer status produce identical KM output (A-03)", {
   )$data[[1]]
 
   expect_equal(b_logical[c("x", "y")], b_integer[c("x", "y")])
-  # Event rows carry the KM estimates; the trailing row is the D-02
+  # Event rows carry the KM estimates; the trailing row is the
   # observation-domain anchor at the final censoring time.
   expect_equal(b_logical$y[b_logical$jump], c(0.8, 0.6, 0.3))
   expect_equal(tail(b_logical$x, 1), 5)
   expect_false(tail(b_logical$jump, 1))
 })
 
-test_that("logical/integer equivalence holds for bands, censor marks, and NA (A-03)", {
+test_that("logical/integer equivalence holds for bands, censor marks, and NA", {
   d_logical <- data.frame(
     time = 1:5,
     status = c(TRUE, TRUE, FALSE, TRUE, FALSE)
@@ -136,7 +136,7 @@ test_that("logical/integer equivalence holds for bands, censor marks, and NA (A-
   }
 })
 
-test_that("treatment grouping survives logical status (A-03)", {
+test_that("treatment grouping survives logical status", {
   d <- data.frame(
     treatment = rep(c("a", "b"), each = 5),
     time = rep(1:5, 2),
@@ -160,7 +160,7 @@ test_that("treatment grouping survives logical status (A-03)", {
   expect_equal(length(unique(b_implicit$group)), 2)
 })
 
-test_that("factor status is rejected before integer coercion (A-03)", {
+test_that("factor status is rejected before integer coercion", {
   expect_error(
     .tabulate_km(
       1:4,
@@ -183,14 +183,14 @@ test_that("factor status is rejected before integer coercion (A-03)", {
   )
 })
 
-test_that("numeric status other than exact 0/1 is rejected (A-03)", {
+test_that("numeric status other than exact 0/1 is rejected", {
   expect_error(normalize_status(c(0, 1, 2)), "0/1")
   expect_error(normalize_status(c(0.5, 1)), "0/1")
   expect_identical(normalize_status(c(TRUE, FALSE, NA)), c(1L, 0L, NA_integer_))
   expect_identical(normalize_status(c(0, 1, NA)), c(0L, 1L, NA_integer_))
 })
 
-test_that("missing status values follow the na.rm policy quietly (A-03)", {
+test_that("missing status values follow the na.rm policy quietly", {
   d <- data.frame(
     time = 1:5,
     status = c(TRUE, FALSE, NA, TRUE, FALSE)

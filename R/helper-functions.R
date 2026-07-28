@@ -50,7 +50,7 @@ normalise_colour_params <- function(params) {
     if ("colour" %in% names(params)) {
       # Both alias spellings supplied as fixed values: leave them so
       # ggplot2's duplicated-aesthetic diagnostic fires after name
-      # standardization (E-08).
+      # standardization.
       return(params)
     }
     params$colour <- params$color
@@ -98,7 +98,7 @@ quo_is_calculated <- function(q) {
 }
 
 #' Merge a constructor-local user mapping into an auxiliary layer's computed
-#' mapping (spec A-02).
+#' mapping.
 #'
 #' Composite geoms (ECDF/KM/Nelson-Aalen bands, censor marks, PP/SP/QQ
 #' bands) must receive the input, grouping, and facet aesthetics supplied
@@ -237,7 +237,7 @@ check_pmf_normalization <- function(f, support, tol = 1e-3,
 #'
 #' Structural invalidity (non-finite or negative masses) always aborts,
 #' regardless of `options(ggfunction.check)`; only the soft non-unit-total
-#' diagnostic is gated (spec 5.3, C-03).
+#' diagnostic is gated.
 #' @noRd
 check_pmf_mass_normalization <- function(mass, tol = 1e-3) {
   if (any(!is.finite(mass)) || any(mass < 0)) {
@@ -335,7 +335,7 @@ discrete_hdr_probs <- function(mass, shade_hdr) {
   factor(assigned, levels = c(label_out, rev(labels_in)), ordered = TRUE)
 }
 
-#' Collision-free labels for HDR coverage levels (spec C-07).
+#' Collision-free labels for HDR coverage levels.
 #'
 #' Precision increases adaptively until every unique coverage has a unique
 #' label and no strictly-interior coverage displays as a misleading 0% or
@@ -585,7 +585,7 @@ order_stat_sample <- function(x, na.rm = FALSE, a = 1 / 2) {
 
   p <- stats::ppoints(n, a = a)
   # Invalid offsets produce non-finite, out-of-range, or non-increasing
-  # plotting positions; reject them before any band construction (D-05).
+  # plotting positions; reject them before any band construction.
   if (any(!is.finite(p)) || any(p <= 0) || any(p >= 1) ||
       (n > 1L && any(diff(p) <= 0))) {
     cli::cli_abort(
@@ -634,7 +634,7 @@ utils::globalVariables(c("x", "y", "z", "p", "level", "GeomLine", "pdf_fun", "cd
                          "pmf_fun", "survival_fun", "qf_fun", "hf_fun", "ymin", "ymax",
                          "status", "prob", "probs", "qq_x", "qq_ymin", "qq_ymax"))
 
-#' Pure step-segment construction for discrete distribution geoms (C-01).
+#' Pure step-segment construction for discrete distribution geoms.
 #'
 #' Builds the horizontal and vertical segment coordinates for a discrete
 #' step function whose visible points are (x, y) with true predecessor
@@ -670,9 +670,9 @@ discrete_step_segments <- function(x, y, y_prev, x_range) {
 #'
 #' Consumes stat-provided predecessor metadata (`y_prev`, panel space) so the
 #' first visible step of a narrowed window starts at the true predecessor
-#' value (C-01); falls back to `baseline_default` (panel space) for stats
+#' value; falls back to `baseline_default` (panel space) for stats
 #' that do not provide metadata. Unshaded pieces are dimmed multiplicatively
-#' (C-06). Non-finite predecessors (a transform-excluded baseline) are
+#'. Non-finite predecessors (a transform-excluded baseline) are
 #' clipped to the visible panel floor with one targeted warning.
 #' @noRd
 draw_discrete_step_group <- function(data, panel_params, coord,
@@ -699,7 +699,7 @@ draw_discrete_step_group <- function(data, panel_params, coord,
 
   # Empirical stats carry observation-domain anchors: the curve stops at its
   # own maximum follow-up rather than extending to the panel edge, and
-  # anchors draw no jumps or endpoint circles (D-02).
+  # anchors draw no jumps or endpoint circles.
   has_domain <- "domain_anchor" %in% names(data)
   x_hi <- if (has_domain) max(data$x) else panel_params$x.range[2]
   segs <- discrete_step_segments(data$x, data$y, y_prev,

@@ -293,7 +293,7 @@ make_pdf_qf_function <- function(fun = NULL, cdf_fun = NULL,
 #' Draw-time regrid: extend the curve over the full visible panel when other
 #' layers or expansion widened it beyond the stat's grid. Geometry only — no
 #' checks and no probability calculations happen here; shading membership is
-#' reconstructed from raw metadata retained by the Stat (spec 3.8, B-02).
+#' reconstructed from raw metadata retained by the Stat.
 #' @noRd
 pdf_panel_data <- function(data, panel_params, fun, n = 101,
                            shade_outside = FALSE, support = c(-Inf, Inf)) {
@@ -353,7 +353,7 @@ pdf_reconstruct_intervals <- function(shade_lower, shade_upper,
 
 #' Insert exact shading-boundary evaluation rows. Boundaries are raw
 #' distributional quantiles; a row is inserted only when the boundary lies
-#' inside the evaluation window (spec B-02). Positions are transformed
+#' inside the evaluation window. Positions are transformed
 #' exactly once; raw values are retained alongside.
 #' @noRd
 pdf_insert_boundary_rows <- function(data, boundaries, fun,
@@ -441,7 +441,7 @@ pdf_mark_intervals <- function(x, intervals) {
 
 #' HDR density cutoff on a raw data-space grid over `hdr_xlim`. The grid is
 #' uniform in data coordinates regardless of any display transformation, so
-#' the (approximate) HDR is display-independent (spec 5.2).
+#' the (approximate) HDR is display-independent.
 #' @noRd
 pdf_hdr_cutoff <- function(fun, hdr_xlim, coverage, n = 101) {
   hdr_grid <- seq(hdr_xlim[1], hdr_xlim[2], length.out = n)
@@ -461,7 +461,7 @@ pdf_hdr_cutoff <- function(fun, hdr_xlim, coverage, n = 101) {
 
 #' Resolve shading membership and raw boundary metadata in the Stat.
 #' All probability logic happens here, on raw values; the Geom only consumes
-#' the resulting columns (spec B-02).
+#' the resulting columns.
 #' @noRd
 pdf_add_shading_columns <- function(data, scales, fun, cdf, qf,
                                     support = c(-Inf, Inf), xlim = NULL,
@@ -591,7 +591,7 @@ StatPDF <- ggproto("StatPDF", Stat,
     )
 
     # Density baseline: raw zero, transformed once when finite in the
-    # transformation domain; retained as metadata otherwise (spec 5.1).
+    # transformation domain; retained as metadata otherwise.
     baseline <- resolve_stat_baseline(scales$y, 0)
     out$baseline_panel <- baseline$panel
     out
@@ -604,7 +604,7 @@ GeomPDF <- ggproto("GeomPDF", GeomArea,
   setup_data = function(data, params) {
     # The area baseline is the transformed raw-zero density, not panel zero.
     # When the transformation excludes zero, no finite training value exists;
-    # draw_panel clips to the visible panel floor instead (spec 5.1).
+    # draw_panel clips to the visible panel floor instead.
     base <- if ("baseline_panel" %in% names(data)) data$baseline_panel else 0
     transform(data, ymin = base, ymax = y)
   },

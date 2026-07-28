@@ -56,22 +56,22 @@ test_that("function argument lists must be named", {
   )
 })
 
-# --- B-03: tail-stable hazard conversion ---
+# --- tail-stable hazard conversion ---
 
-test_that("survival-route hazards are exact deep in the tail (B-03)", {
+test_that("survival-route hazards are exact deep in the tail", {
   h <- as_hf_1d(survival_fun = function(x) exp(-x))
   expect_equal(h(c(1, 20, 36, 40)), rep(1, 4), tolerance = 1e-4)
   expect_true(all(is.finite(h(c(1, 20, 36, 40)))))
 })
 
-test_that("pdf and pdf+cdf hazard routes are tail-stable (B-03)", {
+test_that("pdf and pdf+cdf hazard routes are tail-stable", {
   h_pdf <- as_hf_1d(pdf_fun = dexp, support = c(0, Inf))
   h_pair <- as_hf_1d(pdf_fun = dexp, cdf_fun = pexp, support = c(0, Inf))
   expect_equal(h_pdf(c(20, 40)), c(1, 1), tolerance = 1e-4)
   expect_equal(h_pair(c(20, 40)), c(1, 1), tolerance = 1e-4)
 })
 
-test_that("normal upper-tail hazard matches the Mills-ratio value (B-03)", {
+test_that("normal upper-tail hazard matches the Mills-ratio value", {
   x <- c(6, 8)
   h <- as_hf_1d(pdf_fun = dnorm)
   expect_equal(
@@ -81,7 +81,7 @@ test_that("normal upper-tail hazard matches the Mills-ratio value (B-03)", {
   )
 })
 
-test_that("CDF-only hazard warns on saturated tails instead of returning zero (B-03)", {
+test_that("CDF-only hazard warns on saturated tails instead of returning zero", {
   h_cdf_only <- as_hf_1d(cdf_fun = pexp)
   expect_warning(
     value <- h_cdf_only(40),
@@ -90,9 +90,9 @@ test_that("CDF-only hazard warns on saturated tails instead of returning zero (B
   expect_true(is.na(value) || !is.finite(value))
 })
 
-# --- B-04: exact hazard-derived support endpoints ---
+# --- exact hazard-derived support endpoints ---
 
-test_that("hazard-derived functions are exact at infinite endpoints (B-04)", {
+test_that("hazard-derived functions are exact at infinite endpoints", {
   h <- function(x) rep(1, length(x))
   H <- as_chf_1d(hf_fun = h, support = c(0, Inf))
   F <- as_cdf_1d(hf_fun = h, support = c(0, Inf))
@@ -103,7 +103,7 @@ test_that("hazard-derived functions are exact at infinite endpoints (B-04)", {
   expect_identical(S(Inf), 0)
 })
 
-test_that("hf_lower sets the exact integration origin (B-04)", {
+test_that("hf_lower sets the exact integration origin", {
   h <- function(x) rep(1, length(x))
   H <- as_chf_1d(hf_fun = h, hf_lower = 1, support = c(0, Inf))
   F <- as_cdf_1d(hf_fun = h, hf_lower = 1, support = c(0, Inf))
@@ -116,14 +116,14 @@ test_that("hf_lower sets the exact integration origin (B-04)", {
   expect_equal(f(0.5), 0)
 })
 
-test_that("finite-support divergent hazards reach exactly 1 without warnings (B-04)", {
+test_that("finite-support divergent hazards reach exactly 1 without warnings", {
   h <- function(x) 1 / (1 - x)
   F <- as_cdf_1d(hf_fun = h, support = c(0, 1))
   expect_no_warning(vals <- F(c(0.5, 0.99, 1, 1.1)))
   expect_equal(vals, c(0.5, 0.99, 1, 1), tolerance = 1e-6)
 })
 
-test_that("an origin at or above the upper support endpoint aborts (B-04)", {
+test_that("an origin at or above the upper support endpoint aborts", {
   expect_error(
     as_chf_1d(hf_fun = function(x) rep(1, length(x)), hf_lower = 2, support = c(0, 2)),
     "origin"

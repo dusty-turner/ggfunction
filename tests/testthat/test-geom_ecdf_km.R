@@ -119,7 +119,7 @@ test_that(".tabulate_km returns empty for empty input", {
   expect_equal(nrow(tab), 0)
 })
 
-test_that(".tabulate_km leaves the singular Greenwood variance undefined (D-01)", {
+test_that(".tabulate_km leaves the singular Greenwood variance undefined", {
   # Last observation: n=1, d=1 => n*(n-d) = 0. The variance is undefined
   # there and is never replaced by zero.
   tab <- ggfunction:::.tabulate_km(
@@ -190,7 +190,7 @@ test_that("StatECDFKM computes correct values", {
   expect_true(all(diff(result$y) <= 0))  # decreasing
 })
 
-test_that("StatECDFKM represents all-censored data as S(t) = 1 (D-02)", {
+test_that("StatECDFKM represents all-censored data as S(t) = 1", {
   result <- StatECDFKM$compute_group(
     data = data.frame(x = c(1, 2, 3), status = c(0, 0, 0)),
     scales = list(x = NULL, y = NULL),
@@ -216,7 +216,7 @@ test_that("StatECHFNA computes correct values", {
   expect_true(all(diff(result$y) >= 0))  # increasing
 })
 
-test_that("StatECHFNA represents all-censored data as H(t) = 0 (D-02)", {
+test_that("StatECHFNA represents all-censored data as H(t) = 0", {
   result <- StatECHFNA$compute_group(
     data = data.frame(x = c(1, 2, 3), status = c(0, 0, 0)),
     scales = list(x = NULL, y = NULL),

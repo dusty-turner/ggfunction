@@ -127,7 +127,7 @@ geom_pdf_2d <- function(
 ) {
   type <- match.arg(type)
 
-  # A finite function domain is required for a function-only layer (E-07):
+  # A finite function domain is required for a function-only layer:
   # HDR modes compute over hdr_xlim/hdr_ylim (defaulting from xlim/ylim);
   # raster mode evaluates over xlim/ylim. Limits may be omitted only when
   # layer data or mappings can establish both position domains.

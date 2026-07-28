@@ -246,3 +246,19 @@ test_that("geom_qf_discrete draws with shading", {
                      args = list(size = 10, prob = 0.5), p = 0.5)
   expect_silent(ggplotGrob(p))
 })
+
+
+test_that("fun-path final boundary reaches 1 and matches the cdf path", {
+  via_fun <- StatQFDiscrete$compute_group(
+    data.frame(group = 1), scales = list(),
+    fun = function(p) qbinom(p, 10, 0.5), args = list()
+  )
+  via_cdf <- StatQFDiscrete$compute_group(
+    data.frame(group = 1), scales = list(),
+    cdf_fun = function(x) pbinom(x, 10, 0.5), args = list()
+  )
+  expect_equal(max(via_fun$p), 1)
+  expect_equal(max(via_cdf$p), 1)
+  # Same distribution, same support, same final boundary regardless of path.
+  expect_equal(tail(via_fun$p, 1), tail(via_cdf$p, 1))
+})

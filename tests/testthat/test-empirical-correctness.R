@@ -1,6 +1,7 @@
-# Empirical/KM/Nelson-Aalen and diagnostic correctness (spec D-01 .. D-06).
+# Empirical/KM/Nelson-Aalen and diagnostic correctness: confidence-band
+# domains, observation-domain anchors, band caps, and raw diagnostic inputs.
 
-test_that("the equal-precision KM band has no false terminal interval (D-01)", {
+test_that("the equal-precision KM band has no false terminal interval", {
   d <- data.frame(
     x = 1:5,
     status = rep(1L, 5),
@@ -41,7 +42,7 @@ test_that("the equal-precision KM band has no false terminal interval (D-01)", {
   expect_equal(unique(anchor$ymax), 0.7192915, tolerance = 1e-6)
 })
 
-test_that("the default plug-in band excludes the singular terminal row (D-01)", {
+test_that("the default plug-in band excludes the singular terminal row", {
   d <- data.frame(x = 1:5, status = rep(1L, 5), group = 1)
   band <- StatECDFKMBand$compute_group(
     d, scales = list(x = NULL, y = NULL), level = 0.95
@@ -52,7 +53,7 @@ test_that("the default plug-in band excludes the singular terminal row (D-01)", 
   expect_equal(unique(anchor$x), 5)
 })
 
-test_that("the EP critical value matches its reference and rejects bad domains (D-01)", {
+test_that("the EP critical value matches its reference and rejects bad domains", {
   expect_equal(.ep_critical_value(0.1, 0.8, 0.05), 2.986739, tolerance = 1e-5)
   expect_equal(.ep_critical_value(0.2, 0.8, 0.05), 2.902927, tolerance = 1e-5)
   expect_error(.ep_critical_value(0.8, 0.2, 0.05), "0 < a_L < a_U < 1")
@@ -62,7 +63,7 @@ test_that("the EP critical value matches its reference and rejects bad domains (
   expect_error(geom_ecdf_km(ep_range = c(0.9, 0.1)), "ep_range")
 })
 
-test_that("degenerate data omit the band with a warning, never qnorm (D-01)", {
+test_that("degenerate data omit the band with a warning, never qnorm", {
   d <- data.frame(x = c(2, 2), status = c(1L, 1L), group = 1)
   expect_warning(
     band <- StatECDFKMBand$compute_group(
@@ -73,7 +74,7 @@ test_that("degenerate data omit the band with a warning, never qnorm (D-01)", {
   expect_equal(nrow(band), 0)
 })
 
-test_that("nonterminal Greenwood errors match survival::survfit (D-01)", {
+test_that("nonterminal Greenwood errors match survival::survfit", {
   skip_if_not_installed("survival")
   set.seed(7)
   time <- round(rexp(30, 0.4), 2)
@@ -93,7 +94,7 @@ test_that("nonterminal Greenwood errors match survival::survfit (D-01)", {
   )
 })
 
-test_that("curves extend through trailing follow-up without a jump (D-02)", {
+test_that("curves extend through trailing follow-up without a jump", {
   d <- data.frame(time = c(1, 10), status = c(1L, 0L))
 
   b <- ggplot_build(
@@ -113,7 +114,7 @@ test_that("curves extend through trailing follow-up without a jump (D-02)", {
   expect_false(tail(b_na$jump, 1))
 })
 
-test_that("all-censored data keep the observation domain (D-02)", {
+test_that("all-censored data keep the observation domain", {
   d <- data.frame(time = 1:3, status = 0L)
 
   km <- ggplot_build(
@@ -133,7 +134,7 @@ test_that("all-censored data keep the observation domain (D-02)", {
   expect_true(all(!na$jump))
 })
 
-test_that("anchors draw no vertical segments or event points (D-02)", {
+test_that("anchors draw no vertical segments or event points", {
   d <- data.frame(time = c(1, 10), status = c(1L, 0L))
   p <- ggplot(d, aes(time, status = status)) +
     geom_ecdf_km(conf_int = FALSE, censor_marks = FALSE)
@@ -157,7 +158,7 @@ test_that("anchors draw no vertical segments or event points (D-02)", {
   expect_equal(verticals2, 0L)
 })
 
-test_that("bands extend through late censoring without new inference (D-02)", {
+test_that("bands extend through late censoring without new inference", {
   d <- data.frame(
     time = c(1, 2, 3, 4, 10),
     status = c(1L, 1L, 1L, 1L, 0L)
@@ -173,7 +174,7 @@ test_that("bands extend through late censoring without new inference (D-02)", {
   expect_equal(last_two$ymax[1], last_two$ymax[2])
 })
 
-test_that("each grouped curve stops at its own follow-up (D-02)", {
+test_that("each grouped curve stops at its own follow-up", {
   d <- data.frame(
     g = rep(c("a", "b"), each = 3),
     time = c(1, 1.5, 2, 1, 5, 10),
@@ -187,7 +188,7 @@ test_that("each grouped curve stops at its own follow-up (D-02)", {
   expect_equal(max(b$x[b$group == 2]), 10)
 })
 
-test_that("censor marks do not change the trained x domain (D-02)", {
+test_that("censor marks do not change the trained x domain", {
   d <- data.frame(time = c(1, 2, 3, 10), status = c(1L, 1L, 1L, 0L))
   p_with <- ggplot(d, aes(time, status = status)) +
     geom_ecdf_km(conf_int = FALSE, censor_marks = TRUE)
@@ -196,9 +197,9 @@ test_that("censor marks do not change the trained x domain (D-02)", {
   expect_equal(plot_x_range(p_with), plot_x_range(p_without))
 })
 
-# --- D-03: band_max semantics ---
+# --- band_max semantics ---
 
-test_that("band_max = Inf keeps genuinely unbounded upper ECHF bounds (D-03)", {
+test_that("band_max = Inf keeps genuinely unbounded upper ECHF bounds", {
   d <- data.frame(x = 1:10)
 
   unbounded <- StatECHFBand$compute_group(
@@ -220,7 +221,7 @@ test_that("band_max = Inf keeps genuinely unbounded upper ECHF bounds (D-03)", {
   expect_true(all(finite$ymin <= 0.5))
 })
 
-test_that("band_max is validated (D-03)", {
+test_that("band_max is validated", {
   d <- data.frame(x = 1:10)
   for (bad in list(-1, NA_real_, NaN, c(1, 2), "a")) {
     expect_error(
@@ -232,7 +233,7 @@ test_that("band_max is validated (D-03)", {
   }
 })
 
-test_that("infinite upper bounds render at the visible panel edge (D-03)", {
+test_that("infinite upper bounds render at the visible panel edge", {
   d <- data.frame(x = 1:10)
   p <- ggplot(d, aes(x = x)) + geom_echf(band_max = Inf)
   g <- ggplotGrob(p)
@@ -243,9 +244,9 @@ test_that("infinite upper bounds render at the visible panel edge (D-03)", {
   expect_gte(max(ys), 0.99)
 })
 
-# --- D-06: raw diagnostic samples under transformed output scales ---
+# --- raw diagnostic samples under transformed output scales ---
 
-test_that("QQ diagnostics keep raw samples under log output scales (D-06)", {
+test_that("QQ diagnostics keep raw samples under log output scales", {
   d <- data.frame(value = c(1, 10, 100))
   b <- ggplot_build(
     ggplot(d, aes(sample = value)) +
@@ -269,7 +270,7 @@ test_that("QQ diagnostics keep raw samples under log output scales (D-06)", {
   )
 })
 
-test_that("PP and SP raw computed columns are identical on identity and log scales (D-06)", {
+test_that("PP and SP raw computed columns are identical on identity and log scales", {
   d <- data.frame(value = qlnorm(seq(0.1, 0.9, length.out = 9)))
   raw_cols <- c("p", "theoretical", "observed", "sample")
 
@@ -286,7 +287,7 @@ test_that("PP and SP raw computed columns are identical on identity and log scal
   }
 })
 
-test_that("legacy aes(x=) input warns on identity scales and aborts on transforms (D-06)", {
+test_that("legacy aes(x=) input warns on identity scales and aborts on transforms", {
   d <- data.frame(x = rlnorm(12))
   expect_warning(
     ggplot_build(
@@ -304,7 +305,7 @@ test_that("legacy aes(x=) input warns on identity scales and aborts on transform
   )
 })
 
-test_that("discrete-null point diagnostics work without null_type (D-04)", {
+test_that("discrete-null point diagnostics work without null_type", {
   d <- data.frame(x = rep(0:1, each = 50))
   expect_no_error(
     ggplot_build(
