@@ -128,7 +128,9 @@ changes are listed below.
   `aes(sample = )` (as in `ggplot2::stat_qq()`), so the null CDF/quantile
   function always receives raw observations even under transformed output
   scales. Legacy `aes(x = )` still works on identity x scales with a
-  deprecation warning and aborts under a transformed x scale.
+  deprecation warning and aborts under a transformed x scale. The new
+  vignette `vignette("sample-aesthetic")` documents the failure mode this
+  prevents in detail.
 * PP/SP confidence bands are continuous-null procedures and now require an
   explicit declaration: `geom_ppplot()`/`geom_spplot()` gained
   `null_type` (`"continuous"`/`"discrete"`); a band request without it, or

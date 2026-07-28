@@ -370,7 +370,9 @@ it, so the null CDF or quantile function always receives raw values even
 under transformed output scales. The legacy \code{aes(x = )} input remains
 supported on identity x scales for one deprecation cycle (with a
 warning); under a transformed x scale it aborts, because the raw
-observations cannot be reconstructed after the position transform.
+observations cannot be reconstructed after the position transform. See
+\code{vignette("sample-aesthetic", package = "ggfunction")} for a full account
+of the failure mode this design prevents.
 
 \code{geom_ppplot()}, \code{geom_spplot()}, and \code{geom_qqplot()} require the following
 aesthetic:

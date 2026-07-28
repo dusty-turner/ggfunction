@@ -1,0 +1,262 @@
+---
+title: "The sample Aesthetic in Goodness-of-Fit Layers"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The sample Aesthetic in Goodness-of-Fit Layers}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+)
+```
+
+```{r setup}
+library(ggplot2)
+library(ggfunction)
+```
+
+ggfunction's one-sample goodness-of-fit layers --- `geom_ppplot()`,
+`geom_qqplot()`, and `geom_spplot()` --- take their observations through the
+**`sample`** aesthetic:
+
+```{r first-example}
+set.seed(1)
+df <- data.frame(hours = rlnorm(60, meanlog = 1, sdlog = 0.6))
+
+ggplot(df, aes(sample = hours)) +
+  geom_qqplot(fun = qlnorm, args = list(meanlog = 1, sdlog = 0.6))
+```
+
+If you have used ggplot2's own `geom_qq()`, this is the same convention:
+`ggplot(df, aes(sample = hours)) + geom_qq()`. But if you are used to writing
+`aes(x = hours)` for histograms, density plots, and ECDFs, `sample` can look
+arbitrary. It is not. This vignette explains, as concretely as possible, the
+failure mode that `sample` exists to prevent.
+
+The short version: **`x` and `y` are position aesthetics, and ggplot2
+transforms position aesthetics *before* a layer's statistic runs.** A
+goodness-of-fit statistic must evaluate the null distribution at the *raw*
+observations, and those observations are not themselves a plotted position ---
+in a PP plot, neither axis displays the data at all. Mapping the input to a
+position aesthetic therefore hands the statistic corrupted values whenever a
+position scale carries a transformation. `sample` is a non-position aesthetic,
+so ggplot2 never touches it, and the statistic is guaranteed to see your data
+exactly as you supplied it.
+
+The rest of this vignette walks through that argument step by step.
+
+## What ggplot2 does to aesthetics before a stat runs
+
+Every ggplot2 layer computes in a pipeline: aesthetics are evaluated against
+the data, then *position* aesthetics (`x`, `y`, and friends) are passed
+through their scales' transformations, and only then does the layer's
+statistic see the data. Non-position aesthetics --- `colour`, `weight`,
+`group`, and ggfunction's `sample` --- skip the transformation step entirely.
+
+You can see the pre-stat transformation directly with a stat that simply
+reports what it received:
+
+```{r pipeline-demo}
+StatShow <- ggproto("StatShow", Stat,
+  required_aes = "x",
+  compute_group = function(data, scales) {
+    message("the stat received x = ", paste(round(data$x, 3), collapse = ", "))
+    data
+  }
+)
+
+d <- data.frame(x = c(1, 10, 100), y = 1:3)
+
+# identity scale: the stat sees the data as-is
+invisible(ggplot_build(
+  ggplot(d, aes(x, y)) + layer(
+    stat = StatShow, geom = "point", position = "identity", params = list()
+  )
+))
+
+# log10 scale: the stat sees log10(data), *not* the data
+invisible(ggplot_build(
+  ggplot(d, aes(x, y)) + layer(
+    stat = StatShow, geom = "point", position = "identity", params = list()
+  ) + scale_x_log10()
+))
+```
+
+For most statistics this is exactly right. A boxplot of log-scaled data
+*should* compute medians and hinges in log space; that is what "putting the
+axis on a log scale" means for descriptive summaries.
+
+## Why that behavior breaks goodness-of-fit diagnostics
+
+A one-sample diagnostic is different from a descriptive summary in one
+crucial way: it evaluates a *user-specified null distribution* at the
+observations. The PP plot computes $F_0(x_{(i)})$ against the plotting
+positions $p_i$; the QQ plot computes $Q_0(p_i)$ against the order statistics
+$x_{(i)}$; the SP plot variance-stabilizes the PP coordinates. In every case
+the null function `fun` must receive the observations **in the units the null
+distribution is defined on** --- the raw data.
+
+Now suppose the observations were mapped to `x`, and consider the most
+natural thing a user of the lognormal data above might do: add
+`scale_x_log10()` and `scale_y_log10()` to a QQ plot, so that the heavily
+skewed points spread out legibly. That is a pure *display* request --- the
+user wants the same diagnostic drawn on log axes. But because `x` is a
+position aesthetic, ggplot2 would transform the observations *before* the
+statistic ran, and the null quantile function would be compared against
+$\log_{10}(x_{(i)})$ instead of $x_{(i)}$.
+
+We can compute by hand exactly what that mis-specified comparison looks like,
+next to the correct one. The data below are drawn from the null itself, so a
+truthful diagnostic must hug the identity line:
+
+```{r corruption-demo, fig.width = 7, fig.height = 3.5}
+x_sorted <- sort(df$hours)
+p <- ppoints(length(x_sorted), a = 1 / 2)
+theoretical <- qlnorm(p, meanlog = 1, sdlog = 0.6)
+
+correct <- data.frame(
+  theoretical = theoretical,
+  observed = x_sorted,          # raw observations: what the stat must see
+  computation = "correct: fun receives raw data"
+)
+corrupted <- data.frame(
+  theoretical = theoretical,
+  observed = log10(x_sorted),   # what a pre-stat log10 x scale would deliver
+  computation = "corrupted: fun receives log10(data)"
+)
+
+ggplot(rbind(correct, corrupted), aes(theoretical, observed)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+  geom_point() +
+  facet_wrap(~computation, scales = "free_y") +
+  labs(x = "theoretical quantiles", y = "observed values")
+```
+
+The left panel is the diagnostic; the right panel is what the same layer
+would silently draw if its input rode through a transformed position scale.
+The data were simulated *from the null*, yet the right panel "rejects" it
+decisively. Nothing about the plot warns you that this happened --- the axes
+are labeled, the points are crisp, and the conclusion is garbage. Silent
+corruption of a *diagnostic* is about the worst failure a plotting layer can
+have, because the entire purpose of the layer is to be evidence.
+
+There is no way to repair this inside the statistic. Once the positions have
+been transformed, the stat cannot reliably recover the raw values (it would
+need to know which transformation ran, invert it exactly, and trust that no
+information was lost --- none of which ggplot2's stat API promises).
+
+### A second, quieter problem: one aesthetic, two meanings
+
+Even on identity scales, `aes(x = observations)` overloads the aesthetic.
+Consider what the x axis *displays* in each plot:
+
+| layer           | input to `fun`  | x axis displays            | y axis displays          |
+|-----------------|-----------------|----------------------------|--------------------------|
+| `geom_ppplot()` | raw observations| theoretical probabilities  | observed probabilities   |
+| `geom_spplot()` | raw observations| stabilized probabilities   | stabilized probabilities |
+| `geom_qqplot()` | raw observations| theoretical quantiles      | observed values          |
+
+In a PP plot the observations appear on *neither* axis. With the observations
+mapped to `x`, the single x scale would simultaneously control two unrelated
+things: the units of the data entering the computation (before the stat) and
+the styling of the theoretical-probability axis (after it). A user who writes
+`scale_x_continuous(labels = scales::percent)` means the probability axis; a
+user who writes `scale_x_log10()` on lognormal data means the input. The
+grammar gives them one knob for both. Separating the input (`sample`) from
+the display positions (whatever the stat computes) dissolves the ambiguity.
+
+## What `sample` guarantees
+
+Because `sample` is not a position aesthetic, it is never transformed by any
+scale. The layers therefore have a clean, checkable contract:
+
+1. the null CDF or quantile function **always receives raw observations and
+   raw probabilities**, and
+2. the computed display coordinates are transformed **exactly once** by the
+   output scales.
+
+So transformed axes now do precisely what the user means --- they restyle the
+display without touching the computation. The log-log QQ plot that motivated
+this vignette:
+
+```{r qq-log-log}
+ggplot(df, aes(sample = hours)) +
+  geom_qqplot(fun = qlnorm, args = list(meanlog = 1, sdlog = 0.6)) +
+  scale_x_log10() +
+  scale_y_log10()
+```
+
+You can verify the contract on a sample chosen to make the arithmetic
+readable. With observations 1, 10, 100 under a standard lognormal null, the
+raw values survive into the computed data (`after_stat(sample)`), the
+plotting positions are the exact ppoints, and only the *positions* carry the
+log transformation:
+
+```{r contract-check}
+tiny <- data.frame(value = c(1, 10, 100))
+b <- ggplot_build(
+  ggplot(tiny, aes(sample = value)) +
+    geom_qqplot(fun = qlnorm, a = 0.5, conf_int = FALSE, identity_line = FALSE) +
+    scale_x_log10() +
+    scale_y_log10()
+)$data[[1]]
+
+b$sample      # raw observations, untouched: 1, 10, 100
+b$p           # raw plotting positions: 1/6, 1/2, 5/6
+b$y           # display positions: log10 of the observations = 0, 1, 2
+all.equal(b$x, qnorm(ppoints(3, a = 0.5)) / log(10))  # log10(qlnorm(p))
+```
+
+This is also why the confidence bands can be trusted under transformed
+scales: the band is computed from raw probabilities and raw quantiles, and
+its ribbon coordinates are transformed once for display, the same as the
+points.
+
+## The legacy `aes(x = )` input
+
+Earlier versions of these layers took `aes(x = observations)`, and plenty of
+existing code does so. That spelling still works wherever it is safe --- an
+identity x scale --- with a deprecation warning pointing here:
+
+```{r legacy-warning, warning = TRUE}
+p_legacy <- ggplot(df, aes(x = hours)) +
+  geom_ppplot(fun = plnorm, args = list(meanlog = 1, sdlog = 0.6),
+              conf_int = FALSE)
+invisible(ggplot_build(p_legacy))
+```
+
+Under a transformed x scale there is no safe interpretation, for the reasons
+demonstrated above, so the layer refuses rather than draw the corrupted
+diagnostic:
+
+```{r legacy-error, error = TRUE}
+p_bad <- ggplot(df, aes(x = hours)) +
+  geom_ppplot(fun = plnorm, args = list(meanlog = 1, sdlog = 0.6),
+              conf_int = FALSE) +
+  scale_x_log10()
+ggplot_build(p_bad)
+```
+
+An error where the old behavior silently drew a wrong plot is the point: the
+one thing a goodness-of-fit layer must never do is lie.
+
+## Summary
+
+- `geom_ppplot()`, `geom_qqplot()`, and `geom_spplot()` take observations via
+  `aes(sample = )`, following `ggplot2::geom_qq()`.
+- Position aesthetics are transformed before statistics run; a null
+  distribution evaluated at transformed observations produces a silently
+  wrong diagnostic. `sample` is immune because it is not a position.
+- Output scales (`scale_x_log10()`, `scale_y_reverse()`, ...) restyle the
+  display only; computations happen on raw values, and raw computed columns
+  (`after_stat(sample)`, `after_stat(p)`, `after_stat(theoretical)`,
+  `after_stat(observed)`) remain available.
+- `aes(x = )` remains supported on identity scales for backward
+  compatibility, with a deprecation warning; under a transformed x scale it
+  errors instead of corrupting the input.

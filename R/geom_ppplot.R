@@ -133,7 +133,9 @@
 #' under transformed output scales. The legacy `aes(x = )` input remains
 #' supported on identity x scales for one deprecation cycle (with a
 #' warning); under a transformed x scale it aborts, because the raw
-#' observations cannot be reconstructed after the position transform.
+#' observations cannot be reconstructed after the position transform. See
+#' `vignette("sample-aesthetic", package = "ggfunction")` for a full account
+#' of the failure mode this design prevents.
 #'
 #' `geom_ppplot()`, `geom_spplot()`, and `geom_qqplot()` require the following
 #' aesthetic:

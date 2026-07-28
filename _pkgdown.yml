@@ -21,6 +21,8 @@ navbar:
           href: articles/probability-geoms.html
         - text: Empirical Geoms
           href: articles/empirical-geoms.html
+        - text: The sample Aesthetic in Goodness-of-Fit Layers
+          href: articles/sample-aesthetic.html
         - text: Numerical Conversions
           href: articles/numerical-conversions.html
         - text: Survival Analysis with ggfunction
@@ -44,6 +46,7 @@ articles:
       - gallery
       - probability-geoms
       - empirical-geoms
+      - sample-aesthetic
       - numerical-conversions
       - learning-statistics
       - cross-conversion
