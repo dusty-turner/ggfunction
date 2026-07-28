@@ -218,7 +218,8 @@ jump segments, and endpoints.}
     geom_qf_discrete(fun = qbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 
   ggplot() +
-    geom_qf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+    geom_qf_discrete(pmf_fun = dpois, xlim = c(0, 15), support = 0:50,
+                     args = list(lambda = 5))
 
 }
 \seealso{

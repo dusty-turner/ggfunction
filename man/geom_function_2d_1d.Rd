@@ -10,7 +10,7 @@
 \alias{StatFunction2dContourFilled}
 \title{Visualize a Scalar Field z = f(x, y)}
 \format{
-An object of class \code{StatFunction2d} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
+An object of class \code{StatFunction2d} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 4.
 
 An object of class \code{GeomFunction2d} (inherits from \code{GeomRaster}, \code{Geom}, \code{ggproto}, \code{gg}) of length 2.
 

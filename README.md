@@ -705,7 +705,7 @@ CDF.
 
 ``` r
 ggplot() +
-  geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+  geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), support = 0:50, args = list(lambda = 5))
 ```
 
 <img src="man/figures/readme-discrete-cdf-1.png" alt="" width="60%" />
@@ -880,7 +880,7 @@ quantile function.
 
 ``` r
 ggplot() +
-  geom_qf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+  geom_qf_discrete(pmf_fun = dpois, xlim = c(0, 15), support = 0:50, args = list(lambda = 5))
 ```
 
 <img src="man/figures/readme-discrete-qf-pois-1.png" alt="" width="60%" />
@@ -1065,14 +1065,14 @@ sample value (PP) or plotting position (QQ). They use ggplot2’s default
 continuous color scale unless you add your own.
 
 ``` r
-ggplot(df_single, aes(x = x)) +
-  geom_ppplot(fun = pnorm)
+ggplot(df_single, aes(sample = x)) +
+  geom_ppplot(fun = pnorm, null_type = "continuous")
 ```
 
 <img src="man/figures/readme-ppplot-1.png" alt="" width="60%" />
 
 ``` r
-ggplot(df_single, aes(x = x)) +
+ggplot(df_single, aes(sample = x)) +
   geom_qqplot(fun = qnorm)
 ```
 
@@ -1082,7 +1082,7 @@ ggplot(df_single, aes(x = x)) +
 diagnostic plot.
 
 ``` r
-ggplot(df_single, aes(x = x)) +
+ggplot(df_single, aes(sample = x)) +
   geom_qqplot(fun = qnorm, color = "black")
 ```
 
@@ -1093,11 +1093,12 @@ color vision distinguish variation in the computed variable (`x` in PP
 plots or `p` in QQ plots) across the points.
 
 ``` r
-pp <- ggplot(df_single, aes(x = x)) +
-  geom_ppplot(fun = pnorm, shape = 21, color = "black", aes(fill = after_stat(sample))) +
+pp <- ggplot(df_single, aes(sample = x)) +
+  geom_ppplot(fun = pnorm, null_type = "continuous", shape = 21, color = "black",
+              aes(fill = after_stat(sample))) +
   scale_fill_gradientn(colors = rainbow(10))
   
-qq <- ggplot(df_single, aes(x = x)) +
+qq <- ggplot(df_single, aes(sample = x)) +
   geom_qqplot(fun = qnorm, shape = 21, color = "black", aes(fill = after_stat(p))) +
   scale_fill_gradientn(colors = rainbow(10), limits = c(0, 1))
 
@@ -1118,8 +1119,8 @@ visible as departures in the middle. The interface matches
 DKW/Massart band is carried to the stabilized scale.
 
 ``` r
-ggplot(df_single, aes(x = x)) +
-  geom_spplot(fun = pnorm)
+ggplot(df_single, aes(sample = x)) +
+  geom_spplot(fun = pnorm, null_type = "continuous")
 ```
 
 <img src="man/figures/readme-spplot-1.png" alt="" width="60%" />

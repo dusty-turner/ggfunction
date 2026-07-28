@@ -10,9 +10,9 @@
 \format{
 An object of class \code{StatPMF} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{GeomPMF} (inherits from \code{GeomPoint}, \code{Geom}, \code{ggproto}, \code{gg}) of length 5.
+An object of class \code{GeomPMF} (inherits from \code{GeomPoint}, \code{Geom}, \code{ggproto}, \code{gg}) of length 6.
 
-An object of class \code{GeomPMFBar} (inherits from \code{GeomCol}, \code{GeomBar}, \code{GeomRect}, \code{Geom}, \code{ggproto}, \code{gg}) of length 2.
+An object of class \code{GeomPMFBar} (inherits from \code{GeomCol}, \code{GeomBar}, \code{GeomRect}, \code{Geom}, \code{ggproto}, \code{gg}) of length 3.
 }
 \usage{
 geom_pmf(

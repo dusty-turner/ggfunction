@@ -9,7 +9,7 @@
 \format{
 An object of class \code{StatSurvival} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{GeomSurvival} (inherits from \code{GeomArea}, \code{GeomRibbon}, \code{Geom}, \code{ggproto}, \code{gg}) of length 2.
+An object of class \code{GeomSurvival} (inherits from \code{GeomArea}, \code{GeomRibbon}, \code{Geom}, \code{ggproto}, \code{gg}) of length 3.
 }
 \usage{
 geom_survival(

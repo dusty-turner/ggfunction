@@ -1,6 +1,9 @@
 # R/scale-helpers.R
 #
 # Shared scale-transformation architecture (spec A-01, section 5.1).
+
+#' @importFrom ggplot2 ggproto_parent .pt .stroke
+NULL
 #
 # Coordinate contract:
 #   - Public `xlim`/`ylim`/`support` arguments are DATA coordinates.

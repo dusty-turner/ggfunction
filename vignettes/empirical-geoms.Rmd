@@ -51,7 +51,7 @@ null distribution. Bands are DKW-based; when parameters are estimated from the
 same data, interpret them as informal diagnostics.
 
 ```{r qq}
-ggplot(df, aes(x = x)) +
+ggplot(df, aes(sample = x)) +
   geom_qqplot(fun = qnorm, colour = "black") +
   coord_equal()
 ```

@@ -15,15 +15,15 @@
 \format{
 An object of class \code{StatPPPlot} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{StatPPPlotBand} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
+An object of class \code{StatPPPlotBand} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 4.
 
 An object of class \code{StatSPPlot} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{StatSPPlotBand} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
+An object of class \code{StatSPPlotBand} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 4.
 
 An object of class \code{StatQQPlot} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{StatQQPlotBand} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
+An object of class \code{StatQQPlotBand} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 4.
 }
 \usage{
 geom_ppplot(
@@ -42,6 +42,7 @@ geom_ppplot(
   hf_fun = NULL,
   hf_lower = -Inf,
   args = list(),
+  null_type = NULL,
   conf_int = TRUE,
   level = 0.95,
   conf_alpha = 0.4,
@@ -73,6 +74,7 @@ geom_spplot(
   hf_fun = NULL,
   hf_lower = -Inf,
   args = list(),
+  null_type = NULL,
   conf_int = TRUE,
   level = 0.95,
   conf_alpha = 0.4,
@@ -231,6 +233,16 @@ and converts them to a quantile function.}
 \item{args}{A named list of additional arguments passed to the supplied
 distribution function.}
 
+\item{null_type}{Declares the type of the null distribution for
+\code{geom_ppplot()} and \code{geom_spplot()}: \code{"continuous"} or \code{"discrete"}.
+The PP/SP confidence bands are continuous-null procedures, so a band
+request (\code{conf_int = TRUE}) requires \code{null_type = "continuous"};
+declaring \code{"discrete"} with a band aborts. With \code{conf_int = FALSE} the
+point diagnostic needs no declaration and remains interpretable for
+discrete nulls (ties then reflect the null's atoms). An arbitrary R
+function cannot be classified reliably, so the declaration is explicit
+rather than guessed. \code{geom_qqplot()} has no such restriction.}
+
 \item{conf_int}{Logical. If \code{TRUE} (the default), draw a simultaneous
 DKW/Massart confidence band.}
 
@@ -352,6 +364,14 @@ band limits are exposed as \code{after_stat(qq_ymin)} and \code{after_stat(qq_ym
 
 \section{Aesthetics}{
 
+The canonical input aesthetic is the non-positional \code{sample}, holding the
+raw observations (as in \code{\link[ggplot2:geom_qq]{ggplot2::stat_qq()}}); ggplot2 never transforms
+it, so the null CDF or quantile function always receives raw values even
+under transformed output scales. The legacy \code{aes(x = )} input remains
+supported on identity x scales for one deprecation cycle (with a
+warning); under a transformed x scale it aborts, because the raw
+observations cannot be reconstructed after the position transform.
+
 \code{geom_ppplot()}, \code{geom_spplot()}, and \code{geom_qqplot()} require the following
 aesthetic:
 \describe{
@@ -367,31 +387,32 @@ such as \code{fill} and \code{alpha}; and identity-line parameters supplied thro
 set.seed(1)
 df <- data.frame(x = rnorm(50))
 
-ggplot(df, aes(x = x)) +
-  geom_ppplot(fun = pnorm) +
+ggplot(df, aes(sample = x)) +
+  geom_ppplot(fun = pnorm, null_type = "continuous") +
   coord_equal()
 
-ggplot(df, aes(x = x)) +
-  geom_spplot(fun = pnorm) +
+ggplot(df, aes(sample = x)) +
+  geom_spplot(fun = pnorm, null_type = "continuous") +
   coord_equal()
 
-ggplot(df, aes(x = x)) +
+ggplot(df, aes(sample = x)) +
   geom_qqplot(fun = qnorm) +
   coord_equal()
 
 # Parameterized null distribution via `args`
 df2 <- data.frame(x = rnorm(50, mean = 2, sd = 2))
-ggplot(df2, aes(x = x)) +
-  geom_ppplot(fun = pnorm, args = list(mean = 2, sd = 2)) +
+ggplot(df2, aes(sample = x)) +
+  geom_ppplot(fun = pnorm, args = list(mean = 2, sd = 2),
+              null_type = "continuous") +
   coord_equal()
 
 # Use fixed black points by setting a fixed colour.
-ggplot(df, aes(x = x)) +
+ggplot(df, aes(sample = x)) +
   geom_qqplot(fun = qnorm, colour = "black") +
   coord_equal()
 
 # Or add a spectral/rainbow colour scale explicitly.
-ggplot(df, aes(x = x)) +
+ggplot(df, aes(sample = x)) +
   geom_qqplot(fun = qnorm) +
   scale_colour_gradientn(colors = grDevices::rainbow(10)) +
   coord_equal()

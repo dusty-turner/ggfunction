@@ -200,12 +200,12 @@ ggplot(df, aes(x = x)) +
 The same comparison can be made directly with PP and QQ diagnostic plots:
 
 ```{r pp-qq-diagnostics, fig.height = 4}
-pp <- ggplot(df, aes(x = x)) +
-  geom_ppplot(fun = pnorm) +
+pp <- ggplot(df, aes(sample = x)) +
+  geom_ppplot(fun = pnorm, null_type = "continuous") +
   coord_equal() +
   labs(title = "PP plot")
 
-qq <- ggplot(df, aes(x = x)) +
+qq <- ggplot(df, aes(sample = x)) +
   geom_qqplot(fun = qnorm) +
   coord_equal() +
   labs(title = "QQ plot")
@@ -216,12 +216,12 @@ pp + qq
 Use a fixed colour for black points, or add a spectral scale explicitly:
 
 ```{r qq-diagnostics-styling, fig.height = 4}
-qq_black <- ggplot(df, aes(x = x)) +
+qq_black <- ggplot(df, aes(sample = x)) +
   geom_qqplot(fun = qnorm, colour = "black") +
   coord_equal() +
   labs(title = "Black points")
 
-qq_spectral <- ggplot(df, aes(x = x)) +
+qq_spectral <- ggplot(df, aes(sample = x)) +
   geom_qqplot(fun = qnorm) +
   scale_colour_gradientn(
     colors = grDevices::rainbow(10),

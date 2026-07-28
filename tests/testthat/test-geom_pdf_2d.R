@@ -302,3 +302,15 @@ test_that("inherited plot mappings satisfy the delayed domain validation (E-07)"
   )
   expect_gt(nrow(b$data[[1]]), 0)
 })
+
+test_that("HDR types reject transformed position scales (A-01)", {
+  dbvn <- function(v) exp(-0.5 * sum(v^2)) / (2 * pi)
+  expect_error(
+    ggplot_build(
+      ggplot() +
+        geom_pdf_2d(fun = dbvn, xlim = c(1, 10), ylim = c(1, 10)) +
+        scale_x_log10()
+    ),
+    "transformed position scales"
+  )
+})

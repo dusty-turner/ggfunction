@@ -9,7 +9,7 @@
 \format{
 An object of class \code{StatCDF} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{GeomCDF} (inherits from \code{GeomArea}, \code{GeomRibbon}, \code{Geom}, \code{ggproto}, \code{gg}) of length 2.
+An object of class \code{GeomCDF} (inherits from \code{GeomArea}, \code{GeomRibbon}, \code{Geom}, \code{ggproto}, \code{gg}) of length 3.
 }
 \usage{
 geom_cdf(
@@ -171,10 +171,20 @@ threshold via \code{p}, or a two-sided interval via \code{p_lower} and \code{p_u
 These are calculated by the \code{stat} part of the layer and can be accessed
 with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
 \describe{
-\item{\code{after_stat(x)}}{Points at which the CDF is evaluated.}
+\item{\code{after_stat(x)}}{Points at which the CDF is evaluated (data
+coordinates).}
 \item{\code{after_stat(y)}}{CDF values.}
 \item{\code{after_stat(p)}}{CDF values; the default y aesthetic maps to this
 variable.}
+\item{\code{after_stat(cdf)}}{Raw CDF values (canonical alias of \code{p}).}
+\item{\code{after_stat(x_eval)}}{Data-space evaluation points.}
+\item{\code{after_stat(in_shade)}}{Logical indicator for grid points inside
+the requested probability shading region.}
+\item{\code{after_stat(shade_x_lower_raw)} and
+\code{after_stat(shade_x_upper_raw)}}{Raw (data-space) distributional shading
+boundaries, i.e. quantiles of the requested probabilities. Retained even
+when a boundary lies outside \code{xlim} (the visible shading is then simply
+clipped by the plotted window).}
 }
 }
 

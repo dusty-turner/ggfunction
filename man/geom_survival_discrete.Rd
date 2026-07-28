@@ -9,7 +9,7 @@
 \format{
 An object of class \code{StatSurvivalDiscrete} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{GeomSurvivalDiscrete} (inherits from \code{Geom}, \code{ggproto}, \code{gg}) of length 6.
+An object of class \code{GeomSurvivalDiscrete} (inherits from \code{Geom}, \code{ggproto}, \code{gg}) of length 7.
 }
 \usage{
 geom_survival_discrete(
@@ -207,7 +207,8 @@ jump segments, and endpoints.}
     geom_survival_discrete(cdf_fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 
   ggplot() +
-    geom_survival_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+    geom_survival_discrete(pmf_fun = dpois, xlim = c(0, 15), support = 0:50,
+                           args = list(lambda = 5))
 
   # highlight the upper quartile
   ggplot() +

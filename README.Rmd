@@ -517,7 +517,7 @@ ggplot() +
 
 ```{r discrete-cdf}
 ggplot() +
-  geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+  geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), support = 0:50, args = list(lambda = 5))
 ```
 
 **Shading.** The discrete CDF accepts the same `p`, `lower.tail`, and `p_lower`/`p_upper` arguments as `geom_cdf()` and `geom_pmf()`: atoms inside the requested region draw at full opacity while the rest are dimmed. Here we highlight the lower half of the $\text{Binomial}(10, 0.5)$ distribution.
@@ -624,7 +624,7 @@ ggplot() +
 
 ```{r discrete-qf-pois}
 ggplot() +
-  geom_qf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+  geom_qf_discrete(pmf_fun = dpois, xlim = c(0, 15), support = 0:50, args = list(lambda = 5))
 ```
 
 **Hiding points.** Setting `show_points = FALSE` removes the endpoint circles, leaving only the horizontal and vertical lines.
@@ -749,30 +749,31 @@ ggplot(df_two, aes(x = x, color = group)) +
 `geom_ppplot()` and `geom_qqplot()` compare sample order statistics to a fully specified null distribution. Both draw 95% DKW/Massart confidence bands by default, add a dashed identity line, and map point color to the sample value (PP) or plotting position (QQ). They use ggplot2's default continuous color scale unless you add your own.
 
 ```{r ppplot}
-ggplot(df_single, aes(x = x)) +
-  geom_ppplot(fun = pnorm)
+ggplot(df_single, aes(sample = x)) +
+  geom_ppplot(fun = pnorm, null_type = "continuous")
 ```
 
 ```{r qqplot}
-ggplot(df_single, aes(x = x)) +
+ggplot(df_single, aes(sample = x)) +
   geom_qqplot(fun = qnorm)
 ```
 
 **Black points.** Set a fixed color when you want an uncolored diagnostic plot.
 
 ```{r qqplot-black}
-ggplot(df_single, aes(x = x)) +
+ggplot(df_single, aes(sample = x)) +
   geom_qqplot(fun = qnorm, color = "black")
 ```
 
 **Spectral scale.** A rainbow palette can help viewers with typical color vision distinguish variation in the computed variable (`x` in PP plots or `p` in QQ plots) across the points.
 
 ```{r qqplot-spectral}
-pp <- ggplot(df_single, aes(x = x)) +
-  geom_ppplot(fun = pnorm, shape = 21, color = "black", aes(fill = after_stat(sample))) +
+pp <- ggplot(df_single, aes(sample = x)) +
+  geom_ppplot(fun = pnorm, null_type = "continuous", shape = 21, color = "black",
+              aes(fill = after_stat(sample))) +
   scale_fill_gradientn(colors = rainbow(10))
   
-qq <- ggplot(df_single, aes(x = x)) +
+qq <- ggplot(df_single, aes(sample = x)) +
   geom_qqplot(fun = qnorm, shape = 21, color = "black", aes(fill = after_stat(p))) +
   scale_fill_gradientn(colors = rainbow(10), limits = c(0, 1))
 
@@ -785,8 +786,8 @@ pp + qq
 `geom_spplot()` draws Michael's (1983) stabilized probability (SP) plot: a PP plot with both coordinates passed through the arcsine-square-root variance-stabilizing transform $g(p) = \tfrac{2}{\pi} \arcsin \sqrt{p}$. Under the null the transformed points have approximately equal variance across the whole unit interval, so departures in the tails are as visible as departures in the middle. The interface matches `geom_ppplot()`: supply a CDF via `fun` (parameters via `args`); the 95% DKW/Massart band is carried to the stabilized scale.
 
 ```{r spplot}
-ggplot(df_single, aes(x = x)) +
-  geom_spplot(fun = pnorm)
+ggplot(df_single, aes(sample = x)) +
+  geom_spplot(fun = pnorm, null_type = "continuous")
 ```
 
 

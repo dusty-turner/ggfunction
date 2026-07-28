@@ -76,6 +76,15 @@
 #' @param hf_lower Lower integration limit for `hf_fun`. Defaults to `-Inf`.
 #' @param args A named list of additional arguments passed to the supplied
 #'   distribution function.
+#' @param null_type Declares the type of the null distribution for
+#'   `geom_ppplot()` and `geom_spplot()`: `"continuous"` or `"discrete"`.
+#'   The PP/SP confidence bands are continuous-null procedures, so a band
+#'   request (`conf_int = TRUE`) requires `null_type = "continuous"`;
+#'   declaring `"discrete"` with a band aborts. With `conf_int = FALSE` the
+#'   point diagnostic needs no declaration and remains interpretable for
+#'   discrete nulls (ties then reflect the null's atoms). An arbitrary R
+#'   function cannot be classified reliably, so the declaration is explicit
+#'   rather than guessed. `geom_qqplot()` has no such restriction.
 #' @param conf_int Logical. If `TRUE` (the default), draw a simultaneous
 #'   DKW/Massart confidence band.
 #' @param level Confidence level for the DKW band. Defaults to `0.95`.
@@ -118,6 +127,14 @@
 #' }
 #'
 #' @section Aesthetics:
+#' The canonical input aesthetic is the non-positional `sample`, holding the
+#' raw observations (as in [ggplot2::stat_qq()]); ggplot2 never transforms
+#' it, so the null CDF or quantile function always receives raw values even
+#' under transformed output scales. The legacy `aes(x = )` input remains
+#' supported on identity x scales for one deprecation cycle (with a
+#' warning); under a transformed x scale it aborts, because the raw
+#' observations cannot be reconstructed after the position transform.
+#'
 #' `geom_ppplot()`, `geom_spplot()`, and `geom_qqplot()` require the following
 #' aesthetic:
 #' \describe{
@@ -138,31 +155,32 @@
 #' set.seed(1)
 #' df <- data.frame(x = rnorm(50))
 #'
-#' ggplot(df, aes(x = x)) +
-#'   geom_ppplot(fun = pnorm) +
+#' ggplot(df, aes(sample = x)) +
+#'   geom_ppplot(fun = pnorm, null_type = "continuous") +
 #'   coord_equal()
 #'
-#' ggplot(df, aes(x = x)) +
-#'   geom_spplot(fun = pnorm) +
+#' ggplot(df, aes(sample = x)) +
+#'   geom_spplot(fun = pnorm, null_type = "continuous") +
 #'   coord_equal()
 #'
-#' ggplot(df, aes(x = x)) +
+#' ggplot(df, aes(sample = x)) +
 #'   geom_qqplot(fun = qnorm) +
 #'   coord_equal()
 #'
 #' # Parameterized null distribution via `args`
 #' df2 <- data.frame(x = rnorm(50, mean = 2, sd = 2))
-#' ggplot(df2, aes(x = x)) +
-#'   geom_ppplot(fun = pnorm, args = list(mean = 2, sd = 2)) +
+#' ggplot(df2, aes(sample = x)) +
+#'   geom_ppplot(fun = pnorm, args = list(mean = 2, sd = 2),
+#'               null_type = "continuous") +
 #'   coord_equal()
 #'
 #' # Use fixed black points by setting a fixed colour.
-#' ggplot(df, aes(x = x)) +
+#' ggplot(df, aes(sample = x)) +
 #'   geom_qqplot(fun = qnorm, colour = "black") +
 #'   coord_equal()
 #'
 #' # Or add a spectral/rainbow colour scale explicitly.
-#' ggplot(df, aes(x = x)) +
+#' ggplot(df, aes(sample = x)) +
 #'   geom_qqplot(fun = qnorm) +
 #'   scale_colour_gradientn(colors = grDevices::rainbow(10)) +
 #'   coord_equal()

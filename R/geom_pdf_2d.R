@@ -179,7 +179,7 @@ geom_pdf_2d <- function(
       ))
     }
     fun_xy <- pdf2d_vector_fun_to_xy_fun(fun, args)
-    ggdensity::geom_hdr_fun(
+    reject_transformed_position_scales(ggdensity::geom_hdr_fun(
       mapping = mapping,
       data = data,
       position = position,
@@ -193,7 +193,7 @@ geom_pdf_2d <- function(
       show.legend = show.legend,
       inherit.aes = inherit.aes,
       ...
-    )
+    ), what = "geom_pdf_2d")
   } else {
     if ((!is.null(xlim) && !identical(hdr_xlim, xlim)) ||
         (!is.null(ylim) && !identical(hdr_ylim, ylim))) {
@@ -203,7 +203,7 @@ geom_pdf_2d <- function(
       ))
     }
     fun_xy <- pdf2d_vector_fun_to_xy_fun(fun, args)
-    ggdensity::geom_hdr_lines_fun(
+    reject_transformed_position_scales(ggdensity::geom_hdr_lines_fun(
       mapping = mapping,
       data = data,
       position = position,
@@ -217,7 +217,7 @@ geom_pdf_2d <- function(
       show.legend = show.legend,
       inherit.aes = inherit.aes,
       ...
-    )
+    ), what = "geom_pdf_2d")
   }
 }
 

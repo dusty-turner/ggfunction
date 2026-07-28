@@ -9,7 +9,7 @@
 \format{
 An object of class \code{StatCDFDiscrete} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{GeomCDFDiscrete} (inherits from \code{Geom}, \code{ggproto}, \code{gg}) of length 7.
+An object of class \code{GeomCDFDiscrete} (inherits from \code{Geom}, \code{ggproto}, \code{gg}) of length 8.
 }
 \usage{
 geom_cdf_discrete(
@@ -208,7 +208,8 @@ jump segments, and endpoints.}
     geom_cdf_discrete(fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 
   ggplot() +
-    geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5))
+    geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), support = 0:50,
+                      args = list(lambda = 5))
 
   # highlight the lower half of the distribution
   ggplot() +

@@ -9,7 +9,7 @@
 \format{
 An object of class \code{StatFunction1d} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
-An object of class \code{GeomFunction1d} (inherits from \code{GeomPath}, \code{Geom}, \code{ggproto}, \code{gg}) of length 3.
+An object of class \code{GeomFunction1d} (inherits from \code{GeomPath}, \code{Geom}, \code{ggproto}, \code{gg}) of length 4.
 }
 \usage{
 geom_function_1d_1d(
@@ -25,8 +25,8 @@ geom_function_1d_1d(
   xlim = NULL,
   n = 101,
   args = list(),
-  fill = "grey20",
-  color = "black",
+  fill = NULL,
+  color = NULL,
   shade_from = NULL,
   shade_to = NULL
 )
@@ -86,19 +86,28 @@ specification, e.g. \code{\link[ggplot2:annotation_borders]{annotation_borders()
 
 \item{fun}{A function to compute. The function must accept a numeric vector as its first argument.}
 
-\item{xlim}{A numeric vector of length 2 giving the x-range over which to evaluate the function.}
+\item{xlim}{A numeric vector of length 2 giving the x-range over which to
+evaluate the function, in data coordinates. Under a transformed x scale
+the evaluation grid is evenly spaced in panel (transformed) space and the
+function is evaluated at the corresponding data-space values. (This
+deliberately differs from \code{\link[ggplot2:geom_function]{ggplot2::stat_function()}}, which interprets
+\code{xlim} in transformed scale space.)}
 
 \item{n}{Number of points at which to evaluate \code{fun}. Defaults to 101.}
 
 \item{args}{A named list of additional arguments to pass to \code{fun}.}
 
-\item{fill}{Fill color for the shaded area (only used when \code{shade_from}/\code{shade_to} are specified).}
+\item{fill}{Fill color for the shaded area (only used when \code{shade_from}/\code{shade_to} are
+specified). Defaults to \code{"grey20"}; supply a value to override a fill mapping.}
 
-\item{color}{Line color for the curve.}
+\item{color}{Line color for the curve. Defaults to \code{"black"}; supply a
+value to override a colour mapping.}
 
-\item{shade_from}{(Optional) Numeric. Left boundary of the x-interval to shade.}
+\item{shade_from}{(Optional) Numeric. Left boundary of the x-interval to shade, in data
+coordinates.}
 
-\item{shade_to}{(Optional) Numeric. Right boundary of the x-interval to shade.}
+\item{shade_to}{(Optional) Numeric. Right boundary of the x-interval to shade, in data
+coordinates.}
 }
 \value{
 A ggplot2 layer.
@@ -112,8 +121,14 @@ as a line (like \code{\link[ggplot2:geom_function]{ggplot2::geom_function()}}) w
 These are calculated by the \code{stat} part of the layer and can be accessed
 with \code{\link[ggplot2:aes_eval]{ggplot2::after_stat()}}.
 \describe{
-\item{\code{after_stat(x)}}{Points at which \code{fun} is evaluated.}
+\item{\code{after_stat(x)}}{Points at which \code{fun} is evaluated (data
+coordinates).}
 \item{\code{after_stat(y)}}{Function values.}
+\item{\code{after_stat(x_eval)}}{Data-space evaluation points (equal to the
+raw \code{x} grid).}
+\item{\code{after_stat(y_raw)}}{Raw (untransformed) function values.}
+\item{\code{after_stat(in_shade)}}{Logical indicator for grid points inside
+the requested \code{shade_from}/\code{shade_to} region.}
 }
 }
 
@@ -125,7 +140,8 @@ supplied. It understands the following aesthetics:
 \item{Computed position aesthetics}{\code{x} and \code{y}, mapped by default to
 \code{after_stat(x)} and \code{after_stat(y)}.}
 \item{Drawing aesthetics}{\code{alpha}, \code{colour}/\code{color}, \code{fill}, \code{group},
-\code{linetype}, and \code{linewidth} for the line and optional shaded region.}
+\code{linetype}, and \code{linewidth} for the line and optional shaded region. A
+mapped \code{fill} must be constant within each shaded group.}
 }
 }
 

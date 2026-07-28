@@ -5,11 +5,14 @@
 \alias{geom_echf}
 \alias{StatECHF}
 \alias{StatECHFBand}
+\alias{GeomECHFBandRibbon}
 \title{Plot an Empirical Cumulative Hazard Function}
 \format{
 An object of class \code{StatECHF} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
 
 An object of class \code{StatECHFBand} (inherits from \code{Stat}, \code{ggproto}, \code{gg}) of length 3.
+
+An object of class \code{GeomECHFBandRibbon} (inherits from \code{GeomRibbon}, \code{Geom}, \code{ggproto}, \code{gg}) of length 2.
 }
 \usage{
 geom_echf(
@@ -34,6 +37,8 @@ geom_echf(
 StatECHF
 
 StatECHFBand
+
+GeomECHFBandRibbon
 }
 \arguments{
 \item{mapping}{Set of aesthetic mappings created by \code{\link[ggplot2:aes]{aes()}}. If specified and \code{inherit.aes = TRUE} (the default), it is combined with the default mapping at the top level

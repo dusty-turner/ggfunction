@@ -12,16 +12,26 @@ test_that("pmf upper-tail shading mirrors the lower tail (inclusive crossing ato
 })
 
 test_that("pmf p-shading is resolved per group via StatPMF (no cross-group cumsum)", {
-  g <- StatPMF$compute_group(
-    data.frame(group = 1), scales = list(),
-    fun = dbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5), p = 0.8
-  )
-  expect_true("in_shade" %in% names(g))
-  # in_shade depends only on this group's masses.
-  expect_identical(g$in_shade, pmf_shade_index(g$y, p = 0.8))
-  # A second, independent group is unaffected by the first (would fail under a
-  # panel-wide cumsum that reaches 2.0).
-  expect_identical(g$in_shade, pmf_shade_index(g$y, p = 0.8))
+  # Two genuinely independent groups in one built layer: each group's shading
+  # must be computed from only that group's masses. A panel-wide cumsum
+  # (reaching total mass 2.0) would mis-shade the second group (F-02).
+  d <- data.frame(g = c("a", "b"))
+  b <- ggplot_build(
+    ggplot(d, aes(colour = g, group = g)) +
+      geom_pmf(
+        data = d,
+        fun = dbinom, xlim = c(0, 10),
+        args = list(size = 10, prob = 0.5), p = 0.8
+      )
+  )$data[[1]]
+
+  expect_equal(length(unique(b$group)), 2)
+  for (gid in unique(b$group)) {
+    rows <- b[b$group == gid, ]
+    expect_true("in_shade" %in% names(rows))
+    expect_identical(rows$in_shade, pmf_shade_index(rows$mass, p = 0.8))
+    expect_true(any(rows$in_shade) && any(!rows$in_shade))
+  }
 })
 
 test_that("two-sided pmf shading respects shade_outside", {

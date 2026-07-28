@@ -130,9 +130,9 @@ evaluate_pmf <- function(fun, support, args = NULL, arg = "fun",
 
 #' Strictly validate direct discrete survival values (spec C-04).
 #'
-#' Requires numeric output of the right length, finite values within
-#' [0, 1] (roundoff excursions within sqrt(.Machine$double.eps) are clamped),
-#' and non-increasing survival. Violations abort.
+#' Requires numeric output of the right length, finite values within the
+#' unit interval (roundoff excursions within sqrt(.Machine$double.eps) are
+#' clamped), and non-increasing survival. Violations abort.
 #' @noRd
 validate_discrete_survival <- function(vals, support, arg = "fun") {
   tol <- sqrt(.Machine$double.eps)

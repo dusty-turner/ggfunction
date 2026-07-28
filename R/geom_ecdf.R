@@ -722,8 +722,6 @@ StatECHF <- ggproto("StatECHF", Stat,
   }
 )
 
-#' @rdname geom_echf
-#' @export
 #' Validate the ECHF band cap: NULL (default log(2n) cap), Inf (genuinely
 #' unbounded), or one finite non-negative scalar (D-03).
 #' @noRd
@@ -736,6 +734,8 @@ validate_band_max <- function(band_max) {
   band_max
 }
 
+#' @rdname geom_echf
+#' @export
 StatECHFBand <- ggproto("StatECHFBand", Stat,
   required_aes = "x",
 

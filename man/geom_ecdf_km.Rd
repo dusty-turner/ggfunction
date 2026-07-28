@@ -31,6 +31,7 @@ geom_ecdf_km(
   conf_int = TRUE,
   level = 0.95,
   conf_alpha = 0.4,
+  ep_range = NULL,
   censor_marks = TRUE,
   censor_shape = 3,
   censor_size = 2
@@ -147,6 +148,19 @@ EP confidence band around the KM curve.}
 
 \item{conf_alpha}{Alpha (transparency) of the confidence ribbon. Defaults
 to \code{0.4}.}
+
+\item{ep_range}{Optional numeric vector \code{c(a_L, a_U)} prespecifying the
+equal-precision transformed-time domain of the simultaneous confidence
+band, validated as \verb{0 < a_L < a_U < 1}. The band is restricted to event
+times whose transformed times fall inside this range, and the critical
+value is computed from the supplied endpoints. When \code{NULL} (the
+default), the first and last valid transformed times are used — a
+data-adaptive plug-in band that is approximate rather than an
+unqualified nominal simultaneous-confidence procedure. Rows where the
+Greenwood variance is undefined (for example the terminal event when
+everyone remaining fails) are never part of the band; the last valid
+interval is carried to the end of follow-up as a non-inferential
+geometric anchor.}
 
 \item{censor_marks}{Logical. If \code{TRUE} (the default), draws "+" marks at
 censoring times on the survival curve.}
