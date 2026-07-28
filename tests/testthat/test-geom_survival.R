@@ -226,10 +226,20 @@ test_that("geom_survival shades two-sided regions", {
   expect_silent(ggplotGrob(p))
 })
 
-test_that("geom_survival warns and clamps when shading probability is unreached", {
+test_that("geom_survival keeps exact out-of-window shade boundaries without clamping (B-02)", {
+  # The p = 0.99 quantile (~2.33) lies outside xlim = c(-3, 0). The exact raw
+  # boundary is retained as metadata and the visible shading is clipped by
+  # the window; no false boundary is created at the window edge.
   p <- ggplot() +
     geom_survival(cdf_fun = pnorm, xlim = c(-3, 0), p = 0.99)
-  expect_warning(ggplotGrob(p), "not reached")
+  expect_no_warning(ggplotGrob(p))
+  d <- ggplot_build(p)$data[[1]]
+  expect_equal(
+    unique(stats::na.omit(d$shade_x_upper_raw)),
+    qnorm(0.99),
+    tolerance = 1e-6
+  )
+  expect_lte(max(d$x_eval), 0)
 })
 
 # --- check ---

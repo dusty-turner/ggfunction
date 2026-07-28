@@ -191,13 +191,7 @@ StatHF <- ggproto("StatHF", Stat,
       )
     }
 
-    range <- if (is.null(scales$x)) {
-      xlim %||% c(0, 1)
-    } else {
-      xlim %||% scales$x$dimension()
-    }
-
-    xseq <- seq(range[1], range[2], length.out = n)
+    grid <- resolve_stat_grid_1d(scales$x, xlim, support = support, n = n)
 
     fun_injected <- as_hf_1d(
       fun = fun,
@@ -211,13 +205,18 @@ StatHF <- ggproto("StatHF", Stat,
       support = support,
       hf_lower = hf_lower
     )
-    y_out <- fun_injected(xseq)
+    hazard_raw <- fun_injected(grid$eval)
 
     if (ggfunction_check_enabled(check)) {
-      invisible(check_hf_validity(y_out, tol = check_tol))
+      invisible(check_hf_validity(hazard_raw, tol = check_tol))
     }
 
-    data.frame(x = xseq, y = y_out)
+    data.frame(
+      x = grid$panel,
+      x_eval = grid$eval,
+      y = scale_forward(scales$y, hazard_raw),
+      hazard = hazard_raw
+    )
   }
 )
 

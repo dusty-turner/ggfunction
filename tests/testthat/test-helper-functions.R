@@ -333,3 +333,42 @@ test_that("new validators respect the ggfunction.check option", {
   expect_silent(check_hf_validity(c(-1)))
   expect_silent(check_chf_validity(c(0, 2, 1)))
 })
+
+# --- B-05: shared probability-argument validation ---
+
+test_that("probability shading arguments are validated uniformly (B-05)", {
+  cases <- list(
+    list(args = list(p = -0.1), msg = "between 0 and 1"),
+    list(args = list(p = 1.1), msg = "between 0 and 1"),
+    list(args = list(p = c(0.2, 0.4)), msg = "single"),
+    list(args = list(p = NA_real_), msg = "single finite"),
+    list(args = list(p_lower = 0.1), msg = "together"),
+    list(args = list(p_upper = 0.9), msg = "together"),
+    list(args = list(p_lower = 0.9, p_upper = 0.1), msg = "less than"),
+    list(args = list(p = 0.5, p_lower = 0.1, p_upper = 0.9), msg = "not both"),
+    list(args = list(shade_outside = "yes"), msg = "logical"),
+    list(args = list(shade_outside = NA), msg = "logical"),
+    list(args = list(shade_outside = TRUE), msg = "pair"),
+    list(args = list(p = 0.5, shade_outside = TRUE), msg = "pair")
+  )
+  for (case in cases) {
+    expect_error(
+      do.call(validate_probability_shading, case$args),
+      case$msg
+    )
+  }
+
+  expect_no_error(validate_probability_shading(p = 0.5))
+  expect_no_error(validate_probability_shading(p_lower = 0.1, p_upper = 0.9))
+  expect_no_error(
+    validate_probability_shading(p_lower = 0.1, p_upper = 0.9, shade_outside = TRUE)
+  )
+  expect_no_error(validate_probability_shading(shade_outside = FALSE))
+})
+
+test_that("the shared validator is applied across shading constructors (B-05)", {
+  expect_error(geom_pdf(fun = dnorm, p = 2), "between 0 and 1")
+  expect_error(geom_pdf(fun = dnorm, p = 0.5, shade_outside = TRUE), "pair")
+  expect_error(geom_cdf(fun = pnorm, p = c(0.1, 0.2)), "single")
+  expect_error(geom_survival(fun = function(x) exp(-x), p_upper = 0.9), "together")
+})

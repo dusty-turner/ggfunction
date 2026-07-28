@@ -180,13 +180,7 @@ StatCHF <- ggproto("StatCHF", Stat,
       )
     }
 
-    range <- if (is.null(scales$x)) {
-      xlim %||% c(0, 1)
-    } else {
-      xlim %||% scales$x$dimension()
-    }
-
-    xseq <- seq(range[1], range[2], length.out = n)
+    grid <- resolve_stat_grid_1d(scales$x, xlim, support = support, n = n)
 
     fun_injected <- as_chf_1d(
       fun = fun,
@@ -199,13 +193,23 @@ StatCHF <- ggproto("StatCHF", Stat,
       args = args,
       support = support
     )
-    y_out <- fun_injected(xseq)
+    cumhazard_raw <- fun_injected(grid$eval)
 
     if (ggfunction_check_enabled(check)) {
-      invisible(check_chf_validity(y_out, tol = check_tol))
+      invisible(check_chf_validity(cumhazard_raw, tol = check_tol))
     }
 
-    data.frame(x = xseq, y = y_out)
+    out <- data.frame(
+      x = grid$panel,
+      x_eval = grid$eval,
+      y = scale_forward(scales$y, cumhazard_raw),
+      cumhazard = cumhazard_raw
+    )
+    # Cumulative hazards train on the raw zero baseline only when it is
+    # finite in the active transformation domain (C-05).
+    baseline <- resolve_stat_baseline(scales$y, 0)
+    if (baseline$finite) out$ymin <- baseline$panel
+    out
   }
 )
 

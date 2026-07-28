@@ -202,7 +202,17 @@ StatQF <- ggproto("StatQF", Stat,
       invisible(check_qf_validity(q_vals, support = support, tol = check_tol))
     }
 
-    data.frame(p = p_vals, q = q_vals, x = q_vals)
-
+    # The default mapping routes `p` to the x position and `x` (the raw
+    # quantiles) to the y position through after_stat(); ggplot2 4.x
+    # backtransforms the `x` column by the x scale before evaluating those
+    # expressions and retransforms the mapped positions, so the `x` column
+    # must carry x-panel-space values for the round trip to place raw
+    # quantiles on the y scale exactly once (A-01).
+    data.frame(
+      p = p_vals,
+      x_eval = p_vals,
+      q = q_vals,
+      x = scale_forward(scales$x, q_vals)
+    )
   }
 )

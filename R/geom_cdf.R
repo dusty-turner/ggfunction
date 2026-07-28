@@ -237,24 +237,11 @@ cdf_mark_in_shade <- function(x_eval, lower, upper) {
 #' @noRd
 cdf_insert_boundary_rows <- function(data, boundaries, fun,
                                      x_scale = NULL, y_scale = NULL) {
-  boundaries <- unique(boundaries[is.finite(boundaries)])
-  if (length(boundaries) == 0L) return(data)
-
-  window <- range(data$x_eval, na.rm = TRUE)
-  boundaries <- boundaries[boundaries >= window[1] & boundaries <= window[2]]
-  boundaries <- setdiff(boundaries, data$x_eval)
-  if (length(boundaries) == 0L) return(data)
-
-  rows <- data[rep(1L, length(boundaries)), , drop = FALSE]
-  cdf_raw <- fun(boundaries)
-  rows$x_eval <- boundaries
-  rows$x <- scale_forward(x_scale, boundaries)
-  rows$cdf <- cdf_raw
-  if ("p" %in% names(rows)) rows$p <- cdf_raw
-  rows$y <- scale_forward(y_scale, cdf_raw)
-
-  out <- rbind(data, rows)
-  out[order(out$x_eval), , drop = FALSE]
+  stat_insert_boundary_rows(
+    data, boundaries, fun,
+    x_scale = x_scale, y_scale = y_scale,
+    value_col = "cdf"
+  )
 }
 
 #' Draw-time regrid: extend the curve over the full visible panel when other

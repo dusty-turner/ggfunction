@@ -109,6 +109,35 @@ resolve_stat_grid_1d <- function(scale, limits = NULL, support = NULL,
   list(panel = panel, eval = scale_inverse(scale, panel))
 }
 
+#' Insert exact evaluation rows at raw data-space boundaries (spec B-02).
+#'
+#' A row is inserted only when the boundary lies inside the evaluation
+#' window; positions are transformed exactly once, and the raw function value
+#' is stored in `value_col` (plus a `p` alias when the frame carries one).
+#' @noRd
+stat_insert_boundary_rows <- function(data, boundaries, fun,
+                                      x_scale = NULL, y_scale = NULL,
+                                      value_col = "y_raw") {
+  boundaries <- unique(boundaries[is.finite(boundaries)])
+  if (length(boundaries) == 0L) return(data)
+
+  window <- range(data$x_eval, na.rm = TRUE)
+  boundaries <- boundaries[boundaries >= window[1] & boundaries <= window[2]]
+  boundaries <- setdiff(boundaries, data$x_eval)
+  if (length(boundaries) == 0L) return(data)
+
+  rows <- data[rep(1L, length(boundaries)), , drop = FALSE]
+  raw <- fun(boundaries)
+  rows$x_eval <- boundaries
+  rows$x <- scale_forward(x_scale, boundaries)
+  rows[[value_col]] <- raw
+  if (value_col != "p" && "p" %in% names(rows)) rows$p <- raw
+  rows$y <- scale_forward(y_scale, raw)
+
+  out <- rbind(data, rows)
+  out[order(out$x_eval), , drop = FALSE]
+}
+
 #' Resolve a raw mathematical baseline (density/mass/hazard zero, survival
 #' one, ...) against a possibly transforming scale (spec 5.1).
 #'

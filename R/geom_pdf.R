@@ -159,6 +159,7 @@ geom_pdf <- function(
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
   validate_data_limits(xlim)
+  validate_probability_shading(p, p_lower, p_upper, shade_hdr, shade_outside)
 
   default_mapping <- aes(x = after_stat(x), y = after_stat(y))
 
@@ -350,24 +351,6 @@ pdf_reconstruct_intervals <- function(shade_lower, shade_upper,
   }
 }
 
-#' @noRd
-validate_probability_shading <- function(p = NULL, p_lower = NULL,
-                                         p_upper = NULL,
-                                         shade_hdr = NULL) {
-  probs <- c(p = p, p_lower = p_lower, p_upper = p_upper, shade_hdr = shade_hdr)
-  if (length(probs) > 0L &&
-      any(!is.finite(probs) | probs <= 0 | probs >= 1)) {
-    cli::cli_abort("Probability shading arguments must be strictly between 0 and 1.")
-  }
-  if ((is.null(p_lower) && !is.null(p_upper)) ||
-      (!is.null(p_lower) && is.null(p_upper))) {
-    cli::cli_abort("{.arg p_lower} and {.arg p_upper} must be supplied together.")
-  }
-  if (!is.null(p_lower) && p_lower >= p_upper) {
-    cli::cli_abort("{.arg p_lower} must be less than {.arg p_upper}.")
-  }
-}
-
 #' Insert exact shading-boundary evaluation rows. Boundaries are raw
 #' distributional quantiles; a row is inserted only when the boundary lies
 #' inside the evaluation window (spec B-02). Positions are transformed
@@ -487,7 +470,7 @@ pdf_add_shading_columns <- function(data, scales, fun, cdf, qf,
                                     shade_outside = FALSE, shade_hdr = NULL,
                                     hdr_xlim = NULL, n = 101,
                                     check = TRUE, check_tol = 1e-2) {
-  validate_probability_shading(p, p_lower, p_upper, shade_hdr)
+  validate_probability_shading(p, p_lower, p_upper, shade_hdr, shade_outside)
   support <- validate_support_1d(support)
   data$in_shade <- TRUE
   data$shade_lower <- NA_real_

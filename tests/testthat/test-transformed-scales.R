@@ -110,3 +110,80 @@ test_that("geom_pdf on identity scales renders without baseline warnings (A-01)"
   p <- ggplot() + geom_pdf(fun = dnorm, xlim = c(-3, 3))
   expect_no_warning(ggplotGrob(p))
 })
+
+test_that("geom_survival transforms positions once and keeps raw survival (A-01)", {
+  b <- ggplot_build(
+    ggplot() +
+      geom_survival(fun = function(x) exp(-x), xlim = c(0.1, 10), n = 3,
+                    support = c(0, Inf)) +
+      scale_x_log10() +
+      scale_y_log10()
+  )$data[[1]]
+
+  expect_equal(b$x, c(-1, 0, 1), tolerance = 1e-12)
+  expect_equal(b$x_eval, c(0.1, 1, 10), tolerance = 1e-12)
+  expect_equal(b$survival, exp(-b$x_eval), tolerance = 1e-12)
+  expect_equal(b$y, log10(exp(-b$x_eval)), tolerance = 1e-12)
+})
+
+test_that("geom_hf and geom_chf transform positions once with raw aliases (A-01)", {
+  b_hf <- ggplot_build(
+    ggplot() +
+      geom_hf(fun = function(x) rep(2, length(x)), xlim = c(0.1, 10), n = 3) +
+      scale_x_log10() +
+      scale_y_log10()
+  )$data[[1]]
+  expect_equal(b_hf$x, c(-1, 0, 1), tolerance = 1e-12)
+  expect_equal(b_hf$hazard, rep(2, 3))
+  expect_equal(b_hf$y, rep(log10(2), 3), tolerance = 1e-12)
+
+  b_chf <- ggplot_build(
+    ggplot() +
+      geom_chf(fun = identity, xlim = c(0.1, 10), n = 3) +
+      scale_x_log10()
+  )$data[[1]]
+  expect_equal(b_chf$x, c(-1, 0, 1), tolerance = 1e-12)
+  expect_equal(b_chf$cumhazard, c(0.1, 1, 10), tolerance = 1e-12)
+})
+
+test_that("geom_qf places raw quantiles on transformed output scales once (A-01)", {
+  b <- ggplot_build(
+    ggplot() +
+      geom_qf(fun = qlnorm, n = 5) +
+      scale_y_log10()
+  )$data[[1]]
+  expect_equal(b$y, log10(qlnorm(b$p)), tolerance = 1e-10)
+  expect_equal(b$q, qlnorm(b$p), tolerance = 1e-10)
+
+  b_id <- ggplot_build(ggplot() + geom_qf(fun = qnorm, n = 5))$data[[1]]
+  expect_equal(b_id$y, qnorm(b_id$p), tolerance = 1e-10)
+  expect_equal(b_id$x, b_id$p)
+})
+
+test_that("survival shading boundaries are exact quantiles on any y scale (B-02)", {
+  for (scale_layer in list(NULL, scale_y_log10())) {
+    p <- ggplot() + geom_survival(cdf_fun = pnorm, xlim = c(-3, 3), p = 0.3)
+    if (!is.null(scale_layer)) p <- p + scale_layer
+    d <- ggplot_build(p)$data[[1]]
+    expect_equal(
+      unique(stats::na.omit(d$shade_x_upper_raw)),
+      qnorm(0.3),
+      tolerance = 1e-6
+    )
+    expect_true(any(abs(d$x_eval - qnorm(0.3)) < 1e-6))
+  }
+})
+
+test_that("survival probability axis trains on 0 and 1; CHF trains on zero (C-05)", {
+  rng <- plot_y_range(
+    ggplot() +
+      geom_survival(fun = function(x) exp(-x), xlim = c(0, 1), support = c(0, Inf))
+  )
+  expect_lte(rng[1], 0)
+  expect_gte(rng[2], 1)
+
+  rng_chf <- plot_y_range(
+    ggplot() + geom_chf(fun = function(x) 5 + x, xlim = c(0, 1))
+  )
+  expect_lte(rng_chf[1], 0)
+})

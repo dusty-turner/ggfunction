@@ -140,6 +140,8 @@ geom_survival <- function(
     ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
+  validate_data_limits(xlim)
+  validate_probability_shading(p = p, p_lower = p_lower, p_upper = p_upper)
 
   default_mapping <- aes(x = after_stat(x), y = after_stat(y))
 
@@ -207,18 +209,15 @@ StatSurvival <- ggproto("StatSurvival", Stat,
                            hf_fun = NULL, hf_lower = -Inf,
                            xlim = NULL, support = c(-Inf, Inf),
                            n = 101, args = NULL,
+                           p = NULL, lower.tail = TRUE,
+                           p_lower = NULL, p_upper = NULL,
                            check = TRUE, check_tol = 1e-2) {
 
     check_survival_sources(fun, cdf_fun, pdf_fun, qf_fun, hf_fun)
     support <- validate_support_1d(support)
+    validate_probability_shading(p = p, p_lower = p_lower, p_upper = p_upper)
 
-    range <- if (is.null(scales$x)) {
-      xlim %||% c(0, 1)
-    } else {
-      xlim %||% scales$x$dimension()
-    }
-
-    xseq <- seq(range[1], range[2], length.out = n)
+    grid <- resolve_stat_grid_1d(scales$x, xlim, support = support, n = n)
 
     fun_injected <- as_survival_1d(
       fun = fun,
@@ -230,68 +229,75 @@ StatSurvival <- ggproto("StatSurvival", Stat,
       args = args,
       support = support
     )
-    y_out <- fun_injected(xseq)
+    survival_raw <- fun_injected(grid$eval)
 
     if (ggfunction_check_enabled(check)) {
       invisible(check_survival_validity(
-        fun_injected, y_out,
+        fun_injected, survival_raw,
         lower = support[1], upper = support[2],
         tol = check_tol
       ))
     }
 
-    data.frame(x = xseq, y = y_out)
+    out <- data.frame(
+      x = grid$panel,
+      x_eval = grid$eval,
+      y = scale_forward(scales$y, survival_raw),
+      survival = survival_raw
+    )
+
+    # Shading boundaries are distributional quantiles resolved on raw
+    # probabilities (`p` counts cumulative mass from the left, F = 1 - S),
+    # independent of grid resolution and y scale (B-02 policy).
+    out$in_shade <- FALSE
+    out$shade_x_lower_raw <- NA_real_
+    out$shade_x_upper_raw <- NA_real_
+    if (!is.null(p) || (!is.null(p_lower) && !is.null(p_upper))) {
+      qf_injected <- as_qf_1d(
+        fun = qf_fun, cdf_fun = cdf_fun, pdf_fun = pdf_fun,
+        survival_fun = fun, hf_fun = hf_fun, hf_lower = hf_lower,
+        args = validate_named_args(args), support = support
+      )
+      meta <- cdf_shading_meta(
+        qf_injected,
+        p = p, lower.tail = lower.tail,
+        p_lower = p_lower, p_upper = p_upper
+      )
+      out <- stat_insert_boundary_rows(
+        out, c(meta$lower, meta$upper), fun_injected,
+        x_scale = scales$x, y_scale = scales$y,
+        value_col = "survival"
+      )
+      out$in_shade <- cdf_mark_in_shade(out$x_eval, meta$lower, meta$upper)
+      out$shade_x_lower_raw <- meta$lower
+      out$shade_x_upper_raw <- meta$upper
+    }
+
+    # Probability endpoints: raw zero and one, transformed once when finite
+    # in the transformation domain (spec 5.1, C-05).
+    out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
+    out$top_panel <- resolve_stat_baseline(scales$y, 1)$panel
+    out
   }
 )
 
 #' @rdname geom_survival
 #' @export
 GeomSurvival <- ggproto("GeomSurvival", GeomArea,
+  setup_data = function(data, params) {
+    # Probability endpoints train the y scale when finite under the active
+    # transformation (C-05); the shading baseline is the transformed raw
+    # survival zero, never panel zero (spec 5.1).
+    base <- if ("baseline_panel" %in% names(data)) data$baseline_panel else 0
+    top <- if ("top_panel" %in% names(data)) data$top_panel else 1
+    transform(data, ymin = base, ymax = top)
+  },
+
   draw_panel = function(self, data, panel_params, coord, arrow = NULL,
                         lineend = "butt", linejoin = "round", linemitre = 10,
                         na.rm = FALSE, p = NULL, lower.tail = TRUE,
                         p_lower = NULL, p_upper = NULL
                         ) {
-
-    x_vals <- data$x
-    y_vals <- data$y
-
-    warn_unreached <- function(prob) {
-      cli::cli_warn(c(
-        "The shading probability {.val {prob}} is not reached by the survival function within the drawn range.",
-        "i" = "The shaded boundary was clamped to the edge of {.arg xlim}; widen {.arg xlim} to shade the intended region."
-      ))
-    }
-
-    # `p`, `p_lower`, and `p_upper` are cumulative probabilities from the left
-    # (F = 1 - S), so thresholds sit where the survival curve crosses 1 - p.
-    if (!is.null(p_lower) && !is.null(p_upper)) {
-      idx_lower <- which(y_vals <= 1 - p_lower)[1]
-      if (is.na(idx_lower)) { warn_unreached(p_lower); idx_lower <- length(y_vals) }
-      idx_upper <- which(y_vals <= 1 - p_upper)[1]
-      if (is.na(idx_upper)) { warn_unreached(p_upper); idx_upper <- length(y_vals) }
-      threshold_lower <- x_vals[idx_lower]
-      threshold_upper <- x_vals[idx_upper]
-      clip_data <- data[data$x >= threshold_lower & data$x <= threshold_upper, , drop = FALSE]
-      clip_range <- c(threshold_lower, threshold_upper)
-    } else if (!is.null(p)) {
-      if (lower.tail) {
-        idx <- which(y_vals <= 1 - p)[1]
-        if (is.na(idx)) { warn_unreached(p); idx <- length(y_vals) }
-        threshold_x <- x_vals[idx]
-        clip_data <- data[data$x <= threshold_x, , drop = FALSE]
-        clip_range <- c(min(x_vals), threshold_x)
-      } else {
-        idx <- which(y_vals <= p)[1]
-        if (is.na(idx)) { warn_unreached(p); idx <- 1 }
-        threshold_x <- x_vals[idx]
-        clip_data <- data[data$x >= threshold_x, , drop = FALSE]
-        clip_range <- c(threshold_x, max(x_vals))
-      }
-    } else {
-      clip_data <- NULL
-      clip_range <- NULL
-    }
 
     # Create the line grob for the entire function using GeomPath's draw_panel.
     line_grob <- ggproto_parent(GeomPath, self)$draw_panel(
@@ -299,24 +305,41 @@ GeomSurvival <- ggproto("GeomSurvival", GeomArea,
       linejoin = linejoin, linemitre = linemitre, na.rm = na.rm
     )
 
-    if (is.null(clip_data) || nrow(clip_data) == 0L) {
+    if (!("in_shade" %in% names(data)) || !any(data$in_shade, na.rm = TRUE)) {
       return(line_grob)
     }
 
-    # Close the polygon by adding baseline (y=0) points at the boundaries.
-    poly_data <- rbind(
-      transform(clip_data[1, , drop = FALSE], x = clip_range[1], y = 0),
-      clip_data,
-      transform(clip_data[nrow(clip_data), , drop = FALSE], x = clip_range[2], y = 0)
-    )
+    baseline_panel <- if ("baseline_panel" %in% names(data)) {
+      data$baseline_panel[1]
+    } else {
+      NA_real_
+    }
+    base_y <- baseline_draw_value(baseline_panel, panel_params)
 
-    poly_data$colour <- NA
+    build_poly <- function(clip_data, clip_range) {
+      pd <- rbind(
+        transform(clip_data[1, , drop = FALSE], x = clip_range[1], y = base_y),
+        clip_data,
+        transform(clip_data[nrow(clip_data), , drop = FALSE], x = clip_range[2], y = base_y)
+      )
+      pd$colour <- NA
+      pd$ymin <- base_y
+      pd$ymax <- pd$y
+      pd
+    }
 
-    # Draw the filled area using GeomArea's draw_panel.
-    area_grob <- ggproto_parent(GeomArea, self)$draw_panel(
-      poly_data, panel_params, coord, na.rm = na.rm
-    )
+    area_grobs <- list()
+    for (g in split(data, data$group)) {
+      shade <- g[which(g$in_shade), , drop = FALSE]
+      if (nrow(shade) < 2L) next
+      clip_range <- range(shade$x, na.rm = TRUE)
+      area_grobs <- c(area_grobs, list(
+        ggproto_parent(GeomArea, self)$draw_panel(
+          build_poly(shade, clip_range), panel_params, coord, na.rm = na.rm
+        )
+      ))
+    }
 
-    grid::grobTree(area_grob, line_grob)
+    do.call(grid::grobTree, c(area_grobs, list(line_grob)))
   }
 )
