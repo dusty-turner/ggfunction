@@ -23,6 +23,7 @@ Rplots\.pdf$
 dusty_files*
 ^cran-comments\.md$
 ^CHANGES-SUMMARY\.md$
+^CORRECTNESS-.*\.md$
 ^CRAN-SUBMISSION$
 ^revdep$
 ^.*\.Rcheck$

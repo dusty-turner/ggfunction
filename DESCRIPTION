@@ -36,7 +36,7 @@ Language: en-US
 Roxygen: list(markdown = TRUE)
 Depends:
     R (>= 3.5.0),
-    ggplot2 (>= 3.3.0)
+    ggplot2 (>= 4.0.0)
 Imports:
     ggvfields,
     ggdensity,
@@ -53,9 +53,10 @@ Suggests:
     patchwork,
     rmarkdown,
     survival,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    withr
 VignetteBuilder: knitr
-Date: 2026-06-18
+Date: 2026-07-27
 Config/testthat/edition: 3
 Config/roxygen2/version: 8.0.0
 RoxygenNote: 8.0.0
