@@ -68,14 +68,17 @@ test_that("discrete CDF check warns on a truncated sub-1 CDF", {
   )
 })
 
-test_that("discrete survival tolerates NA over the support without aborting", {
+test_that("discrete survival rejects non-finite values over the support (C-04)", {
+  # Structural validity: a survival function that returns NA on its declared
+  # support is invalid and must abort rather than be drawn silently.
   f <- function(x) ifelse(x == 3, NA_real_, exp(-0.3 * x))
-  expect_no_error(suppressWarnings(
+  expect_error(
     StatSurvivalDiscrete$compute_group(
-      data.frame(group = 1), scales = list(),
+      data.frame(group = 1), scales = list(x = NULL, y = NULL),
       fun = f, xlim = c(0, 10), args = list()
-    )
-  ))
+    ),
+    "finite"
+  )
 })
 
 test_that("geom_cdf keeps exact out-of-window shade boundaries without clamping (B-02)", {

@@ -26,7 +26,8 @@ test_that("geom_survival_discrete builds without error", {
 
 test_that("geom_survival_discrete with custom open_fill builds without error", {
   p <- ggplot() + geom_survival_discrete(
-    pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5), open_fill = "blue"
+    pmf_fun = dpois, xlim = c(0, 15), args = list(lambda = 5),
+    support = 0:50, open_fill = "blue"
   )
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))

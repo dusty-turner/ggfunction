@@ -41,7 +41,7 @@ test_that("geom_qf_discrete x-axis range includes 0 and 1", {
 
 test_that("geom_qf_discrete with Poisson builds without error", {
   p <- ggplot() + geom_qf_discrete(
-    pmf_fun = dpois, args = list(lambda = 5), xlim = c(0, 15)
+    pmf_fun = dpois, args = list(lambda = 5), xlim = c(0, 15), support = 0:50
   )
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))

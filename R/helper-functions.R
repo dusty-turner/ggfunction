@@ -229,12 +229,16 @@ check_pmf_normalization <- function(f, support, tol = 1e-3,
 }
 
 #' Check normalization of precomputed probability masses.
+#'
+#' Structural invalidity (non-finite or negative masses) always aborts,
+#' regardless of `options(ggfunction.check)`; only the soft non-unit-total
+#' diagnostic is gated (spec 5.3, C-03).
 #' @noRd
 check_pmf_mass_normalization <- function(mass, tol = 1e-3) {
-  if (!ggfunction_check_enabled()) return(invisible(NA_real_))
   if (any(!is.finite(mass)) || any(mass < 0)) {
     cli::cli_abort("{.arg fun} must return finite, non-negative mass values over the evaluation lattice.")
   }
+  if (!ggfunction_check_enabled()) return(invisible(NA_real_))
   total <- sum(mass)
   if (abs(total - 1) > tol) {
     cli::cli_alert(sprintf(
@@ -297,7 +301,7 @@ discrete_hdr_probs <- function(mass, shade_hdr) {
   ord     <- order(mass, decreasing = TRUE)
   cumprob <- cumsum(fhat_d[ord])
 
-  fmt <- function(x) paste0(round(x * 100, 1), "%")
+  fmt <- format_hdr_coverages
   labels_in <- fmt(coverages)
   label_out <- paste0(">", labels_in[length(labels_in)])
 
@@ -316,7 +320,7 @@ discrete_hdr_probs <- function(mass, shade_hdr) {
   }
 
   if (any(abs(actual - coverages) > 0.005)) {
-    pairs <- paste0(fmt(coverages), " -> ", fmt(actual), collapse = ", ")
+    pairs <- paste0(fmt(coverages), " -> ", fmt(pmin(actual, 1)), collapse = ", ")
     cli::cli_inform(c(
       "!" = "shade_hdr: exact coverage is not achievable for this discrete distribution.",
       "i" = "Using smallest HDRs with coverage >= each target: {pairs}."
@@ -324,6 +328,27 @@ discrete_hdr_probs <- function(mass, shade_hdr) {
   }
 
   factor(assigned, levels = c(label_out, rev(labels_in)), ordered = TRUE)
+}
+
+#' Collision-free labels for HDR coverage levels (spec C-07).
+#'
+#' Precision increases adaptively until every unique coverage has a unique
+#' label and no strictly-interior coverage displays as a misleading 0% or
+#' 100%. Common levels keep their familiar form (50%, 80%, 95%). Coverage
+#' messages and factor levels share this formatter.
+#' @noRd
+format_hdr_coverages <- function(coverages) {
+  distinct <- !duplicated(coverages)
+  digits <- 0L
+  repeat {
+    shown <- round(coverages * 100, digits)
+    labels <- paste0(formatC(shown, format = "f", digits = digits), "%")
+    misleading <- (coverages > 0 & coverages < 1) & (shown <= 0 | shown >= 100)
+    if ((!anyDuplicated(labels[distinct]) && !any(misleading)) || digits >= 10L) {
+      return(labels)
+    }
+    digits <- digits + 1L
+  }
 }
 
 #' Soft validity check for a discrete CDF over its computational support.
@@ -593,3 +618,138 @@ inject_open_fill <- function(data, theme) {
 utils::globalVariables(c("x", "y", "z", "p", "level", "GeomLine", "pdf_fun", "cdf_fun",
                          "pmf_fun", "survival_fun", "qf_fun", "hf_fun", "ymin", "ymax",
                          "status", "prob", "probs", "qq_x", "qq_ymin", "qq_ymax"))
+
+#' Pure step-segment construction for discrete distribution geoms (C-01).
+#'
+#' Builds the horizontal and vertical segment coordinates for a discrete
+#' step function whose visible points are (x, y) with true predecessor
+#' values y_prev (all in panel coordinates). The leading horizontal segment
+#' sits at the first point's true predecessor value — which, in a narrowed
+#' display window, is the value attained just before the window, not the
+#' distribution's baseline.
+#'
+#' @return list(hori = data.frame(x, xend, y, yend, piece),
+#'              vert = data.frame(x, xend, y, yend))
+#'   `piece` indexes the atom each horizontal segment belongs to (the
+#'   leading segment belongs to atom 1).
+#' @noRd
+discrete_step_segments <- function(x, y, y_prev, x_range) {
+  n <- length(x)
+  if (n == 0L) {
+    empty <- data.frame(x = numeric(0), xend = numeric(0),
+                        y = numeric(0), yend = numeric(0))
+    return(list(hori = cbind(empty, piece = integer(0)), vert = empty))
+  }
+  hori <- data.frame(
+    x = c(x_range[1], x),
+    xend = c(x, x_range[2]),
+    y = c(y_prev[1], y),
+    yend = c(y_prev[1], y),
+    piece = c(1L, seq_len(n))
+  )
+  vert <- data.frame(x = x, xend = x, y = y_prev, yend = y)
+  list(hori = hori, vert = vert)
+}
+
+#' Shared draw_group implementation for the discrete CDF/survival step geoms.
+#'
+#' Consumes stat-provided predecessor metadata (`y_prev`, panel space) so the
+#' first visible step of a narrowed window starts at the true predecessor
+#' value (C-01); falls back to `baseline_default` (panel space) for stats
+#' that do not provide metadata. Unshaded pieces are dimmed multiplicatively
+#' (C-06). Non-finite predecessors (a transform-excluded baseline) are
+#' clipped to the visible panel floor with one targeted warning.
+#' @noRd
+draw_discrete_step_group <- function(data, panel_params, coord,
+                                     open_fill = NULL, vert_type = "dashed",
+                                     show_points = NULL, show_vert = NULL,
+                                     baseline_default = 0) {
+  open_fill <- resolve_open_fill(open_fill, data)
+  n <- nrow(data)
+  if (is.null(show_points)) show_points <- n <= 50
+  if (is.null(show_vert))   show_vert   <- n <= 50
+
+  in_shade <- if ("in_shade" %in% names(data)) data$in_shade else rep(TRUE, n)
+
+  y_prev <- if ("y_prev" %in% names(data)) {
+    data$y_prev
+  } else {
+    c(baseline_default, data$y[-n])
+  }
+  if (any(!is.finite(y_prev))) {
+    floor_y <- baseline_draw_value(NA_real_, panel_params)
+    y_prev[!is.finite(y_prev)] <- floor_y
+  }
+
+  segs <- discrete_step_segments(data$x, data$y, y_prev, panel_params$x.range)
+
+  data_hori <- data[segs$hori$piece, , drop = FALSE]
+  data_hori$x <- segs$hori$x
+  data_hori$xend <- segs$hori$xend
+  data_hori$y <- segs$hori$y
+  data_hori$yend <- segs$hori$yend
+  data_hori$alpha <- dim_alpha(data_hori$alpha, in_shade[segs$hori$piece])
+
+  data_vert <- data
+  data_vert$xend <- segs$vert$xend
+  data_vert$y <- segs$vert$y
+  data_vert$yend <- segs$vert$yend
+  data_vert$alpha <- dim_alpha(data_vert$alpha, in_shade)
+
+  coord_hori <- coord$transform(data_hori, panel_params)
+  coord_vert <- coord$transform(data_vert, panel_params)
+
+  grobs <- list()
+
+  grobs$hori <- grid::segmentsGrob(
+    coord_hori$x, coord_hori$y, coord_hori$xend, coord_hori$yend,
+    default.units = "native",
+    gp = grid::gpar(
+      col = scales::alpha(coord_hori$colour, coord_hori$alpha),
+      lwd = coord_hori$linewidth * .pt,
+      lty = coord_hori$linetype
+    )
+  )
+
+  if (show_vert) {
+    grobs$vert <- grid::segmentsGrob(
+      coord_vert$x, coord_vert$y, coord_vert$xend, coord_vert$yend,
+      default.units = "native",
+      gp = grid::gpar(
+        col = scales::alpha(coord_vert$colour, coord_vert$alpha),
+        lwd = coord_vert$linewidth * .pt,
+        lty = vert_type
+      )
+    )
+  }
+
+  if (show_points) {
+    # Open circle at the pre-jump value (left limit); closed circle at the
+    # value the function attains at x[k].
+    grobs$open <- grid::pointsGrob(
+      coord_vert$x, coord_vert$y,
+      default.units = "native",
+      pch = 21,
+      gp = grid::gpar(
+        col      = scales::alpha(coord_vert$colour, coord_vert$alpha),
+        fill     = open_fill,
+        fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
+        lwd      = coord_vert$stroke * .stroke / 2
+      )
+    )
+
+    grobs$closed <- grid::pointsGrob(
+      coord_vert$xend, coord_vert$yend,
+      pch = coord_vert$shape,
+      default.units = "native",
+      gp = grid::gpar(
+        col      = scales::alpha(coord_vert$colour, coord_vert$alpha),
+        fill     = scales::alpha(coord_vert$colour, coord_vert$alpha),
+        fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
+        lwd      = coord_vert$stroke * .stroke / 2
+      )
+    )
+  }
+
+  grid::gTree(children = do.call(grid::gList, grobs))
+}

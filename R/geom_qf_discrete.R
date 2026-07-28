@@ -173,6 +173,51 @@ geom_qf_discrete <- function(
   list(main_layer, probability_axis_anchor())
 }
 
+#' Infer a bounded integer support from a black-box discrete quantile
+#' function via Q(0)/Q(1), or return NULL (with a warning) when exact
+#' enumeration is impossible (C-02).
+#' @noRd
+infer_qf_integer_support <- function(qf, cap = 10000L) {
+  q0 <- tryCatch(suppressWarnings(qf(0)), error = function(e) NA_real_)
+  q1 <- tryCatch(suppressWarnings(qf(1)), error = function(e) NA_real_)
+  valid_endpoints <- length(q0) == 1L && length(q1) == 1L &&
+    is.finite(q0) && is.finite(q1) && q1 >= q0 &&
+    abs(q0 - round(q0)) < 1e-8 && abs(q1 - round(q1)) < 1e-8
+  if (!valid_endpoints) {
+    cli::cli_warn(c(
+      "Exact boundary enumeration of a black-box discrete quantile function requires a known support.",
+      "i" = "Supply {.arg support}, {.arg pmf_fun}, or {.arg cdf_fun} for exact boundaries; falling back to a grid approximation."
+    ))
+    return(NULL)
+  }
+  span <- round(q1) - round(q0) + 1
+  if (span > cap) {
+    cli::cli_abort(c(
+      "The integer support inferred from Q(0) and Q(1) spans {format(span, big.mark = ',')} points, exceeding the internal cap of {format(cap, big.mark = ',')}.",
+      "i" = "Supply an explicit {.arg support} to opt into a larger computation, or use {.arg pmf_fun}/{.arg cdf_fun}."
+    ))
+  }
+  seq.int(round(q0), round(q1))
+}
+
+#' Recover the exact right boundary F(x_k) = sup{p : Q(p) <= x_k} for each
+#' support point by monotone bisection (C-02).
+#' @noRd
+qf_right_boundaries <- function(qf, support, tol = 1e-15) {
+  vapply(support, function(xk) {
+    q1 <- suppressWarnings(qf(1))
+    if (is.finite(q1) && q1 <= xk) return(1)
+    lo <- 0
+    hi <- 1
+    while (hi - lo > tol) {
+      mid <- (lo + hi) / 2
+      q_mid <- suppressWarnings(qf(mid))
+      if (is.finite(q_mid) && q_mid <= xk) lo <- mid else hi <- mid
+    }
+    lo
+  }, numeric(1))
+}
+
 #' @rdname geom_qf_discrete
 #' @export
 StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
@@ -197,66 +242,76 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
 
     if (!is.null(fun)) {
       fun_injected <- function(p) rlang::inject(fun(p, !!!args))
-      p_grid <- seq(0.0001, 0.9999, length.out = 5000)
-      q_vals <- fun_injected(p_grid)
-
-      if (!is.null(support)) {
-        keep   <- q_vals %in% support
-        p_grid <- p_grid[keep]
-        q_vals <- q_vals[keep]
+      support_use <- if (!is.null(support)) {
+        sort(unique(support))
+      } else {
+        infer_qf_integer_support(fun_injected)
       }
 
-      # For each unique support value, the right boundary approximates F(x_k):
-      # the largest grid p whose quantile equals that value. The grid stops at
-      # 0.9999, so pin the final (largest-support) boundary to exactly 1 to
-      # match F(x_max) = 1 from the exact cdf_fun/pmf_fun paths. Pin before the
-      # xlim filter so the pin targets the distribution's true maximum, then
-      # apply xlim as a display-only filter (consistent with the other paths).
-      q_unique <- sort(unique(q_vals))
-      p_right  <- vapply(q_unique,
-                         function(xk) max(p_grid[q_vals == xk]),
-                         numeric(1))
-      if (length(p_right) > 0L) p_right[length(p_right)] <- 1
-      out <- data.frame(p = p_right, x = q_unique)
+      if (!is.null(support_use)) {
+        # Exact right boundaries by monotone bisection; rare atoms are
+        # recovered no matter how small their mass (C-02).
+        p_right <- qf_right_boundaries(fun_injected, support_use)
+        qdf <- data.frame(q = support_use, p_right = p_right)
+      } else {
+        # Black-box fallback: grid approximation with no false terminal
+        # boundary — an unverified observed maximum is not pinned to 1.
+        p_grid <- seq(1e-4, 1 - 1e-4, length.out = 5000)
+        q_vals <- fun_injected(p_grid)
+        q_unique <- sort(unique(q_vals))
+        p_right <- vapply(q_unique,
+                          function(xk) max(p_grid[q_vals == xk]),
+                          numeric(1))
+        qdf <- data.frame(q = q_unique, p_right = p_right)
+      }
     } else if (!is.null(cdf_fun)) {
       x_vals <- discrete_support(xlim = xlim, support = support)
-
       cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
-      cdf_vals <- cdf_injected(x_vals)
-      invisible(check_discrete_cdf(cdf_vals, source = "cdf_fun"))
-
-      out <- data.frame(p = cdf_vals, x = x_vals)
+      cdf_vals <- validate_discrete_cdf_values(
+        cdf_injected(x_vals), x_vals, arg = "cdf_fun"
+      )
+      qdf <- data.frame(q = x_vals, p_right = cdf_vals)
     } else if (!is.null(pmf_fun)) {
       x_vals <- discrete_support(xlim = xlim, support = support)
-
-      fun_injected <- function(x) rlang::inject(pmf_fun(x, !!!args))
-      invisible(check_pmf_normalization(
-        fun_injected, support = x_vals, tol = 1e-2, action = "abort"
-      ))
-      pmf_vals <- fun_injected(x_vals)
-      cdf_vals <- cumsum(pmf_vals)
-
-      out <- data.frame(p = cdf_vals, x = x_vals)
+      # Evaluated and structurally validated exactly once (C-03).
+      pmf_vals <- evaluate_pmf(
+        pmf_fun, x_vals, args = args, arg = "pmf_fun", normalization = "abort"
+      )
+      qdf <- data.frame(q = x_vals, p_right = cumsum(pmf_vals))
     } else {
       x_vals <- discrete_support(xlim = xlim, support = support)
-
       surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
-      surv_vals <- surv_injected(x_vals)
-      cdf_vals <- 1 - surv_vals
-      invisible(check_discrete_cdf(cdf_vals, source = "survival_fun"))
-
-      out <- data.frame(p = cdf_vals, x = x_vals)
+      surv_vals <- validate_discrete_survival(
+        surv_injected(x_vals), x_vals, arg = "survival_fun"
+      )
+      qdf <- data.frame(q = x_vals, p_right = 1 - surv_vals)
     }
 
-    # Shading membership is computed on the full support, before any xlim
-    # filtering. The per-atom masses are recovered by differencing the
-    # cumulative probabilities.
-    out$in_shade <- pmf_shade_index(
-      diff(c(0, out$p)), p = p, lower.tail = lower.tail,
+    # True predecessor boundaries on the full computational set (C-01), then
+    # zero-mass rows are dropped before constructing QF geometry, keeping the
+    # earliest support value for a duplicated cumulative boundary (C-02).
+    qdf$p_left <- c(0, qdf$p_right[-nrow(qdf)])
+    mass <- qdf$p_right - qdf$p_left
+    qdf$in_shade <- pmf_shade_index(
+      mass, p = p, lower.tail = lower.tail,
       p_lower = p_lower, p_upper = p_upper,
       shade_outside = shade_outside
     )
-    filter_discrete_xlim(out, xlim = xlim)
+    qdf <- qdf[mass > 1e-12, , drop = FALSE]
+
+    out <- data.frame(
+      # The quantile column rides the after_stat(p)/after_stat(x)
+      # cross-mapping round trip, so it carries x-panel-space values; raw
+      # quantiles are retained in q (A-01, as in geom_qf).
+      x = scale_forward(scales$x, qdf$q),
+      q = qdf$q,
+      p = qdf$p_right,
+      p_right = qdf$p_right,
+      p_left = qdf$p_left,
+      p_left_panel = scale_forward(scales$x, qdf$p_left),
+      in_shade = qdf$in_shade
+    )
+    filter_discrete_xlim(out, xlim = xlim, x_col = "q")
   }
 )
 
@@ -297,16 +352,20 @@ GeomQFDiscrete <- ggproto("GeomQFDiscrete", Geom,
     orig_alpha <- data$alpha
 
     # Horizontal segments (n total, defined only on [0, 1]):
-    #   [0 → x[1]] at height y[1],
-    #   [x[k] → x[k+1]] at height y[k+1], ...,
-    #   [x[n-1] → x[n]] at height y[n]
-    # where x = F(x_k) and y = x_k (support value)
+    #   [p_left[k] → p_right[k]] at height y[k] = x_k (support value).
+    # p_left carries the true predecessor boundary, so a narrowed window
+    # starts atom k's segment at F(x_{k-1}) rather than 0 (C-01).
+    left_bound <- if ("p_left_panel" %in% names(data)) {
+      data$p_left_panel
+    } else {
+      c(0, data$x[-n])
+    }
     data_hori        <- data
-    data_hori$x      <- c(0, data$x[-n])
+    data_hori$x      <- left_bound
     data_hori$xend   <- data$x
     data_hori$y      <- data$y
     data_hori$yend   <- data$y
-    data_hori$alpha  <- ifelse(in_shade, orig_alpha, 0.3)
+    data_hori$alpha  <- dim_alpha(orig_alpha, in_shade)
 
     coord_hori <- coord$transform(data_hori, panel_params)
 
@@ -330,8 +389,8 @@ GeomQFDiscrete <- ggproto("GeomQFDiscrete", Geom,
       data_vert$yend   <- data$y[-1]   # top of jump = x_{k+1}
       # The jump and its closed (bottom) circle belong to atom k; the open
       # (top) circle previews atom k + 1's membership.
-      data_vert$alpha  <- ifelse(in_shade[-n], orig_alpha[-n], 0.3)
-      open_alpha       <- ifelse(in_shade[-1], orig_alpha[-1], 0.3)
+      data_vert$alpha  <- dim_alpha(orig_alpha[-n], in_shade[-n])
+      open_alpha       <- dim_alpha(orig_alpha[-1], in_shade[-1])
 
       coord_vert <- coord$transform(data_vert, panel_params)
 

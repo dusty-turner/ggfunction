@@ -143,9 +143,7 @@ geom_pmf <- function(mapping = NULL,
 
   if (identical(type, "lollipop")) {
     geom <- GeomPMF
-    default_mapping <- aes(
-      x = after_stat(x), y = after_stat(y), yend = after_stat(y * 0)
-    )
+    default_mapping <- aes(x = after_stat(x), y = after_stat(y))
   } else {
     geom <- GeomPMFBar
     default_mapping <- aes(x = after_stat(x), y = after_stat(y))
@@ -220,19 +218,26 @@ StatPMF <- ggproto("StatPMF", Stat,
       return(out)
     }
 
-    fun_injected <- function(x) {
-      rlang::inject(fun(x, !!!args))
-    }
-
-    # check to make sure pmf is a real pmf
-    invisible(check_pmf_normalization(fun_injected, support = x_vals, tol = 1e-2))
-
-    y_vals <- fun_injected(x_vals)
-    out <- data.frame(x = x_vals, y = y_vals)
+    # Evaluated and structurally validated exactly once (C-03): the same
+    # mass vector drives checks, plotting, HDRs, and shading.
+    y_vals <- evaluate_pmf(
+      fun, x_vals, args = args, arg = "fun",
+      normalization = "warn", tol = 1e-2
+    )
+    out <- data.frame(
+      x = scale_forward(scales$x, x_vals),
+      x_eval = x_vals,
+      y = scale_forward(scales$y, y_vals),
+      mass = y_vals
+    )
 
     if (!is.null(shade_hdr)) {
       out$probs <- discrete_hdr_probs(y_vals, shade_hdr)
     }
+
+    # Mass baseline: raw zero, transformed once when finite in the
+    # transformation domain; metadata otherwise (spec 5.1).
+    out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
 
     # Resolve p-based shading here, per group, so the cumulative probability
     # never crosses group boundaries (a panel-level cumsum would mis-shade the
@@ -254,6 +259,17 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
 
   default_aes = modifyList(GeomPoint$default_aes, aes(shape = 21)),
 
+  setup_data = function(data, params) {
+    # The mass baseline trains the y scale when it is finite under the
+    # active transformation (C-05/spec 5.1); the lollipop sticks then drop
+    # to that baseline at draw time.
+    if ("baseline_panel" %in% names(data)) {
+      data$ymin <- ifelse(is.finite(data$baseline_panel),
+                          data$baseline_panel, NA_real_)
+    }
+    data
+  },
+
   draw_key = function(data, params, size) {
     data$fill <- ifelse(is.na(data$fill), data$colour, data$fill)
     ggplot2::draw_key_point(data, params, size)
@@ -273,11 +289,20 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
     # handled separately via the alpha-mapped probs factor.
     in_shade <- if (!is.null(data$in_shade)) data$in_shade else rep(TRUE, n)
 
-    # Build segment data: unshaded segments are dimmed + dashed
-    seg_data          <- transform(data, yend = y, y = 0)
+    # Lollipop sticks drop to the transformed raw-zero baseline, clipped to
+    # the visible panel floor when the transformation excludes zero.
+    baseline_panel <- if ("baseline_panel" %in% names(data)) {
+      data$baseline_panel[1]
+    } else {
+      0
+    }
+    base_y <- baseline_draw_value(baseline_panel, panel_params)
+
+    # Build segment data: unshaded segments are dimmed multiplicatively (C-06)
+    seg_data          <- transform(data, yend = y, y = base_y)
     seg_data$linewidth <- stick_linewidth
     seg_data$linetype  <- stick_linetype
-    seg_data$alpha     <- ifelse(in_shade, seg_data$alpha, 0.3)
+    seg_data$alpha     <- dim_alpha(seg_data$alpha, in_shade)
     seg_data$size      <- NULL
 
     seg_grob <- ggproto_parent(GeomSegment, self)$draw_panel(
@@ -288,7 +313,7 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
     # shape follows colour when fill is unset so default lollipops are solid
     pt_data         <- data
     pt_data$size    <- point_size
-    pt_data$alpha   <- ifelse(in_shade, pt_data$alpha, 0.3)
+    pt_data$alpha   <- dim_alpha(pt_data$alpha, in_shade)
     pt_data$fill    <- ifelse(is.na(pt_data$fill), pt_data$colour, pt_data$fill)
 
     pt_grob <- ggproto_parent(GeomPoint, self)$draw_panel(
@@ -303,6 +328,19 @@ GeomPMF <- ggproto("GeomPMF", GeomPoint,
 #' @export
 GeomPMFBar <- ggproto("GeomPMFBar", ggplot2::GeomCol,
 
+  setup_data = function(self, data, params) {
+    data <- ggproto_parent(ggplot2::GeomCol, self)$setup_data(data, params)
+    # Bars rest on the transformed raw-zero baseline, not panel zero; a
+    # transform-excluded baseline emits no training value and is clipped to
+    # the panel floor at draw time (spec 5.1).
+    if ("baseline_panel" %in% names(data)) {
+      base <- data$baseline_panel
+      data$ymin <- ifelse(is.finite(base), pmin(data$y, base), NA_real_)
+      data$ymax <- ifelse(is.finite(base), pmax(data$y, base), data$y)
+    }
+    data
+  },
+
   draw_panel = function(self, data, panel_params, coord, na.rm = FALSE,
                         lineend = "butt", linejoin = "mitre") {
     in_shade <- if (!is.null(data$in_shade)) {
@@ -310,7 +348,12 @@ GeomPMFBar <- ggproto("GeomPMFBar", ggplot2::GeomCol,
     } else {
       rep(TRUE, nrow(data))
     }
-    data$alpha <- ifelse(in_shade, data$alpha, 0.3)
+    data$alpha <- dim_alpha(data$alpha, in_shade)
+
+    if (any(!is.finite(data$ymin))) {
+      floor_y <- baseline_draw_value(NA_real_, panel_params)
+      data$ymin[!is.finite(data$ymin)] <- floor_y
+    }
 
     ggproto_parent(ggplot2::GeomCol, self)$draw_panel(
       data, panel_params, coord, lineend = lineend, linejoin = linejoin

@@ -265,7 +265,7 @@ test_that("discrete_hdr_probs includes ties and reports tie-inclusive coverage",
   m <- dbinom(0:10, 10, 0.5)
   expect_message(
     probs_binom <- discrete_hdr_probs(m, 0.8),
-    "80% -> 89.1%",
+    "80% -> 89%",  # C-07: shared adaptive formatter
     fixed = TRUE
   )
   expect_equal(sum(m[probs_binom == "80%"]), 0.890625)

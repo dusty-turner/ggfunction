@@ -190,36 +190,40 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
     x_vals <- discrete_support(xlim = xlim, support = support)
 
     if (!is.null(fun)) {
-      fun_injected   <- function(x) rlang::inject(fun(x, !!!args))
-      survival_vals  <- fun_injected(x_vals)
-      if (length(survival_vals) > 1 && any(diff(survival_vals) > 0, na.rm = TRUE)) {
-        cli::cli_warn(c(
-          "The resulting survival function is not monotonically non-increasing.",
-          "i" = "Check the function supplied to {.arg fun}."
-        ))
-      }
+      fun_injected <- function(x) rlang::inject(fun(x, !!!args))
+      # Direct survival values are strictly validated: type, length,
+      # finiteness, [0, 1] with roundoff clamping, and monotonicity (C-04).
+      survival_vals <- validate_discrete_survival(
+        fun_injected(x_vals), x_vals, arg = "fun"
+      )
       pmf_vals <- diff(c(0, 1 - survival_vals))
     } else if (!is.null(cdf_fun)) {
-      cdf_injected   <- function(x) rlang::inject(cdf_fun(x, !!!args))
-      survival_vals  <- 1 - cdf_injected(x_vals)
-      if (length(survival_vals) > 1 && any(diff(survival_vals) > 0, na.rm = TRUE)) {
-        cli::cli_warn(c(
-          "The resulting survival function is not monotonically non-increasing.",
-          "i" = "Check the function supplied to {.arg cdf_fun}."
-        ))
-      }
-      pmf_vals <- diff(c(0, 1 - survival_vals))
+      cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
+      cdf_vals <- validate_discrete_cdf_values(
+        cdf_injected(x_vals), x_vals, arg = "cdf_fun"
+      )
+      survival_vals <- 1 - cdf_vals
+      pmf_vals <- diff(c(0, cdf_vals))
     } else {
-      fun_injected  <- function(x) rlang::inject(pmf_fun(x, !!!args))
-      invisible(check_pmf_normalization(
-        fun_injected, support = x_vals, tol = 1e-2, action = "abort"
-      ))
-      pmf_vals      <- fun_injected(x_vals)
+      # Evaluated and structurally validated exactly once (C-03).
+      pmf_vals <- evaluate_pmf(
+        pmf_fun, x_vals, args = args, arg = "pmf_fun", normalization = "abort"
+      )
       cdf_vals      <- cumsum(pmf_vals)
       survival_vals <- 1 - cdf_vals
     }
 
-    out <- data.frame(x = x_vals, y = survival_vals)
+    # Retain true predecessor values before any xlim filtering (C-01).
+    survival_prev <- c(1, survival_vals[-length(survival_vals)])
+
+    out <- data.frame(
+      x = scale_forward(scales$x, x_vals),
+      x_eval = x_vals,
+      y = scale_forward(scales$y, survival_vals),
+      survival = survival_vals,
+      survival_prev = survival_prev,
+      y_prev = scale_forward(scales$y, survival_prev)
+    )
     # Shading membership is computed on the full support, before any xlim
     # filtering, so cumulative probabilities are not distorted by the display
     # window.
@@ -228,7 +232,9 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
       p_lower = p_lower, p_upper = p_upper,
       shade_outside = shade_outside
     )
-    filter_discrete_xlim(out, xlim = xlim)
+    out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
+    out$top_panel <- resolve_stat_baseline(scales$y, 1)$panel
+    filter_discrete_xlim(out, xlim = xlim, x_col = "x_eval")
   }
 )
 
@@ -257,93 +263,23 @@ GeomSurvivalDiscrete <- ggproto("GeomSurvivalDiscrete", Geom,
     inject_open_fill(data, theme)
   },
 
+  setup_data = function(data, params) {
+    # The mathematical probability endpoints train the y scale when they are
+    # finite under the active transformation (C-05).
+    if ("baseline_panel" %in% names(data)) data$ymin <- data$baseline_panel
+    if ("top_panel" %in% names(data)) data$ymax <- data$top_panel
+    data
+  },
+
   draw_group = function(data, panel_params, coord,
                         open_fill = NULL, vert_type = "dashed",
                         show_points = NULL, show_vert = NULL) {
-    open_fill <- resolve_open_fill(open_fill, data)
-    n <- nrow(data)
-    if (is.null(show_points)) show_points <- n <= 50
-    if (is.null(show_vert))   show_vert   <- n <= 50
-
-    # Horizontal segments (right-continuous):
-    #   Before x[1]: S = 1; at x[1] it drops.
-    #   Segment at height S(x[k]) from x[k] to x[k+1], plus
-    #   leftmost extension from panel left to x[1] at height 1,
-    #   and rightmost extension from x[n] to panel right at height S(x[n]).
-    in_shade <- if ("in_shade" %in% names(data)) data$in_shade else rep(TRUE, n)
-
-    data_hori        <- data[c(1, 1:n), ]
-    data_hori$x      <- c(panel_params$x.range[1], data$x)
-    data_hori$xend   <- c(data$x, panel_params$x.range[2])
-    data_hori$y      <- c(1, data$y)
-    data_hori$yend   <- c(1, data$y)
-    # The step at height S(x[k]) belongs to atom k; the leading segment at
-    # height 1 inherits atom 1's membership.
-    data_hori$alpha  <- ifelse(c(in_shade[1], in_shade), data_hori$alpha, 0.3)
-
-    # Vertical jump segments at each x[k]: from S(x[k-1]) (or 1) down to S(x[k])
-    data_vert        <- data
-    data_vert$xend   <- data$x
-    data_vert$y      <- c(1, data$y[-n])
-    data_vert$yend   <- data$y
-    data_vert$alpha  <- ifelse(in_shade, data_vert$alpha, 0.3)
-
-    coord_hori <- coord$transform(data_hori, panel_params)
-    coord_vert <- coord$transform(data_vert, panel_params)
-
-    grobs <- list()
-
-    grobs$hori <- grid::segmentsGrob(
-      coord_hori$x, coord_hori$y, coord_hori$xend, coord_hori$yend,
-      default.units = "native",
-      gp = grid::gpar(
-        col = scales::alpha(coord_hori$colour, coord_hori$alpha),
-        lwd = coord_hori$linewidth * .pt,
-        lty = coord_hori$linetype
-      )
+    draw_discrete_step_group(
+      data, panel_params, coord,
+      open_fill = open_fill, vert_type = vert_type,
+      show_points = show_points, show_vert = show_vert,
+      baseline_default = 1
     )
-
-    if (show_vert) {
-      grobs$vert <- grid::segmentsGrob(
-        coord_vert$x, coord_vert$y, coord_vert$xend, coord_vert$yend,
-        default.units = "native",
-        gp = grid::gpar(
-          col = scales::alpha(coord_vert$colour, coord_vert$alpha),
-          lwd = coord_vert$linewidth * .pt,
-          lty = vert_type
-        )
-      )
-    }
-
-    if (show_points) {
-      # Open circle at top of each jump (S just before the drop — left limit)
-      grobs$open <- grid::pointsGrob(
-        coord_vert$x, coord_vert$y,
-        default.units = "native",
-        pch = 21,
-        gp = grid::gpar(
-          col      = scales::alpha(coord_vert$colour, coord_vert$alpha),
-          fill     = open_fill,
-          fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
-          lwd      = coord_vert$stroke * .stroke / 2
-        )
-      )
-
-      # Closed circle at bottom of each jump (S achieves this value at x[k])
-      grobs$closed <- grid::pointsGrob(
-        coord_vert$xend, coord_vert$yend,
-        pch = coord_vert$shape,
-        default.units = "native",
-        gp = grid::gpar(
-          col      = scales::alpha(coord_vert$colour, coord_vert$alpha),
-          fill     = scales::alpha(coord_vert$colour, coord_vert$alpha),
-          fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
-          lwd      = coord_vert$stroke * .stroke / 2
-        )
-      )
-    }
-
-    grid::gTree(children = do.call(grid::gList, grobs))
   },
 
   draw_key = draw_key_path

@@ -44,7 +44,8 @@ test_that("geom_cdf_discrete uses x and p as default axis labels", {
 
 test_that("geom_cdf_discrete with custom open_fill builds without error", {
   p <- ggplot() + geom_cdf_discrete(
-    pmf_fun = dpois, args = list(lambda = 5), xlim = c(0, 15), open_fill = "blue"
+    pmf_fun = dpois, args = list(lambda = 5), xlim = c(0, 15),
+    support = 0:50, open_fill = "blue"
   )
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))

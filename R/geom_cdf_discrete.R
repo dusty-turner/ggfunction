@@ -133,9 +133,7 @@ geom_cdf_discrete <- function(
 
   default_mapping <- aes(
     x = after_stat(x),
-    y = after_stat(p),
-    yend = after_stat(p * 0),
-    ymax = after_stat(p * 0 + 1)
+    y = after_stat(p)
   )
   if (is.null(mapping)) {
     mapping <- default_mapping
@@ -198,25 +196,40 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
 
     if (!is.null(fun)) {
       fun_injected <- function(x) rlang::inject(fun(x, !!!args))
-      cdf_vals <- fun_injected(x_vals)
+      cdf_vals <- validate_discrete_cdf_values(fun_injected(x_vals), x_vals, arg = "fun")
       invisible(check_discrete_cdf(cdf_vals, source = "fun"))
       pmf_vals <- diff(c(0, cdf_vals))
     } else if (!is.null(pmf_fun)) {
-      fun_injected <- function(x) rlang::inject(pmf_fun(x, !!!args))
-      invisible(check_pmf_normalization(
-        fun_injected, support = x_vals, tol = 1e-2, action = "abort"
-      ))
-      pmf_vals <- fun_injected(x_vals)
+      # Evaluated and structurally validated exactly once (C-03); the
+      # cumulative route requires unit total mass over the declared support.
+      pmf_vals <- evaluate_pmf(
+        pmf_fun, x_vals, args = args, arg = "pmf_fun", normalization = "abort"
+      )
       cdf_vals <- cumsum(pmf_vals)
     } else {
       surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
-      surv_vals <- surv_injected(x_vals)
+      surv_vals <- validate_discrete_survival(
+        surv_injected(x_vals), x_vals, arg = "survival_fun"
+      )
       cdf_vals <- 1 - surv_vals
       invisible(check_discrete_cdf(cdf_vals, source = "survival_fun"))
       pmf_vals <- diff(c(0, cdf_vals))
     }
 
-    out <- data.frame(x = x_vals, y = cdf_vals, p = cdf_vals)
+    # Retain true predecessor values before any xlim filtering, so a
+    # narrowed display window starts its first step at F of the preceding
+    # support point rather than resetting to zero (C-01).
+    cdf_prev <- c(0, cdf_vals[-length(cdf_vals)])
+
+    out <- data.frame(
+      x = scale_forward(scales$x, x_vals),
+      x_eval = x_vals,
+      y = scale_forward(scales$y, cdf_vals),
+      p = cdf_vals,
+      cdf = cdf_vals,
+      cdf_prev = cdf_prev,
+      y_prev = scale_forward(scales$y, cdf_prev)
+    )
     # Shading membership is computed on the full support, before any xlim
     # filtering, so cumulative probabilities are not distorted by the display
     # window.
@@ -225,7 +238,11 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
       p_lower = p_lower, p_upper = p_upper,
       shade_outside = shade_outside
     )
-    filter_discrete_xlim(out, xlim = xlim)
+    # Probability endpoints for scale training (C-05); transform-invalid
+    # endpoints are retained as metadata only.
+    out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
+    out$top_panel <- resolve_stat_baseline(scales$y, 1)$panel
+    filter_discrete_xlim(out, xlim = xlim, x_col = "x_eval")
   }
 )
 
@@ -258,92 +275,23 @@ GeomCDFDiscrete <- ggproto("GeomCDFDiscrete", Geom,
     inject_open_fill(data, theme)
   },
 
+  setup_data = function(data, params) {
+    # The mathematical probability endpoints train the y scale when they are
+    # finite under the active transformation (C-05).
+    if ("baseline_panel" %in% names(data)) data$ymin <- data$baseline_panel
+    if ("top_panel" %in% names(data)) data$ymax <- data$top_panel
+    data
+  },
+
   draw_group = function(data, panel_params, coord,
                         open_fill = NULL, vert_type = "dashed",
                         show_points = NULL, show_vert = NULL) {
-    open_fill <- resolve_open_fill(open_fill, data)
-    n <- nrow(data)
-    if (is.null(show_points)) show_points <- n <= 50
-    if (is.null(show_vert))   show_vert   <- n <= 50
-
-    in_shade <- if ("in_shade" %in% names(data)) data$in_shade else rep(TRUE, n)
-
-    # Horizontal segments:
-    #   [left_boundary → x[1]] at height 0,
-    #   [x[k] → x[k+1]] at height y[k],
-    #   [x[n] → right_boundary] at height y[n]
-    data_hori        <- data[c(1, 1:n), ]
-    data_hori$x      <- c(panel_params$x.range[1], data$x)
-    data_hori$xend   <- c(data$x, panel_params$x.range[2])
-    data_hori$y      <- c(0, data$y)
-    data_hori$yend   <- c(0, data$y)
-    # The step at height y[k] belongs to atom k; the leading baseline segment
-    # inherits atom 1's membership.
-    data_hori$alpha  <- ifelse(c(in_shade[1], in_shade), data_hori$alpha, 0.3)
-
-    # Vertical jump segments at each x[k]: from y[k-1] (or 0) up to y[k]
-    data_vert        <- data
-    data_vert$xend   <- data$x
-    data_vert$y      <- c(0, data$y[-n])
-    data_vert$yend   <- data$y
-    data_vert$alpha  <- ifelse(in_shade, data_vert$alpha, 0.3)
-
-    coord_hori <- coord$transform(data_hori, panel_params)
-    coord_vert <- coord$transform(data_vert, panel_params)
-
-    grobs <- list()
-
-    grobs$hori <- grid::segmentsGrob(
-      coord_hori$x, coord_hori$y, coord_hori$xend, coord_hori$yend,
-      default.units = "native",
-      gp = grid::gpar(
-        col = scales::alpha(coord_hori$colour, coord_hori$alpha),
-        lwd = coord_hori$linewidth * .pt,
-        lty = coord_hori$linetype
-      )
+    draw_discrete_step_group(
+      data, panel_params, coord,
+      open_fill = open_fill, vert_type = vert_type,
+      show_points = show_points, show_vert = show_vert,
+      baseline_default = 0
     )
-
-    if (show_vert) {
-      grobs$vert <- grid::segmentsGrob(
-        coord_vert$x, coord_vert$y, coord_vert$xend, coord_vert$yend,
-        default.units = "native",
-        gp = grid::gpar(
-          col = scales::alpha(coord_vert$colour, coord_vert$alpha),
-          lwd = coord_vert$linewidth * .pt,
-          lty = vert_type
-        )
-      )
-    }
-
-    if (show_points) {
-      # Open circle at bottom of each jump (left-limit of F just before x[k])
-      grobs$open <- grid::pointsGrob(
-        coord_vert$x, coord_vert$y,
-        default.units = "native",
-        pch = 21,
-        gp = grid::gpar(
-          col      = scales::alpha(coord_vert$colour, coord_vert$alpha),
-          fill     = open_fill,
-          fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
-          lwd      = coord_vert$stroke * .stroke / 2
-        )
-      )
-
-      # Closed circle at top of each jump (F achieves this value at x[k])
-      grobs$closed <- grid::pointsGrob(
-        coord_vert$xend, coord_vert$yend,
-        pch = coord_vert$shape,
-        default.units = "native",
-        gp = grid::gpar(
-          col      = scales::alpha(coord_vert$colour, coord_vert$alpha),
-          fill     = scales::alpha(coord_vert$colour, coord_vert$alpha),
-          fontsize = coord_vert$size * .pt + coord_vert$stroke * .stroke / 2,
-          lwd      = coord_vert$stroke * .stroke / 2
-        )
-      )
-    }
-
-    grid::gTree(children = do.call(grid::gList, grobs))
   },
 
   draw_key = draw_key_path
