@@ -179,16 +179,16 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
                                 show.legend = TRUE,
                                 inherit.aes = TRUE) {
 
-  if (is.null(xlim)) {
-    xlim <- c(-1, 1)
-  }
-  if (is.null(ylim)) {
-    ylim <- c(-1, 1)
-  }
+  validate_data_limits(xlim)
+  validate_data_limits(ylim, arg = "ylim")
 
-  # If no data and no x,y aesthetics are specified, but we have fun, xlim, ylim,
-  # we need dummy data to trigger compute_group().
-  if (is.null(data) && !is.null(fun) && !is.null(xlim) && !is.null(ylim)) {
+  # A function-only layer (no data to inherit positions from) gets dummy data
+  # to trigger compute_group() and the documented default panel-space domain
+  # c(-1, 1) on each axis. With layer/plot data present, omitted limits are
+  # inferred from the mapped positions instead.
+  if (is.null(data) && !is.null(fun)) {
+    if (is.null(xlim)) xlim <- c(-1, 1)
+    if (is.null(ylim)) ylim <- c(-1, 1)
     data <- data.frame(x = NA_real_, y = NA_real_)
   }
 
@@ -213,8 +213,13 @@ geom_function_2d_1d <- function(mapping = NULL, data = NULL,
   } else {
     # raster (default)
     if (identical(raster_aes, "fill")) {
+      # The scalar field is encoded through fill = after_stat(z) by default;
+      # auxiliary mappings must not displace it, and an explicit user fill
+      # mapping overrides it (E-02).
       if (is.null(mapping)) {
         mapping <- aes(fill = after_stat(z))
+      } else if (!("fill" %in% names(mapping))) {
+        mapping <- modifyList(mapping, aes(fill = after_stat(z)))
       }
     } else {
       default_mapping <- aes(alpha = after_stat(function2d_alpha_rescale(z)))
@@ -285,17 +290,20 @@ stat_function_2d_1d <- function(mapping = NULL, data = NULL,
                               n = 50,
                               args = list()) {
 
-  if (is.null(xlim)) {
-    xlim <- c(-1, 1)
-  }
-  if (is.null(ylim)) {
-    ylim <- c(-1, 1)
+  validate_data_limits(xlim)
+  validate_data_limits(ylim, arg = "ylim")
+
+  if (is.null(data) && !is.null(fun)) {
+    if (is.null(xlim)) xlim <- c(-1, 1)
+    if (is.null(ylim)) ylim <- c(-1, 1)
+    data <- data.frame(x = NA_real_, y = NA_real_)
   }
 
-  # If no data and no x,y aesthetics are specified, but we have fun, xlim, ylim,
-  # we need dummy data to trigger compute_group().
-  if (is.null(data) && !is.null(fun) && !is.null(xlim) && !is.null(ylim)) {
-    data <- data.frame(x = NA_real_, y = NA_real_)
+  # The scalar field is encoded through fill = after_stat(z) by default (E-02).
+  if (is.null(mapping)) {
+    mapping <- aes(fill = after_stat(z))
+  } else if (!("fill" %in% names(mapping))) {
+    mapping <- modifyList(mapping, aes(fill = after_stat(z)))
   }
 
   # Pass the parameters via `params` only
@@ -328,49 +336,57 @@ StatFunction2d <- ggproto(
   # required_aes = character(0), # No required aesthetics to allow flexibility
   default_aes = aes(x = NA, y = NA, fill = "black", alpha = 1),
 
+  setup_params = function(data, params) {
+    # Domain requirement surfaces as a build error, not a swallowed
+    # computation warning (E-07 policy for delegating callers).
+    if (!is.null(params$fun) &&
+        (is.null(params$xlim) || is.null(params$ylim))) {
+      has_xy <- all(c("x", "y") %in% names(data)) &&
+        any(is.finite(data$x)) && any(is.finite(data$y))
+      if (!has_xy) {
+        cli::cli_abort(
+          "A function-only scalar-field layer requires finite {.arg xlim} and {.arg ylim} (or mapped {.field x}/{.field y} data) to establish the evaluation domain."
+        )
+      }
+    }
+    params
+  },
+
   compute_group = function(data, scales, fun, xlim = NULL, ylim = NULL, n = NULL,
                            args = NULL, ...) {
 
-    # Scenario: Using a function to generate the vector field
-    if (!is.null(fun)) {
-      # If xlim and ylim provided, generate grid from those
-      # If not provided, try to infer from data
-      if (is.null(xlim) || is.null(ylim)) {
-        if (nrow(data) > 0 && all(c("x", "y") %in% names(data))) {
-          xlim <- xlim %||% range(data$x, na.rm = TRUE)
-          ylim <- ylim %||% range(data$y, na.rm = TRUE)
-        } else {
-          stop("When using `fun` without specifying aes `x, y` from data, you must supply `xlim` and `ylim` or specify `x, y` using aes()")
-        }
-      }
-
-      if (is.null(n)) n <- 50
-
-      data <- expand.grid(
-        x = seq(xlim[1], xlim[2], length.out = n),
-        y = seq(ylim[1], ylim[2], length.out = n)
-      )
-
-      args <- args %||% list()
-      fun_injected <- function(v) rlang::inject(fun(v, !!!args))
-      data$z <- vectorize(fun_injected)(as.matrix(data[, c("x", "y")]))
-
-    } else {
-      # fun is NULL, expecting user-provided data with x,y and dx,dy or angle/distance
+    if (is.null(fun)) {
+      # Precomputed scalar field: pass the mapped data through unchanged so
+      # every incoming aesthetic (alpha, colour, group, PANEL, ...) survives
+      # (E-03).
       if (!all(c("x", "y") %in% names(data))) {
-        stop("`stat_function_2d_1d()` requires `x` and `y` aesthetics or a `fun` with `xlim`/`ylim`.")
+        cli::cli_abort("`stat_function_2d_1d()` requires `x` and `y` aesthetics or a `fun` with `xlim`/`ylim`.")
       }
-
+      if (!any(c("z", "fill", "alpha") %in% names(data))) {
+        cli::cli_abort("Precomputed scalar fields require a mapped `z` (or `fill`/`alpha`) aesthetic.")
+      }
+      return(data)
     }
 
-    if(is.numeric(data$z)) {
-      data <- data.frame(x = data$x, y = data$y, z = data$z)
-    }
-    if(is.numeric(data$fill)) {
-      data <- data.frame(x = data$x, y = data$y, fill = data$fill)
-    }
+    if (is.null(n)) n <- 50
 
-    data
+    # Omitted limits fall back to the incoming mapped positions, which are
+    # already panel-space; explicit limits are data-space (A-01).
+    has_xy <- all(c("x", "y") %in% names(data)) &&
+      any(is.finite(data$x)) && any(is.finite(data$y))
+    panel_xlim <- if (is.null(xlim) && has_xy) range(data$x, na.rm = TRUE)
+    panel_ylim <- if (is.null(ylim) && has_xy) range(data$y, na.rm = TRUE)
+
+    grid <- resolve_stat_grid_2d(
+      scales$x, scales$y, xlim, ylim, n,
+      default_panel_limits = c(-1, 1),
+      panel_xlim = panel_xlim, panel_ylim = panel_ylim
+    )
+
+    args <- args %||% list()
+    fun_injected <- function(v) rlang::inject(fun(v, !!!args))
+    grid$z <- vectorize(fun_injected)(as.matrix(grid[, c("x_eval", "y_eval")]))
+    grid
   }
 )
 
@@ -382,6 +398,70 @@ GeomFunction2d <- ggplot2::ggproto(
   default_aes = ggplot2::aes(fill = "black", alpha = 1)
 )
 
+#' Generate per-panel, per-group scalar-field grids for contouring (E-01).
+#'
+#' Each (PANEL, group) combination present in the layer data receives its own
+#' scale-aware grid, so facets are populated independently and grouped layers
+#' are not collapsed. Grids are evenly spaced in panel coordinates and the
+#' function is evaluated at the inverse-transformed data-space image (A-01).
+#' @noRd
+function2d_contour_grids <- function(data, params, layout) {
+  n <- params$n %||% 50
+  args <- params$args %||% list()
+  fun <- params$fun
+  fun_injected <- function(v) rlang::inject(fun(v, !!!args))
+
+  keys <- unique(data[c("PANEL", "group")])
+  pieces <- lapply(seq_len(nrow(keys)), function(i) {
+    panel <- keys$PANEL[i]
+    scales <- layout$get_scales(panel)
+    sub <- data[data$PANEL == panel & data$group == keys$group[i], , drop = FALSE]
+
+    has_xy <- all(c("x", "y") %in% names(sub)) &&
+      any(is.finite(sub$x)) && any(is.finite(sub$y))
+    panel_xlim <- if (is.null(params$xlim) && has_xy) range(sub$x, na.rm = TRUE)
+    panel_ylim <- if (is.null(params$ylim) && has_xy) range(sub$y, na.rm = TRUE)
+
+    grid <- resolve_stat_grid_2d(
+      scales$x, scales$y, params$xlim, params$ylim, n,
+      default_panel_limits = c(-1, 1),
+      panel_xlim = panel_xlim, panel_ylim = panel_ylim
+    )
+    grid$z <- vectorize(fun_injected)(as.matrix(grid[, c("x_eval", "y_eval")]))
+    grid$x_eval <- NULL
+    grid$y_eval <- NULL
+    grid$PANEL <- panel
+    grid$group <- keys$group[i]
+    grid
+  })
+  do.call(rbind, pieces)
+}
+
+#' @noRd
+contour_stat_setup_params <- function(parent, self, data, params) {
+  if (is.null(params$fun)) {
+    # Precomputed x/y/z data delegate to the parent contour stat (E-01).
+    if (!all(c("x", "y", "z") %in% names(data))) {
+      cli::cli_abort(
+        "Contour layers require {.arg fun} or mapped {.field x}, {.field y}, and {.field z} aesthetics."
+      )
+    }
+    return(ggproto_parent(parent, self)$setup_params(data, params))
+  }
+  # z.range is computed in compute_layer, once the per-panel grids exist.
+  params$z.range <- NULL
+  params
+}
+
+#' @noRd
+contour_stat_compute_layer <- function(parent, self, data, params, layout) {
+  if (!is.null(params$fun)) {
+    data <- function2d_contour_grids(data, params, layout)
+    params$z.range <- range(data$z, na.rm = TRUE, finite = TRUE)
+  }
+  ggproto_parent(parent, self)$compute_layer(data, params, layout)
+}
+
 #' @rdname geom_function_2d_1d
 #' @export
 StatFunction2dContour <- ggproto(
@@ -391,30 +471,12 @@ StatFunction2dContour <- ggproto(
   required_aes = character(0),
   extra_params = c("na.rm", "fun", "xlim", "ylim", "n", "args"),
 
-  setup_params = function(data, params) {
-    # Generate grid early so z.range is available for contour break computation
-    fun <- params$fun
-    xlim <- params$xlim %||% c(-1, 1)
-    ylim <- params$ylim %||% c(-1, 1)
-    n <- params$n %||% 50
-    args <- params$args %||% list()
-    fun_injected <- function(v) rlang::inject(fun(v, !!!args))
-
-    grid_data <- expand.grid(
-      x = seq(xlim[1], xlim[2], length.out = n),
-      y = seq(ylim[1], ylim[2], length.out = n)
-    )
-    grid_data$z <- vectorize(fun_injected)(as.matrix(grid_data[, c("x", "y")]))
-    params$z.range <- range(grid_data$z, na.rm = TRUE, finite = TRUE)
-    params$.grid_data <- grid_data
-    params
+  setup_params = function(self, data, params) {
+    contour_stat_setup_params(ggplot2::StatContour, self, data, params)
   },
 
-  setup_data = function(data, params) {
-    grid_data <- params$.grid_data
-    grid_data$PANEL <- data$PANEL[1]
-    grid_data$group <- data$group[1]
-    grid_data
+  compute_layer = function(self, data, params, layout) {
+    contour_stat_compute_layer(ggplot2::StatContour, self, data, params, layout)
   }
 )
 
@@ -427,28 +489,13 @@ StatFunction2dContourFilled <- ggproto(
   required_aes = character(0),
   extra_params = c("na.rm", "fun", "xlim", "ylim", "n", "args"),
 
-  setup_params = function(data, params) {
-    fun <- params$fun
-    xlim <- params$xlim %||% c(-1, 1)
-    ylim <- params$ylim %||% c(-1, 1)
-    n <- params$n %||% 50
-    args <- params$args %||% list()
-    fun_injected <- function(v) rlang::inject(fun(v, !!!args))
-
-    grid_data <- expand.grid(
-      x = seq(xlim[1], xlim[2], length.out = n),
-      y = seq(ylim[1], ylim[2], length.out = n)
-    )
-    grid_data$z <- vectorize(fun_injected)(as.matrix(grid_data[, c("x", "y")]))
-    params$z.range <- range(grid_data$z, na.rm = TRUE, finite = TRUE)
-    params$.grid_data <- grid_data
-    params
+  setup_params = function(self, data, params) {
+    contour_stat_setup_params(ggplot2::StatContourFilled, self, data, params)
   },
 
-  setup_data = function(data, params) {
-    grid_data <- params$.grid_data
-    grid_data$PANEL <- data$PANEL[1]
-    grid_data$group <- data$group[1]
-    grid_data
+  compute_layer = function(self, data, params, layout) {
+    contour_stat_compute_layer(
+      ggplot2::StatContourFilled, self, data, params, layout
+    )
   }
 )

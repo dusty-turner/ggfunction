@@ -170,14 +170,23 @@ geom_function_1d_2d <- function(mapping = NULL, data = NULL,
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
+  parameter_grid(tlim, dt)  # validate tlim/dt at construction (E-06)
 
+  # The default colour = after_stat(t) mapping is added only when the user
+  # supplied neither a colour mapping nor a static colour, so a fixed
+  # `colour =` in ... overrides the package default without a
+  # duplicated-aesthetic warning (E-08).
+  has_static_colour <- any(c("color", "colour") %in% names(list(...)))
   default_mapping <- aes(color = after_stat(t))
 
   if (!is.null(mapping)) {
-    if (!"color" %in% names(mapping) && !"colour" %in% names(mapping))
+    if (!"color" %in% names(mapping) && !"colour" %in% names(mapping) &&
+        !has_static_colour)
       mapping <- modifyList(default_mapping, mapping)
-  } else {
+  } else if (!has_static_colour) {
     mapping <- default_mapping
+  } else {
+    mapping <- aes()
   }
 
   layer(
@@ -223,14 +232,23 @@ stat_function_1d_2d <- function(mapping = NULL, data = NULL,
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
+  parameter_grid(tlim, dt)  # validate tlim/dt at construction (E-06)
 
+  # The default colour = after_stat(t) mapping is added only when the user
+  # supplied neither a colour mapping nor a static colour, so a fixed
+  # `colour =` in ... overrides the package default without a
+  # duplicated-aesthetic warning (E-08).
+  has_static_colour <- any(c("color", "colour") %in% names(list(...)))
   default_mapping <- aes(color = after_stat(t))
 
   if (!is.null(mapping)) {
-    if (!"color" %in% names(mapping) && !"colour" %in% names(mapping))
+    if (!"color" %in% names(mapping) && !"colour" %in% names(mapping) &&
+        !has_static_colour)
       mapping <- modifyList(default_mapping, mapping)
-  } else {
+  } else if (!has_static_colour) {
     mapping <- default_mapping
+  } else {
+    mapping <- aes()
   }
 
   layer(
@@ -255,6 +273,29 @@ stat_function_1d_2d <- function(mapping = NULL, data = NULL,
   )
 }
 
+#' Regular parameter grid with `dt` as an exact positive step magnitude
+#' (E-06). Regular evaluations are exactly `dt` apart; the terminal endpoint
+#' is appended when the span is not an exact multiple; reversed `tlim` steps
+#' in the negative direction; equal endpoints produce one evaluation.
+#' @noRd
+parameter_grid <- function(tlim, dt) {
+  if (!is.numeric(tlim) || length(tlim) != 2L || any(!is.finite(tlim))) {
+    cli::cli_abort("{.arg tlim} must be a numeric vector of two finite values.")
+  }
+  if (!is.numeric(dt) || length(dt) != 1L || !is.finite(dt) || dt <= 0) {
+    cli::cli_abort("{.arg dt} must be a single finite positive step magnitude.")
+  }
+  if (tlim[1] == tlim[2]) {
+    return(tlim[1])
+  }
+  by <- sign(tlim[2] - tlim[1]) * dt
+  t <- seq(tlim[1], tlim[2], by = by)
+  if (!isTRUE(all.equal(t[length(t)], tlim[2]))) {
+    t <- c(t, tlim[2])
+  }
+  t
+}
+
 #' @rdname geom_function_1d_2d
 #' @format NULL
 #' @usage NULL
@@ -264,21 +305,23 @@ Stat_1d_2d <- ggproto("Stat_1d_2d", Stat,
 
   compute_group = function(data, scales, fun, tlim, dt, args, ...) {
 
-    # Sample by count rather than `by = dt` so the final endpoint is always
-    # included; `seq(by = dt)` drops tlim[2] whenever the span is not an exact
-    # multiple of dt, leaving closed/periodic curves (e.g. tlim = c(0, 2*pi))
-    # unclosed.
-    n_t <- max(2L, ceiling((tlim[2] - tlim[1]) / dt) + 1L)
-    t <- seq(tlim[1], tlim[2], length.out = n_t)
+    t <- parameter_grid(tlim, dt)
 
     orig_fun <- fun
     fun <- function(v) rlang::inject(orig_fun(v, !!!args))
 
     stream_values <- t(vapply(t, fun, numeric(2)))
-    stream <- cbind(t, stream_values)
-    colnames(stream) <- c("t", "x", "y")
-    df <- as.data.frame(stream)
+    x_eval <- stream_values[, 1]
+    y_eval <- stream_values[, 2]
 
-    df
+    # Positions are transformed exactly once; raw evaluations are retained
+    # in t/x_eval/y_eval (A-01).
+    data.frame(
+      t = t,
+      x = scale_forward(scales$x, x_eval),
+      y = scale_forward(scales$y, y_eval),
+      x_eval = x_eval,
+      y_eval = y_eval
+    )
   }
 )

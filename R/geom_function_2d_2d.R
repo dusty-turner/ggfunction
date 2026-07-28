@@ -106,7 +106,7 @@ geom_function_2d_2d <- function(
     method = "rk4"
 ) {
   if (type == "vector") {
-    ggvfields::geom_vector_field(
+    reject_transformed_position_scales(ggvfields::geom_vector_field(
       mapping = mapping,
       data = data,
       position = position,
@@ -125,9 +125,9 @@ geom_function_2d_2d <- function(
       grid = grid,
       arrow = arrow,
       ...
-    )
+    ), what = "geom_function_2d_2d")
   } else if (type == "stream") {
-    ggvfields::geom_stream_field(
+    reject_transformed_position_scales(ggvfields::geom_stream_field(
       mapping = mapping,
       data = data,
       position = position,
@@ -150,7 +150,7 @@ geom_function_2d_2d <- function(
       method = method,
       arrow = arrow,
       ...
-    )
+    ), what = "geom_function_2d_2d")
   } else {
     stop('`type` must be "vector" or "stream"', call. = FALSE)
   }
@@ -183,7 +183,7 @@ stat_function_2d_2d <- function(
     method = "rk4",
     arrow = grid::arrow(angle = 30, length = grid::unit(0.02, "npc"), type = "closed")
 ) {
-  ggvfields::stat_stream_field(
+  reject_transformed_position_scales(ggvfields::stat_stream_field(
     mapping = mapping,
     data = data,
     geom = geom,
@@ -207,5 +207,5 @@ stat_function_2d_2d <- function(
     method = method,
     arrow = arrow,
     ...
-  )
+  ), what = "stat_function_2d_2d")
 }

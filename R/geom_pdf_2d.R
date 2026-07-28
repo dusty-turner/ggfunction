@@ -127,6 +127,27 @@ geom_pdf_2d <- function(
 ) {
   type <- match.arg(type)
 
+  # A finite function domain is required for a function-only layer (E-07):
+  # HDR modes compute over hdr_xlim/hdr_ylim (defaulting from xlim/ylim);
+  # raster mode evaluates over xlim/ylim. Limits may be omitted only when
+  # layer data or mappings can establish both position domains.
+  validate_data_limits(xlim)
+  validate_data_limits(ylim, arg = "ylim")
+  validate_data_limits(hdr_xlim, arg = "hdr_xlim")
+  validate_data_limits(hdr_ylim, arg = "hdr_ylim")
+
+  eff_xlim <- if (identical(type, "raster")) xlim else hdr_xlim
+  eff_ylim <- if (identical(type, "raster")) ylim else hdr_ylim
+  can_infer_domain <- !is.null(data) ||
+    isTRUE(inherit.aes) ||
+    (!is.null(mapping) && all(c("x", "y") %in% names(mapping)))
+  if ((is.null(eff_xlim) || is.null(eff_ylim)) && !can_infer_domain) {
+    cli::cli_abort(c(
+      "{.fn geom_pdf_2d} requires a finite function domain: supply {.arg xlim} and {.arg ylim} (or {.arg hdr_xlim}/{.arg hdr_ylim} for HDR types).",
+      "i" = "Limits may be omitted only when layer data or mappings establish both position domains."
+    ))
+  }
+
   if (identical(type, "raster")) {
     dots <- list(...)
     dots$na.rm <- na.rm

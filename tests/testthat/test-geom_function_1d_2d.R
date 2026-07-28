@@ -65,3 +65,44 @@ test_that("stat_function_1d_2d builds without error", {
   expect_s3_class(p, "gg")
   expect_silent(ggplot_build(p))
 })
+
+# --- E-06: dt as an exact positive step magnitude ---
+
+test_that("parameter_grid uses dt as an exact step with terminal endpoint (E-06)", {
+  expect_equal(parameter_grid(c(0, 1), 0.3), c(0, 0.3, 0.6, 0.9, 1))
+  expect_equal(
+    parameter_grid(c(1, 0), 0.3),
+    c(1, 0.7, 0.4, 0.1, 0),
+    tolerance = 1e-12
+  )
+  expect_equal(parameter_grid(c(0, 0.2), 1), c(0, 0.2))
+  expect_equal(parameter_grid(c(1, 1), 0.1), 1)
+})
+
+test_that("invalid dt and tlim error clearly (E-06)", {
+  expect_error(parameter_grid(c(0, 1), 0), "positive")
+  expect_error(parameter_grid(c(0, 1), -0.1), "positive")
+  expect_error(parameter_grid(c(0, 1), Inf), "positive")
+  expect_error(parameter_grid(c(0, 1), NA_real_), "positive")
+  expect_error(parameter_grid(c(0, 1), c(0.1, 0.2)), "single")
+  expect_error(parameter_grid(c(0, Inf), 0.1), "finite")
+  expect_error(geom_function_1d_2d(fun = function(t) c(t, t), dt = 0), "positive")
+})
+
+# --- A-01: parametric output positions under transformed scales ---
+
+test_that("parametric curves transform output positions exactly once (A-01)", {
+  f <- function(t) c(10^t, 10^(2 * t))
+  expect_no_warning(
+    b <- ggplot_build(
+      ggplot() +
+        geom_function_1d_2d(fun = f, tlim = c(0, 1), dt = 0.5, colour = "black") +
+        scale_x_log10() +
+        scale_y_log10()
+    )$data[[1]]
+  )
+  expect_equal(b$t, c(0, 0.5, 1))
+  expect_equal(b$x, c(0, 0.5, 1))
+  expect_equal(b$y, c(0, 1, 2))
+  expect_equal(b$x_eval, 10^b$t)
+})

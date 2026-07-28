@@ -306,3 +306,21 @@ test_that("empty integer xlim/ylim ranges evaluate no lattice points", {
   expect_identical(calls, 0L)
   expect_equal(nrow(b$data[[1]]), 0)
 })
+
+test_that("pmf_2d support positions are exact under transformed scales (A-01)", {
+  withr::local_options(ggfunction.check = FALSE)  # deliberately truncated lattice
+  dbinom2 <- function(v) dbinom(v[1], 5, 0.5) * dbinom(v[2], 5, 0.5)
+  b <- ggplot_build(
+    ggplot() +
+      geom_pmf_2d(fun = dbinom2, support_x = 1:5, support_y = 1:5) +
+      scale_x_log10()
+  )$data[[1]]
+  expect_equal(sort(unique(b$x)), log10(1:5), tolerance = 1e-12)
+  expect_equal(sort(unique(b$x_eval)), 1:5)
+  expect_equal(b$mass, b$prob)
+  expect_equal(
+    b$prob,
+    dbinom(b$x_eval, 5, 0.5) * dbinom(b$y_eval, 5, 0.5),
+    tolerance = 1e-12
+  )
+})

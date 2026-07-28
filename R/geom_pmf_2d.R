@@ -212,22 +212,30 @@ StatPMF2d <- ggproto("StatPMF2d", Stat,
 
     x_vals <- discrete_support(xlim, support_x)
     y_vals <- discrete_support(ylim, support_y)
-    grid <- expand.grid(x = x_vals, y = y_vals)
+    grid <- expand.grid(x_eval = x_vals, y_eval = y_vals)
 
     if (nrow(grid) == 0L) {
-      grid$prob <- numeric(0)
-      if (!is.null(shade_hdr)) grid$probs <- factor(character(0), ordered = TRUE)
-      return(grid)
+      out <- data.frame(x = numeric(0), y = numeric(0),
+                        x_eval = numeric(0), y_eval = numeric(0),
+                        prob = numeric(0), mass = numeric(0))
+      if (!is.null(shade_hdr)) out$probs <- factor(character(0), ordered = TRUE)
+      return(out)
     }
 
     args <- args %||% list()
     fun_injected <- function(v) rlang::inject(fun(v, !!!args))
-    prob <- vectorize(fun_injected)(as.matrix(grid[, c("x", "y")]))
+    prob <- vectorize(fun_injected)(as.matrix(grid[, c("x_eval", "y_eval")]))
 
     if (!is.numeric(prob) || length(prob) != nrow(grid)) {
       cli::cli_abort("{.arg fun} must return one numeric mass value per lattice point.")
     }
+
+    # Exact support positions, transformed once for panel space; raw lattice
+    # coordinates and masses retained (A-01).
+    grid$x <- scale_forward(scales$x, grid$x_eval)
+    grid$y <- scale_forward(scales$y, grid$y_eval)
     grid$prob <- as.numeric(prob)
+    grid$mass <- grid$prob
 
     invisible(check_pmf_mass_normalization(grid$prob, tol = 1e-2))
 

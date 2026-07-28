@@ -109,6 +109,42 @@ resolve_stat_grid_1d <- function(scale, limits = NULL, support = NULL,
   list(panel = panel, eval = scale_inverse(scale, panel))
 }
 
+#' Resolve one axis of a 2D evaluation grid. `panel_limits` (already in
+#' panel space, e.g. the range of incoming mapped positions) short-circuits
+#' the B-01 precedence chain used for explicit data-space `limits`.
+#' @noRd
+resolve_stat_grid_axis <- function(scale, limits = NULL, panel_limits = NULL,
+                                   n = 50, default_panel_limits = c(-1, 1),
+                                   arg = "xlim") {
+  if (!is.null(panel_limits) && all(is.finite(panel_limits))) {
+    panel <- seq(panel_limits[1], panel_limits[2], length.out = n)
+    return(list(panel = panel, eval = scale_inverse(scale, panel)))
+  }
+  resolve_stat_grid_1d(
+    scale, limits,
+    n = n, default_panel_limits = default_panel_limits, arg = arg
+  )
+}
+
+#' Resolve a full 2D evaluation grid (spec A-01, 2D): evenly spaced in panel
+#' space on each axis, inverse-transformed for evaluation. Returns a data
+#' frame with panel-space `x`/`y` and data-space `x_eval`/`y_eval`.
+#' @noRd
+resolve_stat_grid_2d <- function(x_scale, y_scale, xlim = NULL, ylim = NULL,
+                                 n = 50, default_panel_limits = c(-1, 1),
+                                 panel_xlim = NULL, panel_ylim = NULL) {
+  n <- ensure_length_two(n)
+  gx <- resolve_stat_grid_axis(
+    x_scale, xlim, panel_xlim, n[1], default_panel_limits, arg = "xlim"
+  )
+  gy <- resolve_stat_grid_axis(
+    y_scale, ylim, panel_ylim, n[2], default_panel_limits, arg = "ylim"
+  )
+  out <- expand.grid(x = gx$panel, y = gy$panel, KEEP.OUT.ATTRS = FALSE)
+  ev <- expand.grid(x_eval = gx$eval, y_eval = gy$eval, KEEP.OUT.ATTRS = FALSE)
+  cbind(out, ev)
+}
+
 #' Insert exact evaluation rows at raw data-space boundaries (spec B-02).
 #'
 #' A row is inserted only when the boundary lies inside the evaluation
@@ -178,4 +214,47 @@ warn_baseline_clipped <- function(axis = "y") {
     "The mathematical baseline is outside the domain of the {axis} scale transformation.",
     "i" = "Baseline-anchored geometry was clipped to the visible panel boundary."
   ))
+}
+
+#' Guard delegated layers that compute in raw coordinates (spec A-01).
+#'
+#' Some ggfunction types delegate to upstream stats (ggvfields vector/stream
+#' fields) that evaluate and emit positions in raw data coordinates. Under a
+#' transformed position scale those layers would silently draw the wrong
+#' plot, so the layer's stat is wrapped to reject non-identity continuous
+#' position transformations with a clear build-time error.
+#' @noRd
+reject_transformed_position_scales <- function(layer, what) {
+  wrap_one <- function(l) {
+    if (!inherits(l, "Layer") && !inherits(l, "LayerInstance")) return(l)
+    orig_stat <- l$stat
+    l$stat <- ggproto(
+      NULL, orig_stat,
+      compute_layer = function(self, data, params, layout) {
+        scales <- layout$get_scales(1L)
+        for (axis in c("x", "y")) {
+          sc <- scales[[axis]]
+          if (!is.null(sc) && !sc$is_discrete()) {
+            trans_name <- tryCatch(
+              sc$get_transformation()$name,
+              error = function(e) "identity"
+            )
+            if (!identical(trans_name, "identity")) {
+              cli::cli_abort(c(
+                "{.fn {what}} does not support transformed position scales (found {.val {trans_name}} on {.field {axis}}).",
+                "i" = "The delegated field computation works in raw coordinates; use untransformed scales or transform the function itself."
+              ))
+            }
+          }
+        }
+        orig_stat$compute_layer(data, params, layout)
+      }
+    )
+    l
+  }
+  if (inherits(layer, "list")) {
+    lapply(layer, wrap_one)
+  } else {
+    wrap_one(layer)
+  }
 }

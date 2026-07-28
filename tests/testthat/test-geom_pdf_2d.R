@@ -257,3 +257,48 @@ test_that("bimodal mixture HDR lines produce multiple pieces", {
   ))
   expect_gt(length(pieces), 2)
 })
+
+# --- E-07: finite function domain requirement ---
+
+test_that("function-only geom_pdf_2d requires a finite domain (E-07)", {
+  dbvn <- function(v) exp(-0.5 * sum(v^2)) / (2 * pi)
+  expect_error(
+    ggplot_build(ggplot() + geom_pdf_2d(fun = dbvn)),
+    "xlim.*ylim"
+  )
+  expect_error(
+    ggplot_build(ggplot() + geom_pdf_2d(fun = dbvn, type = "raster")),
+    "xlim.*ylim"
+  )
+  expect_error(
+    ggplot_build(ggplot() + geom_pdf_2d(fun = dbvn, type = "hdr_lines")),
+    "xlim.*ylim"
+  )
+})
+
+test_that("hdr_xlim/hdr_ylim satisfy the HDR domain requirement (E-07)", {
+  dbvn <- function(v) exp(-0.5 * sum(v^2)) / (2 * pi)
+  expect_no_error(
+    l <- geom_pdf_2d(fun = dbvn, hdr_xlim = c(-3, 3), hdr_ylim = c(-3, 3))
+  )
+  expect_gt(nrow(ggplot_build(ggplot() + l)$data[[1]]), 0)
+})
+
+test_that("malformed limits abort with a clear message (E-07)", {
+  dbvn <- function(v) exp(-0.5 * sum(v^2)) / (2 * pi)
+  expect_error(geom_pdf_2d(fun = dbvn, xlim = c(3, -3), ylim = c(-3, 3)), "increasing")
+  expect_error(geom_pdf_2d(fun = dbvn, xlim = c(-3, 3), ylim = c(0, Inf)), "increasing")
+})
+
+test_that("inherited plot mappings satisfy the delayed domain validation (E-07)", {
+  dbvn <- function(v) exp(-0.5 * sum(v^2)) / (2 * pi)
+  set.seed(1)
+  d <- data.frame(x = rnorm(20), y = rnorm(20))
+  expect_no_error(
+    b <- ggplot_build(
+      ggplot(d, aes(x, y)) +
+        geom_pdf_2d(fun = dbvn, type = "raster", inherit.aes = TRUE)
+    )
+  )
+  expect_gt(nrow(b$data[[1]]), 0)
+})
