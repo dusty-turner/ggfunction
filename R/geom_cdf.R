@@ -58,10 +58,20 @@
 #' These are calculated by the `stat` part of the layer and can be accessed
 #' with [ggplot2::after_stat()].
 #' \describe{
-#'   \item{`after_stat(x)`}{Points at which the CDF is evaluated.}
+#'   \item{`after_stat(x)`}{Points at which the CDF is evaluated (data
+#'   coordinates).}
 #'   \item{`after_stat(y)`}{CDF values.}
 #'   \item{`after_stat(p)`}{CDF values; the default y aesthetic maps to this
 #'   variable.}
+#'   \item{`after_stat(cdf)`}{Raw CDF values (canonical alias of `p`).}
+#'   \item{`after_stat(x_eval)`}{Data-space evaluation points.}
+#'   \item{`after_stat(in_shade)`}{Logical indicator for grid points inside
+#'   the requested probability shading region.}
+#'   \item{`after_stat(shade_x_lower_raw)` and
+#'   `after_stat(shade_x_upper_raw)`}{Raw (data-space) distributional shading
+#'   boundaries, i.e. quantiles of the requested probabilities. Retained even
+#'   when a boundary lies outside `xlim` (the visible shading is then simply
+#'   clipped by the plotted window).}
 #' }
 #'
 #' @section Aesthetics:
@@ -121,6 +131,8 @@ geom_cdf <- function(
     check_tol = 1e-2
 ) {
   if (is.null(data)) data <- ensure_nonempty_data(data)
+  validate_data_limits(xlim)
+  validate_probability_shading(p = p, p_lower = p_lower, p_upper = p_upper)
 
   default_mapping <- aes(x = after_stat(x), y = after_stat(p))
   if (is.null(mapping)) {
@@ -194,39 +206,61 @@ make_cdf_function <- function(fun = NULL, pdf_fun = NULL, survival_fun = NULL,
   )
 }
 
+#' Resolve raw shading boundaries as distributional quantiles, once per
+#' group, in the Stat (spec B-02). `lower`/`upper` are data-space x values;
+#' `NA` means the region extends to the corresponding end of the window.
 #' @noRd
-cdf_scale_inverse <- function(x_scale, x) {
-  if (is.null(x_scale) || x_scale$is_discrete()) return(x)
-  x_scale$get_transformation()$inverse(x)
-}
-
-#' @noRd
-cdf_scale_transform <- function(y_scale, y) {
-  if (is.null(y_scale) || y_scale$is_discrete()) return(y)
-  y_scale$get_transformation()$transform(y)
-}
-
-#' @noRd
-cdf_stat_range <- function(scales, xlim = NULL, n = 101) {
-  if (is.null(scales$x)) {
-    x_range <- xlim %||% c(-Inf, Inf)
-    xseq <- seq(x_range[1], x_range[2], length.out = n)
-    x_eval <- xseq
+cdf_shading_meta <- function(qf, p = NULL, lower.tail = TRUE,
+                             p_lower = NULL, p_upper = NULL) {
+  if (!is.null(p_lower) && !is.null(p_upper)) {
+    list(lower = qf(p_lower), upper = qf(p_upper))
+  } else if (!is.null(p)) {
+    if (isTRUE(lower.tail)) {
+      list(lower = NA_real_, upper = qf(p))
+    } else {
+      list(lower = qf(1 - p), upper = NA_real_)
+    }
   } else {
-    x_range <- xlim %||% scales$x$dimension()
-    xseq <- seq(x_range[1], x_range[2], length.out = n)
-    x_eval <- cdf_scale_inverse(scales$x, xseq)
+    NULL
   }
-
-  list(x = xseq, x_eval = x_eval)
 }
 
 #' @noRd
-cdf_eval_range <- function(x, x_scale = NULL) {
-  x_range <- range(x, na.rm = TRUE)
-  cdf_scale_inverse(x_scale, x_range)
+cdf_mark_in_shade <- function(x_eval, lower, upper) {
+  x_eval >= (if (is.na(lower)) -Inf else lower) &
+    x_eval <= (if (is.na(upper)) Inf else upper)
 }
 
+#' Insert exact in-window boundary evaluation rows (spec B-02). Positions are
+#' transformed exactly once; raw metadata is retained even when no row is
+#' inserted.
+#' @noRd
+cdf_insert_boundary_rows <- function(data, boundaries, fun,
+                                     x_scale = NULL, y_scale = NULL) {
+  boundaries <- unique(boundaries[is.finite(boundaries)])
+  if (length(boundaries) == 0L) return(data)
+
+  window <- range(data$x_eval, na.rm = TRUE)
+  boundaries <- boundaries[boundaries >= window[1] & boundaries <= window[2]]
+  boundaries <- setdiff(boundaries, data$x_eval)
+  if (length(boundaries) == 0L) return(data)
+
+  rows <- data[rep(1L, length(boundaries)), , drop = FALSE]
+  cdf_raw <- fun(boundaries)
+  rows$x_eval <- boundaries
+  rows$x <- scale_forward(x_scale, boundaries)
+  rows$cdf <- cdf_raw
+  if ("p" %in% names(rows)) rows$p <- cdf_raw
+  rows$y <- scale_forward(y_scale, cdf_raw)
+
+  out <- rbind(data, rows)
+  out[order(out$x_eval), , drop = FALSE]
+}
+
+#' Draw-time regrid: extend the curve over the full visible panel when other
+#' layers or expansion widened it beyond the stat's grid. Geometry only —
+#' shading membership is reconstructed from raw boundary metadata retained by
+#' the Stat; no checks and no quantile solving happen here (spec 3.8, B-02).
 #' @noRd
 cdf_panel_data <- function(data, panel_params, fun, n = 101) {
   panel_range <- panel_params$x.range %||% panel_params$x$limits
@@ -239,13 +273,30 @@ cdf_panel_data <- function(data, panel_params, fun, n = 101) {
   }
 
   xseq <- seq(panel_range[1], panel_range[2], length.out = n)
-  y_out <- fun(cdf_scale_inverse(panel_params$x, xseq))
-  y_out <- cdf_scale_transform(panel_params$y, y_out)
+  x_eval <- scale_inverse(panel_params$x, xseq)
+  cdf_raw <- fun(x_eval)
 
   out <- data[rep(1L, n), , drop = FALSE]
   out$x <- xseq
-  out$y <- y_out
-  if ("p" %in% names(out)) out$p <- y_out
+  out$x_eval <- x_eval
+  out$y <- scale_forward(panel_params$y, cdf_raw)
+  out$cdf <- cdf_raw
+  if ("p" %in% names(out)) out$p <- cdf_raw
+
+  lower <- if ("shade_x_lower_raw" %in% names(data)) data$shade_x_lower_raw[1] else NA_real_
+  upper <- if ("shade_x_upper_raw" %in% names(data)) data$shade_x_upper_raw[1] else NA_real_
+  had_shading <- ("in_shade" %in% names(data)) &&
+    (any(data$in_shade) || !is.na(lower) || !is.na(upper))
+
+  if (had_shading) {
+    out <- cdf_insert_boundary_rows(
+      out, c(lower, upper), fun,
+      x_scale = panel_params$x, y_scale = panel_params$y
+    )
+    out$in_shade <- cdf_mark_in_shade(out$x_eval, lower, upper)
+  } else if ("in_shade" %in% names(out)) {
+    out$in_shade <- FALSE
+  }
   out
 }
 
@@ -261,27 +312,91 @@ StatCDF <- ggproto("StatCDF", Stat,
                            hf_lower = -Inf,
                            xlim = NULL, support = c(-Inf, Inf),
                            n = 101, args = NULL,
+                           p = NULL, lower.tail = TRUE,
+                           p_lower = NULL, p_upper = NULL,
                            check = TRUE, check_tol = 1e-2) {
 
     # Validate: exactly one source
     check_cdf_sources(fun, pdf_fun, survival_fun, qf_fun, hf_fun)
     support <- validate_support_1d(support)
+    validate_probability_shading(p = p, p_lower = p_lower, p_upper = p_upper)
 
-    range <- cdf_stat_range(scales, xlim, n)
+    grid <- resolve_stat_grid_1d(scales$x, xlim, support = support, n = n)
     fun_injected <- make_cdf_function(
       fun, pdf_fun, survival_fun, qf_fun, hf_fun,
       hf_lower = hf_lower, args = args, support = support
     )
 
-    y_out <- fun_injected(range$x_eval)
+    cdf_raw <- fun_injected(grid$eval)
 
-    data.frame(x = range$x, y = y_out, p = y_out)
+    out <- data.frame(
+      x = grid$panel,
+      x_eval = grid$eval,
+      y = scale_forward(scales$y, cdf_raw),
+      cdf = cdf_raw,
+      p = cdf_raw
+    )
+
+    if (ggfunction_check_enabled(check)) {
+      invisible(check_cdf_normalization(
+        fun_injected,
+        lower = support[1],
+        upper = support[2],
+        tol = check_tol
+      ))
+    }
+
+    # Shading boundaries are distributional quantiles resolved on raw
+    # probabilities, independent of grid resolution and y scale (B-02).
+    out$in_shade <- FALSE
+    out$shade_x_lower_raw <- NA_real_
+    out$shade_x_upper_raw <- NA_real_
+    meta <- NULL
+    if (!is.null(p) || (!is.null(p_lower) && !is.null(p_upper))) {
+      qf_injected <- make_qf_function(
+        cdf_fun = fun, pdf_fun = pdf_fun, survival_fun = survival_fun,
+        fun = qf_fun, hf_fun = hf_fun, hf_lower = hf_lower,
+        args = args, support = support
+      )
+      meta <- cdf_shading_meta(
+        qf_injected,
+        p = p, lower.tail = lower.tail,
+        p_lower = p_lower, p_upper = p_upper
+      )
+    }
+    if (!is.null(meta)) {
+      out <- cdf_insert_boundary_rows(
+        out, c(meta$lower, meta$upper), fun_injected,
+        x_scale = scales$x, y_scale = scales$y
+      )
+      out$in_shade <- cdf_mark_in_shade(out$x_eval, meta$lower, meta$upper)
+      out$shade_x_lower_raw <- meta$lower
+      out$shade_x_upper_raw <- meta$upper
+    }
+
+    # Probability endpoints: raw zero and one, transformed once when finite
+    # in the transformation domain; retained as metadata otherwise, so the
+    # probability axis trains on the mathematical endpoints (spec 5.1, C-05).
+    out$baseline_panel <- resolve_stat_baseline(scales$y, 0)$panel
+    out$top_panel <- resolve_stat_baseline(scales$y, 1)$panel
+    out
   }
 )
 
 #' @rdname geom_cdf
 #' @export
 GeomCDF <- ggproto("GeomCDF", GeomArea,
+
+  setup_data = function(data, params) {
+    # Probability endpoints train the y scale via ymin/ymax when they are
+    # finite under the active transformation (C-05). The shading baseline is
+    # the transformed raw probability zero, never panel zero; when the
+    # transformation excludes it, draw_panel clips to the visible panel floor
+    # instead (spec 5.1).
+    base <- if ("baseline_panel" %in% names(data)) data$baseline_panel else 0
+    top <- if ("top_panel" %in% names(data)) data$top_panel else 1
+    transform(data, ymin = base, ymax = top)
+  },
 
   draw_panel = function(self, data, panel_params, coord, arrow = NULL,
                         lineend = "butt", linejoin = "round", linemitre = 10,
@@ -295,63 +410,12 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
                         ) {
 
     if (is.null(xlim)) {
+      # Panel-coverage regrid only; no checks and no quantile solving (B-02).
       fun_injected <- make_cdf_function(
         fun, pdf_fun, survival_fun, qf_fun, hf_fun,
         hf_lower = hf_lower, args = args, support = support
       )
       data <- cdf_panel_data(data, panel_params, fun_injected, n)
-    }
-    if (ggfunction_check_enabled(check)) {
-      check_range <- validate_support_1d(support)
-      fun_injected <- make_cdf_function(
-        fun, pdf_fun, survival_fun, qf_fun, hf_fun,
-        hf_lower = hf_lower, args = args, support = support
-      )
-      invisible(check_cdf_normalization(
-        fun_injected,
-        lower = check_range[1],
-        upper = check_range[2],
-        tol = check_tol
-      ))
-    }
-
-    x_vals <- data$x
-    y_vals <- data$y
-
-    warn_unreached <- function(prob) {
-      cli::cli_warn(c(
-        "The shading probability {.val {prob}} is not reached by the CDF within the drawn range.",
-        "i" = "The shaded boundary was clamped to the edge of {.arg xlim}; widen {.arg xlim} to shade the intended region."
-      ))
-    }
-
-    if (!is.null(p_lower) && !is.null(p_upper)) {
-      # Two-sided shading: shade between x where CDF = p_lower and CDF = p_upper
-      idx_lower <- which(y_vals >= p_lower)[1]
-      if (is.na(idx_lower)) { warn_unreached(p_lower); idx_lower <- length(y_vals) }
-      idx_upper <- which(y_vals >= p_upper)[1]
-      if (is.na(idx_upper)) { warn_unreached(p_upper); idx_upper <- length(y_vals) }
-      threshold_lower <- x_vals[idx_lower]
-      threshold_upper <- x_vals[idx_upper]
-      clip_data <- data[data$x >= threshold_lower & data$x <= threshold_upper, , drop = FALSE]
-      clip_range <- c(threshold_lower, threshold_upper)
-    } else if (!is.null(p)) {
-      if (lower.tail) {
-        idx <- which(y_vals >= p)[1]
-        if (is.na(idx)) { warn_unreached(p); idx <- length(y_vals) }
-        threshold_x <- x_vals[idx]
-        clip_data <- data[data$x <= threshold_x, , drop = FALSE]
-        clip_range <- c(min(x_vals), threshold_x)
-      } else {
-        idx <- which(y_vals >= (1 - p))[1]
-        if (is.na(idx)) { warn_unreached(1 - p); idx <- 1 }
-        threshold_x <- x_vals[idx]
-        clip_data <- data[data$x >= threshold_x, , drop = FALSE]
-        clip_range <- c(threshold_x, max(x_vals))
-      }
-    } else {
-      clip_data <- NULL
-      clip_range <- NULL
     }
 
     # Create the line grob for the entire function using GeomPath's draw_panel.
@@ -360,24 +424,41 @@ GeomCDF <- ggproto("GeomCDF", GeomArea,
       linejoin = linejoin, linemitre = linemitre, na.rm = na.rm
     )
 
-    if (is.null(clip_data)) {
+    if (!("in_shade" %in% names(data)) || !any(data$in_shade, na.rm = TRUE)) {
       return(line_grob)
     }
 
-    # Close the polygon by adding baseline (y=0) points at the boundaries.
-    poly_data <- rbind(
-      transform(clip_data[1, , drop = FALSE], x = clip_range[1], y = 0),
-      clip_data,
-      transform(clip_data[nrow(clip_data), , drop = FALSE], x = clip_range[2], y = 0)
-    )
+    baseline_panel <- if ("baseline_panel" %in% names(data)) {
+      data$baseline_panel[1]
+    } else {
+      NA_real_
+    }
+    base_y <- baseline_draw_value(baseline_panel, panel_params)
 
-    poly_data$colour <- NA
+    build_poly <- function(clip_data, clip_range) {
+      pd <- rbind(
+        transform(clip_data[1, , drop = FALSE], x = clip_range[1], y = base_y),
+        clip_data,
+        transform(clip_data[nrow(clip_data), , drop = FALSE], x = clip_range[2], y = base_y)
+      )
+      pd$colour <- NA
+      pd$ymin <- base_y
+      pd$ymax <- pd$y
+      pd
+    }
 
-    # Draw the filled area using GeomArea's draw_panel.
-    area_grob <- ggproto_parent(GeomArea, self)$draw_panel(
-      poly_data, panel_params, coord, na.rm = na.rm
-    )
+    area_grobs <- list()
+    for (g in split(data, data$group)) {
+      shade <- g[which(g$in_shade), , drop = FALSE]
+      if (nrow(shade) < 2L) next
+      clip_range <- range(shade$x, na.rm = TRUE)
+      area_grobs <- c(area_grobs, list(
+        ggproto_parent(GeomArea, self)$draw_panel(
+          build_poly(shade, clip_range), panel_params, coord, na.rm = na.rm
+        )
+      ))
+    }
 
-    grid::grobTree(area_grob, line_grob)
+    do.call(grid::grobTree, c(area_grobs, list(line_grob)))
   }
 )

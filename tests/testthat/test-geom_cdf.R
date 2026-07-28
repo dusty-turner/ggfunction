@@ -234,3 +234,162 @@ test_that("StatCDF errors when multiple sources provided", {
     "fun.*pdf_fun.*survival_fun.*qf_fun.*hf_fun"
   )
 })
+
+# --- B-01: finite default ranges with documented precedence ---
+
+test_that("function-only CDF layers get a finite default range (B-01)", {
+  expect_no_warning(
+    b <- ggplot_build(ggplot() + geom_cdf(fun = pnorm))
+  )
+  d <- b$data[[1]]
+  expect_equal(nrow(d), 101)
+  expect_true(all(is.finite(d$x)))
+  expect_equal(range(d$x_eval), c(0, 1))
+  expect_equal(d$cdf, pnorm(d$x_eval))
+  expect_equal(d$p, d$cdf)
+})
+
+test_that("finite support supplies the default range for untrained scales (B-01)", {
+  d <- ggplot_build(
+    ggplot() + geom_cdf(fun = pnorm, support = c(-3, 3), n = 3)
+  )$data[[1]]
+  expect_equal(range(d$x_eval), c(-3, 3))
+})
+
+test_that("a trained scale window outranks a wider declared support (B-01)", {
+  d <- ggplot_build(
+    ggplot(data.frame(x = c(-1, 1)), aes(x = x)) +
+      geom_point(y = 0.5) +
+      geom_cdf(fun = pnorm, support = c(-10, 10), n = 3)
+  )$data[[2]]
+  expect_lte(max(abs(range(d$x_eval))), 1.5)
+})
+
+test_that("log-x fallback evaluates over raw c(1, 10), reverse over data space (B-01)", {
+  log_data <- ggplot_build(
+    ggplot() + geom_cdf(fun = pnorm, n = 2) + scale_x_log10()
+  )$data[[1]]
+  expect_equal(log_data$x, c(0, 1))
+  expect_equal(log_data$x_eval, c(1, 10))
+
+  reverse_data <- ggplot_build(
+    ggplot() + geom_cdf(fun = pnorm, xlim = c(-1, 1), n = 3) + scale_x_reverse()
+  )$data[[1]]
+  expect_equal(reverse_data$x, c(1, 0, -1))
+  expect_equal(reverse_data$x_eval, c(-1, 0, 1))
+})
+
+test_that("malformed xlim aborts in the constructor (B-01)", {
+  expect_error(geom_cdf(fun = pnorm, xlim = c(1, -1)), "increasing")
+  expect_error(geom_cdf(fun = pnorm, xlim = c(0, NA)), "increasing")
+})
+
+# --- B-02: shading from raw probabilities in the Stat ---
+
+test_that("CDF shading boundaries are exact quantiles, independent of grid (B-02)", {
+  expected_boundary <- qnorm(0.3)
+  for (n in c(3, 4, 101)) {
+    d <- ggplot_build(
+      ggplot() +
+        geom_cdf(fun = pnorm, xlim = c(-3, 3), n = n, p = 0.3)
+    )$data[[1]]
+    expect_equal(
+      unique(stats::na.omit(d$shade_x_upper_raw)),
+      expected_boundary,
+      tolerance = 1e-8
+    )
+    expect_true(any(abs(d$x_eval - expected_boundary) < 1e-8))
+  }
+})
+
+test_that("two-sided CDF shading boundaries are exact (B-02)", {
+  d_pair <- ggplot_build(
+    ggplot() +
+      geom_cdf(fun = pnorm, xlim = c(-3, 3), p_lower = 0.025, p_upper = 0.975)
+  )$data[[1]]
+  expect_equal(
+    unique(stats::na.omit(d_pair$shade_x_lower_raw)),
+    qnorm(0.025),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    unique(stats::na.omit(d_pair$shade_x_upper_raw)),
+    qnorm(0.975),
+    tolerance = 1e-8
+  )
+})
+
+test_that("CDF shade boundaries are independent of the y scale (B-02)", {
+  d_id <- ggplot_build(
+    ggplot() + geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.3)
+  )$data[[1]]
+  d_log <- ggplot_build(
+    ggplot() + geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.3) + scale_y_log10()
+  )$data[[1]]
+  expect_equal(
+    unique(stats::na.omit(d_log$shade_x_upper_raw)),
+    unique(stats::na.omit(d_id$shade_x_upper_raw))
+  )
+
+  p_log <- ggplot() +
+    geom_cdf(fun = pnorm, xlim = c(-3, 3), p = 0.3) +
+    scale_y_log10()
+  w <- testthat::capture_warnings(g <- ggplotGrob(p_log))
+  expect_length(w, 1)
+  expect_match(w, "baseline", ignore.case = TRUE)
+  polys <- find_grobs(g, "polygon")
+  expect_gt(length(polys), 0)
+  for (poly in polys) {
+    expect_true(all(is.finite(as.numeric(poly$x))))
+    expect_true(all(is.finite(as.numeric(poly$y))))
+  }
+})
+
+test_that("out-of-window shading boundary is retained but not drawn (B-02)", {
+  built <- ggplot_build(
+    ggplot() +
+      geom_cdf(fun = pnorm, xlim = c(-1, 1), n = 11, p = 0.9999) +
+      scale_x_continuous(expand = expansion(mult = 0))
+  )
+  d <- built$data[[1]]
+
+  expect_equal(
+    unique(stats::na.omit(d$shade_x_upper_raw)),
+    qnorm(0.9999),
+    tolerance = 1e-8
+  )
+  expect_equal(max(d$x_eval), 1)
+  expect_lte(max(d$x), 1)
+  expect_equal(
+    built$layout$panel_params[[1]]$x.range,
+    c(-1, 1),
+    tolerance = 1e-12
+  )
+
+  # The shading polygon must stay inside the panel viewport.
+  p <- ggplot() +
+    geom_cdf(fun = pnorm, xlim = c(-1, 1), n = 11, p = 0.9999) +
+    scale_x_continuous(expand = expansion(mult = 0))
+  polys <- layer_grobs(p, 1, "polygon")
+  expect_gt(length(polys), 0)
+  for (poly in polys) {
+    xs <- as.numeric(poly$x)
+    expect_true(all(xs >= -1e-9 & xs <= 1 + 1e-9))
+  }
+})
+
+test_that("probability axis trains on the mathematical endpoints (C-05)", {
+  p <- ggplot() + geom_cdf(fun = pnorm, xlim = c(-1, 1))
+  rng <- plot_y_range(p)
+  expect_lte(rng[1], 0)
+  expect_gte(rng[2], 1)
+})
+
+test_that("invalid probability arguments abort at construction (B-05)", {
+  expect_error(geom_cdf(fun = pnorm, p = 1.1), "between 0 and 1")
+  expect_error(geom_cdf(fun = pnorm, p_lower = 0.5), "together")
+  expect_error(
+    geom_cdf(fun = pnorm, p_lower = 0.9, p_upper = 0.1),
+    "less than"
+  )
+})

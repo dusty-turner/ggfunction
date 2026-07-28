@@ -142,10 +142,16 @@ check_cdf_normalization <- function(f, lower, upper, tol = 1e-2) {
   }
 
   if (any(is.na(vals))) {
-    cli::cli_alert(sprintf(
-      "The provided function could not be fully checked as a CDF over the range [%g, %g]: it returns %g at the lower bound and %g at the upper bound.",
-      lower, upper, vals[["lower"]], vals[["upper"]]
-    ))
+    # Numerically derived CDFs may not be evaluable at infinite support
+    # endpoints; skip the endpoint check silently in that case (mirrors
+    # check_survival_validity). A NA at a finite endpoint stays diagnostic.
+    endpoints <- c(lower = lower, upper = upper)
+    if (any(is.na(vals) & is.finite(endpoints))) {
+      cli::cli_alert(sprintf(
+        "The provided function could not be fully checked as a CDF over the range [%g, %g]: it returns %g at the lower bound and %g at the upper bound.",
+        lower, upper, vals[["lower"]], vals[["upper"]]
+      ))
+    }
   } else if (abs(vals[["lower"]]) > tol || abs(vals[["upper"]] - 1) > tol) {
     cli::cli_alert(sprintf("The provided function appears not to be a valid CDF over the range [%g, %g]: it returns %g at the lower bound and %g at the upper bound.",
                            lower, upper, vals[["lower"]], vals[["upper"]]))

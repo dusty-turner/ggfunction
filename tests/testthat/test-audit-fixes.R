@@ -78,9 +78,19 @@ test_that("discrete survival tolerates NA over the support without aborting", {
   ))
 })
 
-test_that("geom_cdf warns when a shading threshold is unreachable within xlim", {
-  # Standard normal CDF only reaches ~0.84 at x = 1, so p = 0.95 is unreachable.
+test_that("geom_cdf keeps exact out-of-window shade boundaries without clamping (B-02)", {
+  # Standard normal CDF only reaches ~0.84 at x = 1, so the p = 0.95 quantile
+  # (~1.64) lies outside the window. The exact raw boundary is retained as
+  # metadata and the visible shading is clipped by the window; no false
+  # boundary is created at the window edge and no warning is required.
   p <- ggplot() +
     geom_cdf(fun = pnorm, xlim = c(-1, 1), p = 0.95)
-  expect_warning(ggplotGrob(p), "not reached")
+  expect_no_warning(g <- ggplotGrob(p))
+  d <- ggplot_build(p)$data[[1]]
+  expect_equal(
+    unique(stats::na.omit(d$shade_x_upper_raw)),
+    qnorm(0.95),
+    tolerance = 1e-8
+  )
+  expect_lte(max(d$x_eval), 1)
 })
