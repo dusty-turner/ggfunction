@@ -290,3 +290,15 @@ test_that("user-supplied colour is respected (no default color override)", {
   )
   expect_identical(unique(b4$data[[1]]$colour), "tomato")
 })
+
+test_that("survival shading defaults to translucent and honors user alpha", {
+  poly_fill_alphas <- function(p) {
+  polys <- layer_grobs(p, 1, c("polygon", "area", "ribbon"))
+  fills <- unlist(lapply(polys, function(g) unique(as.character(g$gp$fill))))
+  unname(grDevices::col2rgb(fills, alpha = TRUE)["alpha", ] / 255)
+}
+
+  p <- ggplot() +
+    geom_survival(cdf_fun = pnorm, xlim = c(-3, 3), p = 0.3)
+  expect_equal(poly_fill_alphas(p), 0.35, tolerance = 0.01)
+})
