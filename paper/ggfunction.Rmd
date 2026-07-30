@@ -456,6 +456,22 @@ distribution. That is rarely what a statistical diagram intends. In
 computed on the declared support; the coordinate system then determines which
 part of the result is visible.
 
+More generally, each distribution layer operates on the pair (function,
+support), and the package maintains a one-way containment among three
+domains: the declared support determines every statistical quantity; the
+display window (`xlim`) selects which part of the result is visible; and the
+scales' coordinate transformations style that view. Nothing flows backward.
+All limits and supports are interpreted in data coordinates, and under
+transformed scales the layers build their evaluation grids evenly in panel
+space, evaluate the user's function at the data-space preimages, and
+transform computed positions exactly once for display---a deliberate
+difference from `ggplot2::stat_function()`, which interprets `xlim` in
+transformed scale space. Each stat retains raw statistical values
+(evaluation points, densities, cumulative probabilities, shading boundaries)
+alongside display positions, so probability calculations never consume a
+transformed number: a shading boundary is an exact distributional quantile,
+invariant to the grid resolution and to the axis scales.
+
 The same distinction matters for bounded supports. A beta density should be
 integrated over $[0,1]$, not over the displayed portion of that interval. A
 Weibull or exponential hazard should accumulate from time zero unless the user
@@ -470,10 +486,11 @@ finite set of support points. If `support` is omitted and `xlim` is supplied,
 the package evaluates the integer support from `ceiling(xlim[1])` through
 `floor(xlim[2])`; if both are omitted, it uses a small default support. This is
 convenient for quick binomial and Poisson examples, but it also means that
-`xlim` is part of the discrete computation unless `support` is supplied. The
-package does not issue a periodic startup-style message for this documented
-default; in analyses where `xlim` is only a visual crop, users should declare
-the full `support` explicitly and crop with coordinates.
+`xlim` is part of the discrete computation unless `support` is supplied. When
+the drafted support demonstrably fails to carry the distribution's mass, the
+layer alerts and proceeds with the declared, truncated object; in analyses
+where `xlim` is only a visual crop, users should declare the full `support`
+explicitly and crop with coordinates.
 
 Display windows still have an important role. They let the user focus on the
 region where a comparison is readable, crop extreme tails, or align several
@@ -983,17 +1000,23 @@ streamlines.
 
 ## Validation and warnings
 
-The package validates common failure modes before plotting. Densities are
-checked for approximate normalization over their declared support, PMFs are
-checked for non-negative finite mass and approximate summation, CDF-like inputs
-are checked for monotonicity where the route requires it, and support/window
-diagnostics warn when an HDR computation domain omits substantial probability
-mass. Computed survival, quantile, hazard, and cumulative-hazard curves are
-soft-checked as well: survival curves for unit-to-zero endpoint behavior and
-monotone decrease, quantile curves for monotone increase within the declared
-support, hazards for non-negativity, and cumulative hazards additionally for
-monotone increase. These diagnostics alert without aborting and can be
-disabled per layer via `check = FALSE` or globally via the package option. Invalid source combinations are rejected. Most distribution geoms require
+The package validates common failure modes before plotting, in two tiers.
+Structural invalidity---a source function returning the wrong type or
+length, or non-finite or negative mass---always errors, because no coherent
+display exists for such input. Distributional plausibility is a diagnostic
+tier: densities are checked for approximate normalization over their
+declared support, PMFs for approximate unit mass, cumulative sources for
+monotonicity and the unit interval, computed survival, quantile, hazard, and
+cumulative-hazard curves for their defining shape constraints, and HDR
+computation domains for omitted probability mass. These diagnostics alert
+without aborting---the declared object is presumed to be what the layer name
+says it is---and can be disabled per layer via `check = FALSE` or globally
+via the package option. Separately, a request for a quantity the declared
+object does not possess warns unconditionally rather than fabricating an
+answer: a shading probability exceeding the mass attained on a truncated
+support warns and shades the attainable region, and a discrete quantile
+function simply ends at the attained mass. Invalid source combinations are
+rejected. Most distribution geoms require
 exactly one source function, but hazard layers also accept the documented
 bundle `pdf_fun` + `cdf_fun`, which avoids deriving either component
 numerically.
