@@ -95,10 +95,10 @@ test_that("StatCDFDiscrete computes over full support before xlim display filter
   expect_equal(result$y, pbinom(3:7, size = 10, prob = 0.5), tolerance = 1e-10)
 })
 
-test_that("StatCDFDiscrete alerts and proceeds for truncated PMF support", {
+test_that("StatCDFDiscrete aborts for truncated PMF support", {
   scales <- list(x = NULL)
-  expect_message(
-    out <- StatCDFDiscrete$compute_group(
+  expect_error(
+    StatCDFDiscrete$compute_group(
       data = data.frame(group = 1),
       scales = scales,
       pmf_fun = dbinom,
@@ -107,8 +107,6 @@ test_that("StatCDFDiscrete alerts and proceeds for truncated PMF support", {
     ),
     "full computational support"
   )
-  # the truncated object is drawn honestly: cumulative sums over 3:7 only
-  expect_equal(out$cdf, cumsum(dbinom(3:7, 10, 0.5)), tolerance = 1e-12)
 })
 
 # --- Alternate input: survival_fun ---

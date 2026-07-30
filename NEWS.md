@@ -72,28 +72,18 @@ changes are listed below.
   preceding support point rather than 0, survival at S rather than 1, and
   the QF at its true left boundary.
 
-### Validation (two tiers: structure errors, plausibility alerts)
+### Validation (structural checks always abort)
 
 * PMFs are evaluated exactly once per Stat computation and structurally
   validated: numeric output, one value per support point, finite,
-  non-negative, positive total. Structural invalidity always errors —
-  independent of `options(ggfunction.check)` — because no coherent display
-  exists for such input.
-* Distributional plausibility is a diagnostic tier that alerts and
-  proceeds: a PMF whose declared support carries total mass measurably
-  different from 1 (beyond 1e-2), direct discrete survival/CDF values
-  outside [0, 1] beyond roundoff (roundoff excursions are clamped), and
-  non-monotone cumulative sources all alert and are drawn as declared. The
-  discrete constructors (`geom_pmf()`, `geom_pmf_2d()`,
-  `geom_cdf_discrete()`, `geom_survival_discrete()`, `geom_qf_discrete()`)
-  gained a `check` argument; these diagnostics are silenced by
-  `check = FALSE` or `options(ggfunction.check = FALSE)`.
-* Separately, a request for a quantity the declared object does not possess
-  warns unconditionally rather than fabricating an answer: a shading
-  probability exceeding the mass attained on a (possibly truncated)
-  declared support warns and shades the attainable region, and the discrete
-  quantile function simply ends at the attained mass instead of pinning the
-  observed maximum to probability 1.
+  non-negative, positive total. PMF-derived cumulative routes (discrete
+  CDF/survival/QF) additionally require the declared support to carry total
+  mass 1 within 1e-8 — supply the full computational `support` and use
+  `xlim` only as the display window. These structural checks cannot be
+  disabled with `options(ggfunction.check = FALSE)`.
+* Direct discrete survival and CDF sources are strictly validated (finite,
+  within [0, 1] with roundoff clamping, monotone); violations abort instead
+  of drawing silently.
 * Probability shading arguments share one strict validator across geoms:
   scalar `p` in (0, 1), `p_lower`/`p_upper` supplied together with
   `p_lower < p_upper`, no `p` alongside the pair, and
@@ -148,12 +138,6 @@ changes are listed below.
   `conf_int = FALSE` needs no declaration. QQ plots are unaffected.
 
 ### Other user-visible changes
-
-* `geom_cdf()` and `geom_survival()` probability shading now defaults to a
-  translucent fill (alpha 0.35, matching `geom_pdf()`) instead of opaque
-  grey; a supplied `alpha` aesthetic overrides, and the curve itself keeps
-  full opacity. Shaded regions are translucent by default across the
-  package.
 
 * `geom_pdf_2d()` now requires a finite function domain for a
   function-only layer (`xlim`/`ylim`, or `hdr_xlim`/`hdr_ylim` for HDR

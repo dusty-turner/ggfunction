@@ -61,13 +61,6 @@
 #' @param shade_outside Logical; if `TRUE`, shading is applied to the tails
 #'   outside the `p_lower`/`p_upper` interval rather than inside. Defaults to
 #'   `FALSE`.
-#' @param check Logical; if `TRUE` (the default), issue plausibility
-#'   diagnostics — an alert when the evaluated masses or cumulative values
-#'   are measurably inconsistent with a distribution on the declared support
-#'   (non-unit total mass, values outside \[0, 1\], non-monotone cumulative
-#'   values). Use `FALSE` (or `options(ggfunction.check = FALSE)`) to
-#'   suppress these diagnostics; structural invalidity (wrong type or
-#'   length, non-finite or negative values) always errors.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
@@ -136,8 +129,7 @@ geom_qf_discrete <- function(
     lower.tail = TRUE,
     p_lower = NULL,
     p_upper = NULL,
-    shade_outside = FALSE,
-    check = TRUE
+    shade_outside = FALSE
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -175,7 +167,6 @@ geom_qf_discrete <- function(
       p_lower = p_lower,
       p_upper = p_upper,
       shade_outside = shade_outside,
-      check = check,
       ...
     )
   )
@@ -238,7 +229,7 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
                            xlim = NULL, support = NULL, args = NULL,
                            p = NULL, lower.tail = TRUE,
                            p_lower = NULL, p_upper = NULL,
-                           shade_outside = FALSE, check = TRUE) {
+                           shade_outside = FALSE) {
 
     # Validate: exactly one source
     n_provided <- (!is.null(fun)) + (!is.null(pmf_fun)) + (!is.null(cdf_fun)) +
@@ -278,21 +269,21 @@ StatQFDiscrete <- ggproto("StatQFDiscrete", Stat,
       x_vals <- discrete_support(xlim = xlim, support = support)
       cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
       cdf_vals <- validate_discrete_cdf_values(
-        cdf_injected(x_vals), x_vals, arg = "cdf_fun", check = check
+        cdf_injected(x_vals), x_vals, arg = "cdf_fun"
       )
       qdf <- data.frame(q = x_vals, p_right = cdf_vals)
     } else if (!is.null(pmf_fun)) {
       x_vals <- discrete_support(xlim = xlim, support = support)
       # Evaluated and structurally validated exactly once.
       pmf_vals <- evaluate_pmf(
-        pmf_fun, x_vals, args = args, arg = "pmf_fun", check = check
+        pmf_fun, x_vals, args = args, arg = "pmf_fun", normalization = "abort"
       )
       qdf <- data.frame(q = x_vals, p_right = cumsum(pmf_vals))
     } else {
       x_vals <- discrete_support(xlim = xlim, support = support)
       surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
       surv_vals <- validate_discrete_survival(
-        surv_injected(x_vals), x_vals, arg = "survival_fun", check = check
+        surv_injected(x_vals), x_vals, arg = "survival_fun"
       )
       qdf <- data.frame(q = x_vals, p_right = 1 - surv_vals)
     }

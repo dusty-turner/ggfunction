@@ -24,7 +24,6 @@ dusty_files*
 ^cran-comments\.md$
 ^CHANGES-SUMMARY\.md$
 ^CORRECTNESS-.*\.md$
-^contract-demos\.R$
 ^CRAN-SUBMISSION$
 ^revdep$
 ^.*\.Rcheck$

@@ -59,13 +59,6 @@
 #'   included and the actual coverage can exceed the target. A message is
 #'   issued via [cli::cli_inform()] reporting the actual coverages whenever
 #'   they differ.
-#' @param check Logical; if `TRUE` (the default), issue plausibility
-#'   diagnostics — an alert when the evaluated masses or cumulative values
-#'   are measurably inconsistent with a distribution on the declared support
-#'   (non-unit total mass, values outside \[0, 1\], non-monotone cumulative
-#'   values). Use `FALSE` (or `options(ggfunction.check = FALSE)`) to
-#'   suppress these diagnostics; structural invalidity (wrong type or
-#'   length, non-finite or negative values) always errors.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
@@ -143,8 +136,7 @@ geom_pmf <- function(mapping = NULL,
                      p_lower = NULL,
                      p_upper = NULL,
                      shade_outside = FALSE,
-                     shade_hdr = NULL,
-                     check = TRUE) {
+                     shade_hdr = NULL) {
   type <- match.arg(type)
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -184,7 +176,6 @@ geom_pmf <- function(mapping = NULL,
     p_upper = p_upper,
     shade_outside = shade_outside,
     shade_hdr = shade_hdr,
-    check = check,
     ...
   )
 
@@ -221,7 +212,7 @@ StatPMF <- ggproto("StatPMF", Stat,
   compute_group = function(data, scales, fun, xlim = NULL, support = NULL, args = NULL,
                            shade_hdr = NULL, p = NULL, lower.tail = TRUE,
                            p_lower = NULL, p_upper = NULL, shade_outside = FALSE,
-                           check = TRUE, ...) {
+                           ...) {
 
     x_vals <- discrete_support(xlim = xlim, support = support)
 
@@ -236,7 +227,7 @@ StatPMF <- ggproto("StatPMF", Stat,
     # mass vector drives checks, plotting, HDRs, and shading.
     y_vals <- evaluate_pmf(
       fun, x_vals, args = args, arg = "fun",
-      tol = 1e-2, check = check
+      normalization = "warn", tol = 1e-2
     )
     out <- data.frame(
       x = scale_forward(scales$x, x_vals),

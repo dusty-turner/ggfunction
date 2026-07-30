@@ -223,9 +223,8 @@ test_that("stateful PMFs are called exactly once per Stat computation", {
   }
 })
 
-test_that("cumulative-route normalization is a diagnostic that proceeds", {
-  # The declared object is presumed to be what the geom name says it is; a
-  # measurable mass deficit alerts and the truncated object is drawn.
+test_that("cumulative-route normalization aborts regardless of ggfunction.check", {
+  withr::local_options(ggfunction.check = FALSE)
   for (build in list(
     function() StatCDFDiscrete$compute_group(
       data = data.frame(group = 1), scales = no_scales(),
@@ -240,35 +239,19 @@ test_that("cumulative-route normalization is a diagnostic that proceeds", {
       pmf_fun = function(x) rep(0.3, length(x)), support = 0:2
     )
   )) {
-    expect_message(out <- build(), "sums to")
-    expect_gt(nrow(out), 0)
+    expect_error(build(), "sum|normal")
   }
-
-  # check = FALSE and the global option both silence the diagnostic.
-  expect_silent(
-    StatCDFDiscrete$compute_group(
-      data = data.frame(group = 1), scales = no_scales(),
-      pmf_fun = function(x) rep(0.3, length(x)), support = 0:2, check = FALSE
-    )
-  )
-  withr::local_options(ggfunction.check = FALSE)
-  expect_silent(
-    StatCDFDiscrete$compute_group(
-      data = data.frame(group = 1), scales = no_scales(),
-      pmf_fun = function(x) rep(0.3, length(x)), support = 0:2
-    )
-  )
 })
 
-test_that("the 1e-2 normalization tolerance is locked down", {
-  pmf_inside <- function(x) dbinom(x, 2, 0.5) + c(2e-3, 0, -1e-3)
-  expect_silent(
+test_that("the 1e-8 cumulative tolerance is locked down", {
+  pmf_inside <- function(x) dbinom(x, 2, 0.5) + c(5e-9, 0, -5e-9)
+  expect_no_error(
     StatCDFDiscrete$compute_group(
       data.frame(group = 1), no_scales(), pmf_fun = pmf_inside, support = 0:2
     )
   )
-  pmf_outside <- function(x) dbinom(x, 2, 0.5) + rep(2e-2, length(x))
-  expect_message(
+  pmf_outside <- function(x) dbinom(x, 2, 0.5) + rep(1e-7, length(x))
+  expect_error(
     StatCDFDiscrete$compute_group(
       data.frame(group = 1), no_scales(), pmf_fun = pmf_outside, support = 0:2
     ),
@@ -276,35 +259,23 @@ test_that("the 1e-2 normalization tolerance is locked down", {
   )
 })
 
-test_that("a truncated Poisson via xlim alone draws with a diagnostic", {
-  expect_message(
-    b <- ggplot_build(
-      ggplot() +
-        geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 8), args = list(lambda = 5))
-    ),
-    "sums to"
-  )
-  d <- b$data[[1]]
-  expect_equal(nrow(d), 9)
-  expect_equal(d$cdf, ppois(0:8, 5), tolerance = 1e-12)
-})
-
-test_that("shading targets beyond the attained mass warn unconditionally", {
-  expect_warning(
-    idx <- pmf_shade_index(dpois(0:8, 5), p = 0.95),
-    "not attainable"
-  )
-  expect_true(all(idx))
-  # the warning is a request/object mismatch, not a validity diagnostic,
-  # so check = FALSE does not silence it
-  withr::local_options(ggfunction.check = FALSE)
-  expect_warning(pmf_shade_index(dpois(0:8, 5), p = 0.95), "not attainable")
-})
-
 # --- direct discrete survival validation ---
 
-test_that("structurally invalid survival input aborts; shape issues alert", {
-  # structure: hard, regardless of options
+test_that("invalid direct survival values abort", {
+  expect_error(
+    StatSurvivalDiscrete$compute_group(
+      data.frame(group = 1), no_scales(),
+      fun = function(x) rep(2, length(x)), support = 0:2
+    ),
+    "\\[0, 1\\]"
+  )
+  expect_error(
+    StatSurvivalDiscrete$compute_group(
+      data.frame(group = 1), no_scales(),
+      fun = function(x) rep(-0.5, length(x)), support = 0:2
+    ),
+    "\\[0, 1\\]"
+  )
   expect_error(
     StatSurvivalDiscrete$compute_group(
       data.frame(group = 1), no_scales(),
@@ -315,55 +286,28 @@ test_that("structurally invalid survival input aborts; shape issues alert", {
   expect_error(
     StatSurvivalDiscrete$compute_group(
       data.frame(group = 1), no_scales(),
+      fun = function(x) seq(0, 1, length.out = length(x)), support = 0:2
+    ),
+    "increase"
+  )
+  expect_error(
+    StatSurvivalDiscrete$compute_group(
+      data.frame(group = 1), no_scales(),
       fun = function(x) c(0.9, 0.5), support = 0:2
     ),
     "one.*per support"
   )
-
-  # shape: diagnostic alerts that proceed with the values as supplied
-  expect_message(
-    out_hi <- StatSurvivalDiscrete$compute_group(
-      data.frame(group = 1), no_scales(),
-      fun = function(x) rep(2, length(x)), support = 0:2
-    ),
-    "\\[0, 1\\]"
-  )
-  expect_equal(out_hi$survival, rep(2, 3))
-  expect_message(
-    StatSurvivalDiscrete$compute_group(
-      data.frame(group = 1), no_scales(),
-      fun = function(x) rep(-0.5, length(x)), support = 0:2
-    ),
-    "\\[0, 1\\]"
-  )
-  expect_message(
-    out_inc <- StatSurvivalDiscrete$compute_group(
-      data.frame(group = 1), no_scales(),
-      fun = function(x) seq(0, 1, length.out = length(x)), support = 0:2
-    ),
-    "non-increasing"
-  )
-  expect_equal(out_inc$survival, seq(0, 1, length.out = 3))
-
-  # and check = FALSE silences the shape diagnostics
-  expect_silent(
-    StatSurvivalDiscrete$compute_group(
-      data.frame(group = 1), no_scales(),
-      fun = function(x) rep(2, length(x)), support = 0:2, check = FALSE
-    )
-  )
 })
 
-test_that("non-monotone CDF sources alert and proceed", {
-  expect_message(
-    out <- StatSurvivalDiscrete$compute_group(
+test_that("non-monotone CDF sources abort", {
+  expect_error(
+    StatSurvivalDiscrete$compute_group(
       data.frame(group = 1), no_scales(),
       cdf_fun = function(x) rev(seq(0, 1, length.out = length(x))),
       support = 0:4
     ),
-    "non-decreasing"
+    "decrease"
   )
-  expect_equal(nrow(out), 5)
 })
 
 test_that("roundoff excursions are clamped, larger ones abort", {

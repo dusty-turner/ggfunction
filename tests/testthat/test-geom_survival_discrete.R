@@ -83,10 +83,10 @@ test_that("StatSurvivalDiscrete computes over full support before xlim display f
   expect_equal(result$y, 1 - pbinom(3:7, size = 10, prob = 0.5), tolerance = 1e-10)
 })
 
-test_that("StatSurvivalDiscrete alerts and proceeds for truncated PMF support", {
+test_that("StatSurvivalDiscrete aborts for truncated PMF support", {
   scales <- list(x = NULL)
-  expect_message(
-    out <- StatSurvivalDiscrete$compute_group(
+  expect_error(
+    StatSurvivalDiscrete$compute_group(
       data = data.frame(group = 1),
       scales = scales,
       pmf_fun = dbinom,
@@ -95,7 +95,6 @@ test_that("StatSurvivalDiscrete alerts and proceeds for truncated PMF support", 
     ),
     "full computational support"
   )
-  expect_equal(out$survival, 1 - cumsum(dbinom(3:7, 10, 0.5)), tolerance = 1e-12)
 })
 
 # --- Alternate inputs ---

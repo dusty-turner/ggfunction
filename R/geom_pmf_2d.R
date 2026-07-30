@@ -58,13 +58,6 @@
 #' @param drop_zeros Logical. If `TRUE` (default), lattice points with zero
 #'   mass are removed before rendering. Useful for distributions with
 #'   non-product support evaluated over a bounding lattice.
-#' @param check Logical; if `TRUE` (the default), issue plausibility
-#'   diagnostics — an alert when the evaluated masses or cumulative values
-#'   are measurably inconsistent with a distribution on the declared support
-#'   (non-unit total mass, values outside \[0, 1\], non-monotone cumulative
-#'   values). Use `FALSE` (or `options(ggfunction.check = FALSE)`) to
-#'   suppress these diagnostics; structural invalidity (wrong type or
-#'   length, non-finite or negative values) always errors.
 #' @param type Character. Either `"point"` (default) for a balloon plot with
 #'   `size = after_stat(prob)`, or `"tile"` for a heatmap with
 #'   `fill = after_stat(prob)`.
@@ -158,8 +151,7 @@ geom_pmf_2d <- function(
     args = list(),
     shade_hdr = NULL,
     drop_zeros = TRUE,
-    type = c("point", "tile"),
-    check = TRUE
+    type = c("point", "tile")
 ) {
   type <- match.arg(type)
 
@@ -214,7 +206,6 @@ geom_pmf_2d <- function(
       args = args,
       shade_hdr = shade_hdr,
       drop_zeros = drop_zeros,
-      check = check,
       na.rm = na.rm,
       ...
     )
@@ -227,8 +218,7 @@ StatPMF2d <- ggproto("StatPMF2d", Stat,
 
   compute_group = function(data, scales, fun, xlim = NULL, ylim = NULL,
                            support_x = NULL, support_y = NULL, args = NULL,
-                           shade_hdr = NULL, drop_zeros = TRUE,
-                           check = TRUE, ...) {
+                           shade_hdr = NULL, drop_zeros = TRUE, ...) {
 
     x_vals <- discrete_support(xlim, support_x)
     y_vals <- discrete_support(ylim, support_y)
@@ -257,7 +247,7 @@ StatPMF2d <- ggproto("StatPMF2d", Stat,
     grid$prob <- as.numeric(prob)
     grid$mass <- grid$prob
 
-    invisible(check_pmf_mass_normalization(grid$prob, tol = 1e-2, check = check))
+    invisible(check_pmf_mass_normalization(grid$prob, tol = 1e-2))
 
     if (!is.null(shade_hdr)) {
       grid$probs <- discrete_hdr_probs(grid$prob, shade_hdr)

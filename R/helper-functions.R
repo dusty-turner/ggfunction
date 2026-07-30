@@ -239,11 +239,11 @@ check_pmf_normalization <- function(f, support, tol = 1e-3,
 #' regardless of `options(ggfunction.check)`; only the soft non-unit-total
 #' diagnostic is gated.
 #' @noRd
-check_pmf_mass_normalization <- function(mass, tol = 1e-3, check = TRUE) {
+check_pmf_mass_normalization <- function(mass, tol = 1e-3) {
   if (any(!is.finite(mass)) || any(mass < 0)) {
     cli::cli_abort("{.arg fun} must return finite, non-negative mass values over the evaluation lattice.")
   }
-  if (!ggfunction_check_enabled(check)) return(invisible(NA_real_))
+  if (!ggfunction_check_enabled()) return(invisible(NA_real_))
   total <- sum(mass)
   if (abs(total - 1) > tol) {
     cli::cli_alert(sprintf(
@@ -487,27 +487,6 @@ pmf_shade_index <- function(y, p = NULL, lower.tail = TRUE,
   n <- length(y)
   if (n == 0L) return(logical(0))
   cum <- cumsum(y)
-
-  # A request for a quantity the declared object does not possess warns
-  # unconditionally: it is a mismatch between request and object, not an
-  # object-validity diagnostic, so `check = FALSE` does not silence it.
-  total <- cum[n]
-  warn_unreached <- function(target) {
-    cli::cli_warn(c(
-      sprintf("A shading probability of %.4g is not attainable: the declared support carries total mass %.4g.", target, total),
-      "i" = "Supply the full {.arg support} if the distribution is truncated."
-    ))
-  }
-  slack <- 1e-8
-  if (!is.null(p_lower) && !is.null(p_upper)) {
-    if (p_upper > total + slack) {
-      warn_unreached(p_upper)
-    } else if (p_lower > total + slack) {
-      warn_unreached(p_lower)
-    }
-  } else if (!is.null(p) && p > total + slack) {
-    warn_unreached(p)
-  }
   if (!is.null(p_lower) && !is.null(p_upper)) {
     idx_lo <- which(cum >= p_lower)[1L]
     if (is.na(idx_lo)) idx_lo <- n

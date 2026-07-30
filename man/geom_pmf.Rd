@@ -38,8 +38,7 @@ geom_pmf(
   p_lower = NULL,
   p_upper = NULL,
   shade_outside = FALSE,
-  shade_hdr = NULL,
-  check = TRUE
+  shade_hdr = NULL
 )
 
 StatPMF
@@ -169,14 +168,6 @@ are threshold-based, so all support points tied at the cutoff mass are
 included and the actual coverage can exceed the target. A message is
 issued via \code{\link[cli:cli_abort]{cli::cli_inform()}} reporting the actual coverages whenever
 they differ.}
-
-\item{check}{Logical; if \code{TRUE} (the default), issue plausibility
-diagnostics — an alert when the evaluated masses or cumulative values
-are measurably inconsistent with a distribution on the declared support
-(non-unit total mass, values outside [0, 1], non-monotone cumulative
-values). Use \code{FALSE} (or \code{options(ggfunction.check = FALSE)}) to
-suppress these diagnostics; structural invalidity (wrong type or
-length, non-finite or negative values) always errors.}
 }
 \value{
 A ggplot2 layer.
