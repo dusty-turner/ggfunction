@@ -44,7 +44,9 @@
 #'   of the distribution. Defaults to `c(-Inf, Inf)`. It is used when deriving
 #'   survival values from a PDF, quantile, or hazard function.
 #' @param color Line color for the survival curve.
-#' @param fill Fill color for the shaded probability region.
+#' @param fill Fill color for the shaded probability region. The region is
+#'   drawn at alpha 0.35 unless an `alpha` aesthetic is supplied; the curve
+#'   itself stays at full opacity.
 #' @param p A single probability. When supplied, the region of the survival
 #'   curve corresponding to cumulative probability `p` from the left (that is,
 #'   x-values where \eqn{S(x) \ge 1 - p}) is shaded. Interpreted with
@@ -323,6 +325,9 @@ GeomSurvival <- ggproto("GeomSurvival", GeomArea,
         transform(clip_data[nrow(clip_data), , drop = FALSE], x = clip_range[2], y = base_y)
       )
       pd$colour <- NA
+      # Shading defaults to translucent (matching geom_pdf); a supplied
+      # alpha aesthetic overrides. The curve itself keeps its own alpha.
+      pd$alpha <- ifelse(is.na(pd$alpha), 0.35, pd$alpha)
       pd$ymin <- base_y
       pd$ymax <- pd$y
       pd

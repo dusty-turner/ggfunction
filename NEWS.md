@@ -149,6 +149,12 @@ changes are listed below.
 
 ### Other user-visible changes
 
+* `geom_cdf()` and `geom_survival()` probability shading now defaults to a
+  translucent fill (alpha 0.35, matching `geom_pdf()`) instead of opaque
+  grey; a supplied `alpha` aesthetic overrides, and the curve itself keeps
+  full opacity. Shaded regions are translucent by default across the
+  package.
+
 * `geom_pdf_2d()` now requires a finite function domain for a
   function-only layer (`xlim`/`ylim`, or `hdr_xlim`/`hdr_ylim` for HDR
   types); the raster type previously defaulted silently to `[-1, 1]^2`
