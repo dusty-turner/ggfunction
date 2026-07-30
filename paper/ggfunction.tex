@@ -262,7 +262,7 @@ survival $S$ & $F$, $f$, $Q$, or $h$ & $1-F$\\
 \hline
 quantile $Q$ & $F$, $f$, $S$, or $h$ & bracketed \code{stats::uniroot()} on $F$\\
 \hline
-hazard $h$ & $f$, $F$, $S$, or $Q$ & $f/S$; $f+F$ accepted\\
+hazard $h$ & $f$, $F$, $S$, or $Q$ & $f/S$ with tail-stable $S$; $-(\log S)'$ from $S$; $f+F$ accepted\\
 \hline
 cum. hazard $H$ & $h$, $F$, $S$, $f$, or $Q$ & $-\log S$ or \code{stats::integrate()} on $h$\\
 \hline
@@ -501,6 +501,13 @@ Diagnostic layers use the same probability-scale argument. \texttt{geom\_ppplot(
 compares theoretical and empirical probabilities, \texttt{geom\_qqplot()} compares
 theoretical and sample quantiles, and \texttt{geom\_spplot()} applies Michael's
 arcsine-square-root stabilization \citep{michael1983stabilized} to the PP plot.
+Observations enter through the non-positional \texttt{sample} aesthetic, as in
+\texttt{ggplot2::geom\_qq()}: \CRANpkg{ggplot2} transforms position aesthetics before
+a layer's statistic runs, so a positional input would hand the null
+distribution transformed values whenever an axis carries a transformation,
+whereas \texttt{sample} guarantees that the null CDF or quantile function always
+receives the raw data. Because the PP and SP bands are continuous-null
+procedures, requesting one requires declaring \texttt{null\_type\ =\ "continuous"}.
 When the null distribution is fully specified via an input function \texttt{fun}, the DKW/Massart band is a
 finite-sample simultaneous band for the probability integral transform. When
 parameters are estimated from the same data being plotted, that argument no
@@ -656,7 +663,14 @@ are:
 \item
   Survival to CDF or cumulative hazard: algebraic transformations.
 \item
-  Hazard to cumulative hazard: \texttt{stats::integrate()} from the hazard origin.
+  Survival or PDF to hazard: the logarithmic derivative \(-\tfrac{d}{dx}\log
+  S(x)\), or \(f\) divided by an upper-tail integral of \(f\); both remain stable
+  deep in the tail, where forming \(f/(1-F)\) loses all precision once \(F\)
+  rounds to 1.
+\item
+  Hazard to cumulative hazard: \texttt{stats::integrate()} from the hazard origin,
+  with exact endpoint values (\(H = \infty\), hence \(F = 1\) and \(S = 0\), at the
+  upper support endpoint) rather than attempted divergent integrals.
 \item
   Hazard to PDF: \(f(x) = h(x)\exp\{-H(x)\}\) after deriving \(H\).
 \item
@@ -691,11 +705,11 @@ outputs used here are in \texttt{inst/benchmarks/results/} and record the run da
 platform, \proglang{R} version, package versions, grid details, and benchmark
 iteration counts.
 
-The reported run (2026-06-28 22:03:56 CDT) was on
+The reported run (2026-07-29 19:28:09 CDT) was on
 Darwin 25.5.0 arm64 using
-\proglang{R} 4.6.0 (2026-04-24),
+\proglang{R} 4.6.1 (2026-06-24),
 \pkg{ggfunction} 0.1.0,
-\CRANpkg{ggplot2} 4.0.3,
+\CRANpkg{ggplot2} 4.0.3.9000,
 \CRANpkg{ggdensity} 1.0.1, and
 \CRANpkg{ggvfields} 1.0.0. The benchmark
 script used \CRANpkg{bench} \citep{bench} 1.1.4. Accuracy
@@ -737,15 +751,15 @@ PMF $\to$ QF & binomial(20,0.35) & 199 & 0.00e+00 & --\\
 \hline
 Case & Domain & Median & Iterations\\
 \hline
-geom\_pdf(fun = dnorm) & 101 x values on [-4, 4] & 29.1ms & 10\\
+geom\_pdf(fun = dnorm) & 101 x values on [-4, 4] & 17.5ms & 10\\
 \hline
-geom\_pdf(cdf\_fun = pnorm) & 101 x values on [-4, 4] & 28.1ms & 10\\
+geom\_pdf(cdf\_fun = pnorm) & 101 x values on [-4, 4] & 19.8ms & 10\\
 \hline
-geom\_cdf(pdf\_fun = dnorm) & 101 x values on [-4, 4] & 28.5ms & 10\\
+geom\_cdf(pdf\_fun = dnorm) & 101 x values on [-4, 4] & 22.2ms & 10\\
 \hline
-geom\_function\_2d\_1d() & 80 x 80 grid on [-pi, pi]\textasciicircum{}2 & 60.1ms & 10\\
+geom\_function\_2d\_1d() & 80 x 80 grid on [-pi, pi]\textasciicircum{}2 & 64.7ms & 10\\
 \hline
-geom\_pdf\_2d(), ggdensity HDR & 60 x 60 grid on [-3, 3]\textasciicircum{}2 & 140.6ms & 10\\
+geom\_pdf\_2d(), ggdensity HDR & 60 x 60 grid on [-3, 3]\textasciicircum{}2 & 90.8ms & 10\\
 \hline
 \end{tabular}
 \end{table}

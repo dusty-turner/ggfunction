@@ -110,7 +110,7 @@ conversion_continuous <- data.frame(
     "\\code{stats::integrate()} or identity",
     "$1-F$",
     "bracketed \\code{stats::uniroot()} on $F$",
-    "$f/S$; $f+F$ accepted",
+    "$f/S$ with tail-stable $S$; $-(\\log S)'$ from $S$; $f+F$ accepted",
     "$-\\log S$ or \\code{stats::integrate()} on $h$"
   ),
   check.names = FALSE
@@ -280,13 +280,13 @@ cdf_complete + echf_complete
 set.seed(3102)
 diag_data <- data.frame(x = rt(90, df = 4) / sqrt(2))
 
-qq_plot <- ggplot(diag_data, aes(x = x)) +
+qq_plot <- ggplot(diag_data, aes(sample = x)) +
   geom_qqplot(fun = qnorm, colour = "black", size = 1.3) +
   coord_equal() +
   labs(title = "QQ", x = "theoretical quantile", y = "sample quantile")
 
-sp_plot <- ggplot(diag_data, aes(x = x)) +
-  geom_spplot(fun = pnorm, colour = "black", size = 1.3) +
+sp_plot <- ggplot(diag_data, aes(sample = x)) +
+  geom_spplot(fun = pnorm, null_type = "continuous", colour = "black", size = 1.3) +
   coord_equal() +
   labs(title = "SP", x = "theoretical", y = "observed")
 

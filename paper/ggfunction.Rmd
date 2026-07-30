@@ -371,7 +371,7 @@ conversion_continuous <- data.frame(
     "\\code{stats::integrate()} or identity",
     "$1-F$",
     "bracketed \\code{stats::uniroot()} on $F$",
-    "$f/S$; $f+F$ accepted",
+    "$f/S$ with tail-stable $S$; $-(\\log S)'$ from $S$; $f+F$ accepted",
     "$-\\log S$ or \\code{stats::integrate()} on $h$"
   ),
   check.names = FALSE
@@ -660,6 +660,13 @@ Diagnostic layers use the same probability-scale argument. `geom_ppplot()`
 compares theoretical and empirical probabilities, `geom_qqplot()` compares
 theoretical and sample quantiles, and `geom_spplot()` applies Michael's
 arcsine-square-root stabilization [@michael1983stabilized] to the PP plot.
+Observations enter through the non-positional `sample` aesthetic, as in
+`ggplot2::geom_qq()`: \CRANpkg{ggplot2} transforms position aesthetics before
+a layer's statistic runs, so a positional input would hand the null
+distribution transformed values whenever an axis carries a transformation,
+whereas `sample` guarantees that the null CDF or quantile function always
+receives the raw data. Because the PP and SP bands are continuous-null
+procedures, requesting one requires declaring `null_type = "continuous"`.
 When the null distribution is fully specified via an input function `fun`, the DKW/Massart band is a
 finite-sample simultaneous band for the probability integral transform. When
 parameters are estimated from the same data being plotted, that argument no
@@ -676,13 +683,13 @@ setting.
 set.seed(3102)
 diag_data <- data.frame(x = rt(90, df = 4) / sqrt(2))
 
-qq_plot <- ggplot(diag_data, aes(x = x)) +
+qq_plot <- ggplot(diag_data, aes(sample = x)) +
   geom_qqplot(fun = qnorm, colour = "black", size = 1.3) +
   coord_equal() +
   labs(title = "QQ", x = "theoretical quantile", y = "sample quantile")
 
-sp_plot <- ggplot(diag_data, aes(x = x)) +
-  geom_spplot(fun = pnorm, colour = "black", size = 1.3) +
+sp_plot <- ggplot(diag_data, aes(sample = x)) +
+  geom_spplot(fun = pnorm, null_type = "continuous", colour = "black", size = 1.3) +
   coord_equal() +
   labs(title = "SP", x = "theoretical", y = "observed")
 
@@ -842,7 +849,13 @@ are:
 - CDF to quantile: bracketing and `stats::uniroot()`.
 - Quantile to CDF: `stats::approxfun()` interpolation on a probability grid.
 - Survival to CDF or cumulative hazard: algebraic transformations.
-- Hazard to cumulative hazard: `stats::integrate()` from the hazard origin.
+- Survival or PDF to hazard: the logarithmic derivative $-\tfrac{d}{dx}\log
+  S(x)$, or $f$ divided by an upper-tail integral of $f$; both remain stable
+  deep in the tail, where forming $f/(1-F)$ loses all precision once $F$
+  rounds to 1.
+- Hazard to cumulative hazard: `stats::integrate()` from the hazard origin,
+  with exact endpoint values ($H = \infty$, hence $F = 1$ and $S = 0$, at the
+  upper support endpoint) rather than attempted divergent integrals.
 - Hazard to PDF: $f(x) = h(x)\exp\{-H(x)\}$ after deriving $H$.
 - Discrete conversions: cumulative sums over sorted support and generalized
   inverse lookup.

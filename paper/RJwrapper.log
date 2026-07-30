@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.7.22)  23 JUL 2026 15:54
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (TeX Live 2025) (preloaded format=pdflatex 2026.7.25)  29 JUL 2026 19:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -819,7 +819,12 @@ File: ggfunction_files/figure-latex/taxonomy-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/taxonomy-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/taxonomy-1.pdf  used on input line 133.
 (pdftex.def)             Requested size: 378.42043pt x 309.54787pt.
-[2 <./ggfunction_files/figure-latex/motivating-1.pdf>] [3 <./ggfunction_files/figure-latex/taxonomy-1.pdf>] [4]
+[2 <./ggfunction_files/figure-latex/motivating-1.pdf>] [3 <./ggfunction_files/figure-latex/taxonomy-1.pdf>]
+Overfull \hbox (11.63512pt too wide) in paragraph at lines 253--270
+ [][] 
+ []
+
+[4]
 <ggfunction_files/figure-latex/gamma-views-1.pdf, id=177, 485.815pt x 395.4775pt>
 File: ggfunction_files/figure-latex/gamma-views-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/gamma-views-1.pdf>
@@ -858,22 +863,22 @@ File: ggfunction_files/figure-latex/echf-complete-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/echf-complete-1.pdf>
 Package pdftex.def Info: ggfunction_files/figure-latex/echf-complete-1.pdf  used on input line 493.
 (pdftex.def)             Requested size: 378.42043pt x 150.89699pt.
-<ggfunction_files/figure-latex/diagnostic-workflow-1.pdf, id=288, 485.815pt x 285.065pt>
+<ggfunction_files/figure-latex/diagnostic-workflow-1.pdf, id=289, 485.815pt x 285.065pt>
 File: ggfunction_files/figure-latex/diagnostic-workflow-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/diagnostic-workflow-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/diagnostic-workflow-1.pdf  used on input line 518.
+Package pdftex.def Info: ggfunction_files/figure-latex/diagnostic-workflow-1.pdf  used on input line 525.
 (pdftex.def)             Requested size: 378.42043pt x 222.04532pt.
-[9 <./ggfunction_files/figure-latex/echf-complete-1.pdf> <./ggfunction_files/figure-latex/diagnostic-workflow-1.pdf>]
-<ggfunction_files/figure-latex/survival-workflow-1.pdf, id=330, 485.815pt x 309.155pt>
+[9 <./ggfunction_files/figure-latex/echf-complete-1.pdf>]
+<ggfunction_files/figure-latex/survival-workflow-1.pdf, id=324, 485.815pt x 309.155pt>
 File: ggfunction_files/figure-latex/survival-workflow-1.pdf Graphic file (type pdf)
 <use ggfunction_files/figure-latex/survival-workflow-1.pdf>
-Package pdftex.def Info: ggfunction_files/figure-latex/survival-workflow-1.pdf  used on input line 573.
+Package pdftex.def Info: ggfunction_files/figure-latex/survival-workflow-1.pdf  used on input line 580.
 (pdftex.def)             Requested size: 378.42043pt x 240.80971pt.
-[10 <./ggfunction_files/figure-latex/survival-workflow-1.pdf>]
-LaTeX Font Info:    Trying to load font information for TS1+ppl on input line 647.
+[10 <./ggfunction_files/figure-latex/diagnostic-workflow-1.pdf>] [11 <./ggfunction_files/figure-latex/survival-workflow-1.pdf>]
+LaTeX Font Info:    Trying to load font information for TS1+ppl on input line 654.
 (/Users/david_kahle/Library/TinyTeX/texmf-dist/tex/latex/psnfss/ts1ppl.fd
 File: ts1ppl.fd 2001/06/04 font definitions for TS1/ppl.
-) [11] [12] [13] [14] (./RJwrapper.bbl (./RJwrapper.brf)
+) [12] [13] [14] (./RJwrapper.bbl (./RJwrapper.brf)
 \tf@brf=\write6
 \openout6 = `RJwrapper.brf'.
 
@@ -882,14 +887,14 @@ LaTeX Font Info:    Font shape `T1/phv/m/it' in size <9> not available
 (Font)              Font shape `T1/phv/m/sl' tried instead on input line 133.
 LaTeX Font Info:    Font shape `T1/phv/m/sl' will be
 (Font)              scaled to size 8.27998pt on input line 133.
-)
+[16])
 
 LaTeX Font Warning: Font shape `T1/zi4/m/it' undefined
-(Font)              using `T1/zi4/m/n' instead on input line 997.
+(Font)              using `T1/zi4/m/n' instead on input line 1011.
 
 LaTeX Font Info:    Font shape `T1/zi4/m/it' will be
-(Font)              scaled to size 9.18004pt on input line 1007.
-) [16] (./RJwrapper.aux)
+(Font)              scaled to size 9.18004pt on input line 1021.
+) [17] (./RJwrapper.aux)
  ***********
 LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
@@ -900,21 +905,21 @@ LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 Package rerunfilecheck Info: File `RJwrapper.out' has not changed.
 (rerunfilecheck)             Checksum: D075AE91967AB3D69DBD9018C396A322;3532.
 Package rerunfilecheck Info: File `RJwrapper.brf' has not changed.
-(rerunfilecheck)             Checksum: 6AFC26F20DA6B9177806DBDCD25DED5F;1601.
+(rerunfilecheck)             Checksum: 345211B9A07FE65CC8E76CEBFE0E5938;1598.
  ) 
 Here is how much of TeX's memory you used:
- 27645 strings out of 469453
- 507101 string characters out of 5466496
- 922215 words of memory out of 5000000
+ 27648 strings out of 469453
+ 507119 string characters out of 5466496
+ 926216 words of memory out of 5000000
  55324 multiletter control sequences out of 15000+600000
- 698788 words of font info for 404 fonts, out of 8000000 for 9000
+ 699350 words of font info for 406 fonts, out of 8000000 for 9000
  36 hyphenation exceptions out of 8191
- 117i,14n,131p,1065b,849s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 117i,14n,131p,1065b,867s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/inconsolata/Inconsolata-zi4r.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbb.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmbi.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmr.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/public/mathpazo/fplmri.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/helvetic/uhvro8a.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplb8a.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplr8a.pfb></Users/david_kahle/Library/TinyTeX/texmf-dist/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on RJwrapper.pdf (16 pages, 339785 bytes).
+Output written on RJwrapper.pdf (17 pages, 340485 bytes).
 PDF statistics:
- 619 PDF objects out of 1000 (max. 8388607)
- 533 compressed objects within 6 object streams
- 83 named destinations out of 1000 (max. 500000)
+ 624 PDF objects out of 1000 (max. 8388607)
+ 537 compressed objects within 6 object streams
+ 84 named destinations out of 1000 (max. 500000)
  83156 words of extra memory for PDF output out of 89155 (max. 10000000)
 
