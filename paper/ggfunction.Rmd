@@ -730,7 +730,17 @@ Nair's construction. The displayed limits are additive on the survival scale,
 \(\hat S(t) \pm c_{\mathrm{EP}}\mathrm{se}\{\hat S(t)\}\), and are clipped to
 \([0,1]\). The critical value is computed from Greenwood-scale endpoints at the
 first and last valid event times, so the band is a simultaneous large-sample
-band over the displayed event-time range, not an exact finite-sample band. The
+band over the displayed event-time range, not an exact finite-sample band.
+These default endpoints make the display a data-adaptive plug-in version of
+Nair's procedure; a prespecified equal-precision domain can be supplied
+through `ep_range = c(a_L, a_U)`, from which the critical value is then
+computed. Event times where Greenwood's variance is undefined---notably a
+terminal event at which all remaining subjects fail---are excluded from the
+band rather than assigned a degenerate zero-width interval, and the last
+defined interval extends flat to the end of observed follow-up as a geometric
+anchor rather than a new interval. The point estimates likewise extend
+through trailing censoring, and all-censored groups draw $\hat S \equiv 1$
+over their observation window. The
 Nelson--Aalen intervals use the Nelson variance estimate
 \[
   \widehat{\mathrm{Var}}\{\hat H(t)\} =
