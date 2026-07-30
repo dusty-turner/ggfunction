@@ -52,6 +52,13 @@
 #' @param shade_outside Logical; if `TRUE`, shading is applied to the tails
 #'   outside the `p_lower`/`p_upper` interval rather than inside. Defaults to
 #'   `FALSE`.
+#' @param check Logical; if `TRUE` (the default), issue plausibility
+#'   diagnostics — an alert when the evaluated masses or cumulative values
+#'   are measurably inconsistent with a distribution on the declared support
+#'   (non-unit total mass, values outside \[0, 1\], non-monotone cumulative
+#'   values). Use `FALSE` (or `options(ggfunction.check = FALSE)`) to
+#'   suppress these diagnostics; structural invalidity (wrong type or
+#'   length, non-finite or negative values) always errors.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
@@ -93,7 +100,7 @@
 #'     geom_cdf_discrete(fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 #'
 #'   ggplot() +
-#'     geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), support = 0:50,
+#'     geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), # support = 0:50,
 #'                       args = list(lambda = 5))
 #'
 #'   # highlight the lower half of the distribution
@@ -127,7 +134,8 @@ geom_cdf_discrete <- function(
     lower.tail = TRUE,
     p_lower = NULL,
     p_upper = NULL,
-    shade_outside = FALSE
+    shade_outside = FALSE,
+    check = TRUE
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -167,6 +175,7 @@ geom_cdf_discrete <- function(
       p_lower = p_lower,
       p_upper = p_upper,
       shade_outside = shade_outside,
+      check = check,
       ...
     )
   )
@@ -182,7 +191,7 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
                            xlim = NULL, support = NULL, args = NULL,
                            p = NULL, lower.tail = TRUE,
                            p_lower = NULL, p_upper = NULL,
-                           shade_outside = FALSE) {
+                           shade_outside = FALSE, check = TRUE) {
 
     # Validate: exactly one source
     n_provided <- (!is.null(fun)) + (!is.null(pmf_fun)) + (!is.null(survival_fun))
@@ -197,23 +206,29 @@ StatCDFDiscrete <- ggproto("StatCDFDiscrete", Stat,
 
     if (!is.null(fun)) {
       fun_injected <- function(x) rlang::inject(fun(x, !!!args))
-      cdf_vals <- validate_discrete_cdf_values(fun_injected(x_vals), x_vals, arg = "fun")
-      invisible(check_discrete_cdf(cdf_vals, source = "fun"))
+      cdf_vals <- validate_discrete_cdf_values(
+        fun_injected(x_vals), x_vals, arg = "fun", check = check
+      )
+      if (ggfunction_check_enabled(check)) {
+        invisible(check_discrete_cdf(cdf_vals, source = "fun"))
+      }
       pmf_vals <- diff(c(0, cdf_vals))
     } else if (!is.null(pmf_fun)) {
       # Evaluated and structurally validated exactly once; the
       # cumulative route requires unit total mass over the declared support.
       pmf_vals <- evaluate_pmf(
-        pmf_fun, x_vals, args = args, arg = "pmf_fun", normalization = "abort"
+        pmf_fun, x_vals, args = args, arg = "pmf_fun", check = check
       )
       cdf_vals <- cumsum(pmf_vals)
     } else {
       surv_injected <- function(x) rlang::inject(survival_fun(x, !!!args))
       surv_vals <- validate_discrete_survival(
-        surv_injected(x_vals), x_vals, arg = "survival_fun"
+        surv_injected(x_vals), x_vals, arg = "survival_fun", check = check
       )
       cdf_vals <- 1 - surv_vals
-      invisible(check_discrete_cdf(cdf_vals, source = "survival_fun"))
+      if (ggfunction_check_enabled(check)) {
+        invisible(check_discrete_cdf(cdf_vals, source = "survival_fun"))
+      }
       pmf_vals <- diff(c(0, cdf_vals))
     }
 

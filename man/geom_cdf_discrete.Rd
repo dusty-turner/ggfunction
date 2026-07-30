@@ -35,7 +35,8 @@ geom_cdf_discrete(
   lower.tail = TRUE,
   p_lower = NULL,
   p_upper = NULL,
-  shade_outside = FALSE
+  shade_outside = FALSE,
+  check = TRUE
 )
 
 StatCDFDiscrete
@@ -156,6 +157,14 @@ shading. Used with \code{p_lower}.}
 \item{shade_outside}{Logical; if \code{TRUE}, shading is applied to the tails
 outside the \code{p_lower}/\code{p_upper} interval rather than inside. Defaults to
 \code{FALSE}.}
+
+\item{check}{Logical; if \code{TRUE} (the default), issue plausibility
+diagnostics — an alert when the evaluated masses or cumulative values
+are measurably inconsistent with a distribution on the declared support
+(non-unit total mass, values outside [0, 1], non-monotone cumulative
+values). Use \code{FALSE} (or \code{options(ggfunction.check = FALSE)}) to
+suppress these diagnostics; structural invalidity (wrong type or
+length, non-finite or negative values) always errors.}
 }
 \value{
 A ggplot2 layer.
@@ -208,7 +217,7 @@ jump segments, and endpoints.}
     geom_cdf_discrete(fun = pbinom, xlim = c(0, 10), args = list(size = 10, prob = 0.5))
 
   ggplot() +
-    geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), support = 0:50,
+    geom_cdf_discrete(pmf_fun = dpois, xlim = c(0, 15), # support = 0:50,
                       args = list(lambda = 5))
 
   # highlight the lower half of the distribution

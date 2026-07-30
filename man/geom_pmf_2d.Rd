@@ -32,7 +32,8 @@ geom_pmf_2d(
   args = list(),
   shade_hdr = NULL,
   drop_zeros = TRUE,
-  type = c("point", "tile")
+  type = c("point", "tile"),
+  check = TRUE
 )
 
 StatPMF2d
@@ -159,6 +160,14 @@ non-product support evaluated over a bounding lattice.}
 \item{type}{Character. Either \code{"point"} (default) for a balloon plot with
 \code{size = after_stat(prob)}, or \code{"tile"} for a heatmap with
 \code{fill = after_stat(prob)}.}
+
+\item{check}{Logical; if \code{TRUE} (the default), issue plausibility
+diagnostics — an alert when the evaluated masses or cumulative values
+are measurably inconsistent with a distribution on the declared support
+(non-unit total mass, values outside [0, 1], non-monotone cumulative
+values). Use \code{FALSE} (or \code{options(ggfunction.check = FALSE)}) to
+suppress these diagnostics; structural invalidity (wrong type or
+length, non-finite or negative values) always errors.}
 }
 \value{
 A ggplot2 layer.

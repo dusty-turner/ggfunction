@@ -53,6 +53,13 @@
 #' @param shade_outside Logical; if `TRUE`, shading is applied to the tails
 #'   outside the `p_lower`/`p_upper` interval rather than inside. Defaults to
 #'   `FALSE`.
+#' @param check Logical; if `TRUE` (the default), issue plausibility
+#'   diagnostics — an alert when the evaluated masses or cumulative values
+#'   are measurably inconsistent with a distribution on the declared support
+#'   (non-unit total mass, values outside \[0, 1\], non-monotone cumulative
+#'   values). Use `FALSE` (or `options(ggfunction.check = FALSE)`) to
+#'   suppress these diagnostics; structural invalidity (wrong type or
+#'   length, non-finite or negative values) always errors.
 #' @param ... Other parameters passed on to [ggplot2::layer()].
 #'
 #' @section Computed variables:
@@ -125,7 +132,8 @@ geom_survival_discrete <- function(
     lower.tail = TRUE,
     p_lower = NULL,
     p_upper = NULL,
-    shade_outside = FALSE
+    shade_outside = FALSE,
+    check = TRUE
 ) {
 
   if (is.null(data)) data <- ensure_nonempty_data(data)
@@ -162,6 +170,7 @@ geom_survival_discrete <- function(
       p_lower = p_lower,
       p_upper = p_upper,
       shade_outside = shade_outside,
+      check = check,
       ...
     )
   )
@@ -177,7 +186,7 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
                            args = NULL,
                            p = NULL, lower.tail = TRUE,
                            p_lower = NULL, p_upper = NULL,
-                           shade_outside = FALSE) {
+                           shade_outside = FALSE, check = TRUE) {
 
     # Validate: exactly one source
     n_provided <- (!is.null(fun)) + (!is.null(cdf_fun)) + (!is.null(pmf_fun))
@@ -195,20 +204,20 @@ StatSurvivalDiscrete <- ggproto("StatSurvivalDiscrete", Stat,
       # Direct survival values are strictly validated: type, length,
       # finiteness, [0, 1] with roundoff clamping, and monotonicity.
       survival_vals <- validate_discrete_survival(
-        fun_injected(x_vals), x_vals, arg = "fun"
+        fun_injected(x_vals), x_vals, arg = "fun", check = check
       )
       pmf_vals <- diff(c(0, 1 - survival_vals))
     } else if (!is.null(cdf_fun)) {
       cdf_injected <- function(x) rlang::inject(cdf_fun(x, !!!args))
       cdf_vals <- validate_discrete_cdf_values(
-        cdf_injected(x_vals), x_vals, arg = "cdf_fun"
+        cdf_injected(x_vals), x_vals, arg = "cdf_fun", check = check
       )
       survival_vals <- 1 - cdf_vals
       pmf_vals <- diff(c(0, cdf_vals))
     } else {
       # Evaluated and structurally validated exactly once.
       pmf_vals <- evaluate_pmf(
-        pmf_fun, x_vals, args = args, arg = "pmf_fun", normalization = "abort"
+        pmf_fun, x_vals, args = args, arg = "pmf_fun", check = check
       )
       cdf_vals      <- cumsum(pmf_vals)
       survival_vals <- 1 - cdf_vals

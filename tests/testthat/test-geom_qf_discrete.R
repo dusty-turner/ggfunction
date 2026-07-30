@@ -88,10 +88,10 @@ test_that("StatQFDiscrete computes over full support before xlim display filteri
   expect_equal(result$p, pbinom(3:7, size = 10, prob = 0.5), tolerance = 1e-10)
 })
 
-test_that("StatQFDiscrete aborts for truncated PMF support", {
+test_that("StatQFDiscrete alerts and proceeds for truncated PMF support", {
   scales <- list(x = NULL)
-  expect_error(
-    StatQFDiscrete$compute_group(
+  expect_message(
+    out <- StatQFDiscrete$compute_group(
       data = data.frame(group = 1),
       scales = scales,
       pmf_fun = dbinom,
@@ -100,6 +100,9 @@ test_that("StatQFDiscrete aborts for truncated PMF support", {
     ),
     "full computational support"
   )
+  # boundaries stop at the attained mass; no quantile is fabricated at p = 1
+  expect_lt(max(out$p), 1)
+  expect_equal(max(out$p), sum(dbinom(3:7, 10, 0.5)), tolerance = 1e-12)
 })
 
 test_that("StatQFDiscrete uses default xlim when NULL", {
